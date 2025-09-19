@@ -4,6 +4,8 @@ const morgan = require('morgan')
 const dotenv = require('dotenv')
 const mysql = require('mysql2/promise')
 const waitForDB = require('./utils/db')
+const swaggerUi = require('swagger-ui-express')
+const swaggerSpec = require('./config/swagger')
 
 dotenv.config()
 
@@ -16,12 +18,16 @@ const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
 const gameRoutes = require('./routes/gameRoutes')
 const adminRoutes = require('./routes/adminRoutes')
-
+const s3Routes = require('./routes/s3')
+const s3CheckRoutes = require('./routes/s3-check')
+app.use('/api/s3-check', s3CheckRoutes)
 // Middleware
 app.use(cors())
 app.use(morgan('dev'))
 app.use(express.json())
 
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+app.use('/api/s3', s3Routes)
 app.use('/api/video', videoRoutes)
 app.use('/api', cpuRoutes)
 app.use('/uploads', express.static('src/uploads')) // serve 圖片
