@@ -1,0 +1,81 @@
+openapi: 3.0.0
+info:
+  title: SportsMatch S3 API
+  version: 1.0.0
+tags:
+  - name: S3
+    description: S3 for avatars — private bucket + presigned URLs. Minimal but honest.
+paths:
+  /api/s3/avatar-upload-url:
+    get:
+      tags: [S3]
+      summary: Presigned PUT (direct upload)
+      description: Returns a short‑lived URL for clients to PUT an avatar directly to S3. This endpoint does not upload bytes itself.
+      parameters:
+        - in: query
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: Used to build the key as `avatars/{userId}.{ext}`
+        - in: query
+          name: ext
+          required: false
+          schema:
+            type: string
+            default: png
+          description: File extension for the key.
+        - in: query
+          name: contentType
+          required: false
+          schema:
+            type: string
+            default: image/png
+          description: MIME type bound to the PUT.
+      responses:
+        '200':
+          description: Presigned PUT generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                  key:
+                    type: string
+                  contentType:
+                    type: string
+                  expiresIn:
+                    type: integer
+        '400':
+          description: Missing userId
+
+  /api/s3/avatar-url:
+    get:
+      tags: [S3]
+      summary: Presigned GET (query key)
+      description: Returns a 1‑hour presigned URL for reading from S3 using the `key` query parameter.
+      parameters:
+        - in: query
+          name: key
+          required: true
+          schema:
+            type: string
+          description: S3 object key, e.g. `avatars/5.jpg`.
+      responses:
+        '200':
+          description: Presigned GET generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                  key:
+                    type: string
+                  expiresIn:
+                    type: integer
+        '400':
+          description: Missing key
