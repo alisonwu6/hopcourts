@@ -13,7 +13,7 @@ const options = {
       // { url: 'https://api.sportsmatch.com', description: 'Production' },
     ],
   },
-  apis: ['./src/routes/*.js'],
+  apis: ['./src/docs/*.yaml'],
 }
 
 const swaggerSpec = swaggerJsdoc(options)

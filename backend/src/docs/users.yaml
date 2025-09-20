@@ -1,0 +1,39 @@
+openapi: 3.0.0
+info:
+  title: SportsMatch User API
+  version: 1.0.0
+  description: API for managing users in SportsMatch
+tags:
+  - name: Users
+    description: User-related operations (avatars, profiles)
+paths:
+  /api/users/{userId}/avatar:
+    get:
+      tags:
+        - Users
+      summary: Get user avatar
+      description: |
+        Returns a pre-signed URL to fetch the avatar image of the given user.
+        If the user has not uploaded an avatar, a default URL is returned.
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The ID of the user
+      responses:
+        '200':
+          description: Pre-signed URL for the avatar image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    example: https://ssm-sportsmatch-media.s3.ap-southeast-2.amazonaws.com/avatars/123.png?X-Amz-SignedHeaders=...
+        '404':
+          description: Avatar not found
+        '500':
+          description: Internal server error

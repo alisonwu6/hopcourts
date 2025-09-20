@@ -1,4 +1,12 @@
 const { createUser } = require('../models/userModel')
+const { GetObjectCommand } = require('@aws-sdk/client-s3')
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
+const { getAvatarMeta } = require('../services/dynamo')
+const { S3Client } = require('@aws-sdk/client-s3')
+
+const REGION = process.env.AWS_REGION || 'ap-southeast-2'
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'ssm-sportsmatch-media'
+const s3 = new S3Client({ region: REGION })
 
 const handleCreateUser = async (req, res) => {
   try {
@@ -53,4 +61,30 @@ const handleCreateUser = async (req, res) => {
   }
 }
 
-module.exports = { handleCreateUser }
+const handleGetUserAvatar = async (req, res) => {
+  try {
+    const { userId } = req.params
+    const meta = await getAvatarMeta(userId)
+
+    if (!meta) {
+      // 沒有上傳過 → 回傳預設頭像
+      return res.json({ url: '/uploads/default.png' })
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: meta.s3Key,
+    })
+    const url = await getSignedUrl(s3, command, { expiresIn: 3600 })
+
+    return res.json({ url })
+  } catch (err) {
+    console.error('Avatar fetch error:', err)
+    return res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = {
+  handleCreateUser,
+  handleGetUserAvatar,
+}
