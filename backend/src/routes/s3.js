@@ -2,13 +2,14 @@ const express = require('express')
 const multer = require('multer')
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3')
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
+
 const { putAvatarMeta, getAvatarMeta } = require('../services/dynamo')
+const { getParam } = require('../utils/config')
 
 const router = express.Router()
 const upload = multer()
 
 const REGION = process.env.AWS_REGION || 'ap-southeast-2'
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'ssm-sportsmatch-media'
 
 const s3 = new S3Client({ region: REGION })
 
@@ -22,7 +23,7 @@ router.get('/avatar-upload-url', async (req, res) => {
     const key = `avatars/${userId}.${safeExt}`
 
     const command = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
+      Bucket: await getParam('/n12119831/ssm_parameter'),
       Key: key,
       ContentType: contentType
     })
@@ -46,7 +47,7 @@ router.get('/avatar-url', async (req, res) => {
     const { key } = req.query
     if (!key)
       return res.status(400).json({ error: 'Missing query param "key"' })
-    const command = new GetObjectCommand({ Bucket: BUCKET_NAME, Key: key })
+    const command = new GetObjectCommand({ Bucket: await getParam('/n12119831/ssm_parameter'), Key: key })
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 })
     return res.json({ url, key, expiresIn: 3600 })
   } catch (err) {
