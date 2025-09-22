@@ -1,38 +1,70 @@
 require('dotenv').config()
-const jwt = require('jsonwebtoken')
-const bcrypt = require('bcrypt')
-const getDB = require('../utils/db')
+const { signUpUser, confirmUser, loginUser } = require('../utils/cognito')
 
-const handleLogin = async (req, res) => {
-  const { username, password } = req.body
-
+// POST /api/auth/signup
+// body: { username?, email, password }
+async function handleSignup(req, res) {
   try {
-    const db = await getDB()
-    const [rows] = await db.execute(
-      'SELECT id, username, password, role FROM users WHERE username = ?',
-      [username]
-    )
-
-    const user = rows[0]
-
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!user || !isMatch) {
-      return res.status(401).send('Invalid credentials')
+    const { username, email, password } = req.body || {}
+    if (!email || !password) {
+      return res.status(400).json({ error: 'email and password are required' })
     }
-
-    const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    )
-
-    res.json({ authToken: token })
-  } catch (error) {
-    console.error('Login error:', error)
-    res.status(500).send('Server error')
+    const result = await signUpUser({
+      username: username || email,
+      email,
+      password,
+    })
+    return res.status(200).json({
+      message: 'signup OK, check email for code',
+      userConfirmed: result.UserConfirmed === true,
+    })
+  } catch (err) {
+    console.error('Signup error:', err)
+    return res
+      .status(400)
+      .json({ error: err.name || 'SignupFailed', details: err.message })
   }
 }
 
-module.exports = {
-  handleLogin,
+// POST /api/auth/confirm
+// body: { username, code }
+async function handleConfirm(req, res) {
+  try {
+    const { username, code } = req.body || {}
+    if (!username || !code) {
+      return res.status(400).json({ error: 'username and code are required' })
+    }
+    await confirmUser({ username, code })
+    return res.status(200).json({ message: 'confirm OK' })
+  } catch (err) {
+    console.error('Confirm error:', err)
+    return res
+      .status(400)
+      .json({ error: err.name || 'ConfirmFailed', details: err.message })
+  }
 }
+
+// POST /api/auth/login
+// body: { username, password }
+async function handleLogin(req, res) {
+  try {
+    const { username, password } = req.body || {}
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ error: 'username and password are required' })
+    }
+    const tokens = await loginUser({ username, password })
+    if (!tokens || !tokens.accessToken) {
+      return res.status(401).json({ error: 'Authentication failed' })
+    }
+    return res.status(200).json(tokens)
+  } catch (err) {
+    console.error('Login error:', err)
+    return res
+      .status(400)
+      .json({ error: err.name || 'LoginFailed', details: err.message })
+  }
+}
+
+module.exports = { handleSignup, handleConfirm, handleLogin }
