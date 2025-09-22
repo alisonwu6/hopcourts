@@ -37,9 +37,9 @@ app.use('/api/users', userRoutes)
 app.use('/api/games', gameRoutes)
 
 // Test route
-// app.get('/api/health', (req, res) => {
-//   res.json({ message: 'health is good' })
-// })
+app.get('/api/health', (req, res) => {
+  res.json({ message: 'health is good' })
+})
 
 // Connect to MySQL
 async function startServer() {

@@ -84,7 +84,12 @@ const handleGetUserAvatar = async (req, res) => {
   }
 }
 
+const handleGetMe = async (req, res) => {
+  return res.json({ ok: true, user: req.user })
+}
+
 module.exports = {
   handleCreateUser,
   handleGetUserAvatar,
+  handleGetMe,
 }
