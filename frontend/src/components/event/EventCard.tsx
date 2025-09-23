@@ -21,9 +21,9 @@ export default function EventCard({
       <CardContent className="space-y-3">
         {/* Title and Time Left */}
         <div className="flex justify-between items-center">
-          <div className="text-lg font-semibold">
+          <h3 className="text-lg font-semibold truncate">
             {title} | {location}
-          </div>
+          </h3>
           <Badge variant="secondary">Starts in {timeLeft}</Badge>
         </div>
 
@@ -43,7 +43,9 @@ export default function EventCard({
         <div className="flex items-center space-x-3">
           <Avatar>
             <AvatarImage src={host.avatarUrl} />
-            <AvatarFallback>{host.name}</AvatarFallback>
+            <AvatarFallback>
+              {host.name?.slice(0,1)}
+            </AvatarFallback>
           </Avatar>
           <div className="text-sm">
             😎 {host.name} ({host.tag})
@@ -67,7 +69,7 @@ export default function EventCard({
           {participants.map((avatarUrl, index) => (
             <Avatar
               key={index}
-              className="w-7 h-7 border"
+              className="w-8 h-8 ring-1 ring-slate-200 rounded-full"
             >
               <AvatarImage src={avatarUrl} />
               <AvatarFallback>{index + 1}</AvatarFallback>
@@ -76,17 +78,11 @@ export default function EventCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-between mt-2">
-          <Button
-            className="w-full"
-            variant="default"
-          >
+        <div className="flex gap-2 mt-2">
+          <Button className="flex-1">
             Join Now
           </Button>
-          <Button
-            variant="ghost"
-            className="ml-2"
-          >
+          <Button variant="ghost" className="shrink-0">
             <Star className="w-4 h-4 mr-1" /> Save
           </Button>
         </div>

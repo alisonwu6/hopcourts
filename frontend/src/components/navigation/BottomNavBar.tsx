@@ -4,9 +4,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 
 const navItems = [
-  { label: 'Games', icon: Home, path: '/' },
-  { label: 'Teams', icon: Users, path: '/teams' },
-  { label: 'Profile', icon: User, path: '/profile' },
+  { label: 'Explore', icon: Home, path: '/home' },
+  { label: 'Squad', icon: Users, path: '/squad' },
+  { label: 'Me', icon: User, path: '/me' },
 ]
 
 export function BottomNavBar() {
