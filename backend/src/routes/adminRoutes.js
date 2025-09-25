@@ -1,10 +1,13 @@
 const express = require('express')
+const auth = require('../middleware/auth')
+const { requireGroup } = require('../middleware/auth')
 const router = express.Router()
-const verifyToken = require('../middleware/verifyToken')
-const verifyAdmin = require('../middleware/verifyAdmin')
 
-router.get('/', verifyToken, verifyAdmin, (req, res) => {
-  res.json({ message: 'Admin content' })
+router.get('/', auth, requireGroup('Admin'), (req, res) => {
+  res.json({
+    message: 'Welcome Admin',
+    user: { username: req.user.username, groups: req.user.groups },
+  })
 })
 
 module.exports = router
