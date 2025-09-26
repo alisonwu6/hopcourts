@@ -1,9 +1,12 @@
 const gameModel = require('../models/gameModel')
 const waitForDB = require('../utils/db')
+const { getCache, setCache, delCache } = require('../cache')
 
 const handleCreateGame = async (req, res) => {
   try {
     const id = await gameModel.createGame(req.body)
+
+    await delCache('games:all')
 
     res.status(201).json({ id })
   } catch (error) {
@@ -17,11 +20,25 @@ const handleGetGames = async (req, res) => {
     const { sport } = req.query
     console.log('sport', sport)
 
+    const cacheKey = 'games:all'
+
+    // check cache
+    const cached = await getCache(cacheKey)
+    if (cached) {
+      console.log('Cache HIT: games list')
+      return res.json(cached)
+    }
+
     if (sport) {
       return await getFilteredGames(req, res)
     }
 
     const games = await gameModel.getAllGames()
+
+    // save redis
+    await setCache(cacheKey, games, 60)
+    console.log('set cache')
+
     res.json(games)
   } catch (error) {
     res.status(500).send('Read failed')

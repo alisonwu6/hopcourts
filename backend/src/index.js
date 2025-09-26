@@ -41,6 +41,16 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'health is good' })
 })
 
+app.get('/debug/redis-ping', async (req, res) => {
+  try {
+    const { redis } = require('./cache')
+    const pong = await redis.ping()
+    res.json({ pong })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // Connect to MySQL
 async function startServer() {
   try {
