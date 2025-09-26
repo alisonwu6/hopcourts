@@ -1,5 +1,6 @@
 require('dotenv').config()
 const { signUpUser, confirmUser, loginUser } = require('../utils/cognito')
+const { getSecret } = require('../utils/secrets')
 
 // POST /api/auth/signup
 // body: { username?, email, password }
@@ -67,4 +68,13 @@ async function handleLogin(req, res) {
   }
 }
 
-module.exports = { handleSignup, handleConfirm, handleLogin }
+async function handleGetSecret(req, res) {
+  try {
+    const secret = await getSecret('sportsmatch/cognito-client-secret')
+    res.json({ message: 'Secret loaded successfully', secret })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { handleSignup, handleConfirm, handleLogin, handleGetSecret }
