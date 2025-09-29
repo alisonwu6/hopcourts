@@ -1,26 +1,48 @@
 import MainLayout from '@/layouts/MainLayout'
-import Header from '@/components/navigation/Header'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+
+const notifications = [
+  { id: 1, text: 'Bo joined your session for Friday futsal', time: '2m ago', type: 'roster' },
+  { id: 2, text: 'Yoga Flow starts in 1h', time: '1h ago', type: 'reminder' },
+  { id: 3, text: 'Dana left feedback on Sunrise Run Club', time: 'Yesterday', type: 'feedback' },
+]
+
 export default function Notifications() {
-  const items = [
-    { id: 1, text: 'Bo joined your session' },
-    { id: 2, text: 'Yoga Flow starts in 1h' },
-  ]
   return (
-    <MainLayout>
-      <Header />
-      <main className="mx-auto max-w-md p-4 space-y-3">
-        <h2 className="text-xl font-semibold">Notifications</h2>
-        <ul className="grid gap-2">
-          {items.map((i) => (
-            <li
-              key={i.id}
-              className="border p-2 rounded"
-            >
-              {i.text}
-            </li>
-          ))}
-        </ul>
-      </main>
+    <MainLayout
+      title="Notifications"
+      description="Stay on top of roster updates and reminders."
+      contentWidth="md"
+      actions={<Button variant="outline" size="sm">Mark all read</Button>}
+    >
+      <section className="space-y-3">
+        {notifications.map((item) => (
+          <Card
+            key={item.id}
+            className="border border-slate-200"
+          >
+            <CardContent className="flex items-start justify-between gap-3 p-5 text-sm">
+              <div>
+                <Badge
+                  variant="outline"
+                  className="mb-2 rounded-full px-3 py-1 text-xs uppercase"
+                >
+                  {item.type}
+                </Badge>
+                <p className="text-slate-700">{item.text}</p>
+              </div>
+              <div className="text-xs text-slate-400">{item.time}</div>
+            </CardContent>
+          </Card>
+        ))}
+        <Card className="border border-dashed border-slate-300 bg-white">
+          <CardContent className="p-5 text-sm text-slate-500">
+            You’re caught up. New updates will show here.
+          </CardContent>
+        </Card>
+      </section>
     </MainLayout>
   )
 }

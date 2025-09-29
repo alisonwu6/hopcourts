@@ -5,6 +5,7 @@ export interface HostInfo {
 }
 
 export interface EventCardProps {
+  id: string
   title: string
   location: string
   time: string
@@ -13,5 +14,8 @@ export interface EventCardProps {
   timeLeft: string
   host: HostInfo
   tags: string[]
-  participants: string[] // avatar URLs
+  participants: string[]
+  sport?: string
+  description?: string
+  skillLevel?: 'Beginner' | 'Intermediate' | 'Advanced'
 }

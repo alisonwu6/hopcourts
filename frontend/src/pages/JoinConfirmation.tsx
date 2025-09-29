@@ -1,26 +1,38 @@
-import MainLayout from '@/layouts/MainLayout'
-import Header from '@/components/navigation/Header'
 import { Link, useParams } from 'react-router-dom'
+import MainLayout from '@/layouts/MainLayout'
 import { Button } from '@/components/ui/button'
 
 export default function JoinConfirmation() {
   const { id } = useParams()
+
   return (
-    <MainLayout>
-      <Header />
-      <main className="mx-auto max-w-md p-6 text-center space-y-4">
-        <div className="text-3xl">✅</div>
-        <h2 className="text-xl font-semibold">You’re in!</h2>
-        <p className="text-slate-600">
-          Added to the roster. Don’t forget to add it to your calendar.
-        </p>
-        <div className="flex justify-center gap-2">
-          <Button variant="secondary">Add .ics</Button>
-          <Link to={`/sessions/${id}`}>
-            <Button>Go to session</Button>
-          </Link>
+    <MainLayout
+      title="You’re in!"
+      description="We’ve added you to the roster and notified the host."
+      contentWidth="sm"
+    >
+      <section className="text-center">
+        <div className="mx-auto grid gap-6 rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="text-4xl">✅</div>
+          <div className="space-y-2">
+            <p className="text-sm text-slate-600">
+              Add it to your calendar or share the link with friends.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button variant="outline">Add to calendar (.ics)</Button>
+              <Button variant="outline">Share to group chat</Button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Button asChild>
+              <Link to={`/sessions/${id}`}>Go to session</Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link to="/home">Browse more sessions</Link>
+            </Button>
+          </div>
         </div>
-      </main>
+      </section>
     </MainLayout>
   )
 }

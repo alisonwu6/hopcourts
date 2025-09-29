@@ -1,31 +1,52 @@
 import MainLayout from '@/layouts/MainLayout'
-import Header from '@/components/navigation/Header'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+
+const suggestions = ['Bo', 'Chen', 'Dana']
+
 export default function Reconnect() {
-  const suggestions = ['Bo', 'Chen', 'Dana']
   return (
-    <MainLayout>
-      <Header />
-      <main className="mx-auto max-w-md p-4 space-y-3">
-        <h2 className="text-xl font-semibold">Reconnect</h2>
-        <p className="text-slate-600">How was the run?</p>
-        <div className="flex gap-2">
-          <Button variant="secondary">👍</Button>
-          <Button variant="secondary">👎</Button>
-        </div>
-        <h3 className="font-medium mt-4">People you may add</h3>
-        <ul className="grid gap-2">
-          {suggestions.map((n) => (
-            <li
-              key={n}
-              className="flex items-center justify-between border p-2 rounded"
-            >
-              <div>{n}</div>
-              <Button>Add to Squad</Button>
-            </li>
-          ))}
-        </ul>
-      </main>
+    <MainLayout
+      title="How was the run?"
+      description="Log quick feedback and stay in touch with standouts."
+      contentWidth="md"
+    >
+      <section className="space-y-4">
+        <Card className="border border-slate-200">
+          <CardContent className="space-y-3 p-6 text-sm text-slate-600">
+            <p>Keep your streak strong. Let the host know how it went.</p>
+            <div className="flex gap-2">
+              <Button variant="secondary">Great energy</Button>
+              <Button variant="outline">Could be better</Button>
+            </div>
+            <textarea
+              rows={3}
+              placeholder="Anything the host should know for next time?"
+              className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+            <div className="flex justify-end">
+              <Button size="sm">Send feedback</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-slate-200">
+          <CardContent className="space-y-3 p-6">
+            <div className="text-sm font-semibold text-slate-900">People you may add</div>
+            <ul className="grid gap-2 text-sm">
+              {suggestions.map((name) => (
+                <li
+                  key={name}
+                  className="flex items-center justify-between rounded border border-slate-200 px-3 py-2"
+                >
+                  <span>{name}</span>
+                  <Button size="sm">Add to squad</Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </section>
     </MainLayout>
   )
 }
