@@ -3,8 +3,12 @@ import { Bell, MapPin, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import logoUrl from '@/assets/sportsmatch.png'
+import LanguageToggle from './LanguageToggle'
+import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function Header() {
+  const copy = useCopy()
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
@@ -15,7 +19,7 @@ export default function Header() {
           <img
             className="h-10 w-auto"
             src={logoUrl}
-            alt="SportsMatch logo"
+            alt={copy.common.appName}
             onError={(event) => {
               const target = event.target as HTMLImageElement
               target.style.display = 'none'
@@ -23,21 +27,22 @@ export default function Header() {
           />
           <div className="hidden sm:block">
             <div className="text-sm font-semibold uppercase tracking-tight text-slate-900">
-              SportsMatch
+              {copy.common.appName}
             </div>
             <div className="text-xs text-slate-500">
-              Brisbane · Find your next run
+              {copy.common.cityTagline}
             </div>
           </div>
         </Link>
         <div className="flex items-center gap-2">
+          <LanguageToggle />
           <Link to="/map">
             <Button
               variant="ghost"
               size="sm"
               className="hidden gap-1 sm:inline-flex"
             >
-              <MapPin className="h-4 w-4" /> Map view
+              <MapPin className="h-4 w-4" /> {copy.header.mapView}
             </Button>
           </Link>
           <Link to="/create">
@@ -45,16 +50,17 @@ export default function Header() {
               size="sm"
               className="gap-1"
             >
-              <Plus className="h-4 w-4" /> New session
+              <Plus className="h-4 w-4" /> {copy.header.newSession}
             </Button>
           </Link>
-          <Link to="/notifications"
+          <Link
+            to="/notifications"
             className="relative"
           >
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Notifications"
+              aria-label={copy.header.notifications}
             >
               <Bell className="h-5 w-5" />
             </Button>

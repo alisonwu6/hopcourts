@@ -3,8 +3,10 @@ import logoUrl from '@/assets/main-logo.png'
 import { Button } from '@/components/ui/button'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
 import AppleLoginButton from '@/components/button/AppleLoginButton'
+import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function Splash() {
+  const copy = useCopy()
   const REDIRECT_URI = `${window.location.origin}/auth/callback`
 
   const loginGoogle = () => {
@@ -24,11 +26,11 @@ export default function Splash() {
             <img
               className="h-12 w-auto"
               src={logoUrl}
-              alt="SportsMatch logo"
+              alt={copy.common.appName}
             />
             <div>
-              <div className="text-lg font-semibold">SportsMatch</div>
-              <div className="text-sm text-emerald-200">Find your people. Keep the streak.</div>
+              <div className="text-lg font-semibold">{copy.common.appName}</div>
+              <div className="text-sm text-emerald-200">{copy.common.tagline}</div>
             </div>
           </div>
           <Button
@@ -36,25 +38,24 @@ export default function Splash() {
             variant="ghost"
             className="text-white hover:bg-white/10"
           >
-            <Link to="/home">Skip for now</Link>
+            <Link to="/home">{copy.splash.skip}</Link>
           </Button>
         </header>
 
         <main className="flex flex-1 flex-col items-center justify-center gap-10 text-center">
           <div className="space-y-6">
             <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-              Pick-up sports that actually match your vibe
+              {copy.splash.headline}
             </h1>
             <p className="mx-auto max-w-xl text-base text-emerald-100">
-              SportsMatch is the dedicated sports community for Brisbane locals.
-              Discover open sessions, join reliable hosts, and build your squad with real follow-ups.
+              {copy.splash.subcopy}
             </p>
           </div>
           <div className="flex w-full max-w-sm flex-col gap-3">
             <GoogleLoginButton loginGoogle={loginGoogle} />
             <AppleLoginButton loginApple={loginApple} />
             <div className="text-xs text-emerald-100">
-              By continuing you agree to the <span className="underline">Terms</span> and <span className="underline">Privacy Policy</span>.
+              {copy.splash.legalNotice}
             </div>
           </div>
           <Button
@@ -62,12 +63,14 @@ export default function Splash() {
             variant="secondary"
             className="bg-white/10 text-white hover:bg-white/20"
           >
-            <Link to="/home">Explore upcoming sessions</Link>
+            <Link to="/home">{copy.splash.continueCta}</Link>
           </Button>
         </main>
         <footer className="flex justify-between text-xs text-emerald-100">
-          <span>Beta access · Request an invite</span>
-          <span>{REDIRECT_URI}</span>
+          <span>{copy.splash.footerInvite}</span>
+          <span>
+            {copy.splash.redirectLabel}: {REDIRECT_URI}
+          </span>
         </footer>
       </div>
     </div>

@@ -1,14 +1,16 @@
 import { Link, useParams } from 'react-router-dom'
 import MainLayout from '@/layouts/MainLayout'
 import { Button } from '@/components/ui/button'
+import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function JoinConfirmation() {
   const { id } = useParams()
+  const copy = useCopy()
 
   return (
     <MainLayout
-      title="You’re in!"
-      description="We’ve added you to the roster and notified the host."
+      title={copy.joinConfirmation.title}
+      description={copy.joinConfirmation.description}
       contentWidth="sm"
     >
       <section className="text-center">
@@ -16,19 +18,19 @@ export default function JoinConfirmation() {
           <div className="text-4xl">✅</div>
           <div className="space-y-2">
             <p className="text-sm text-slate-600">
-              Add it to your calendar or share the link with friends.
+              {copy.joinConfirmation.sharePrompt}
             </p>
             <div className="flex flex-col gap-2">
-              <Button variant="outline">Add to calendar (.ics)</Button>
-              <Button variant="outline">Share to group chat</Button>
+              <Button variant="outline">{copy.common.addToCalendar}</Button>
+              <Button variant="outline">{copy.common.shareToChat}</Button>
             </div>
           </div>
           <div className="flex flex-col gap-2">
             <Button asChild>
-              <Link to={`/sessions/${id}`}>Go to session</Link>
+              <Link to={`/sessions/${id}`}>{copy.common.goToSession}</Link>
             </Button>
             <Button asChild variant="ghost">
-              <Link to="/home">Browse more sessions</Link>
+              <Link to="/home">{copy.common.browseMore}</Link>
             </Button>
           </div>
         </div>

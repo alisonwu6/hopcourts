@@ -2,23 +2,20 @@ import MainLayout from '@/layouts/MainLayout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-
-const notifications = [
-  { id: 1, text: 'Bo joined your session for Friday futsal', time: '2m ago', type: 'roster' },
-  { id: 2, text: 'Yoga Flow starts in 1h', time: '1h ago', type: 'reminder' },
-  { id: 3, text: 'Dana left feedback on Sunrise Run Club', time: 'Yesterday', type: 'feedback' },
-]
+import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function Notifications() {
+  const copy = useCopy()
+
   return (
     <MainLayout
-      title="Notifications"
-      description="Stay on top of roster updates and reminders."
+      title={copy.notifications.title}
+      description={copy.notifications.description}
       contentWidth="md"
-      actions={<Button variant="outline" size="sm">Mark all read</Button>}
+      actions={<Button variant="outline" size="sm">{copy.common.markAllRead}</Button>}
     >
       <section className="space-y-3">
-        {notifications.map((item) => (
+        {copy.notifications.items.map((item) => (
           <Card
             key={item.id}
             className="border border-slate-200"
@@ -39,7 +36,7 @@ export default function Notifications() {
         ))}
         <Card className="border border-dashed border-slate-300 bg-white">
           <CardContent className="p-5 text-sm text-slate-500">
-            You’re caught up. New updates will show here.
+            {copy.notifications.empty}
           </CardContent>
         </Card>
       </section>

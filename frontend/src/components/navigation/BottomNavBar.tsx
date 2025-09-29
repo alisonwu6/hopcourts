@@ -2,6 +2,7 @@ import { ComponentType } from 'react'
 import { Home, Users, User } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
+import { useCopy } from '@/i18n/LanguageProvider'
 
 type NavItem = {
   label: string
@@ -10,15 +11,29 @@ type NavItem = {
   matchPaths?: string[]
 }
 
-const navItems: NavItem[] = [
-  { label: 'Explore', icon: Home, path: '/home', matchPaths: ['/home', '/sessions', '/map'] },
-  { label: 'Squad', icon: Users, path: '/squad' },
-  { label: 'Me', icon: User, path: '/me' },
-]
-
 export function BottomNavBar() {
   const navigate = useNavigate()
   const location = useLocation()
+  const copy = useCopy()
+
+  const navItems: NavItem[] = [
+    {
+      label: copy.common.explore,
+      icon: Home,
+      path: '/home',
+      matchPaths: ['/home', '/sessions', '/map'],
+    },
+    {
+      label: copy.common.squad,
+      icon: Users,
+      path: '/squad',
+    },
+    {
+      label: copy.common.me,
+      icon: User,
+      path: '/me',
+    },
+  ]
 
   return (
     <nav

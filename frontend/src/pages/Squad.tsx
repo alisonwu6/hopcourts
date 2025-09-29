@@ -4,47 +4,18 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { MailPlus, UsersRound } from 'lucide-react'
-
-const squadMembers = [
-  {
-    name: 'Dana',
-    suburb: 'South Brisbane',
-    sport: 'Netball',
-    streak: '12 sessions together',
-    note: 'Hosts a friendly Friday run at Davies Park',
-  },
-  {
-    name: 'Chen',
-    suburb: 'Fortitude Valley',
-    sport: 'Basketball',
-    streak: '8 sessions together',
-    note: 'Always down for weeknight scrims',
-  },
-  {
-    name: 'Bo',
-    suburb: 'West End',
-    sport: 'Running',
-    streak: '5 sessions together',
-    note: 'Tempo partner for Wednesday mornings',
-  },
-]
-
-const requests = [
-  {
-    name: 'Hana',
-    sport: 'Volleyball',
-    message: '“Loved playing at Kangaroo Point, add me for the next game?”',
-  },
-]
+import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function Squad() {
+  const copy = useCopy()
+
   return (
     <MainLayout
-      title="Your squad"
-      description="Stay connected with the athletes you trust."
+      title={copy.squad.title}
+      description={copy.squad.description}
       actions={
         <Button className="gap-1" size="sm">
-          <MailPlus className="h-4 w-4" /> Invite teammate
+          <MailPlus className="h-4 w-4" /> {copy.common.inviteTeammate}
         </Button>
       }
     >
@@ -54,16 +25,16 @@ export default function Squad() {
             <div className="flex items-center gap-3 text-slate-700">
               <UsersRound className="h-6 w-6 text-blue-500" />
               <div>
-                <div className="text-base font-semibold text-slate-900">Squad insights</div>
-                <div>3 active connections · 18 recent co-sessions · 2 pending invites</div>
+                <div className="text-base font-semibold text-slate-900">{copy.squad.insightsTitle}</div>
+                <div>{copy.squad.insightsSummary}</div>
               </div>
             </div>
-            <Button variant="outline" size="sm">View history</Button>
+            <Button variant="outline" size="sm">{copy.squad.viewHistory}</Button>
           </CardContent>
         </Card>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {squadMembers.map((member) => (
+          {copy.squad.members.map((member) => (
             <Card
               key={member.name}
               className="border border-slate-200"
@@ -83,8 +54,8 @@ export default function Squad() {
                 </Badge>
                 <p className="text-sm text-slate-600">{member.note}</p>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="secondary">Start chat</Button>
-                  <Button size="sm" variant="outline">Remove</Button>
+                  <Button size="sm" variant="secondary">{copy.common.startChat}</Button>
+                  <Button size="sm" variant="outline">{copy.common.remove}</Button>
                 </div>
               </CardContent>
             </Card>
@@ -93,16 +64,16 @@ export default function Squad() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-900">Requests</h2>
-        {requests.length === 0 ? (
+        <h2 className="text-base font-semibold text-slate-900">{copy.squad.requestsTitle}</h2>
+        {copy.squad.requests.length === 0 ? (
           <Card className="border border-dashed border-slate-300 bg-white">
             <CardContent className="p-5 text-sm text-slate-500">
-              No requests at the moment. After a session wraps you can invite players directly.
+              {copy.squad.empty}
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-3">
-            {requests.map((request) => (
+            {copy.squad.requests.map((request) => (
               <Card
                 key={request.name}
                 className="border border-slate-200"
@@ -119,8 +90,8 @@ export default function Squad() {
                   </div>
                   <p className="text-sm text-slate-600">{request.message}</p>
                   <div className="flex gap-2">
-                    <Button size="sm">Add to squad</Button>
-                    <Button size="sm" variant="ghost">Maybe later</Button>
+                    <Button size="sm">{copy.squad.add}</Button>
+                    <Button size="sm" variant="ghost">{copy.common.maybeLater}</Button>
                   </div>
                 </CardContent>
               </Card>

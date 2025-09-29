@@ -4,17 +4,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-
-const skills = ['Playmaking', 'Defense', 'Consistency']
-const availability = ['Mon', 'Wed', 'Thu', 'Sat']
+import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function MyProfile() {
+  const copy = useCopy()
+
   return (
     <MainLayout
-      title="Your athlete card"
-      description="Keep this current so hosts know what you bring."
+      title={copy.myProfile.title}
+      description={copy.myProfile.description}
       contentWidth="md"
-      actions={<Button variant="outline" size="sm">View public card</Button>}
+      actions={<Button variant="outline" size="sm">{copy.myProfile.viewPublic}</Button>}
     >
       <section>
         <Card className="border border-slate-200">
@@ -24,11 +24,11 @@ export default function MyProfile() {
             </Avatar>
             <div className="space-y-2 text-sm">
               <div>
-                <div className="text-base font-semibold text-slate-900">Alex Blue</div>
-                <div className="text-slate-500">Brisbane · Basketball & Running</div>
+                <div className="text-base font-semibold text-slate-900">{copy.myProfile.name}</div>
+                <div className="text-slate-500">{copy.myProfile.location}</div>
               </div>
               <div className="flex flex-wrap gap-2 text-xs">
-                {skills.map((skill) => (
+                {copy.myProfile.skills.map((skill) => (
                   <Badge
                     key={skill}
                     variant="outline"
@@ -39,7 +39,7 @@ export default function MyProfile() {
                 ))}
               </div>
               <div className="text-xs text-slate-500">
-                Joined Feb 2025 · 18 sessions hosted · 42 joined
+                {copy.myProfile.stats}
               </div>
             </div>
           </CardContent>
@@ -50,26 +50,26 @@ export default function MyProfile() {
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Basics</h2>
-              <p className="text-sm text-slate-500">Update how people address and find you.</p>
+              <h2 className="text-base font-semibold text-slate-900">{copy.myProfile.basicsTitle}</h2>
+              <p className="text-sm text-slate-500">{copy.myProfile.basicsDescription}</p>
             </div>
             <Input
-              label="Display name"
-              placeholder="Alex Blue"
+              label={copy.myProfile.displayName}
+              placeholder={copy.myProfile.name}
             />
             <Input
-              label="Home suburb"
+              label={copy.myProfile.suburb}
               placeholder="West End"
             />
             <Input
-              label="Primary sport"
+              label={copy.myProfile.primarySport}
               placeholder="Basketball"
             />
             <label className="grid gap-1 text-sm text-slate-600">
-              Bio
+              {copy.myProfile.bio}
               <textarea
                 rows={3}
-                placeholder="Share a little about your playing style, goals or favourite sessions."
+                placeholder={copy.myProfile.bioPlaceholder}
                 className="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </label>
@@ -79,14 +79,14 @@ export default function MyProfile() {
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Availability & preferences</h2>
-              <p className="text-sm text-slate-500">Helps SportsMatch suggest sessions that fit.</p>
+              <h2 className="text-base font-semibold text-slate-900">{copy.myProfile.availabilityTitle}</h2>
+              <p className="text-sm text-slate-500">{copy.myProfile.availabilityDescription}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-1 text-sm text-slate-600">
-                Preferred days
+                {copy.myProfile.preferredDays}
                 <div className="flex flex-wrap gap-2">
-                  {availability.map((day) => (
+                  {copy.myProfile.availabilityDays.map((day) => (
                     <Badge
                       key={day}
                       variant="outline"
@@ -98,20 +98,24 @@ export default function MyProfile() {
                 </div>
               </label>
               <label className="grid gap-1 text-sm text-slate-600">
-                Time of day
+                {copy.myProfile.timeOfDay}
                 <select className="h-10 rounded border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
-                  <option>Early mornings</option>
-                  <option>Lunch sessions</option>
-                  <option>After work</option>
-                  <option>Weekend warrior</option>
+                  {copy.myProfile.timeOptions.map((option) => (
+                    <option
+                      key={option}
+                      value={option}
+                    >
+                      {option}
+                    </option>
+                  ))}
                 </select>
               </label>
             </div>
             <label className="grid gap-1 text-sm text-slate-600">
-              Looking for
+              {copy.myProfile.lookingFor}
               <textarea
                 rows={3}
-                placeholder="Eg: Social weeknight runs, mixed basketball scrims, casual volleyball."
+                placeholder={copy.myProfile.lookingForPlaceholder}
                 className="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </label>
@@ -119,8 +123,8 @@ export default function MyProfile() {
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button variant="ghost">Cancel</Button>
-          <Button type="submit">Save profile</Button>
+          <Button variant="ghost">{copy.common.cancel}</Button>
+          <Button type="submit">{copy.common.save}</Button>
         </div>
       </form>
     </MainLayout>
