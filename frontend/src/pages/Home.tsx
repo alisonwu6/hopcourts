@@ -10,13 +10,17 @@ import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function Home() {
   const copy = useCopy()
-  const nextSession = mockEvents[0]
-  const nextSessionContent = copy.mockEvents[nextSession.contentKey]
+  const homeCopy = copy.home
+  const events = mockEvents
+  const featuredEvent = events.find((event) => event.id === homeCopy.featuredEventId) ?? events[0]
+  const featuredContent = featuredEvent
+    ? copy.mockEvents.cards[featuredEvent.contentKey]
+    : undefined
 
   return (
     <MainLayout
-      title={copy.home.title}
-      description={copy.home.description}
+      title={homeCopy.heroTitle}
+      description={homeCopy.heroDescription}
       actions={
         <Button
           asChild
@@ -29,32 +33,33 @@ export default function Home() {
         </Button>
       }
     >
-      {nextSession && (
+      {featuredEvent && featuredContent && (
         <section className="grid gap-4 lg:grid-cols-[2fr,1fr]">
           <Card className="bg-gradient-to-br from-blue-600 via-blue-500 to-emerald-400 text-white">
             <CardContent className="flex h-full flex-col justify-between gap-6 p-6">
               <div className="flex items-center justify-between text-xs uppercase tracking-wide text-white/70">
-                <span>{copy.home.nextOnCalendar}</span>
+                <span>{homeCopy.nextOnCalendar}</span>
                 <Badge className="bg-white/20 text-white">
-                  <Flame className="mr-1 h-3 w-3" /> {copy.home.streak}
+                  <Flame className="mr-1 h-3 w-3" /> {homeCopy.streak}
                 </Badge>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-white/80">
                   <CalendarDays className="h-4 w-4" />
-                  {nextSessionContent.time}
+                  {featuredContent.time}
                 </div>
-                <h2 className="text-2xl font-semibold">{nextSessionContent.title}</h2>
+                <h2 className="text-2xl font-semibold">{featuredContent.title}</h2>
                 <div className="flex items-center gap-2 text-sm text-white/80">
                   <MapPin className="h-4 w-4" />
-                  {nextSessionContent.location}
+                  {featuredContent.location}
                 </div>
                 <div className="text-xs text-white/70">
-                  {copy.common.hostedBy(nextSession.host.name)} · {copy.common.joinCounts(nextSession.joinedCount, nextSession.maxCount)}
+                  {copy.common.hostedBy(featuredEvent.host.name)} ·
+                  {copy.common.joinCounts(featuredEvent.joinedCount, featuredEvent.maxCount)}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 text-xs">
-                {nextSessionContent.tags.map((tag) => (
+                {featuredContent.tags.map((tag) => (
                   <Badge
                     key={tag}
                     variant="secondary"
@@ -69,7 +74,7 @@ export default function Home() {
                 variant="secondary"
                 className="self-start bg-white text-blue-600 hover:bg-white/90"
               >
-                <Link to={`/sessions/${nextSession.id}`}>
+                <Link to={`/sessions/${featuredEvent.id}`}>
                   {copy.eventCard.joinSession}
                 </Link>
               </Button>
@@ -79,11 +84,11 @@ export default function Home() {
           <Card className="border border-slate-200 bg-white">
             <CardContent className="flex h-full flex-col gap-4 p-5">
               <div>
-                <h3 className="text-base font-semibold text-slate-900">{copy.home.invitesTitle}</h3>
-                <p className="text-sm text-slate-500">{copy.home.invitesSubtitle}</p>
+                <h3 className="text-base font-semibold text-slate-900">{homeCopy.invitesTitle}</h3>
+                <p className="text-sm text-slate-500">{homeCopy.invitesSubtitle}</p>
               </div>
               <div className="space-y-3">
-                {copy.home.invites.map((invite) => (
+                {homeCopy.invites.map((invite) => (
                   <div
                     key={invite.id}
                     className="rounded-lg border border-slate-200 p-3 text-sm"
@@ -110,7 +115,7 @@ export default function Home() {
                 className="justify-start gap-1 text-sm text-blue-600"
               >
                 <Link to="/notifications">
-                  {copy.home.invitesLink} <ChevronRight className="h-4 w-4" />
+                  {homeCopy.invitesLink} <ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
             </CardContent>
@@ -121,7 +126,7 @@ export default function Home() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            {copy.home.quickFilters.map((filter) => (
+            {homeCopy.quickFilters.map((filter) => (
               <Badge
                 key={filter}
                 variant="outline"
@@ -148,7 +153,7 @@ export default function Home() {
             <div className="flex gap-2">
               <input
                 type="search"
-                placeholder={copy.home.searchPlaceholder}
+                placeholder={homeCopy.searchPlaceholder}
                 className="h-10 w-full rounded-md border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 sm:w-64"
               />
               <Button variant="secondary">{copy.common.search}</Button>
@@ -170,7 +175,7 @@ export default function Home() {
             </Link>
           </Button>
         </div>
-        <EventCardList events={mockEvents} />
+        <EventCardList events={events} />
       </section>
     </MainLayout>
   )

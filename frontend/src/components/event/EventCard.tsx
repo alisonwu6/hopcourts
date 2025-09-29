@@ -19,9 +19,13 @@ export default function EventCard({
   participants,
 }: EventCardProps) {
   const copy = useCopy()
-  const content = copy.mockEvents[contentKey]
-  const sportLabel = copy.mockEvents.sportNames[sport]
+  const content = copy.mockEvents.cards[contentKey]
+  const sportLabel = copy.mockEvents.sportNames[sport] ?? sport
   const skillLabel = skillLevel ? copy.mockEvents.skillLevels[skillLevel] : undefined
+
+  if (!content) {
+    return null
+  }
 
   return (
     <Card className="w-full border border-slate-200 bg-white shadow-sm transition hover:border-blue-200">

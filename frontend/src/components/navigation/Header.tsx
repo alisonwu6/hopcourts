@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Bell, MapPin, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import logoUrl from '@/assets/sportsmatch.png'
 import LanguageToggle from './LanguageToggle'
 import { useCopy } from '@/i18n/LanguageProvider'
@@ -17,7 +16,7 @@ export default function Header() {
           className="flex items-center gap-2"
         >
           <img
-            className="h-10 w-auto"
+            className="h-10 w-auto flex-shrink-0"
             src={logoUrl}
             alt={copy.common.appName}
             onError={(event) => {
@@ -29,9 +28,7 @@ export default function Header() {
             <div className="text-sm font-semibold uppercase tracking-tight text-slate-900">
               {copy.common.appName}
             </div>
-            <div className="text-xs text-slate-500">
-              {copy.common.cityTagline}
-            </div>
+            <div className="text-xs text-slate-500">{copy.common.tagline}</div>
           </div>
         </Link>
         <div className="flex items-center gap-2">
@@ -65,11 +62,6 @@ export default function Header() {
               <Bell className="h-5 w-5" />
             </Button>
             <span className="absolute right-1 top-1 inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </Link>
-          <Link to="/me">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback>AB</AvatarFallback>
-            </Avatar>
           </Link>
         </div>
       </div>

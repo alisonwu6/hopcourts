@@ -33,7 +33,6 @@ type Translation = {
   common: {
     appName: string
     tagline: string
-    cityTagline: string
     explore: string
     squad: string
     me: string
@@ -82,28 +81,22 @@ type Translation = {
     headline: string
     subcopy: string
     continueCta: string
-    skip: string
-    betaNote: string
-    terms: string
-    privacy: string
-    footerInvite: string
-    redirectLabel: string
-    legalNotice: string
   }
   home: {
-    title: string
-    description: string
+    heroTitle: string
+    heroDescription: string
     nextOnCalendar: string
     streak: string
     invitesTitle: string
     invitesSubtitle: string
     invitesLink: string
     quickFilters: string[]
-    invites: InviteCopy[]
     searchTitle: string
     searchDescription: string
     searchPlaceholder: string
     recommendedTitle: string
+    featuredEventId: string
+    invites: InviteCopy[]
     acceptInvite: string
     maybeInvite: string
   }
@@ -115,27 +108,13 @@ type Translation = {
     emptyMessage: string
   }
   mockEvents: {
-    basketball: {
+    cards: Record<string, {
       title: string
       location: string
       time: string
       description: string
       tags: string[]
-    }
-    volleyball: {
-      title: string
-      location: string
-      time: string
-      description: string
-      tags: string[]
-    }
-    running: {
-      title: string
-      location: string
-      time: string
-      description: string
-      tags: string[]
-    }
+    }>
     sportNames: Record<string, string>
     skillLevels: Record<string, string>
   }
@@ -245,6 +224,8 @@ type Translation = {
     disconnect: string
     apple: string
     connect: string
+    languageTitle: string
+    languageDescription: string
     calendarTitle: string
     calendarDescription: string
     privacyTitle: string
@@ -287,7 +268,6 @@ export const translations: Record<Language, Translation> = {
     common: {
       appName: 'SportsMatch',
       tagline: 'Find your people. Keep the streak.',
-      cityTagline: 'Brisbane · Find your next run',
       explore: 'Explore',
       squad: 'Squad',
       me: 'Me',
@@ -337,23 +317,21 @@ export const translations: Record<Language, Translation> = {
       subcopy:
         'SportsMatch is the dedicated sports community for Brisbane locals. Discover open sessions, join reliable hosts, and build your squad with real follow-ups.',
       continueCta: 'Explore upcoming sessions',
-      skip: 'Skip for now',
-      betaNote: 'Beta access · Request an invite',
-      terms: 'Terms',
-      privacy: 'Privacy Policy',
-      footerInvite: 'Beta access · Request an invite',
-      redirectLabel: 'Redirect URI',
-      legalNotice: 'By continuing you agree to the Terms and Privacy Policy.',
     },
     home: {
-      title: 'This week in Brisbane',
-      description: 'Lock in a session or plan your own run.',
+      heroTitle: 'This week in Brisbane',
+      heroDescription: 'Lock in a session or plan your own run.',
       nextOnCalendar: 'Next on your calendar',
       streak: '3-week streak',
       invitesTitle: 'Invites pending',
       invitesSubtitle: 'RSVP so your hosts can lock spots.',
       invitesLink: 'See all invites',
       quickFilters: ['Beginner friendly', 'After work', 'Indoor courts', "Women's sessions"],
+      searchTitle: 'Find something specific',
+      searchDescription: 'Search by suburb, sport, or vibe keywords.',
+      searchPlaceholder: 'Try "South Bank basketball"',
+      recommendedTitle: 'Recommended for you',
+      featuredEventId: 'basketball-pickup',
       invites: [
         {
           id: 'invite-1',
@@ -370,10 +348,6 @@ export const translations: Record<Language, Translation> = {
           location: 'South Bank Arena',
         },
       ],
-      searchTitle: 'Find something specific',
-      searchDescription: 'Search by suburb, sport, or vibe keywords.',
-      searchPlaceholder: 'Try "South Bank basketball"',
-      recommendedTitle: 'Recommended for you',
       acceptInvite: 'Accept',
       maybeInvite: 'Maybe',
     },
@@ -385,29 +359,31 @@ export const translations: Record<Language, Translation> = {
       emptyMessage: 'No sessions match your filters yet. Try broadening your search.',
     },
     mockEvents: {
-      basketball: {
-        title: 'Basketball Pickup',
-        location: 'South Bank Court',
-        time: 'Sat, July 20 · 3:00-5:00 PM',
-        description:
-          'Casual half-court run focused on keeping things upbeat. Perfect if you are getting back into the game and want to meet locals.',
-        tags: ['Beginner-friendly', 'Casual vibe', 'Just for fun'],
-      },
-      volleyball: {
-        title: 'Volleyball Fun Match',
-        location: 'Kangaroo Point',
-        time: 'Sun, July 21 · 4:30-6:00 PM',
-        description:
-          'Friendly co-ed social game on the riverside sand courts. Expect warm ups, rotation practice, and drinks nearby afterward.',
-        tags: ['Open to all', 'Friendly', 'Relaxed pace'],
-      },
-      running: {
-        title: 'Sunrise Run Club',
-        location: 'New Farm Park Loop',
-        time: 'Tue, July 23 · 6:00-7:15 AM',
-        description:
-          'Tempo run with optional coffee cool-down. Split into two pace groups (5:00/km and 6:00/km). Newcomers welcome.',
-        tags: ['Coffee after', 'Pace groups', 'Community vibe'],
+      cards: {
+        brisbane_basketball: {
+          title: 'Basketball Pickup',
+          location: 'South Bank Court',
+          time: 'Sat, July 20 · 3:00-5:00 PM',
+          description:
+            'Casual half-court run focused on keeping things upbeat. Perfect if you are getting back into the game and want to meet locals.',
+          tags: ['Beginner-friendly', 'Casual vibe', 'Just for fun'],
+        },
+        brisbane_volleyball: {
+          title: 'Volleyball Fun Match',
+          location: 'Kangaroo Point',
+          time: 'Sun, July 21 · 4:30-6:00 PM',
+          description:
+            'Friendly co-ed social game on the riverside sand courts. Expect warm ups, rotation practice, and drinks nearby afterward.',
+          tags: ['Open to all', 'Friendly', 'Relaxed pace'],
+        },
+        brisbane_running: {
+          title: 'Sunrise Run Club',
+          location: 'New Farm Park Loop',
+          time: 'Tue, July 23 · 6:00-7:15 AM',
+          description:
+            'Tempo run with optional coffee cool-down. Split into two pace groups (5:00/km and 6:00/km). Newcomers welcome.',
+          tags: ['Coffee after', 'Pace groups', 'Community vibe'],
+        },
       },
       sportNames: {
         basketball: 'Basketball',
@@ -558,6 +534,8 @@ export const translations: Record<Language, Translation> = {
       disconnect: 'Disconnect',
       apple: 'Apple',
       connect: 'Connect',
+      languageTitle: 'Language',
+      languageDescription: 'Choose your preferred interface language.',
       calendarTitle: 'Calendar sync',
       calendarDescription: 'Automatically add joined sessions to your calendar.',
       privacyTitle: 'Privacy & terms',
@@ -598,7 +576,6 @@ export const translations: Record<Language, Translation> = {
     common: {
       appName: 'SportsMatch',
       tagline: '找到你的運動夥伴，保持出勤連勝。',
-      cityTagline: '布里斯本 · 找到下一場運動',
       explore: '探索',
       squad: '好友',
       me: '我的',
@@ -648,23 +625,21 @@ export const translations: Record<Language, Translation> = {
       subcopy:
         'SportsMatch 是布里斯本在地的專屬運動社群。探索開放活動、加入值得信賴的主辦人，並持續經營你的運動夥伴圈。',
       continueCta: '探索即將舉辦的活動',
-      skip: '稍後再說',
-      betaNote: 'Beta 測試 · 申請邀請',
-      terms: '服務條款',
-      privacy: '隱私權政策',
-      footerInvite: 'Beta 測試 · 申請邀請',
-      redirectLabel: '重新導向網址',
-      legalNotice: '繼續操作代表你同意服務條款與隱私權政策。',
     },
     home: {
-      title: '本週在布里斯本',
-      description: '預約你的下一場，或發起你的團練。',
+      heroTitle: '本週在布里斯本',
+      heroDescription: '預約你的下一場，或發起你的團練。',
       nextOnCalendar: '下一場行程',
       streak: '連續 3 週出席',
       invitesTitle: '待回覆的邀請',
       invitesSubtitle: '盡快回覆好讓主辦人安排名額。',
       invitesLink: '查看所有邀請',
       quickFilters: ['新手友善', '下班後', '室內場地', '女性專場'],
+      searchTitle: '尋找特定活動',
+      searchDescription: '可以用地區、運動類型或關鍵字搜尋。',
+      searchPlaceholder: '試試「South Bank 籃球」',
+      recommendedTitle: '為你推薦',
+      featuredEventId: 'basketball-pickup',
       invites: [
         {
           id: 'invite-1',
@@ -681,10 +656,6 @@ export const translations: Record<Language, Translation> = {
           location: 'South Bank Arena',
         },
       ],
-      searchTitle: '尋找特定活動',
-      searchDescription: '可以用地區、運動類型或關鍵字搜尋。',
-      searchPlaceholder: '試試 "South Bank 籃球"',
-      recommendedTitle: '為你推薦',
       acceptInvite: '接受',
       maybeInvite: '再想想',
     },
@@ -696,29 +667,31 @@ export const translations: Record<Language, Translation> = {
       emptyMessage: '目前沒有符合條件的活動，試著放寬篩選條件。',
     },
     mockEvents: {
-      basketball: {
-        title: '籃球自由打',
-        location: 'South Bank Court',
-        time: '7 月 20 日 (六) · 下午 3:00-5:00',
-        description:
-          '輕鬆半場對打，節奏輕鬆又熱鬧。很適合重新找回手感並認識新朋友。',
-        tags: ['新手友善', '輕鬆氣氛', '純粹好玩'],
-      },
-      volleyball: {
-        title: '排球歡樂賽',
-        location: 'Kangaroo Point',
-        time: '7 月 21 日 (日) · 下午 4:30-6:00',
-        description:
-          '河畔沙灘場的友善混齡賽，包含暖身、輪轉練習，賽後還有小聚。',
-        tags: ['開放所有程度', '氣氛友善', '節奏輕鬆'],
-      },
-      running: {
-        title: '日出跑步俱樂部',
-        location: 'New Farm Park Loop',
-        time: '7 月 23 日 (二) · 早上 6:00-7:15',
-        description:
-          '兩組配速的節奏跑 (5:00/km、6:00/km)，結束後可一起喝咖啡，新朋友也歡迎。',
-        tags: ['跑後咖啡', '依配速分組', '社群氛圍'],
+      cards: {
+        brisbane_basketball: {
+          title: '籃球自由打',
+          location: 'South Bank Court',
+          time: '7 月 20 日（六）· 下午 3:00-5:00',
+          description:
+            '輕鬆半場對打，節奏熱鬧。很適合重新找回手感並認識新朋友。',
+          tags: ['新手友善', '輕鬆氣氛', '純粹好玩'],
+        },
+        brisbane_volleyball: {
+          title: '排球歡樂賽',
+          location: 'Kangaroo Point',
+          time: '7 月 21 日（日）· 下午 4:30-6:00',
+          description:
+            '河畔沙灘場的友善混齡賽，包含暖身、輪轉練習，賽後還有小聚。',
+          tags: ['開放所有程度', '氣氛友善', '節奏輕鬆'],
+        },
+        brisbane_running: {
+          title: '日出跑步俱樂部',
+          location: 'New Farm Park Loop',
+          time: '7 月 23 日（二）· 早上 6:00-7:15',
+          description:
+            '兩組配速的節奏跑（5:00/km、6:00/km），跑後可一起喝咖啡，新朋友也歡迎。',
+          tags: ['跑後咖啡', '依配速分組', '社群氛圍'],
+        },
       },
       sportNames: {
         basketball: '籃球',
@@ -753,13 +726,13 @@ export const translations: Record<Language, Translation> = {
       titleLabel: '活動名稱',
       sportLabel: '運動類型',
       datetimeLabel: '日期與開始時間',
-      durationLabel: '活動時長 (分鐘)',
+      durationLabel: '活動時長（分鐘）',
       locationLabel: '集合地點',
       capacityLabel: '名額',
       skillLabel: '程度',
       skillPlaceholder: '選擇程度',
       descriptionLabel: '活動描述',
-      descriptionPlaceholder: '說明活動氛圍、集合點以及暖身安排...',
+      descriptionPlaceholder: '說明活動氛圍、集合點以及暖身安排……',
       vibeTitle: '活動氛圍',
       vibeDescription: '標記活動特色，讓適合的玩家看見。',
       vibeTags: ['新手友善', '競技取向', '社交交流', '跑後咖啡'],
@@ -774,7 +747,7 @@ export const translations: Record<Language, Translation> = {
       description: '保持最新，讓主辦人了解你的特色。',
       viewPublic: '查看公開頁面',
       name: 'Alex Blue',
-      location: '布里斯本 · 籃球/路跑',
+      location: '布里斯本 · 籃球／路跑',
       stats: '2025 年 2 月加入 · 主辦 18 場 · 參與 42 場',
       basicsTitle: '基本資料',
       basicsDescription: '更新大家如何稱呼並找到你。',
@@ -789,7 +762,7 @@ export const translations: Record<Language, Translation> = {
       timeOfDay: '偏好時段',
       timeOptions: ['清晨', '午休', '下班後', '週末戰士'],
       lookingFor: '正在尋找',
-      lookingForPlaceholder: '例如: 平日晚上的輕鬆夜跑、混合籃球對抗、休閒排球。',
+      lookingForPlaceholder: '例如：平日晚上的輕鬆夜跑、混合籃球對抗、休閒排球。',
       skills: ['組織進攻', '防守判斷', '穩定出席'],
       availabilityDays: ['週一', '週三', '週四', '週六'],
     },
@@ -869,6 +842,8 @@ export const translations: Record<Language, Translation> = {
       disconnect: '取消連結',
       apple: 'Apple',
       connect: '連結',
+      languageTitle: '介面語言',
+      languageDescription: '選擇你想使用的顯示語言。',
       calendarTitle: '行事曆同步',
       calendarDescription: '自動把參加的活動加入行事曆。',
       privacyTitle: '隱私與條款',

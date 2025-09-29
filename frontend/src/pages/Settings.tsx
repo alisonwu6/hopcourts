@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCopy } from '@/i18n/LanguageProvider'
+import LanguageToggle from '@/components/navigation/LanguageToggle'
 
 export default function Settings() {
   const copy = useCopy()
@@ -30,6 +31,18 @@ export default function Settings() {
             <div className="flex items-center justify-between rounded border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-500">
               <span>{copy.settings.apple}</span>
               <Button size="sm" variant="ghost">{copy.settings.connect}</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-slate-200">
+          <CardContent className="space-y-3 p-6">
+            <div>
+              <div className="font-semibold text-slate-900">{copy.settings.languageTitle}</div>
+              <p className="text-sm text-slate-500">{copy.settings.languageDescription}</p>
+            </div>
+            <div className="flex justify-start">
+              <LanguageToggle />
             </div>
           </CardContent>
         </Card>

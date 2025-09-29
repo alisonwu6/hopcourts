@@ -4,14 +4,14 @@ export interface HostInfo {
   tag: string
 }
 
-export type EventContentKey = 'basketball' | 'volleyball' | 'running'
-
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced'
+
+export type SportKey = 'basketball' | 'volleyball' | 'running'
 
 export interface EventCardProps {
   id: string
-  contentKey: EventContentKey
-  sport: 'basketball' | 'volleyball' | 'running'
+  contentKey: string
+  sport: SportKey
   skillLevel?: SkillLevel
   joinedCount: number
   maxCount: number

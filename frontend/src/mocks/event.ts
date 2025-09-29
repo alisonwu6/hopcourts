@@ -3,7 +3,7 @@ import { EventCardProps } from '@/interfaces/event'
 export const mockEvents: EventCardProps[] = [
   {
     id: 'basketball-pickup',
-    contentKey: 'basketball',
+    contentKey: 'brisbane_basketball',
     sport: 'basketball',
     skillLevel: 'beginner',
     joinedCount: 6,
@@ -18,7 +18,7 @@ export const mockEvents: EventCardProps[] = [
   },
   {
     id: 'volleyball-social',
-    contentKey: 'volleyball',
+    contentKey: 'brisbane_volleyball',
     sport: 'volleyball',
     skillLevel: 'intermediate',
     joinedCount: 8,
@@ -29,16 +29,11 @@ export const mockEvents: EventCardProps[] = [
       avatarUrl: '/avatars/maggie.jpg',
       tag: 'For all levels',
     },
-    participants: [
-      '/avatars/b1.jpg',
-      '/avatars/b2.jpg',
-      '/avatars/b3.jpg',
-      '/avatars/b4.jpg',
-    ],
+    participants: ['/avatars/b1.jpg', '/avatars/b2.jpg', '/avatars/b3.jpg', '/avatars/b4.jpg'],
   },
   {
     id: 'sunrise-run-club',
-    contentKey: 'running',
+    contentKey: 'brisbane_running',
     sport: 'running',
     skillLevel: 'intermediate',
     joinedCount: 12,
@@ -49,11 +44,6 @@ export const mockEvents: EventCardProps[] = [
       avatarUrl: '/avatars/eli.jpg',
       tag: 'Community Builder',
     },
-    participants: [
-      '/avatars/c1.jpg',
-      '/avatars/c2.jpg',
-      '/avatars/c3.jpg',
-      '/avatars/c4.jpg',
-    ],
+    participants: ['/avatars/c1.jpg', '/avatars/c2.jpg', '/avatars/c3.jpg', '/avatars/c4.jpg'],
   },
 ]

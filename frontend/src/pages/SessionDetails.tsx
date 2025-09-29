@@ -33,8 +33,8 @@ export default function SessionDetails() {
     )
   }
 
-  const content = copy.mockEvents[event.contentKey]
-  const sportLabel = copy.mockEvents.sportNames[event.sport]
+  const content = copy.mockEvents.cards[event.contentKey]
+  const sportLabel = copy.mockEvents.sportNames[event.sport] ?? event.sport
   const skillLabel = event.skillLevel ? copy.mockEvents.skillLevels[event.skillLevel] : undefined
 
   return (
