@@ -1,5 +1,5 @@
 import { ComponentType } from 'react'
-import { Home, Users, User } from 'lucide-react'
+import { Home, Users, User, Search } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { useCopy } from '@/i18n/LanguageProvider'
@@ -24,6 +24,11 @@ export function BottomNavBar() {
       matchPaths: ['/home', '/sessions', '/map'],
     },
     {
+      label: copy.header.searchAthletes,
+      icon: Search,
+      path: '/athletes',
+    },
+    {
       label: copy.common.squad,
       icon: Users,
       path: '/squad',
@@ -37,10 +42,10 @@ export function BottomNavBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/90 backdrop-blur shadow-sm"
+      className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}
     >
-      <div className="mx-auto flex max-w-5xl items-center justify-around px-6 py-2">
+      <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-2">
         {navItems.map(({ label, icon: Icon, path, matchPaths }) => {
           const isActive = matchPaths
             ? matchPaths.some((segment) => location.pathname.startsWith(segment))
@@ -51,13 +56,13 @@ export function BottomNavBar() {
               key={label}
               onClick={() => navigate(path)}
               className={clsx(
-                'flex flex-col items-center gap-1 rounded-md px-2 text-xs font-medium transition-colors',
+                'flex flex-col items-center gap-1 rounded-md px-2 text-[10px] font-medium transition-colors',
                 isActive ? 'text-blue-600' : 'text-slate-500'
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className={clsx('h-5 w-5', isActive ? 'text-blue-600' : 'text-slate-400')} />
-              {label}
+              <Icon className={clsx('h-6 w-6', isActive ? 'text-blue-600' : 'text-slate-400')} />
+              <span className="sr-only sm:not-sr-only sm:text-xs">{label}</span>
             </button>
           )
         })}

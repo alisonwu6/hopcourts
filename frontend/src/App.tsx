@@ -13,6 +13,8 @@ import Squad from './pages/Squad'
 import Reconnect from './pages/Reconnect'
 import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
+import SearchAthletes from './pages/SearchAthletes'
+import EditAthleteCard from './pages/EditAthleteCard'
 
 
 export default function App() {
@@ -35,6 +37,10 @@ export default function App() {
         element={<MapView />}
       />
       <Route
+        path="/athletes"
+        element={<SearchAthletes />}
+      />
+      <Route
         path="/sessions/:id"
         element={<SessionDetails />}
       />
@@ -53,6 +59,10 @@ export default function App() {
       <Route
         path="/u/:username"
         element={<AthleteCard />}
+      />
+      <Route
+        path="/u/:username/edit"
+        element={<EditAthleteCard />}
       />
       <Route
         path="/me"

@@ -1,2 +1,57 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
+
+@layer base {
+  :root {
+    /* Brand Core */
+    --color-primary: #F47920;
+    --color-secondary: #0F9F77;
+    --color-accent: #EF5230;
+
+    /* Globe Gradient Anchors */
+    --color-globe-teal: #0F728D;
+    --color-globe-green: #4CA65A;
+    --color-globe-orange: #F58A2D;
+
+    /* Neutrals */
+    --color-background: #FFFFFF;
+    --color-surface-muted: #F6F8FB;
+    --color-border: #D5DFEA;
+    --color-text-primary: #102A43;
+    --color-text-secondary: #5B6B7C;
+    --color-text-inverse: #FFFFFF;
+
+    /* Buttons & Links */
+    --button-primary-bg: var(--color-primary);
+    --button-primary-text: var(--color-text-inverse);
+    --button-primary-hover-bg: #FF8F3E;
+
+    --button-secondary-bg: var(--color-secondary);
+    --button-secondary-text: var(--color-text-inverse);
+    --button-secondary-hover-bg: #15B284;
+
+    --link-color: var(--color-secondary);
+    --link-hover-color: var(--color-accent);
+
+    /* Badges & Alerts */
+    --badge-bg: #FFF1E3;
+    --badge-text: var(--color-primary);
+
+    --alert-success-bg: #E8F8F2;
+    --alert-success-text: var(--color-secondary);
+    --alert-warning-bg: #FDEBD8;
+    --alert-warning-text: var(--color-primary);
+    --alert-error-bg: #FBE3DF;
+    --alert-error-text: var(--color-accent);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(15, 114, 141, 0.08) 0, rgba(15, 114, 141, 0) 45%),
+      radial-gradient(circle at 85% 10%, rgba(244, 121, 32, 0.08) 0, rgba(244, 121, 32, 0) 40%),
+      linear-gradient(120deg, rgba(16, 42, 67, 0.04) 0%, rgba(16, 42, 67, 0) 55%);
+    background-repeat: no-repeat;
+  }
+}

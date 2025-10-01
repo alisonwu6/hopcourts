@@ -19,8 +19,8 @@ export default function Splash() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-100 via-amber-50 to-emerald-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(253,230,138,0.45),_transparent_60%)]" />
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center px-6 py-16 sm:px-10">
-        <main className="flex w-full flex-1 flex-col items-center justify-center gap-10 text-center">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center px-6 py-10 sm:px-10">
+        <main className="flex w-full flex-1 flex-col items-center justify-start gap-10 text-center">
           <div className="flex flex-col items-center gap-6">
             <img
               className="h-56 w-auto drop-shadow-lg sm:h-64"

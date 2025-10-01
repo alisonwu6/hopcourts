@@ -28,18 +28,29 @@ export default function EventCard({
   }
 
   return (
-    <Card className="w-full border border-slate-200 bg-white shadow-sm transition hover:border-blue-200">
-      <CardContent className="space-y-4 p-5">
+    <Card className="relative w-full overflow-hidden rounded-3xl border border-slate-100 bg-white/95 shadow-sm">
+      <span className="absolute inset-x-6 top-0 h-1 rounded-full bg-gradient-to-r from-[var(--color-secondary)] via-[var(--color-primary)] to-[var(--color-accent)]" />
+      <CardContent className="space-y-4 p-6 pt-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-              <Badge variant="outline">{sportLabel}</Badge>
+              <Badge
+                variant="outline"
+                className="border-[var(--color-secondary)] bg-white text-[var(--color-secondary)]"
+              >
+                {sportLabel}
+              </Badge>
               {skillLabel && (
-                <Badge variant="secondary">{skillLabel}</Badge>
+                <Badge
+                  variant="outline"
+                  className="border-transparent bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]"
+                >
+                  {skillLabel}
+                </Badge>
               )}
               <Badge
                 variant="outline"
-                className="border-emerald-200 text-emerald-600"
+                className="border-transparent bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
               >
                 {copy.common.startsIn(timeLeft)}
               </Badge>
@@ -55,9 +66,9 @@ export default function EventCard({
               {content.location}
             </div>
           </div>
-          <div className="flex flex-none items-center gap-2 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-600">
+          <div className="flex flex-none items-center gap-2 rounded-full bg-slate-100/80 px-3 py-1.5 text-xs text-slate-600">
             <Users className="h-4 w-4 text-slate-400" />
-            {copy.common.joinCounts(joinedCount, maxCount)}
+            <span>{copy.common.joinCounts(joinedCount, maxCount)}</span>
           </div>
         </div>
 
@@ -90,7 +101,7 @@ export default function EventCard({
             <Badge
               key={tag}
               variant="outline"
-              className="border-slate-200"
+              className="border-transparent bg-[var(--color-globe-teal)]/10 text-[var(--color-globe-teal)]"
             >
               {tag}
             </Badge>
@@ -112,14 +123,14 @@ export default function EventCard({
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button
             asChild
-            className="flex-1"
+            className="flex-1 rounded-full"
           >
             <Link to={`/sessions/${id}`}>{copy.eventCard.joinSession}</Link>
           </Button>
           <Button
             asChild
             variant="ghost"
-            className="sm:w-auto"
+            className="rounded-full sm:w-auto"
           >
             <Link
               to={`/sessions/${id}`}

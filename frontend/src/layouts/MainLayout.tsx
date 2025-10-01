@@ -16,10 +16,10 @@ type Props = {
 }
 
 const widthClass: Record<ContentWidth, string> = {
-  sm: 'max-w-md',
-  md: 'max-w-3xl',
-  lg: 'max-w-5xl',
-  xl: 'max-w-6xl',
+  sm: 'max-w-sm',
+  md: 'max-w-lg',
+  lg: 'max-w-xl',
+  xl: 'max-w-2xl',
   full: 'max-w-none',
 }
 
@@ -30,26 +30,21 @@ export default function MainLayout({
   actions,
   showHeader = true,
   showBottomNav = true,
-  contentWidth = 'lg',
+  contentWidth = 'md',
 }: Props) {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="flex min-h-screen flex-col bg-white text-slate-900">
       {showHeader && <Header />}
       <div className="flex min-h-screen flex-col">
-        <div
-          className={clsx(
-            'flex-1 pb-24',
-            showHeader ? 'pt-4' : 'pt-10'
-          )}
-        >
+        <div className={clsx('flex-1 pb-20', showHeader ? 'pt-2' : 'pt-8')}>
           <div
             className={clsx(
-              'mx-auto w-full px-4 sm:px-6 lg:px-8 space-y-6',
+              'mx-auto flex w-full flex-col gap-6 px-4 sm:px-6',
               widthClass[contentWidth]
             )}
           >
             {(title || description || actions) && (
-              <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="space-y-1">
                   {title && (
                     <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -60,10 +55,10 @@ export default function MainLayout({
                     <p className="text-sm text-slate-600">{description}</p>
                   )}
                 </div>
-                {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
-              </div>
+                {actions && <div className="flex items-center gap-2">{actions}</div>}
+              </header>
             )}
-            <div className="space-y-6">{children}</div>
+            <main className="space-y-6">{children}</main>
           </div>
         </div>
         {showBottomNav && <BottomNavBar />}

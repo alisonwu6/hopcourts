@@ -14,12 +14,14 @@ type SquadMemberCopy = {
   sport: string
   streak: string
   note: string
+  avatarUrl?: string
 }
 
 type SquadRequestCopy = {
   name: string
   sport: string
   message: string
+  avatarUrl?: string
 }
 
 type NotificationCopy = {
@@ -27,6 +29,12 @@ type NotificationCopy = {
   text: string
   time: string
   type: string
+}
+
+type AthleteSessionCopy = {
+  title: string
+  sport: string
+  date: string
 }
 
 type Translation = {
@@ -65,6 +73,7 @@ type Translation = {
     inviteToSquad: string
     message: string
     viewOnMap: string
+    searchAthletesPlaceholder: string
   }
   language: {
     label: string
@@ -76,6 +85,7 @@ type Translation = {
     mapView: string
     newSession: string
     notifications: string
+    searchAthletes: string
   }
   splash: {
     headline: string
@@ -254,8 +264,16 @@ type Translation = {
     title: string
     description: string
     location: string
-    highlights: string[]
+    levelLabel: string
+    levelValue: string
+    sports: string[]
     strengths: string[]
+    badges: string[]
+    recentSessions: AthleteSessionCopy[]
+    upcomingSessions: AthleteSessionCopy[]
+    squad: SquadMemberCopy[]
+    trustNote: string
+    editFabLabel: string
   }
   callback: {
     signingIn: string
@@ -267,7 +285,7 @@ export const translations: Record<Language, Translation> = {
   en: {
     common: {
       appName: 'SportsMatch',
-      tagline: 'Find your people. Keep the streak.',
+      tagline: 'Join locals. Play together. Build your squad.',
       explore: 'Explore',
       squad: 'Squad',
       me: 'Me',
@@ -300,6 +318,7 @@ export const translations: Record<Language, Translation> = {
       inviteToSquad: 'Invite to squad',
       message: 'Message',
       viewOnMap: 'View on map',
+      searchAthletesPlaceholder: 'Search by player, sport, or crew vibe',
     },
     language: {
       label: 'Language',
@@ -311,39 +330,39 @@ export const translations: Record<Language, Translation> = {
       mapView: 'Map view',
       newSession: 'New session',
       notifications: 'Notifications',
+      searchAthletes: 'Search athletes',
     },
     splash: {
-      headline: 'Pick-up sports that actually match your vibe',
-      subcopy:
-        'SportsMatch is the dedicated sports community for Brisbane locals. Discover open sessions, join reliable hosts, and build your squad with real follow-ups.',
+      headline: 'Pick-up sports that match your vibe.',
+      subcopy: 'Join locals, play together, and build your squad with real follow-ups.',
       continueCta: 'Explore upcoming sessions',
     },
     home: {
-      heroTitle: 'This week in Brisbane',
-      heroDescription: 'Lock in a session or plan your own run.',
-      nextOnCalendar: 'Next on your calendar',
-      streak: '3-week streak',
-      invitesTitle: 'Invites pending',
-      invitesSubtitle: 'RSVP so your hosts can lock spots.',
+      heroTitle: 'Pick-up with Brisbane locals',
+      heroDescription: 'Lock in the next run, keep the streak, and grow your crew.',
+      nextOnCalendar: 'Up next for your squad',
+      streak: '3 weeks of play',
+      invitesTitle: 'Friends are waiting',
+      invitesSubtitle: 'RSVP so your host can lock the roster.',
       invitesLink: 'See all invites',
-      quickFilters: ['Beginner friendly', 'After work', 'Indoor courts', "Women's sessions"],
-      searchTitle: 'Find something specific',
+      quickFilters: ['After-work runs', 'Indoor courts', 'Morning crews', 'Beginner friendly'],
+      searchTitle: 'Find the next play',
       searchDescription: 'Search by suburb, sport, or vibe keywords.',
-      searchPlaceholder: 'Try "South Bank basketball"',
-      recommendedTitle: 'Recommended for you',
+      searchPlaceholder: 'Try “South Bank hoops”',
+      recommendedTitle: 'Sessions locals love',
       featuredEventId: 'basketball-pickup',
       invites: [
         {
           id: 'invite-1',
           host: 'Dana',
-          sport: 'Mixed netball',
+          sport: 'Mixed netball run',
           time: 'Thu · 6:30 PM',
           location: 'West End Courts',
         },
         {
           id: 'invite-2',
           host: 'Leo',
-          sport: 'Futsal 5-a-side',
+          sport: 'Saturday futsal crew',
           time: 'Sat · 9:00 AM',
           location: 'South Bank Arena',
         },
@@ -471,6 +490,7 @@ export const translations: Record<Language, Translation> = {
           sport: 'Netball',
           streak: '12 sessions together',
           note: 'Hosts a friendly Friday run at Davies Park',
+          avatarUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=160&q=80',
         },
         {
           name: 'Chen',
@@ -478,6 +498,7 @@ export const translations: Record<Language, Translation> = {
           sport: 'Basketball',
           streak: '8 sessions together',
           note: 'Always down for weeknight scrims',
+          avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=160&q=80',
         },
         {
           name: 'Bo',
@@ -485,6 +506,7 @@ export const translations: Record<Language, Translation> = {
           sport: 'Running',
           streak: '5 sessions together',
           note: 'Tempo partner for Wednesday mornings',
+          avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=160&q=80',
         },
       ],
       requestsTitle: 'Requests',
@@ -494,6 +516,7 @@ export const translations: Record<Language, Translation> = {
           name: 'Hana',
           sport: 'Volleyball',
           message: '"Loved playing at Kangaroo Point, add me for the next game?"',
+          avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=80',
         },
       ],
       add: 'Add to squad',
@@ -562,10 +585,29 @@ export const translations: Record<Language, Translation> = {
     },
     athleteCard: {
       title: 'Athlete profile',
-      description: 'Preview how others see your card.',
+      description: 'Show who you are on the court, and find people who play like you.',
       location: 'Brisbane · Basketball',
-      highlights: ['Active streak: 4 weeks', '18 sessions hosted', 'Top feedback: "Great communicator"'],
-      strengths: ['Shooting', 'Defense', 'Teamwork'],
+      levelLabel: 'Level',
+      levelValue: 'Intermediate guard',
+      sports: ['Basketball', 'Running', 'Strength'],
+      strengths: ['On-ball defense', 'Fast break leader', 'Always early'],
+      badges: ['First Match', '10 Sessions', 'Night Owl Runner'],
+      recentSessions: [
+        { title: 'South Bank Hoops', sport: 'Basketball', date: 'Sun · 6:30 PM' },
+        { title: 'River Loop Tempo', sport: 'Running', date: 'Wed · 5:45 AM' },
+        { title: 'Strength & Mobility', sport: 'Strength', date: 'Fri · 7:00 PM' },
+      ],
+      upcomingSessions: [
+        { title: 'Dawn Track Sprints', sport: 'Running', date: 'Tue · 5:30 AM' },
+        { title: 'City Night Hoops', sport: 'Basketball', date: 'Thu · 8:00 PM' },
+      ],
+      squad: [
+        { name: 'Dana', sport: 'Netball captain', lastPlayed: 'Fri futsal', avatarUrl: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=160&q=80' },
+        { name: 'Jun', sport: 'Runner', lastPlayed: 'River Loop', avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=80' },
+        { name: 'Bo', sport: 'Point guard', lastPlayed: 'Hoops @ SB', avatarUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=160&q=80' },
+      ],
+      trustNote: 'This profile shows info they chose to share.',
+      editFabLabel: 'Edit athlete card',
     },
     callback: {
       signingIn: 'Signing you in...',
@@ -608,6 +650,7 @@ export const translations: Record<Language, Translation> = {
       inviteToSquad: '邀請成為好友',
       message: '傳訊息',
       viewOnMap: '顯示地圖',
+      searchAthletesPlaceholder: '搜尋名字、運動或關鍵字',
     },
     language: {
       label: '語言',
@@ -619,39 +662,39 @@ export const translations: Record<Language, Translation> = {
       mapView: '地圖模式',
       newSession: '建立活動',
       notifications: '通知',
+      searchAthletes: '搜尋選手',
     },
     splash: {
-      headline: '真正符合你風格的運動聚會',
-      subcopy:
-        'SportsMatch 是布里斯本在地的專屬運動社群。探索開放活動、加入值得信賴的主辦人，並持續經營你的運動夥伴圈。',
+      headline: '找到符合你節奏的運動聚會。',
+      subcopy: '加入在地玩家，一起開打，持續壯大你的 squad。',
       continueCta: '探索即將舉辦的活動',
     },
     home: {
-      heroTitle: '本週在布里斯本',
-      heroDescription: '預約你的下一場，或發起你的團練。',
-      nextOnCalendar: '下一場行程',
+      heroTitle: '和布里斯本夥伴一起上場',
+      heroDescription: '預約下一場、維持出席連勝、把好友帶進你的 squad。',
+      nextOnCalendar: '下一場等你開打',
       streak: '連續 3 週出席',
-      invitesTitle: '待回覆的邀請',
-      invitesSubtitle: '盡快回覆好讓主辦人安排名額。',
+      invitesTitle: '好友邀請等你',
+      invitesSubtitle: '儘早回覆，好讓主辦人鎖定名單。',
       invitesLink: '查看所有邀請',
-      quickFilters: ['新手友善', '下班後', '室內場地', '女性專場'],
-      searchTitle: '尋找特定活動',
-      searchDescription: '可以用地區、運動類型或關鍵字搜尋。',
+      quickFilters: ['下班揪團', '室內場地', '清晨晨練', '新手友善'],
+      searchTitle: '找尋下一場',
+      searchDescription: '用地區、運動或氛圍關鍵字搜尋。',
       searchPlaceholder: '試試「South Bank 籃球」',
-      recommendedTitle: '為你推薦',
+      recommendedTitle: '布里斯本玩家最愛',
       featuredEventId: 'basketball-pickup',
       invites: [
         {
           id: 'invite-1',
           host: 'Dana',
-          sport: '混合性別手球',
+          sport: '混合手球團練',
           time: '週四 · 下午 6:30',
           location: 'West End Courts',
         },
         {
           id: 'invite-2',
           host: 'Leo',
-          sport: '五人制室內足球',
+          sport: '週末五人制',
           time: '週六 · 上午 9:00',
           location: 'South Bank Arena',
         },
@@ -779,6 +822,7 @@ export const translations: Record<Language, Translation> = {
           sport: '手球',
           streak: '已同場 12 次',
           note: '每週五在 Davies Park 主辦輕鬆跑團',
+          avatarUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=160&q=80',
         },
         {
           name: 'Chen',
@@ -786,6 +830,7 @@ export const translations: Record<Language, Translation> = {
           sport: '籃球',
           streak: '已同場 8 次',
           note: '總是願意晚間對打',
+          avatarUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=160&q=80',
         },
         {
           name: 'Bo',
@@ -793,6 +838,7 @@ export const translations: Record<Language, Translation> = {
           sport: '路跑',
           streak: '已同場 5 次',
           note: '週三早晨的節奏跑夥伴',
+          avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=160&q=80',
         },
       ],
       requestsTitle: '好友申請',
@@ -802,6 +848,7 @@ export const translations: Record<Language, Translation> = {
           name: 'Hana',
           sport: '排球',
           message: '「很喜歡 Kangaroo Point 的場次，下次也可以帶我嗎？」',
+          avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=80',
         },
       ],
       add: '加入好友',
@@ -870,10 +917,29 @@ export const translations: Record<Language, Translation> = {
     },
     athleteCard: {
       title: '運動名片',
-      description: '預覽大家看到的你的樣子。',
+      description: '把你的球風和夥伴關係呈現給大家。',
       location: '布里斯本 · 籃球',
-      highlights: ['連續 4 週出席', '主辦 18 場活動', '最多回饋：「溝通清楚又熱情」'],
-      strengths: ['外線投射', '防守溝通', '團隊合作'],
+      levelLabel: '等級',
+      levelValue: '中階後衛',
+      sports: ['籃球', '路跑', '肌力'],
+      strengths: ['防守溝通', '快攻帶球', '總是準時'],
+      badges: ['第一場完成', '10 場出席', '夜跑戰士'],
+      recentSessions: [
+        { title: 'South Bank Hoops', sport: '籃球', date: '週日 · 晚上 6:30' },
+        { title: 'River Loop Tempo', sport: '路跑', date: '週三 · 早上 5:45' },
+        { title: 'Strength & Mobility', sport: '肌力', date: '週五 · 晚上 7:00' },
+      ],
+      upcomingSessions: [
+        { title: 'Dawn Track Sprints', sport: '路跑', date: '週二 · 早上 5:30' },
+        { title: 'City Night Hoops', sport: '籃球', date: '週四 · 晚上 8:00' },
+      ],
+      squad: [
+        { name: 'Dana', sport: '手球隊長', lastPlayed: '週五五人制', avatarUrl: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=160&q=80' },
+        { name: 'Jun', sport: '跑者', lastPlayed: '河濱節奏跑', avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=160&q=80' },
+        { name: 'Bo', sport: '控球後衛', lastPlayed: 'South Bank Hoops', avatarUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=160&q=80' },
+      ],
+      trustNote: '這張名片只顯示他選擇公開的資訊。',
+      editFabLabel: '編輯運動名片',
     },
     callback: {
       signingIn: '登入中...',

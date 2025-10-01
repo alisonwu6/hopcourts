@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import { Bell, MapPin, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import logoUrl from '@/assets/sportsmatch.png'
-import LanguageToggle from './LanguageToggle'
 import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function Header() {
@@ -10,7 +9,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-xl items-center justify-between px-4 py-3 sm:px-6">
         <Link
           to="/home"
           className="flex items-center gap-2"
@@ -31,23 +30,24 @@ export default function Header() {
             <div className="text-xs text-slate-500">{copy.common.tagline}</div>
           </div>
         </Link>
-        <div className="flex items-center gap-2">
-          <LanguageToggle />
+        <div className="flex items-center gap-3">
           <Link to="/map">
             <Button
               variant="ghost"
-              size="sm"
-              className="hidden gap-1 sm:inline-flex"
+              size="icon"
+              className="rounded-full"
+              aria-label={copy.header.mapView}
             >
-              <MapPin className="h-4 w-4" /> {copy.header.mapView}
+              <MapPin className="h-5 w-5" />
             </Button>
           </Link>
           <Link to="/create">
             <Button
-              size="sm"
-              className="gap-1"
+              size="icon"
+              className="rounded-full"
+              aria-label={copy.header.newSession}
             >
-              <Plus className="h-4 w-4" /> {copy.header.newSession}
+              <Plus className="h-5 w-5" />
             </Button>
           </Link>
           <Link
@@ -57,6 +57,7 @@ export default function Header() {
             <Button
               variant="ghost"
               size="icon"
+              className="rounded-full"
               aria-label={copy.header.notifications}
             >
               <Bell className="h-5 w-5" />

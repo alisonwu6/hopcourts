@@ -15,7 +15,7 @@ export default function Settings() {
       contentWidth="md"
     >
       <section className="space-y-4">
-        <Card className="border border-slate-200">
+        <Card className="overflow-hidden rounded-3xl border border-slate-100 shadow-sm">
           <CardContent className="space-y-3 p-6">
             <div className="flex items-center justify-between text-sm">
               <div>
@@ -35,7 +35,7 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card className="border border-slate-200">
+        <Card className="overflow-hidden rounded-3xl border border-slate-100 shadow-sm">
           <CardContent className="space-y-3 p-6">
             <div>
               <div className="font-semibold text-slate-900">{copy.settings.languageTitle}</div>
@@ -59,7 +59,7 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        <Card className="border border-slate-200">
+        <Card className="overflow-hidden rounded-3xl border border-slate-100 shadow-sm">
           <CardContent className="space-y-3 p-6 text-sm text-slate-600">
             <div className="font-semibold text-slate-900">{copy.settings.privacyTitle}</div>
             <p>{copy.settings.privacyCopy}</p>

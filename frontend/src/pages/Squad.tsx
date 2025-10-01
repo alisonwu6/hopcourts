@@ -1,7 +1,7 @@
 import MainLayout from '@/layouts/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { MailPlus, UsersRound } from 'lucide-react'
 import { useCopy } from '@/i18n/LanguageProvider'
@@ -42,7 +42,10 @@ export default function Squad() {
               <CardContent className="space-y-3 p-5">
                 <div className="flex items-center gap-3">
                   <Avatar>
-                    <AvatarFallback>{member.name.slice(0, 1)}</AvatarFallback>
+                    {member.avatarUrl ? (
+                      <AvatarImage src={member.avatarUrl} alt={member.name} />
+                    ) : null}
+                    <AvatarFallback />
                   </Avatar>
                   <div>
                     <div className="text-base font-semibold text-slate-900">{member.name}</div>
@@ -81,7 +84,10 @@ export default function Squad() {
                 <CardContent className="space-y-3 p-5">
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarFallback>{request.name.slice(0, 1)}</AvatarFallback>
+                      {request.avatarUrl ? (
+                        <AvatarImage src={request.avatarUrl} alt={request.name} />
+                      ) : null}
+                      <AvatarFallback />
                     </Avatar>
                     <div>
                       <div className="text-sm font-semibold text-slate-900">{request.name}</div>

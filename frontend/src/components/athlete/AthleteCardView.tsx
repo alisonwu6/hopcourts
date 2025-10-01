@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import clsx from 'clsx'
@@ -82,12 +82,11 @@ export default function AthleteCardView({
         {isOwner && (
           <Link
             to={editHref}
-            className="absolute right-4 top-4"
+            className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-white"
             aria-label={copy.editFabLabel}
           >
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/90 text-slate-500 shadow-sm transition hover:bg-white">
-              <Pencil className="h-4 w-4" />
-            </span>
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+            <span>{copy.editFabLabel}</span>
           </Link>
         )}
         <div className="absolute inset-0 h-32 bg-gradient-to-br from-[var(--color-secondary)]/15 via-transparent to-transparent" />
@@ -96,12 +95,12 @@ export default function AthleteCardView({
           <div className="flex flex-col items-center gap-3">
             <div className={clsx('rounded-full p-[3px] shadow-lg', `bg-gradient-to-br ${palette.ring}`)}>
                 <Avatar className="h-24 w-24 border-4 border-white">
-                  <img
+                  <AvatarImage
                     src="https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=crop&w=320&q=80"
                     alt={displayName}
-                    className="h-full w-full rounded-full object-cover"
+                    className="rounded-full object-cover"
                   />
-                  <AvatarFallback>AB</AvatarFallback>
+                  <AvatarFallback />
                 </Avatar>
             </div>
             <div>
@@ -206,12 +205,12 @@ export default function AthleteCardView({
               >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                    <img
-                      src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=160&q=80"
+                    <AvatarImage
+                      src={member.avatarUrl}
                       alt={member.name}
-                      className="h-full w-full rounded-full object-cover"
+                      className="rounded-full object-cover"
                     />
-                    <AvatarFallback>{member.name.slice(0, 1)}</AvatarFallback>
+                    <AvatarFallback />
                   </Avatar>
                   <div>
                     <div className="text-sm font-semibold text-slate-800">{member.name}</div>

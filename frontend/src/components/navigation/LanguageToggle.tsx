@@ -8,11 +8,11 @@ export default function LanguageToggle() {
 
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="sm"
       onClick={toggleLanguage}
       aria-label={copy.language.toggleA11y}
-      className="inline-flex"
+      className="inline-flex rounded-full px-4"
     >
       {nextLabel}
     </Button>
