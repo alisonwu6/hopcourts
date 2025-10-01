@@ -37,6 +37,12 @@ type AthleteSessionCopy = {
   date: string
 }
 
+type BadgeOptionCopy = {
+  id: string
+  label: string
+  description: string
+}
+
 type Translation = {
   common: {
     appName: string
@@ -189,6 +195,21 @@ type Translation = {
     lookingForPlaceholder: string
     skills: string[]
     availabilityDays: string[]
+    sportOptions: string[]
+    strengthOptions: string[]
+    badgeOptions: BadgeOptionCopy[]
+    sportsTitle: string
+    strengthsTitle: string
+    badgesTitle: string
+    sportsHint: string
+    strengthsHint: string
+    badgesHint: string
+    levelOptions: string[]
+    save: string
+    cancel: string
+    previewLabel: string
+    savingLabel: string
+    savedMessage: string
   }
   squad: {
     title: string
@@ -476,6 +497,27 @@ export const translations: Record<Language, Translation> = {
       lookingForPlaceholder: 'Eg: Social weeknight runs, mixed basketball scrims, casual volleyball.',
       skills: ['Playmaking', 'Defense', 'Consistency'],
       availabilityDays: ['Mon', 'Wed', 'Thu', 'Sat'],
+      sportOptions: ['Basketball', 'Running', 'Strength', 'Volleyball', 'Futsal', 'Badminton', 'Climbing'],
+      strengthOptions: ['On-ball defense', 'Fast break leader', 'Reliable passer', 'Clutch shooter', 'Hype captain', 'Organises squads'],
+      badgeOptions: [
+        { id: 'first-match', label: 'First Match', description: 'Completed your first game with SportsMatch.' },
+        { id: 'ten-sessions', label: '10 Sessions', description: 'Played in ten sessions this season.' },
+        { id: 'host-helper', label: 'Host Helper', description: 'Regularly steps up to co-host or cover drop-outs.' },
+        { id: 'night-owl', label: 'Night Owl Runner', description: 'Joined at least five late-night runs.' },
+        { id: 'early-bird', label: 'Early Bird', description: 'Shows up for dawn sessions week after week.' },
+      ],
+      sportsTitle: 'Sports to show',
+      strengthsTitle: 'Strengths',
+      badgesTitle: 'Badges',
+      sportsHint: 'Pick up to three sports to feature.',
+      strengthsHint: 'Highlight up to three skills teammates can count on.',
+      badgesHint: 'Share up to three badges you want visible on your card.',
+      levelOptions: ['Beginner', 'Social', 'Intermediate', 'Advanced'],
+      save: 'Save changes',
+      cancel: 'Cancel',
+      previewLabel: 'Live preview',
+      savingLabel: 'Saving…',
+      savedMessage: 'Changes saved',
     },
     squad: {
       title: 'Your squad',
@@ -808,6 +850,27 @@ export const translations: Record<Language, Translation> = {
       lookingForPlaceholder: '例如：平日晚上的輕鬆夜跑、混合籃球對抗、休閒排球。',
       skills: ['組織進攻', '防守判斷', '穩定出席'],
       availabilityDays: ['週一', '週三', '週四', '週六'],
+      sportOptions: ['籃球', '路跑', '肌力', '排球', '五人制', '羽球', '攀岩'],
+      strengthOptions: ['防守溝通', '快攻發動', '傳球穩定', '外線輸出', '場上氣氛手', '揪團高手'],
+      badgeOptions: [
+        { id: 'first-match', label: '第一場完成', description: '在 SportsMatch 完成你的第一場活動。' },
+        { id: 'ten-sessions', label: '10 場出席', description: '這季參加至少 10 場活動。' },
+        { id: 'host-helper', label: '主辦支援', description: '經常協助主辦或頂替臨時空缺。' },
+        { id: 'night-owl', label: '夜跑戰士', description: '加入過至少 5 場夜間跑步活動。' },
+        { id: 'early-bird', label: '晨型玩家', description: '持續參加清晨場活動。' },
+      ],
+      sportsTitle: '想呈現的運動',
+      strengthsTitle: '擅長項目',
+      badgesTitle: '徽章',
+      sportsHint: '最多選三個要展示的運動。',
+      strengthsHint: '最多選三項讓夥伴放心的強項。',
+      badgesHint: '挑選最多三個想在名片上呈現的徽章。',
+      levelOptions: ['初階', '社交', '中階', '進階'],
+      save: '儲存變更',
+      cancel: '取消',
+      previewLabel: '即時預覽',
+      savingLabel: '儲存中…',
+      savedMessage: '已儲存變更',
     },
     squad: {
       title: '你的好友名單',

@@ -82,11 +82,10 @@ export default function AthleteCardView({
         {isOwner && (
           <Link
             to={editHref}
-            className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-white"
+            className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/95 text-slate-500 shadow-sm transition hover:bg-white"
             aria-label={copy.editFabLabel}
           >
             <Pencil className="h-4 w-4" aria-hidden="true" />
-            <span>{copy.editFabLabel}</span>
           </Link>
         )}
         <div className="absolute inset-0 h-32 bg-gradient-to-br from-[var(--color-secondary)]/15 via-transparent to-transparent" />
