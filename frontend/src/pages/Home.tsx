@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { CalendarDays, ChevronRight, Flame, Filter, MapPin, Plus } from 'lucide-react'
+import { CalendarDays, ChevronRight, Filter, MapPin, Plus } from 'lucide-react'
 import MainLayout from '@/layouts/MainLayout'
 import EventCardList from '@/components/event/EventCardList'
 import { Card, CardContent } from '@/components/ui/card'
@@ -33,39 +33,48 @@ export default function Home() {
         </Button>
       }
     >
-      {featuredEvent && featuredContent && (
-        <section className="grid gap-4 lg:grid-cols-[2fr,1fr]">
-          <Card className="overflow-hidden rounded-3xl bg-gradient-to-br from-[var(--color-globe-teal)] via-[var(--color-primary)] to-[var(--color-globe-orange)] text-white shadow-sm">
-            <CardContent className="flex h-full flex-col justify-between gap-6 p-6">
-              <div className="flex items-center justify-between text-xs uppercase tracking-wide text-white/70">
-                <span className="rounded-full bg-white/15 px-3 py-1 text-white">
+      <section className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {homeCopy.trustSignals.map((signal) => (
+            <div
+              key={signal.label}
+              className="rounded-2xl border border-slate-200 bg-white p-4"
+            >
+              <div className="text-sm font-semibold text-slate-900">{signal.label}</div>
+              <p className="mt-1 text-xs text-slate-500">{signal.description}</p>
+            </div>
+          ))}
+        </div>
+
+        {featuredEvent && featuredContent && (
+          <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+            <CardContent className="space-y-4 p-6">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
                   {homeCopy.nextOnCalendar}
                 </span>
-                <Badge className="bg-white/20 text-white">
-                  <Flame className="mr-1 h-3 w-3" /> {homeCopy.streak}
-                </Badge>
+                <span>{homeCopy.streak}</span>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-white/80">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-slate-600">
                   <CalendarDays className="h-4 w-4" />
                   {featuredContent.time}
                 </div>
-                <h2 className="text-2xl font-semibold">{featuredContent.title}</h2>
-                <div className="flex items-center gap-2 text-sm text-white/80">
+                <h2 className="text-2xl font-semibold text-slate-900">{featuredContent.title}</h2>
+                <div className="flex items-center gap-2 text-sm text-slate-600">
                   <MapPin className="h-4 w-4" />
                   {featuredContent.location}
                 </div>
-                <div className="text-xs text-white/70">
-                  {copy.common.hostedBy(featuredEvent.host.name)} ·
-                  {copy.common.joinCounts(featuredEvent.joinedCount, featuredEvent.maxCount)}
+                <div className="text-xs text-slate-500">
+                  {copy.common.hostedBy(featuredEvent.host.name)} · {copy.common.joinCounts(featuredEvent.joinedCount, featuredEvent.maxCount)}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 text-xs">
                 {featuredContent.tags.map((tag) => (
                   <Badge
                     key={tag}
-                    variant="secondary"
-                    className="bg-white/20 text-white"
+                    variant="outline"
+                    className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-slate-600"
                   >
                     {tag}
                   </Badge>
@@ -73,8 +82,8 @@ export default function Home() {
               </div>
               <Button
                 asChild
-                variant="secondary"
-                className="self-start rounded-full bg-white px-5 py-2 text-[var(--color-primary)] hover:bg-white/90"
+                variant="outline"
+                className="rounded-full"
               >
                 <Link to={`/sessions/${featuredEvent.id}`}>
                   {copy.eventCard.joinSession}
@@ -82,57 +91,57 @@ export default function Home() {
               </Button>
             </CardContent>
           </Card>
+        )}
 
-          <Card className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-            <CardContent className="flex h-full flex-col gap-4 p-5">
-              <div>
-                <h3 className="text-base font-semibold text-slate-900">{homeCopy.invitesTitle}</h3>
-                <p className="text-sm text-slate-500">{homeCopy.invitesSubtitle}</p>
-              </div>
-              <div className="space-y-3">
-                {homeCopy.invites.map((invite) => (
-                  <div
-                    key={invite.id}
-                    className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3 text-sm"
-                  >
-                    <div className="font-medium text-slate-900">{invite.sport}</div>
-                    <div className="text-slate-500">{copy.common.hostedBy(invite.host)}</div>
-                    <div className="text-xs text-slate-500">
-                      {invite.time} · {invite.location}
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      <Button size="sm" className="gap-1 rounded-full bg-[var(--color-primary)] text-white hover:bg-[#ff8f3e]">
-                        {copy.home.acceptInvite}
-                      </Button>
-                      <Button size="sm" variant="ghost" className="rounded-full">
-                        {copy.home.maybeInvite}
-                      </Button>
-                    </div>
+        <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <CardContent className="space-y-4 p-5">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">{homeCopy.invitesTitle}</h3>
+              <p className="text-sm text-slate-500">{homeCopy.invitesSubtitle}</p>
+            </div>
+            <div className="space-y-3">
+              {homeCopy.invites.map((invite) => (
+                <div
+                  key={invite.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-3 text-sm"
+                >
+                  <div className="font-medium text-slate-900">{invite.sport}</div>
+                  <div className="text-slate-500">{copy.common.hostedBy(invite.host)}</div>
+                  <div className="text-xs text-slate-500">
+                    {invite.time} · {invite.location}
                   </div>
-                ))}
-              </div>
-              <Button
-                asChild
-                variant="ghost"
-                className="justify-start gap-1 text-sm text-[var(--color-secondary)]"
-              >
-                <Link to="/notifications">
-                  {homeCopy.invitesLink} <ChevronRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </section>
-      )}
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" variant="secondary" className="rounded-full">
+                      {copy.home.acceptInvite}
+                    </Button>
+                    <Button size="sm" variant="outline" className="rounded-full">
+                      {copy.home.maybeInvite}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button
+              asChild
+              variant="ghost"
+              className="justify-start gap-1 text-sm text-[var(--color-secondary)]"
+            >
+              <Link to="/notifications">
+                {homeCopy.invitesLink} <ChevronRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </section>
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            {homeCopy.quickFilters.map((filter) => (
+            {homeCopy.quickFilters.slice(0, 3).map((filter) => (
               <Badge
                 key={filter}
                 variant="outline"
-                className="cursor-pointer rounded-full border-0 bg-slate-100 px-3 py-1 text-xs text-slate-600"
+                className="cursor-pointer rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600"
               >
                 {filter}
               </Badge>
@@ -146,24 +155,24 @@ export default function Home() {
             <Filter className="h-4 w-4" /> {copy.common.filters}
           </Button>
         </div>
-        <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+        <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-base font-semibold text-slate-900">{copy.home.searchTitle}</h3>
               <p className="text-sm text-slate-500">{copy.home.searchDescription}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex w-full gap-2 sm:w-auto">
               <input
                 type="search"
                 placeholder={homeCopy.searchPlaceholder}
-                className="h-10 w-full rounded-full border border-slate-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 sm:w-64"
+                className="h-10 flex-1 rounded-full border border-slate-200 px-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-200"
               />
-              <Button variant="secondary" className="rounded-full">
+              <Button variant="outline" className="rounded-full">
                 {copy.common.search}
               </Button>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </section>
 
       <section className="space-y-4">

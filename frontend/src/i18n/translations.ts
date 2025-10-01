@@ -113,6 +113,7 @@ type Translation = {
     recommendedTitle: string
     featuredEventId: string
     invites: InviteCopy[]
+    trustSignals: Array<{ label: string; description: string }>
     acceptInvite: string
     maybeInvite: string
   }
@@ -387,6 +388,12 @@ export const translations: Record<Language, Translation> = {
           time: 'Sat · 9:00 AM',
           location: 'South Bank Arena',
         },
+      ],
+      trustSignals: [
+        { label: 'Attendance credit', description: 'See who shows up every week.' },
+        { label: 'Skill match', description: 'Sessions balanced by level.' },
+        { label: 'Weekly squads', description: 'Lock in recurring games.' },
+        { label: 'Beginner safe', description: 'Welcomes first-timers.' },
       ],
       acceptInvite: 'Accept',
       maybeInvite: 'Maybe',
@@ -740,6 +747,12 @@ export const translations: Record<Language, Translation> = {
           time: '週六 · 上午 9:00',
           location: 'South Bank Arena',
         },
+      ],
+      trustSignals: [
+        { label: '出席信用', description: '看看誰每週都準時報到。' },
+        { label: '程度配對', description: '自動平衡程度，打起來更順。' },
+        { label: '固定 Squad', description: '鎖定每週固定場次。' },
+        { label: '新手友善', description: '第一次來也有安全空間。' },
       ],
       acceptInvite: '接受',
       maybeInvite: '再想想',
