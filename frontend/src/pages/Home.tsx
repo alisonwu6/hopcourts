@@ -1,195 +1,166 @@
-import { Link } from 'react-router-dom'
-import { CalendarDays, ChevronRight, Filter, MapPin, Plus } from 'lucide-react'
-import MainLayout from '@/layouts/MainLayout'
-import EventCardList from '@/components/event/EventCardList'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { mockEvents } from '@/mocks/event'
+import { useMemo, useState } from 'react'
+import { Search, Plus } from 'lucide-react'
+import SessionCard, { ExploreSession } from '@/components/explore/SessionCard'
+import Header from '@/components/navigation/Header'
+import { BottomNavBar } from '@/components/navigation/BottomNavBar'
 import { useCopy } from '@/i18n/LanguageProvider'
+import { trackEvent } from '@/lib/analytics'
+
+const DEFAULT_FILTER = 'All'
+
+const sampleSessions: ExploreSession[] = [
+  {
+    id: 101,
+    title: 'Sunrise Climbing Meetup',
+    sport: 'Climbing',
+    hostName: 'Tere Wu',
+    startsAt: '2025-09-12T06:00:00Z',
+    endsAt: '2025-09-12T08:00:00Z',
+    maxPlayers: 12,
+    playerCount: 5,
+    heroImage: '/placeholders/climb.jpg',
+    distanceKm: 2.1,
+    hostAvatar: '/avatars/a1.jpg',
+    startLabel: 'Sat · 6:00 AM',
+    venue: 'Kangaroo Point Cliffs',
+    tags: ['outdoor', 'ropes'],
+    status: 'open',
+    details: {
+      tags: ['outdoor', 'sunrise'],
+      skillLevelLabel: 'All levels',
+      description: 'Casual sunrise climbs with safety recap.',
+    },
+  },
+  {
+    id: 102,
+    title: 'South Bank Sunset Run',
+    sport: 'Running',
+    hostName: 'Jamie Lee',
+    startsAt: '2025-09-13T17:00:00Z',
+    endsAt: '2025-09-13T18:30:00Z',
+    maxPlayers: 20,
+    playerCount: 11,
+    heroImage: '/placeholders/run.jpg',
+    distanceKm: 1.4,
+    hostAvatar: '/avatars/b3.jpg',
+    startLabel: 'Sun · 5:00 PM',
+    venue: 'South Bank River Loop',
+    tags: ['tempo'],
+    status: 'open',
+    details: {
+      tags: ['tempo'],
+      skillLevelLabel: 'Intermediate',
+      description: 'Two pace groups with cool-down hangs.',
+    },
+  },
+  {
+    id: 103,
+    title: 'Indoor Yoga Flow',
+    sport: 'Yoga',
+    hostName: 'Mika Chen',
+    startsAt: '2025-09-15T19:00:00Z',
+    endsAt: '2025-09-15T20:00:00Z',
+    maxPlayers: 15,
+    playerCount: 9,
+    heroImage: '/placeholders/yoga.jpg',
+    distanceKm: 3.8,
+    hostAvatar: '/avatars/d1.jpg',
+    startLabel: 'Tue · 7:00 PM',
+    venue: 'West End Studio',
+    tags: ['indoor'],
+    status: 'open',
+    details: {
+      tags: ['flow'],
+      skillLevelLabel: 'Beginner friendly',
+      description: 'Slow flow with focus on recovery and breath.',
+    },
+  },
+]
 
 export default function Home() {
   const copy = useCopy()
-  const homeCopy = copy.home
-  const events = mockEvents
-  const featuredEvent = events.find((event) => event.id === homeCopy.featuredEventId) ?? events[0]
-  const featuredContent = featuredEvent
-    ? copy.mockEvents.cards[featuredEvent.contentKey]
-    : undefined
+  const filters = useMemo(() => copy.home.explore.filters ?? [DEFAULT_FILTER], [copy.home.explore.filters])
+  const [selectedFilter, setSelectedFilter] = useState(DEFAULT_FILTER)
+
+  const filteredSessions = useMemo(() => {
+    return sampleSessions.filter((session) => {
+      if (selectedFilter === DEFAULT_FILTER) return true
+      return session.sport.toLowerCase() === selectedFilter.toLowerCase()
+    })
+  }, [selectedFilter])
+
+  const handleFilterClick = (filter: string) => {
+    setSelectedFilter(filter)
+    trackEvent('FilterSelect', { sport_type: filter })
+  }
+
+  const handleCreateIntent = () => {
+    trackEvent('CreateIntent')
+  }
 
   return (
-    <MainLayout
-      title={homeCopy.heroTitle}
-      description={homeCopy.heroDescription}
-      actions={
-        <Button
-          asChild
-          size="sm"
-          className="gap-1"
-        >
-          <Link to="/create">
-            <Plus className="h-4 w-4" /> {copy.header.newSession}
-          </Link>
-        </Button>
-      }
-    >
-      <section className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {homeCopy.trustSignals.map((signal) => (
-            <div
-              key={signal.label}
-              className="rounded-2xl border border-slate-200 bg-white p-4"
-            >
-              <div className="text-sm font-semibold text-slate-900">{signal.label}</div>
-              <p className="mt-1 text-xs text-slate-500">{signal.description}</p>
-            </div>
-          ))}
-        </div>
-
-        {featuredEvent && featuredContent && (
-          <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <CardContent className="space-y-4 p-6">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-600">
-                  {homeCopy.nextOnCalendar}
-                </span>
-                <span>{homeCopy.streak}</span>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#2B2B2B] pb-24">
+      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+        <Header sticky={false} showBorder={false} />
+        <div className="border-t border-[#E6E6E6]">
+          <div className="mx-auto w-full max-w-4xl">
+            <div className="overflow-x-auto scrollbar-hidden">
+              <div className="flex min-w-max items-center gap-2 px-4 py-3 sm:px-6">
+                {filters.map((filter) => {
+                  const isActive = filter === selectedFilter
+                  return (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => handleFilterClick(filter)}
+                      className={`whitespace-nowrap rounded-full px-4 py-2 text-sm transition ${
+                        isActive ? 'bg-[#1B8FD2] text-white shadow-sm' : 'bg-white text-[#6E6E6E] hover:text-[#1B8FD2]'
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  )
+                })}
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <CalendarDays className="h-4 w-4" />
-                  {featuredContent.time}
-                </div>
-                <h2 className="text-2xl font-semibold text-slate-900">{featuredContent.title}</h2>
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <MapPin className="h-4 w-4" />
-                  {featuredContent.location}
-                </div>
-                <div className="text-xs text-slate-500">
-                  {copy.common.hostedBy(featuredEvent.host.name)} · {copy.common.joinCounts(featuredEvent.joinedCount, featuredEvent.maxCount)}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {featuredContent.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="outline"
-                    className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-slate-600"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-              <Button
-                asChild
-                variant="outline"
-                className="rounded-full"
-              >
-                <Link to={`/sessions/${featuredEvent.id}`}>
-                  {copy.eventCard.joinSession}
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <CardContent className="space-y-4 p-5">
-            <div>
-              <h3 className="text-base font-semibold text-slate-900">{homeCopy.invitesTitle}</h3>
-              <p className="text-sm text-slate-500">{homeCopy.invitesSubtitle}</p>
             </div>
-            <div className="space-y-3">
-              {homeCopy.invites.map((invite) => (
-                <div
-                  key={invite.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-3 text-sm"
-                >
-                  <div className="font-medium text-slate-900">{invite.sport}</div>
-                  <div className="text-slate-500">{copy.common.hostedBy(invite.host)}</div>
-                  <div className="text-xs text-slate-500">
-                    {invite.time} · {invite.location}
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <Button size="sm" variant="secondary" className="rounded-full">
-                      {copy.home.acceptInvite}
-                    </Button>
-                    <Button size="sm" variant="outline" className="rounded-full">
-                      {copy.home.maybeInvite}
-                    </Button>
-                  </div>
-                </div>
-              ))}
+            <div className="px-4 pb-4 sm:px-6">
+              <label className="relative block">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6E6E6E]" />
+                <input
+                  type="search"
+                  placeholder={copy.home.explore.searchPlaceholder}
+                  className="h-10 w-full rounded-full border border-[#E6E6E6] bg-white pl-9 pr-4 text-sm text-[#2B2B2B] focus:outline-none focus:ring-2 focus:ring-[#CDE8FF]"
+                />
+              </label>
             </div>
-            <Button
-              asChild
-              variant="ghost"
-              className="justify-start gap-1 text-sm text-[var(--color-secondary)]"
-            >
-              <Link to="/notifications">
-                {homeCopy.invitesLink} <ChevronRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
-
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {homeCopy.quickFilters.slice(0, 3).map((filter) => (
-              <Badge
-                key={filter}
-                variant="outline"
-                className="cursor-pointer rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600"
-              >
-                {filter}
-              </Badge>
-            ))}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1 rounded-full"
-          >
-            <Filter className="h-4 w-4" /> {copy.common.filters}
-          </Button>
         </div>
-        <Card className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-base font-semibold text-slate-900">{copy.home.searchTitle}</h3>
-              <p className="text-sm text-slate-500">{copy.home.searchDescription}</p>
-            </div>
-            <div className="flex w-full gap-2 sm:w-auto">
-              <input
-                type="search"
-                placeholder={homeCopy.searchPlaceholder}
-                className="h-10 flex-1 rounded-full border border-slate-200 px-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-200"
-              />
-              <Button variant="outline" className="rounded-full">
-                {copy.common.search}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+      </div>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-slate-900">{copy.home.recommendedTitle}</h3>
-          <Button
-            asChild
-            variant="ghost"
-            className="gap-1 text-sm text-[var(--color-secondary)]"
-          >
-            <Link to="/map">
-              {copy.common.viewOnMap} <ChevronRight className="h-4 w-4" />
-            </Link>
-          </Button>
+      <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="space-y-5">
+          {filteredSessions.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-[#E6E6E6] bg-white p-10 text-center text-sm text-[#6E6E6E]">
+              {copy.home.explore.emptyState}
+            </div>
+          ) : (
+            filteredSessions.map((session) => (
+              <SessionCard key={session.id} session={session} />
+            ))
+          )}
         </div>
-        <EventCardList events={events} />
-      </section>
-    </MainLayout>
+      </main>
+
+      <button
+        type="button"
+        onClick={handleCreateIntent}
+        className="fixed bottom-20 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B8FD2] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)] transition hover:bg-[#1679b3]"
+        aria-label={copy.home.explore.fabLabel}
+      >
+        <Plus className="h-6 w-6" />
+      </button>
+
+      <BottomNavBar />
+    </div>
   )
 }

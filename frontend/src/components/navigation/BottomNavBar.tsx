@@ -1,5 +1,5 @@
 import { ComponentType } from 'react'
-import { Home, Users, User, Search } from 'lucide-react'
+import { Compass, Users, User, Search } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { useCopy } from '@/i18n/LanguageProvider'
@@ -19,9 +19,9 @@ export function BottomNavBar() {
   const navItems: NavItem[] = [
     {
       label: copy.common.explore,
-      icon: Home,
+      icon: Compass,
       path: '/home',
-      matchPaths: ['/home', '/sessions', '/map'],
+      matchPaths: ['/home', '/explore', '/sessions', '/map'],
     },
     {
       label: copy.header.searchAthletes,

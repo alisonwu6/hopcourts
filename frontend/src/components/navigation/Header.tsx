@@ -1,15 +1,29 @@
 import { Link } from 'react-router-dom'
 import { Bell, MapPin, Plus } from 'lucide-react'
+import clsx from 'clsx'
 import { Button } from '@/components/ui/button'
 import logoUrl from '@/assets/sportsmatch.png'
 import { useCopy } from '@/i18n/LanguageProvider'
 
-export default function Header() {
+type Props = {
+  sticky?: boolean
+  showBorder?: boolean
+  className?: string
+}
+
+export default function Header({ sticky = true, showBorder = true, className }: Props) {
   const copy = useCopy()
 
+  const headerClass = clsx(
+    sticky && 'sticky top-0',
+    showBorder ? 'border-b border-slate-200' : '',
+    'z-50 bg-white/80 backdrop-blur',
+    className
+  )
+
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-xl items-center justify-between px-4 py-3 sm:px-6">
+    <header className={headerClass}>
+      <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
         <Link
           to="/home"
           className="flex items-center gap-2"

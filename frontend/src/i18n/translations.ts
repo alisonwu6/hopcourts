@@ -99,24 +99,51 @@ type Translation = {
     continueCta: string
   }
   home: {
-    heroTitle: string
-    heroDescription: string
-    nextOnCalendar: string
-    streak: string
-    invitesTitle: string
-    invitesSubtitle: string
-    invitesLink: string
-    quickFilters: string[]
-    searchTitle: string
-    searchDescription: string
-    searchPlaceholder: string
-    recommendedTitle: string
-    featuredEventId: string
-    invites: InviteCopy[]
-    trustSignals: Array<{ label: string; description: string }>
-    acceptInvite: string
-    maybeInvite: string
-  }
+    heroTitle: 'Pick-up with Brisbane locals',
+    heroDescription: 'Lock in the next run, keep the streak, and grow your crew.',
+    nextOnCalendar: 'Up next for your squad',
+    streak: '3 weeks of play',
+    invitesTitle: 'Friends are waiting',
+    invitesSubtitle: 'RSVP so your host can lock the roster.',
+    invitesLink: 'See all invites',
+    quickFilters: ['After-work runs', 'Indoor courts', 'Morning crews', 'Beginner friendly'],
+    searchTitle: 'Find the next play',
+    searchDescription: 'Search by suburb, sport, or vibe keywords.',
+    searchPlaceholder: 'Try “South Bank hoops”',
+    recommendedTitle: 'Sessions locals love',
+    featuredEventId: 'basketball-pickup',
+    invites: [
+      {
+        id: 'invite-1',
+        host: 'Dana',
+        sport: 'Mixed netball run',
+        time: 'Thu · 6:30 PM',
+        location: 'West End Courts',
+      },
+      {
+        id: 'invite-2',
+        host: 'Leo',
+        sport: 'Saturday futsal crew',
+        time: 'Sat · 9:00 AM',
+        location: 'South Bank Arena',
+      },
+    ],
+    trustSignals: [
+      { label: 'Attendance credit', description: 'See who shows up every week.' },
+      { label: 'Skill match', description: 'Sessions balanced by level.' },
+      { label: 'Weekly squads', description: 'Lock in recurring games.' },
+      { label: 'Beginner safe', description: 'Welcomes first-timers.' },
+    ],
+    acceptInvite: 'Accept',
+    maybeInvite: 'Maybe',
+    explore: {
+      title: 'Explore',
+      searchPlaceholder: 'Search by sport, host, or venue',
+      filters: ['All', 'Running', 'Basketball', 'Bouldering', 'Climbing', 'Hiking', 'Yoga', 'Surfing'],
+      emptyState: 'No sessions match right now. Try another sport or widen your search.',
+      fabLabel: 'Create a session',
+    },
+  },
   eventCard: {
     saveForLater: string
     joinSession: string
@@ -397,15 +424,15 @@ export const translations: Record<Language, Translation> = {
       ],
       acceptInvite: 'Accept',
       maybeInvite: 'Maybe',
+      explore: {
+        title: 'Explore',
+        searchPlaceholder: 'Search by sport, host, or venue',
+        filters: ['All', 'Running', 'Basketball', 'Bouldering', 'Climbing', 'Hiking', 'Yoga', 'Surfing'],
+        emptyState: 'No sessions match right now. Try another sport or widen your search.',
+        fabLabel: 'Create a session',
+      },
     },
-    eventCard: {
-      saveForLater: 'Save for later',
-      joinSession: 'Join session',
-    },
-    eventList: {
-      emptyMessage: 'No sessions match your filters yet. Try broadening your search.',
-    },
-    mockEvents: {
+  mockEvents: {
       cards: {
         brisbane_basketball: {
           title: 'Basketball Pickup',
@@ -756,8 +783,15 @@ export const translations: Record<Language, Translation> = {
       ],
       acceptInvite: '接受',
       maybeInvite: '再想想',
+      explore: {
+        title: '探索活動',
+        searchPlaceholder: '搜尋運動、主辦人或地點',
+        filters: ['All', 'Running', 'Basketball', 'Bouldering', 'Climbing', 'Hiking', 'Yoga', 'Surfing'],
+        emptyState: '目前沒有符合的活動，換個運動類型或關鍵字試試。',
+        fabLabel: '建立活動',
+      },
     },
-    eventCard: {
+  eventCard: {
       saveForLater: '先收藏',
       joinSession: '加入活動',
     },
