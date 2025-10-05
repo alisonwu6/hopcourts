@@ -13,7 +13,7 @@ import Squad from './pages/Squad'
 import Reconnect from './pages/Reconnect'
 import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
-import SearchAthletes from './pages/SearchAthletes'
+import Athletes from './pages/Athletes'
 import EditAthleteCard from './pages/EditAthleteCard'
 
 
@@ -38,7 +38,7 @@ export default function App() {
       />
       <Route
         path="/athletes"
-        element={<SearchAthletes />}
+        element={<Athletes />}
       />
       <Route
         path="/sessions/:id"

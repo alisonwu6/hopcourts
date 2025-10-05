@@ -99,50 +99,30 @@ type Translation = {
     continueCta: string
   }
   home: {
-    heroTitle: 'Pick-up with Brisbane locals',
-    heroDescription: 'Lock in the next run, keep the streak, and grow your crew.',
-    nextOnCalendar: 'Up next for your squad',
-    streak: '3 weeks of play',
-    invitesTitle: 'Friends are waiting',
-    invitesSubtitle: 'RSVP so your host can lock the roster.',
-    invitesLink: 'See all invites',
-    quickFilters: ['After-work runs', 'Indoor courts', 'Morning crews', 'Beginner friendly'],
-    searchTitle: 'Find the next play',
-    searchDescription: 'Search by suburb, sport, or vibe keywords.',
-    searchPlaceholder: 'Try “South Bank hoops”',
-    recommendedTitle: 'Sessions locals love',
-    featuredEventId: 'basketball-pickup',
-    invites: [
-      {
-        id: 'invite-1',
-        host: 'Dana',
-        sport: 'Mixed netball run',
-        time: 'Thu · 6:30 PM',
-        location: 'West End Courts',
-      },
-      {
-        id: 'invite-2',
-        host: 'Leo',
-        sport: 'Saturday futsal crew',
-        time: 'Sat · 9:00 AM',
-        location: 'South Bank Arena',
-      },
-    ],
-    trustSignals: [
-      { label: 'Attendance credit', description: 'See who shows up every week.' },
-      { label: 'Skill match', description: 'Sessions balanced by level.' },
-      { label: 'Weekly squads', description: 'Lock in recurring games.' },
-      { label: 'Beginner safe', description: 'Welcomes first-timers.' },
-    ],
-    acceptInvite: 'Accept',
-    maybeInvite: 'Maybe',
+    heroTitle: string
+    heroDescription: string
+    nextOnCalendar: string
+    streak: string
+    invitesTitle: string
+    invitesSubtitle: string
+    invitesLink: string
+    quickFilters: string[]
+    searchTitle: string
+    searchDescription: string
+    searchPlaceholder: string
+    recommendedTitle: string
+    featuredEventId: string
+    invites: InviteCopy[]
+    trustSignals: Array<{ label: string; description: string }>
+    acceptInvite: string
+    maybeInvite: string
     explore: {
-      title: 'Explore',
-      searchPlaceholder: 'Search by sport, host, or venue',
-      filters: ['All', 'Running', 'Basketball', 'Bouldering', 'Climbing', 'Hiking', 'Yoga', 'Surfing'],
-      emptyState: 'No sessions match right now. Try another sport or widen your search.',
-      fabLabel: 'Create a session',
-    },
+      title: string
+      searchPlaceholder: string
+      filters: string[]
+      emptyState: string
+      fabLabel: string
+    }
   },
   eventCard: {
     saveForLater: string
@@ -432,7 +412,14 @@ export const translations: Record<Language, Translation> = {
         fabLabel: 'Create a session',
       },
     },
-  mockEvents: {
+    eventCard: {
+      saveForLater: 'Save for later',
+      joinSession: 'Join session',
+    },
+    eventList: {
+      emptyMessage: 'No sessions match your filters yet. Try broadening your search.',
+    },
+    mockEvents: {
       cards: {
         brisbane_basketball: {
           title: 'Basketball Pickup',
