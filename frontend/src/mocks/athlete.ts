@@ -15,7 +15,7 @@ export const mockAthlete: AthleteCardProps = {
     'Keeps chasing the next clean rep.',
   ],
   visualTagline: 'Still learning, still moving.',
-  avatarUrl: '/mock/athletes/alex.png',
+  avatarUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=200&q=60',
   coverUrl: '/mock/covers/court.jpg',
   stats: { sessions: 42, streakWeeks: 5, energy: 78, badges: 5 },
   tags: [

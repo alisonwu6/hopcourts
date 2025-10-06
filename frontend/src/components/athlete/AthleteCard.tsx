@@ -18,7 +18,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { ActivityCardProps, AthleteCardProps } from '@/interfaces/athlete'
 import { cn } from '@/lib/utils'
-import fallbackHero from '@/assets/placeholders/session-fallback.svg'
 import fallbackAvatar from '@/assets/placeholders/avatar-fallback.svg'
 import { athleteCardTokens } from './tokens'
 import { trackEvent } from '@/lib/analytics'
@@ -389,48 +388,23 @@ export const AthleteCard = memo((props: AthleteCardComponentProps) => {
       )}
       style={cardStyle}
     >
-      <header className="relative">
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
-          <img
-            src={coverUrl || fallbackHero}
-            onError={(event) => {
-              const target = event.currentTarget
-              if (target.src !== fallbackHero) {
-                target.src = fallbackHero
-              }
-            }}
-            alt={`${name} cover`}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0" style={{ backgroundImage: tokens.gradients.heroOverlay }} />
-        </div>
-
-        {status !== 'none' && (
-          <div className="absolute left-6 top-5 inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
-            style={{
-              backgroundColor: 'rgba(5,19,51,0.2)',
-              color: tokens.colors.surface,
-              backdropFilter: 'blur(6px)',
-            }}
-          >
-            {statusDetails.icon}
-            <span>{statusDetails.label}</span>
-          </div>
-        )}
-
-        <div className={cn(
-          'absolute bottom-0 left-0 right-0 flex items-end pb-5',
-          fullBleed ? 'px-0' : 'px-6'
-        )}>
-          <div className="flex items-end gap-4">
-            <div
-              className="rounded-full border-3 border-white/80"
-              style={{ boxShadow: tokens.shadows.card }}
-            >
-              <Avatar className="h-20 w-20">
+      <header className={cn('bg-[#DDEBFF]', fullBleed ? '' : 'rounded-t-2xl')}>
+        <div className={cn('flex flex-col gap-4 px-4 py-4', fullBleed ? 'px-4' : 'px-6')}>
+          {status !== 'none' && (
+            <div className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#1B8FD2] shadow-sm">
+              {statusDetails.icon}
+              <span>{statusDetails.label}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-4">
+            <div className="relative h-[68px] w-[68px] flex-shrink-0">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/70 to-transparent" />
+              <div className="absolute inset-[3px] rounded-full bg-white/60" />
+              <Avatar className="relative h-full w-full border-[3px] border-white/80">
                 <AvatarImage
                   src={avatarUrl || fallbackAvatar}
                   alt={name}
+                  className="object-cover"
                   onError={(event) => {
                     const target = event.currentTarget
                     if (target.src !== fallbackAvatar) {
@@ -441,22 +415,14 @@ export const AthleteCard = memo((props: AthleteCardComponentProps) => {
                 <AvatarFallback>{name.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </div>
-            <div className="pb-2 space-y-1.5">
-              <div
-                className="text-xl font-semibold"
-                style={{ color: 'rgba(255,255,255,0.92)' }}
-              >
-                {name}
-              </div>
-              <div className="mt-1 flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-[#C5D6EB]" aria-hidden="true" />
-                <span className="text-[#C5D6EB]">{formatCityLine(city, primarySport)}</span>
+            <div className="flex flex-1 flex-col gap-2 text-[#051333]">
+              <div className="text-[20px] font-semibold leading-tight">{name}</div>
+              <div className="inline-flex items-center gap-2 px-1 text-xs font-medium text-[#1B8FD2]">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{city ?? 'Location TBD'}</span>
               </div>
               {ownerBadgeLabel && (
-                <div
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
-                  style={{ backgroundColor: 'rgba(27,143,210,0.18)', color: tokens.colors.surface }}
-                >
+                <div className="inline-flex w-fit items-center gap-2 px-1 text-xs font-semibold text-[#1B8FD2]">
                   <Users className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{ownerBadgeLabel}</span>
                 </div>
@@ -468,8 +434,8 @@ export const AthleteCard = memo((props: AthleteCardComponentProps) => {
 
       <section
         className={cn(
-          'space-y-6 pb-6',
-          fullBleed ? 'px-0 pt-0' : 'px-6 pt-4'
+          'space-y-6',
+          fullBleed ? 'px-6 pt-4 pb-24' : 'px-6 pt-4 pb-6'
         )}
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

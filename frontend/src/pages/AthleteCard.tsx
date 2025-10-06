@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { AthleteCard } from '@/components/athlete/AthleteCard'
 import { mockAthlete } from '@/mocks/athlete'
 import { mockAthletes } from '@/data/mock/athletes'
 
 export default function AthleteCardPage() {
   const { username } = useParams<{ username: string }>()
+  const navigate = useNavigate()
+  const isOwnProfile = username === 'me'
   const athlete = useMemo(() => {
     if (!username) return mockAthlete
 
@@ -21,6 +23,8 @@ export default function AthleteCardPage() {
       <AthleteCard
         {...athlete}
         fullBleed
+        isOwner={isOwnProfile}
+        onEdit={isOwnProfile ? () => navigate('/u/me/edit') : undefined}
         onHighFive={(id) => console.info('High five triggered', id)}
         onMessage={(id) => console.info('Message athlete', id)}
         onInvite={(id) => console.info('Invite athlete', id)}

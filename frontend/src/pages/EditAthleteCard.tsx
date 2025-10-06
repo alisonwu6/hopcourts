@@ -1,11 +1,12 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import MainLayout from '@/layouts/MainLayout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import AthleteCardView from '@/components/athlete/AthleteCardView'
+import { AthleteCard } from '@/components/athlete/AthleteCard'
 import { useCopy } from '@/i18n/LanguageProvider'
 import clsx from 'clsx'
+import { mockAthlete } from '@/mocks/athlete'
+import type { AthleteCardProps } from '@/interfaces/athlete'
 
 type FormState = {
   displayName: string
@@ -37,15 +38,6 @@ export default function EditAthleteCard() {
 
   const resetSaved = () => setSavedStamp(null)
 
-  const previewCopy = useMemo(() => ({
-    ...copy.athleteCard,
-    location: state.location,
-    levelValue: state.level,
-    sports: state.sports.length ? state.sports : copy.athleteCard.sports,
-    strengths: state.strengths.length ? state.strengths : copy.athleteCard.strengths,
-    badges: state.badges.length ? state.badges : copy.athleteCard.badges,
-  }), [copy.athleteCard, state.badges, state.level, state.location, state.sports, state.strengths])
-
   const toggleItem = (value: string, key: 'sports' | 'strengths' | 'badges', limit: number) => {
     resetSaved()
     setState((prev) => {
@@ -67,11 +59,15 @@ export default function EditAthleteCard() {
     if (saving) return
 
     setSaving(true)
-    // Simulate persistence while keeping the flow responsive.
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    // Simulate persistence.
     window.setTimeout(() => {
-      setSaving(false)
       setSavedStamp(Date.now())
-    }, 600)
+      setSaving(false)
+      navigate('/me')
+    }, 1000)
   }
 
   const handleCancel = () => {
@@ -79,18 +75,20 @@ export default function EditAthleteCard() {
   }
 
   return (
-    <MainLayout
-      title={copy.athleteCard.editFabLabel}
-      description={copy.myProfile.description}
-      contentWidth="xl"
-    >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,360px)]">
-        <form
-          className="space-y-6"
-          onSubmit={handleSubmit}
-        >
-          <Card>
-            <CardContent className="space-y-4 p-6">
+    <div className="min-h-screen bg-[#F3F7FB] pb-24">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pt-4 sm:px-6">
+        <header className="space-y-1">
+          <h1 className="text-2xl font-semibold text-[#051333]">{copy.athleteCard.editFabLabel}</h1>
+          <p className="text-sm text-[#405070]">{copy.myProfile.description}</p>
+        </header>
+
+        <div className="space-y-5">
+          <form
+            className="space-y-5"
+            onSubmit={handleSubmit}
+          >
+          <Card className="rounded-3xl border border-[#cfe3fb] bg-white/95 shadow-sm">
+            <CardContent className="space-y-4 p-5">
               <div>
                 <h2 className="text-sm font-semibold text-slate-800">{copy.myProfile.basicsTitle}</h2>
                 <p className="text-xs text-slate-500">{copy.myProfile.basicsDescription}</p>
@@ -144,8 +142,8 @@ export default function EditAthleteCard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="space-y-4 p-6">
+          <Card className="rounded-3xl border border-[#cfe3fb] bg-white/95 shadow-sm">
+            <CardContent className="space-y-4 p-5">
               <div>
                 <h2 className="text-sm font-semibold text-slate-800">{copy.myProfile.sportsTitle}</h2>
                 <p className="text-xs text-slate-500">{copy.myProfile.sportsHint}</p>
@@ -199,8 +197,8 @@ export default function EditAthleteCard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="space-y-4 p-6">
+          <Card className="rounded-3xl border border-[#cfe3fb] bg-white/95 shadow-sm">
+            <CardContent className="space-y-4 p-5">
               <div>
                 <h2 className="text-sm font-semibold text-slate-800">{copy.myProfile.badgesTitle}</h2>
                 <p className="text-xs text-slate-500">{copy.myProfile.badgesHint}</p>
@@ -258,21 +256,11 @@ export default function EditAthleteCard() {
             )}
           </div>
         </form>
-
-        <aside className="space-y-3">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-800">{copy.myProfile.previewLabel}</h2>
-            <p className="text-xs text-slate-500">{copy.athleteCard.description}</p>
-          </div>
-          <AthleteCardView
-            copy={previewCopy}
-            displayName={state.displayName || copy.myProfile.name}
-            inviteLabel={copy.common.inviteToSquad}
-            messageLabel={copy.common.message}
-            isOwner={false}
-          />
-        </aside>
+        {savedStamp && !saving && (
+          <p className="text-sm text-emerald-600">{copy.myProfile.savedMessage}</p>
+        )}
+        </div>
       </div>
-    </MainLayout>
+    </div>
   )
 }

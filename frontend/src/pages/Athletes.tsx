@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { SearchBar } from '@/components/athlete/SearchBar'
 import { FilterChips } from '@/components/athlete/FilterChips'
 import { AthleteGrid } from '@/components/athlete/AthleteGrid'
 import { CreateCardButton } from '@/components/athlete/CreateCardButton'
 import { mockAthletes } from '@/data/mock/athletes'
 import type { AthleteCardProps } from '@/interfaces/athlete'
 import { useCopy } from '@/i18n/LanguageProvider'
-import { BottomNavBar } from '@/components/navigation/BottomNavBar'
-import Header from '@/components/navigation/Header'
+import { SearchField } from '@/components/search/SearchField'
 
 const fallbackFilters = [
   'All',
@@ -45,8 +43,7 @@ export default function Athletes() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] pb-24 text-[#051333]">
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-        <Header sticky={false} showBorder={false} />
+      <div className="sticky top-[56px] z-40 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
         <section className="border-t border-[#E6E6E6]">
           <div className="mx-auto w-full max-w-4xl">
             <FilterChips
@@ -54,7 +51,7 @@ export default function Athletes() {
               selected={selectedFilter}
               onSelect={setSelectedFilter}
             />
-            <SearchBar placeholder={copy.home.explore.searchPlaceholder} />
+            <SearchField placeholder={copy.home.explore.searchPlaceholder} />
           </div>
         </section>
       </div>
@@ -64,7 +61,6 @@ export default function Athletes() {
       </main>
 
       <CreateCardButton />
-      <BottomNavBar />
     </div>
   )
 }
