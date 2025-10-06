@@ -27,7 +27,7 @@ export default function Header({ sticky = true, showBorder = true, className }: 
   return (
     <header className={headerClass}>
       <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link
             to="/home"
             className="flex items-center gap-2"
@@ -41,16 +41,15 @@ export default function Header({ sticky = true, showBorder = true, className }: 
                 target.style.display = 'none'
               }}
             />
-            <div className="hidden sm:block">
-              <div className="text-sm font-semibold uppercase tracking-tight text-slate-900">
-                {copy.common.appName}
-              </div>
-              <div className="text-xs text-slate-500">{copy.common.tagline}</div>
-            </div>
           </Link>
-          <div className="inline-flex items-center gap-1 rounded-full border border-transparent bg-white px-3 py-1.5 text-sm font-medium text-[#051333] shadow-sm">
-            <MapPin className="h-4 w-4" />
-            Brisbane
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 text-sm font-medium text-[#051333]">
+              <MapPin className="h-4 w-4 text-[#1B8FD2]" aria-hidden="true" />
+              Brisbane
+            </div>
+            <div className="text-xs text-slate-500" style={{ whiteSpace: 'pre-line' }}>
+              {copy.common.tagline}
+            </div>
           </div>
         </div>
 

@@ -314,7 +314,7 @@ export const translations: Record<Language, Translation> = {
   en: {
     common: {
       appName: 'SportsMatch',
-      tagline: 'Join locals. Play together. Build your squad.',
+      tagline: 'Play together.\nBuild your squad.',
       explore: 'Explore',
       squad: 'Squad',
       me: 'Me',
