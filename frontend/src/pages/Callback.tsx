@@ -13,11 +13,7 @@ export default function Callback() {
   }, [nav])
 
   return (
-    <MainLayout
-      showHeader={false}
-      showBottomNav={false}
-      contentWidth="sm"
-    >
+    <MainLayout contentWidth="sm">
       <Card className="border border-slate-200">
         <CardContent className="space-y-3 p-6 text-center">
           <div className="text-lg font-semibold text-slate-900">{copy.callback.signingIn}</div>

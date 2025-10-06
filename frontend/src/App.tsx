@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Splash from './pages/Splash'
 import Callback from './pages/Callback'
 import Home from './pages/Home'
@@ -15,76 +15,87 @@ import Notifications from './pages/Notifications'
 import Settings from './pages/Settings'
 import Athletes from './pages/Athletes'
 import EditAthleteCard from './pages/EditAthleteCard'
+import Header from '@/components/navigation/Header'
+import { BottomNavBar } from '@/components/navigation/BottomNavBar'
 
+const HEADERLESS_ROUTES = ['/', '/auth/callback']
 
 export default function App() {
+  const location = useLocation()
+  const hideHeader = HEADERLESS_ROUTES.includes(location.pathname)
+
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={<Splash />}
-      />
-      <Route
-        path="/auth/callback"
-        element={<Callback />}
-      />
-      <Route
-        path="/home"
-        element={<Home />}
-      />
-      <Route
-        path="/map"
-        element={<MapView />}
-      />
-      <Route
-        path="/athletes"
-        element={<Athletes />}
-      />
-      <Route
-        path="/sessions/:id"
-        element={<SessionDetails />}
-      />
-      <Route
-        path="/sessions/:id/joined"
-        element={<JoinConfirmation />}
-      />
-      <Route
-        path="/create"
-        element={<CreateSession />}
-      />
-      <Route
-        path="/sessions/:id/manage"
-        element={<ManageSession />}
-      />
-      <Route
-        path="/u/:username"
-        element={<AthleteCard />}
-      />
-      <Route
-        path="/u/:username/edit"
-        element={<EditAthleteCard />}
-      />
-      <Route
-        path="/me"
-        element={<MyProfile />}
-      />
-      
-      <Route
-        path="/squad"
-        element={<Squad />}
-      />
-      <Route
-        path="/sessions/:id/reconnect"
-        element={<Reconnect />}
-      />
-      <Route
-        path="/notifications"
-        element={<Notifications />}
-      />
-      <Route
-        path="/settings"
-        element={<Settings />}
-      />
-    </Routes>
+    <div className="flex min-h-screen flex-col bg-white text-slate-900">
+      {!hideHeader && <Header />}
+      <div className="flex-1">
+        <Routes>
+          <Route
+            path="/"
+            element={<Splash />}
+          />
+          <Route
+            path="/auth/callback"
+            element={<Callback />}
+          />
+          <Route
+            path="/home"
+            element={<Home />}
+          />
+          <Route
+            path="/map"
+            element={<MapView />}
+          />
+          <Route
+            path="/athletes"
+            element={<Athletes />}
+          />
+          <Route
+            path="/sessions/:id"
+            element={<SessionDetails />}
+          />
+          <Route
+            path="/sessions/:id/joined"
+            element={<JoinConfirmation />}
+          />
+          <Route
+            path="/create"
+            element={<CreateSession />}
+          />
+          <Route
+            path="/sessions/:id/manage"
+            element={<ManageSession />}
+          />
+          <Route
+            path="/u/:username"
+            element={<AthleteCard />}
+          />
+          <Route
+            path="/u/:username/edit"
+            element={<EditAthleteCard />}
+          />
+          <Route
+            path="/me"
+            element={<MyProfile />}
+          />
+          <Route
+            path="/squad"
+            element={<Squad />}
+          />
+          <Route
+            path="/sessions/:id/reconnect"
+            element={<Reconnect />}
+          />
+          <Route
+            path="/notifications"
+            element={<Notifications />}
+          />
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
+        </Routes>
+      </div>
+      {!hideHeader && <BottomNavBar />}
+    </div>
   )
 }

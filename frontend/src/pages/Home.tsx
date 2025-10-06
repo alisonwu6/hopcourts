@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Search, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import SessionCard, { ExploreSession } from '@/components/explore/SessionCard'
-import Header from '@/components/navigation/Header'
-import { BottomNavBar } from '@/components/navigation/BottomNavBar'
 import { useCopy } from '@/i18n/LanguageProvider'
 import { trackEvent } from '@/lib/analytics'
+import { SearchField } from '@/components/search/SearchField'
 
 const DEFAULT_FILTER = 'All'
 
@@ -99,9 +98,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-[#2B2B2B] pb-24">
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-        <Header sticky={false} showBorder={false} />
+    <div className="min-h-screen bg-[#FAFAFA] pb-24 text-[#2B2B2B]">
+      <div className="sticky top-[56px] z-40 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
         <div className="border-t border-[#E6E6E6]">
           <div className="mx-auto w-full max-w-4xl">
             <div className="overflow-x-auto scrollbar-hidden">
@@ -123,16 +121,7 @@ export default function Home() {
                 })}
               </div>
             </div>
-            <div className="px-4 pb-4 sm:px-6">
-              <label className="relative block">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6E6E6E]" />
-                <input
-                  type="search"
-                  placeholder={copy.home.explore.searchPlaceholder}
-                  className="h-10 w-full rounded-full border border-[#E6E6E6] bg-white pl-9 pr-4 text-sm text-[#2B2B2B] focus:outline-none focus:ring-2 focus:ring-[#CDE8FF]"
-                />
-              </label>
-            </div>
+            <SearchField placeholder={copy.home.explore.searchPlaceholder} />
           </div>
         </div>
       </div>
@@ -160,7 +149,6 @@ export default function Home() {
         <Plus className="h-6 w-6" />
       </button>
 
-      <BottomNavBar />
     </div>
   )
 }
