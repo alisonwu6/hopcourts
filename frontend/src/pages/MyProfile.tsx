@@ -1,24 +1,18 @@
 import MainLayout from '@/layouts/MainLayout'
-import { useCopy } from '@/i18n/LanguageProvider'
-import AthleteCardView from '@/components/athlete/AthleteCardView'
+import { AthleteCard } from '@/components/athlete/AthleteCard'
+import { mockAthlete } from '@/mocks/athlete'
 
 export default function MyProfile() {
-  const copy = useCopy()
-
   return (
-    <MainLayout
-      title={undefined}
-      description={undefined}
-      contentWidth="sm"
-    >
-      <AthleteCardView
-        copy={copy.athleteCard}
-        displayName={copy.myProfile.name}
-        inviteLabel={copy.common.inviteToSquad}
-        messageLabel={copy.common.message}
-        editHref="/u/me/edit"
-        isOwner
-      />
+    <MainLayout contentWidth="md">
+      <div className="mx-auto max-w-3xl">
+        <AthleteCard
+          {...mockAthlete}
+          isOwner
+          onEdit={(id) => console.info('Edit athlete card', id)}
+          onAddPost={(id) => console.info('Add post from profile', id)}
+        />
+      </div>
     </MainLayout>
   )
 }

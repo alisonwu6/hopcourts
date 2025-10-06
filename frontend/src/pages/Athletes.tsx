@@ -37,9 +37,9 @@ export default function Athletes() {
 
     const lowered = selectedFilter.toLowerCase()
     return mockAthletes.filter((athlete) => {
-      const sportMatch = athlete.sport.toLowerCase() === lowered
-      const vibeMatch = (athlete.vibes ?? []).some((vibe) => vibe.toLowerCase().includes(lowered))
-      return sportMatch || vibeMatch
+      const sportMatch = (athlete.primarySport ?? '').toLowerCase() === lowered
+      const tagMatch = (athlete.tags ?? []).some((tag) => tag.toLowerCase().includes(lowered))
+      return sportMatch || tagMatch
     })
   }, [selectedFilter])
 
@@ -48,15 +48,14 @@ export default function Athletes() {
       <div className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
         <Header sticky={false} showBorder={false} />
         <section className="border-t border-[#E6E6E6]">
-          <FilterChips
-            filters={filters}
-            selected={selectedFilter}
-            onSelect={setSelectedFilter}
-          />
-          <SearchBar
-            placeholder={copy.home.explore.searchPlaceholder}
-            className="pb-4"
-          />
+          <div className="mx-auto w-full max-w-4xl">
+            <FilterChips
+              filters={filters}
+              selected={selectedFilter}
+              onSelect={setSelectedFilter}
+            />
+            <SearchBar placeholder={copy.home.explore.searchPlaceholder} />
+          </div>
         </section>
       </div>
 

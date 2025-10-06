@@ -778,14 +778,7 @@ export const translations: Record<Language, Translation> = {
         fabLabel: '建立活動',
       },
     },
-  eventCard: {
-      saveForLater: '先收藏',
-      joinSession: '加入活動',
-    },
-    eventList: {
-      emptyMessage: '目前沒有符合條件的活動，試著放寬篩選條件。',
-    },
-    mockEvents: {
+  mockEvents: {
       cards: {
         brisbane_basketball: {
           title: '籃球自由打',

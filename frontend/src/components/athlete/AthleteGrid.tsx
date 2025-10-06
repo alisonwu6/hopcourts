@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import type { AthleteCardProps } from '@/interfaces/athlete'
-import { AthleteCard } from './AthleteCard'
+import { AthleteBrowseCard } from './AthleteBrowseCard'
 
 interface Props {
   athletes: AthleteCardProps[]
@@ -16,7 +16,7 @@ export function AthleteGrid({ athletes, className }: Props) {
       )}
     >
       {athletes.map((athlete) => (
-        <AthleteCard
+        <AthleteBrowseCard
           key={athlete.id}
           athlete={athlete}
         />

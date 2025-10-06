@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Bell, MapPin, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
@@ -13,8 +13,9 @@ type Props = {
 
 export default function Header({ sticky = true, showBorder = true, className }: Props) {
   const copy = useCopy()
+  const location = useLocation()
   const [messagesActive, setMessagesActive] = useState(false)
-  const [notificationsActive, setNotificationsActive] = useState(false)
+  const notificationsActive = location.pathname.startsWith('/notifications')
 
   const headerClass = clsx(
     sticky && 'sticky top-0',
@@ -58,25 +59,28 @@ export default function Header({ sticky = true, showBorder = true, className }: 
             type="button"
             onClick={() => setMessagesActive((prev) => !prev)}
             className={clsx(
-              'inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2] said-no-explore',
+              'inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2]',
               messagesActive && 'border-[#1B8FD2] text-[#1B8FD2]'
             )}
             aria-label="Open messages"
           >
             <MessageCircle className="h-5 w-5" />
           </button>
-          <button
-            type="button"
-            onClick={() => setNotificationsActive((prev) => !prev)}
-            className={clsx(
-              'relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2]'
-              , notificationsActive && 'border-[#1B8FD2] text-[#1B8FD2]'
-            )}
-            aria-label={copy.header.notifications}
+          <Link
+            to="/notifications"
+            className="relative"
           >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1 top-1 inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </button>
+            <span className="sr-only">{copy.header.notifications}</span>
+            <div
+              className={clsx(
+                'inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2]',
+                notificationsActive && 'border-[#1B8FD2] text-[#1B8FD2]'
+              )}
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute right-1 top-1 inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </div>
+          </Link>
         </div>
       </div>
     </header>

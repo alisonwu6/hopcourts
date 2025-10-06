@@ -1,0 +1,45 @@
+import type { AthleteCardProps } from '@/interfaces/athlete'
+
+export const mockAthlete: AthleteCardProps = {
+  id: 'alison-wu',
+  name: 'Alison Wu',
+  city: 'Brisbane · Holland Park West',
+  sport: 'Basketball',
+  primarySport: 'Basketball',
+  title: 'Builder & mover - exploring how rhythm connects people.',
+  toneLines: [
+    'Keeps showing up before sunrise.',
+    'Always finds rhythm, no matter the sport.',
+    'Flow over force.',
+    'Reset, breathe, go again.',
+    'Keeps chasing the next clean rep.',
+  ],
+  visualTagline: 'Still learning, still moving.',
+  avatarUrl: '/mock/athletes/alex.png',
+  coverUrl: '/mock/covers/court.jpg',
+  stats: { sessions: 42, streakWeeks: 5, energy: 78, badges: 5 },
+  tags: [
+    'Basketball',
+    'Running',
+    'StrengthTraining',
+    'Yoga',
+    'Climbing',
+    'MorningCrew',
+    'FlowState',
+    'BuildInMotion',
+  ],
+  vibes: ['MorningCrew', 'FlowState', 'BuilderMindset'],
+  bio: "I move to stay clear.\nBasketball gives me rhythm, running keeps me grounded, strength training builds control, yoga resets the system, and climbing - that's where focus turns quiet.",
+  story:
+    "I've always believed movement is a kind of thinking. Each sport teaches something different - patience, precision, awareness. I build systems the same way I train: consistent reps, honest feedback, slow mastery. SportsMatch began as a side project to connect training data with real connection - now it's my way of exploring how technology can make community feel human again.",
+  recentActivities: [
+    { id: 's1', title: 'Pre-dawn Court Drills', sport: 'Basketball', time: '2025-10-04T04:45:00Z', partners: ['Jamie'], stats: { highFives: 5, comments: 2 } },
+    { id: 's2', title: 'River Loop Tempo', sport: 'Running', time: '2025-10-02T05:45:00Z', partners: ['Mika'], stats: { highFives: 2 } },
+    { id: 's3', title: 'Strength & Mobility', sport: 'Strength', time: '2025-10-03T19:00:00Z', partners: ['Leo'], stats: { highFives: 3 } },
+  ],
+  visibility: 'public',
+  relationship: { sessionsTogether: 18 },
+  highFiveCount: 37,
+  statusLabel: 'active',
+  activeNow: true,
+}

@@ -1,110 +1,52 @@
-import MainLayout from '@/layouts/MainLayout'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { MailPlus, UsersRound } from 'lucide-react'
-import { useCopy } from '@/i18n/LanguageProvider'
+import { useMemo } from 'react'
+import Header from '@/components/navigation/Header'
+import { BottomNavBar } from '@/components/navigation/BottomNavBar'
+import { SquadHeader } from '@/components/squad/SquadHeader'
+import { SquadCardCore } from '@/components/squad/SquadCardCore'
+import { SquadCardCasual } from '@/components/squad/SquadCardCasual'
+import { SquadCardArchived } from '@/components/squad/SquadCardArchived'
+import { CreateCardButton } from '@/components/athlete/CreateCardButton'
+import { mockSquadPageData } from '@/data/mock/squads'
 
 export default function Squad() {
-  const copy = useCopy()
+  const data = useMemo(() => mockSquadPageData, [])
 
   return (
-    <MainLayout
-      title={copy.squad.title}
-      description={copy.squad.description}
-      actions={
-        <Button className="gap-1" size="sm">
-          <MailPlus className="h-4 w-4" /> {copy.common.inviteTeammate}
-        </Button>
-      }
-    >
-      <section className="space-y-4">
-        <Card className="border border-slate-200 bg-white">
-          <CardContent className="flex flex-col gap-4 p-6 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3 text-slate-700">
-              <UsersRound className="h-6 w-6 text-blue-500" />
-              <div>
-                <div className="text-base font-semibold text-slate-900">{copy.squad.insightsTitle}</div>
-                <div>{copy.squad.insightsSummary}</div>
-              </div>
-            </div>
-            <Button variant="outline" size="sm">{copy.squad.viewHistory}</Button>
-          </CardContent>
-        </Card>
+    <div className="min-h-screen bg-[#FAFAFA] pb-24 text-[#051333]">
+      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+        <Header sticky={false} showBorder={false} />
+      </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {copy.squad.members.map((member) => (
-            <Card
-              key={member.name}
-              className="border border-slate-200"
-            >
-              <CardContent className="space-y-3 p-5">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    {member.avatarUrl ? (
-                      <AvatarImage src={member.avatarUrl} alt={member.name} />
-                    ) : null}
-                    <AvatarFallback />
-                  </Avatar>
-                  <div>
-                    <div className="text-base font-semibold text-slate-900">{member.name}</div>
-                    <div className="text-xs text-slate-500">{member.suburb} · {member.sport}</div>
-                  </div>
-                </div>
-                <Badge variant="outline" className="w-fit rounded-full px-3 py-1 text-xs">
-                  {member.streak}
-                </Badge>
-                <p className="text-sm text-slate-600">{member.note}</p>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="secondary">{copy.common.startChat}</Button>
-                  <Button size="sm" variant="outline">{copy.common.remove}</Button>
-                </div>
-              </CardContent>
-            </Card>
+      <SquadHeader squad={data.living} />
+
+      <main className="mx-auto w-full max-w-4xl space-y-8 px-4 pb-16 sm:px-6">
+        <section className="space-y-4">
+          {data.coreSquads.map((squad) => (
+            <SquadCardCore key={squad.id} squad={squad} />
           ))}
-        </div>
-      </section>
+        </section>
 
-      <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-900">{copy.squad.requestsTitle}</h2>
-        {copy.squad.requests.length === 0 ? (
-          <Card className="border border-dashed border-slate-300 bg-white">
-            <CardContent className="p-5 text-sm text-slate-500">
-              {copy.squad.empty}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-3">
-            {copy.squad.requests.map((request) => (
-              <Card
-                key={request.name}
-                className="border border-slate-200"
-              >
-                <CardContent className="space-y-3 p-5">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      {request.avatarUrl ? (
-                        <AvatarImage src={request.avatarUrl} alt={request.name} />
-                      ) : null}
-                      <AvatarFallback />
-                    </Avatar>
-                    <div>
-                      <div className="text-sm font-semibold text-slate-900">{request.name}</div>
-                      <div className="text-xs text-slate-500">{request.sport}</div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-600">{request.message}</p>
-                  <div className="flex gap-2">
-                    <Button size="sm">{copy.squad.add}</Button>
-                    <Button size="sm" variant="ghost">{copy.common.maybeLater}</Button>
-                  </div>
-                </CardContent>
-              </Card>
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[#6E6E6E]">Casual squads</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {data.casualSquads.map((squad) => (
+              <SquadCardCasual key={squad.id} squad={squad} />
             ))}
           </div>
-        )}
-      </section>
-    </MainLayout>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[#6E6E6E]">Archived</h2>
+          <div className="space-y-2">
+            {data.archivedSquads.map((squad) => (
+              <SquadCardArchived key={squad.id} squad={squad} />
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <CreateCardButton className="bottom-24" />
+      <BottomNavBar />
+    </div>
   )
 }
