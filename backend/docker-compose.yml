@@ -34,8 +34,9 @@ services:
     image: adminer
     container_name: sportsmatch-adminer
     restart: always
+    # Bind Adminer to localhost only to prevent public exposure
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
 
 volumes:
   mysql-data:
