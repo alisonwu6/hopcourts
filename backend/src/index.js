@@ -35,6 +35,20 @@ app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/games', gameRoutes)
 
+function burn(ms) {
+  const end = Date.now() + ms
+  while (Date.now() < end) {
+    Math.sqrt(Math.random() * 1234567)
+  }
+}
+
+app.get('/api/burn', (req, res) => {
+  const ms = Number(req.query.ms || 200)
+  const loops = Number(req.query.loops || 10)
+  for (let i = 0; i < loops; i++) burn(ms)
+  res.json({ ok: true, ms, loops })
+})
+
 // Test route
 app.get('/api/health', (req, res) => {
   res.json({ message: 'health is good' })
