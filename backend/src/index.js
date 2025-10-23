@@ -2,7 +2,6 @@ const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
 const dotenv = require('dotenv')
-const mysql = require('mysql2/promise')
 const waitForDB = require('./utils/db')
 const swaggerUi = require('swagger-ui-express')
 const swaggerSpec = require('./config/swagger')
@@ -41,28 +40,41 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'health is good' })
 })
 
-app.get('/debug/redis-ping', async (req, res) => {
-  try {
-    const { redis } = require('./cache')
-    const pong = await redis.ping()
-    res.json({ pong })
-  } catch (e) {
-    res.status(500).json({ error: e.message })
-  }
-})
+// Debug-only: quick ping to verify Redis is alive (disabled in production)
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/debug/redis-ping', async (req, res) => {
+    try {
+      const { redis } = require('./cache')
+      const pong = await redis.ping()
+      res.json({ pong })
+    } catch (e) {
+      res.status(500).json({ error: e.message })
+    }
+  })
+}
 
-// Connect to MySQL
-async function startServer() {
-  try {
-    await waitForDB()
-
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`✅ Server port:${PORT}`)
-    })
-  } catch (err) {
-    console.error('❌ Failed to connect to DB:', err.message)
-    process.exit(1)
+// Try to connect to the DB in the background so the container can pass ALB health checks
+async function connectDBWithRetry(maxRetry = 30, interval = 2000) {
+  for (let i = 1; i <= maxRetry; i++) {
+    try {
+      await waitForDB()
+      console.log('✅ Database connected')
+      return
+    } catch (err) {
+      console.warn(`DB not ready (attempt ${i}/${maxRetry}): ${err.message}`)
+      await new Promise((r) => setTimeout(r, interval))
+    }
   }
+  console.error('⚠️ Could not connect to DB after retries — continuing anyway')
+}
+
+// Start HTTP server immediately; DB connects in the background
+function startServer() {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server running on port ${PORT}`)
+  })
+  // Kick off DB connection attempts without blocking startup
+  connectDBWithRetry()
 }
 
 startServer()
