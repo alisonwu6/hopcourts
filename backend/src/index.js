@@ -40,6 +40,11 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'health is good' })
 })
 
+// ALB health check endpoint (no dependencies)
+app.get('/healthz', (req, res) => {
+  res.sendStatus(200)
+})
+
 // Debug-only: quick ping to verify Redis is alive (disabled in production)
 if (process.env.NODE_ENV !== 'production') {
   app.get('/debug/redis-ping', async (req, res) => {
