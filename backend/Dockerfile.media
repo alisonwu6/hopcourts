@@ -4,4 +4,4 @@ COPY package*.json ./
 RUN npm install --only=production
 COPY . .
 EXPOSE 3000
-CMD ["node", "media.js"]
+CMD ["node", "src/media.js"]
