@@ -49,6 +49,10 @@ app.get('/api/burn', (req, res) => {
   res.json({ ok: true, ms, loops })
 })
 
+app.get('/worker/health', (req, res) => {
+  res.json({ ok: true, role: 'worker' })
+})
+
 // Test route
 app.get('/api/health', (req, res) => {
   res.json({ message: 'health is good' })
