@@ -1,101 +1,41 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
-import Splash from './pages/Splash'
-import Callback from './pages/Callback'
-import Home from './pages/Home'
-import MapView from './pages/MapView'
-import SessionDetails from './pages/SessionDetails'
-import JoinConfirmation from './pages/JoinConfirmation'
-import CreateSession from './pages/CreateSession'
-import ManageSession from './pages/ManageSession'
-import AthleteCard from './pages/AthleteCard'
-import MyProfile from './pages/MyProfile'
-import Squad from './pages/Squad'
-import Reconnect from './pages/Reconnect'
-import Notifications from './pages/Notifications'
-import Settings from './pages/Settings'
-import Athletes from './pages/Athletes'
-import EditAthleteCard from './pages/EditAthleteCard'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
-import { BottomNavBar } from '@/components/navigation/BottomNavBar'
-
-const HEADERLESS_ROUTES = ['/', '/auth/callback']
+import { useAuthStore } from '@/hooks'
+import { LoginPage } from '@/pages/LoginPage'
+import { OnboardingPage } from '@/pages/OnboardingPage'
+import { HomePage } from '@/pages/HomePage'
+import { VenuesPage } from '@/pages/VenuesPage'
+import { HostsPage } from '@/pages/HostsPage'
+import { ProfilePage } from '@/pages/ProfilePage'
+import { PlayersPage } from '@/pages/PlayersPage'
 
 export default function App() {
-  const location = useLocation()
-  const hideHeader = HEADERLESS_ROUTES.includes(location.pathname)
+  const { user } = useAuthStore()
+
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
+  }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-900">
-      {!hideHeader && <Header />}
-      <div className="flex-1">
-        <Routes>
-          <Route
-            path="/"
-            element={<Splash />}
-          />
-          <Route
-            path="/auth/callback"
-            element={<Callback />}
-          />
-          <Route
-            path="/home"
-            element={<Home />}
-          />
-          <Route
-            path="/map"
-            element={<MapView />}
-          />
-          <Route
-            path="/athletes"
-            element={<Athletes />}
-          />
-          <Route
-            path="/sessions/:id"
-            element={<SessionDetails />}
-          />
-          <Route
-            path="/sessions/:id/joined"
-            element={<JoinConfirmation />}
-          />
-          <Route
-            path="/create"
-            element={<CreateSession />}
-          />
-          <Route
-            path="/sessions/:id/manage"
-            element={<ManageSession />}
-          />
-          <Route
-            path="/u/:username"
-            element={<AthleteCard />}
-          />
-          <Route
-            path="/u/:username/edit"
-            element={<EditAthleteCard />}
-          />
-          <Route
-            path="/me"
-            element={<MyProfile />}
-          />
-          <Route
-            path="/squad"
-            element={<Squad />}
-          />
-          <Route
-            path="/sessions/:id/reconnect"
-            element={<Reconnect />}
-          />
-          <Route
-            path="/notifications"
-            element={<Notifications />}
-          />
-          <Route
-            path="/settings"
-            element={<Settings />}
-          />
-        </Routes>
-      </div>
-      {!hideHeader && <BottomNavBar />}
+    <div className="pb-20">
+      <Header />
+      <Routes>
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/players" element={<PlayersPage />} />
+        <Route path="/venues" element={<VenuesPage />} />
+        <Route path="/hosts" element={<HostsPage />} />
+        <Route path="/me" element={<ProfilePage />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+      <BottomNav />
     </div>
   )
 }
