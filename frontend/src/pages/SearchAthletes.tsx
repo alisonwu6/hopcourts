@@ -1,29 +1,23 @@
 import MainLayout from '@/layouts/MainLayout'
-import { useCopy } from '@/i18n/LanguageProvider'
 import Input from '@/components/ui/Input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 
-const sports = ['Basketball', 'Badminton', 'Climbing', 'Running']
-const levels = ['Beginner', 'Social', 'Intermediate', 'Advanced']
-const timeSlots = ['Early mornings', 'After work', 'Weekend mornings']
-
 export default function SearchAthletes() {
-  const copy = useCopy()
 
   return (
     <MainLayout>
       <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
         <div className="space-y-4">
           <Input
-            placeholder={copy.common.searchAthletesPlaceholder}
-            aria-label={copy.header.searchAthletes}
+            placeholder="Search by player, sport, or crew vibe"
+            aria-label="Search athletes"
             className="rounded-full"
           />
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-slate-700">Sports</h3>
             <div className="flex flex-wrap gap-2">
-              {sports.map((sport) => (
+              {['Basketball', 'Badminton', 'Climbing', 'Running'].map((sport) => (
                 <Badge
                   key={sport}
                   variant="outline"
@@ -37,7 +31,7 @@ export default function SearchAthletes() {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-slate-700">Level</h3>
             <div className="flex flex-wrap gap-2">
-              {levels.map((level) => (
+              {['Beginner', 'Social', 'Intermediate', 'Advanced'].map((level) => (
                 <Badge
                   key={level}
                   variant="outline"
@@ -51,7 +45,7 @@ export default function SearchAthletes() {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-slate-700">Preferred time</h3>
             <div className="flex flex-wrap gap-2">
-              {timeSlots.map((slot) => (
+              {['Early mornings', 'After work', 'Weekend mornings'].map((slot) => (
                 <Badge
                   key={slot}
                   variant="outline"

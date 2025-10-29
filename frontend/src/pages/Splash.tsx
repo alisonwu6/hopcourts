@@ -3,10 +3,8 @@ import logoUrl from '@/assets/main-logo.png'
 import { Button } from '@/components/ui/button'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
 import AppleLoginButton from '@/components/button/AppleLoginButton'
-import { useCopy } from '@/i18n/LanguageProvider'
 
 export default function Splash() {
-  const copy = useCopy()
 
   const loginGoogle = () => {
     console.log('loginGoogle')
@@ -25,14 +23,14 @@ export default function Splash() {
             <img
               className="h-56 w-auto drop-shadow-lg sm:h-64"
               src={logoUrl}
-              alt={copy.common.appName}
+              alt="SportsMatch"
             />
             <div className="space-y-4">
               <h1 className="text-3xl font-semibold leading-tight text-slate-900 sm:text-5xl">
-                {copy.splash.headline}
+                Pick-up sports that match your vibe.
               </h1>
               <p className="mx-auto max-w-xl text-base text-slate-600">
-                {copy.splash.subcopy}
+                Join locals, play together, and build your squad with real follow-ups.
               </p>
             </div>
           </div>
@@ -45,7 +43,7 @@ export default function Splash() {
             variant="secondary"
             className="bg-emerald-500 text-white hover:bg-emerald-600"
           >
-            <Link to="/home">{copy.splash.continueCta}</Link>
+            <Link to="/home">Explore upcoming sessions</Link>
           </Button>
         </main>
       </div>

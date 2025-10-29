@@ -2,7 +2,30 @@ import { ComponentType } from 'react'
 import { Compass, Users, User, Search } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { useCopy } from '@/i18n/LanguageProvider'
+
+const NAV_ITEMS = [
+  {
+    label: 'Explore',
+    icon: Compass,
+    path: '/home',
+    matchPaths: ['/home', '/explore', '/sessions', '/map'],
+  },
+  {
+    label: 'Search athletes',
+    icon: Search,
+    path: '/athletes',
+  },
+  {
+    label: 'Squad',
+    icon: Users,
+    path: '/squad',
+  },
+  {
+    label: 'Me',
+    icon: User,
+    path: '/me',
+  },
+] satisfies NavItem[]
 
 type NavItem = {
   label: string
@@ -14,31 +37,6 @@ type NavItem = {
 export function BottomNavBar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const copy = useCopy()
-
-  const navItems: NavItem[] = [
-    {
-      label: copy.common.explore,
-      icon: Compass,
-      path: '/home',
-      matchPaths: ['/home', '/explore', '/sessions', '/map'],
-    },
-    {
-      label: copy.header.searchAthletes,
-      icon: Search,
-      path: '/athletes',
-    },
-    {
-      label: copy.common.squad,
-      icon: Users,
-      path: '/squad',
-    },
-    {
-      label: copy.common.me,
-      icon: User,
-      path: '/me',
-    },
-  ]
 
   return (
     <nav
@@ -46,7 +44,7 @@ export function BottomNavBar() {
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}
     >
       <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-2">
-        {navItems.map(({ label, icon: Icon, path, matchPaths }) => {
+        {NAV_ITEMS.map(({ label, icon: Icon, path, matchPaths }) => {
           const isActive = matchPaths
             ? matchPaths.some((segment) => location.pathname.startsWith(segment))
             : location.pathname.startsWith(path)

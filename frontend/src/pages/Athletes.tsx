@@ -1,34 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FilterChips } from '@/components/athlete/FilterChips'
 import { AthleteGrid } from '@/components/athlete/AthleteGrid'
 import { CreateCardButton } from '@/components/athlete/CreateCardButton'
 import { mockAthletes } from '@/data/mock/athletes'
 import type { AthleteCardProps } from '@/interfaces/athlete'
-import { useCopy } from '@/i18n/LanguageProvider'
 import { SearchField } from '@/components/search/SearchField'
 
-const fallbackFilters = [
-  'All',
-  'Running',
-  'Boxing',
-  'Climbing',
-  'Basketball',
-  'Yoga',
-  'Social',
-  'Focused',
-  'Chill',
-]
-
 export default function Athletes() {
-  const copy = useCopy()
-  const filters = useMemo(() => copy.home.explore.filters ?? fallbackFilters, [copy.home.explore.filters])
-  const [selectedFilter, setSelectedFilter] = useState<string>(filters[0] ?? 'All')
-
-  useEffect(() => {
-    if (!filters.includes(selectedFilter)) {
-      setSelectedFilter(filters[0] ?? 'All')
-    }
-  }, [filters, selectedFilter])
+  const [selectedFilter, setSelectedFilter] = useState<string>('All')
 
   const filteredAthletes: AthleteCardProps[] = useMemo(() => {
     if (selectedFilter === 'All') return mockAthletes
@@ -47,11 +26,11 @@ export default function Athletes() {
         <section className="border-t border-[#E6E6E6]">
           <div className="mx-auto w-full max-w-4xl">
             <FilterChips
-              filters={filters}
+              filters={['All', 'Running', 'Basketball', 'Bouldering', 'Climbing', 'Hiking', 'Yoga', 'Surfing']}
               selected={selectedFilter}
               onSelect={setSelectedFilter}
             />
-            <SearchField placeholder={copy.home.explore.searchPlaceholder} />
+            <SearchField placeholder="Search by sport, host, or venue" />
           </div>
         </section>
       </div>

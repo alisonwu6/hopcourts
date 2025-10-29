@@ -3,7 +3,6 @@ import { Bell, MapPin, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
 import logoUrl from '@/assets/sportsmatch.png'
-import { useCopy } from '@/i18n/LanguageProvider'
 
 type Props = {
   sticky?: boolean
@@ -12,7 +11,6 @@ type Props = {
 }
 
 export default function Header({ sticky = true, showBorder = true, className }: Props) {
-  const copy = useCopy()
   const location = useLocation()
   const [messagesActive, setMessagesActive] = useState(false)
   const notificationsActive = location.pathname.startsWith('/notifications')
@@ -35,7 +33,7 @@ export default function Header({ sticky = true, showBorder = true, className }: 
             <img
               className="h-10 w-auto flex-shrink-0"
               src={logoUrl}
-              alt={copy.common.appName}
+              alt="SportsMatch"
               onError={(event) => {
                 const target = event.target as HTMLImageElement
                 target.style.display = 'none'
@@ -48,7 +46,7 @@ export default function Header({ sticky = true, showBorder = true, className }: 
               Brisbane
             </div>
             <div className="text-xs text-slate-500" style={{ whiteSpace: 'pre-line' }}>
-              {copy.common.tagline}
+              {'Play together.\nBuild your squad.'}
             </div>
           </div>
         </div>
@@ -69,7 +67,7 @@ export default function Header({ sticky = true, showBorder = true, className }: 
             to="/notifications"
             className="relative"
           >
-            <span className="sr-only">{copy.header.notifications}</span>
+            <span className="sr-only">Notifications</span>
             <div
               className={clsx(
                 'inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2]',

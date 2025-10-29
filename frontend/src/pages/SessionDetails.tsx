@@ -6,18 +6,18 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CalendarClock, MapPin, Users, MessageCircle } from 'lucide-react'
-import { useCopy } from '@/i18n/LanguageProvider'
+import { EVENT_CARDS, SPORT_LABELS, SKILL_LEVEL_LABELS } from '@/data/mock/events'
+import { formatHostedBy, formatJoinCounts, formatRosterCount, formatSpotsAvailable } from '@/lib/text'
 
 export default function SessionDetails() {
   const { id } = useParams()
-  const copy = useCopy()
   const event = mockEvents.find((session) => session.id === id)
 
   if (!event) {
     return (
       <MainLayout
-        title={copy.sessionDetails.notFoundTitle}
-        description={copy.sessionDetails.notFoundCopy}
+        title="Session not found"
+        description="This session may have been cancelled or moved."
       >
         <Card>
           <CardContent className="space-y-4 p-6 text-sm text-slate-600">
@@ -25,7 +25,7 @@ export default function SessionDetails() {
               asChild
               className="w-fit"
             >
-              <Link to="/home">{copy.sessionDetails.backToExplore}</Link>
+              <Link to="/home">Back to explore</Link>
             </Button>
           </CardContent>
         </Card>
@@ -33,9 +33,16 @@ export default function SessionDetails() {
     )
   }
 
-  const content = copy.mockEvents.cards[event.contentKey]
-  const sportLabel = copy.mockEvents.sportNames[event.sport] ?? event.sport
-  const skillLabel = event.skillLevel ? copy.mockEvents.skillLevels[event.skillLevel] : undefined
+  const contentKey = event.contentKey as keyof typeof EVENT_CARDS
+  const content = EVENT_CARDS[contentKey] ?? {
+    title: 'Upcoming session',
+    location: 'Location to be announced',
+    time: 'Time to be announced',
+    description: '',
+    tags: [] as string[],
+  }
+  const sportLabel = SPORT_LABELS[event.sport as keyof typeof SPORT_LABELS] ?? event.sport
+  const skillLabel = event.skillLevel ? SKILL_LEVEL_LABELS[event.skillLevel as keyof typeof SKILL_LEVEL_LABELS] : undefined
 
   return (
     <MainLayout
@@ -44,10 +51,10 @@ export default function SessionDetails() {
       actions={
         <div className="flex gap-2">
           <Button asChild variant="outline">
-            <Link to={`/sessions/${event.id}/manage`}>{copy.manageSession.title}</Link>
+            <Link to={`/sessions/${event.id}/manage`}>Manage session</Link>
           </Button>
           <Button asChild>
-            <Link to={`/sessions/${event.id}/joined`}>{copy.eventCard.joinSession}</Link>
+            <Link to={`/sessions/${event.id}/joined`}>Join session</Link>
           </Button>
         </div>
       }
@@ -63,7 +70,7 @@ export default function SessionDetails() {
                 variant="outline"
                 className="border-emerald-200 text-emerald-600"
               >
-                {copy.common.rosterCount(event.joinedCount, event.maxCount)}
+                {formatRosterCount(event.joinedCount, event.maxCount)}
               </Badge>
             </div>
             {content.description && (
@@ -75,22 +82,22 @@ export default function SessionDetails() {
               <div className="flex items-start gap-2">
                 <CalendarClock className="mt-0.5 h-4 w-4 text-slate-400" />
                 <div>
-                  <div className="font-medium text-slate-900">{copy.sessionDetails.whenLabel}</div>
+                  <div className="font-medium text-slate-900">When</div>
                   <div>{content.time}</div>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 text-slate-400" />
                 <div>
-                  <div className="font-medium text-slate-900">{copy.sessionDetails.whereLabel}</div>
+                  <div className="font-medium text-slate-900">Where</div>
                   <div>{content.location}</div>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <Users className="mt-0.5 h-4 w-4 text-slate-400" />
                 <div>
-                  <div className="font-medium text-slate-900">{copy.sessionDetails.capacityLabel}</div>
-                  <div>{copy.common.joinCounts(event.joinedCount, event.maxCount)}</div>
+                  <div className="font-medium text-slate-900">Capacity</div>
+                  <div>{formatJoinCounts(event.joinedCount, event.maxCount)}</div>
                 </div>
               </div>
             </div>
@@ -105,9 +112,13 @@ export default function SessionDetails() {
               ))}
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">{copy.sessionDetails.bringTitle}</h3>
+              <h3 className="text-sm font-semibold text-slate-900">Bring</h3>
               <ul className="list-disc pl-5 text-sm text-slate-600">
-                {copy.sessionDetails.bringList.map((item) => (
+                {[
+                  'Arrive 10 minutes early for warm up',
+                  'Comfortable shoes and water bottle',
+                  'Optional: spare ball for shooting drills',
+                ].map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -124,7 +135,7 @@ export default function SessionDetails() {
               </Avatar>
               <div className="space-y-2 text-sm">
                 <div>
-                  <div className="text-sm font-semibold text-slate-900">{copy.common.hostedBy(event.host.name)}</div>
+                  <div className="text-sm font-semibold text-slate-900">{formatHostedBy(event.host.name)}</div>
                   <div className="text-slate-500">{event.host.tag}</div>
                 </div>
                 <Button
@@ -134,7 +145,7 @@ export default function SessionDetails() {
                   className="gap-1"
                 >
                   <Link to={`/u/${event.host.name.toLowerCase()}`}>
-                    <MessageCircle className="h-4 w-4" /> {copy.common.message}
+                    <MessageCircle className="h-4 w-4" /> Message
                   </Link>
                 </Button>
               </div>
@@ -143,7 +154,7 @@ export default function SessionDetails() {
 
           <Card className="border border-slate-200">
             <CardContent className="space-y-3 p-6">
-              <div className="text-sm font-semibold text-slate-900">{copy.manageSession.confirmedPlayers}</div>
+              <div className="text-sm font-semibold text-slate-900">Confirmed players</div>
               <div className="flex -space-x-2">
                 {event.participants.map((avatarUrl, index) => (
                   <Avatar
@@ -155,14 +166,14 @@ export default function SessionDetails() {
                   </Avatar>
                 ))}
               </div>
-              <p className="text-xs text-slate-500">{copy.common.spotsAvailable(event.maxCount - event.participants.length)}</p>
+              <p className="text-xs text-slate-500">{formatSpotsAvailable(event.maxCount - event.participants.length)}</p>
               <Button
                 asChild
                 size="sm"
                 variant="ghost"
                 className="justify-start text-blue-600"
               >
-                <Link to={`/sessions/${event.id}/manage`}>{copy.manageSession.title}</Link>
+                <Link to={`/sessions/${event.id}/manage`}>Manage session</Link>
               </Button>
             </CardContent>
           </Card>
@@ -173,18 +184,18 @@ export default function SessionDetails() {
         <Card className="border border-slate-200">
           <CardContent className="grid gap-4 p-6 sm:grid-cols-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">{copy.sessionDetails.followUpTitle}</h3>
+              <h3 className="text-sm font-semibold text-slate-900">Post-session follow up</h3>
               <p className="text-sm text-slate-500">
-                {copy.sessionDetails.followUpDescription}
+                Keep the momentum. Add it to your calendar and invite your squad.
               </p>
             </div>
             <div className="flex flex-col gap-2 text-sm">
-              <Button variant="outline">{copy.sessionDetails.followUpActions[0]}</Button>
-              <Button variant="outline">{copy.sessionDetails.followUpActions[1]}</Button>
+              <Button variant="outline">Add to calendar (.ics)</Button>
+              <Button variant="outline">Share to group chat</Button>
             </div>
             <div className="flex flex-col gap-2 text-sm">
-              <Button variant="outline">{copy.sessionDetails.followUpActions[2]}</Button>
-              <Button variant="outline">{copy.sessionDetails.followUpActions[3]}</Button>
+              <Button variant="outline">Mark attendance</Button>
+              <Button variant="outline">Request host review</Button>
             </div>
           </CardContent>
         </Card>

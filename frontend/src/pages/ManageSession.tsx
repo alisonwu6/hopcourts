@@ -2,26 +2,22 @@ import { Link, useParams } from 'react-router-dom'
 import MainLayout from '@/layouts/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useCopy } from '@/i18n/LanguageProvider'
-
-const roster = ['Alex', 'Bo', 'Chen', 'Dana', 'Eli', 'Faye', 'Gus', 'Hana']
-const waitlist = ['Ivy', 'Jules']
+import { formatJoinCounts } from '@/lib/text'
 
 export default function ManageSession() {
   const { id } = useParams()
-  const copy = useCopy()
 
   return (
     <MainLayout
-      title={copy.manageSession.title}
-      description={copy.manageSession.description}
+      title="Manage session"
+      description="Keep your roster tidy and share updates with players."
       actions={
         <Button
           asChild
           size="sm"
           variant="outline"
         >
-          <Link to={`/sessions/${id}`}>{copy.manageSession.viewPublic}</Link>
+          <Link to={`/sessions/${id}`}>View public session</Link>
         </Button>
       }
       contentWidth="md"
@@ -30,60 +26,56 @@ export default function ManageSession() {
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div className="flex items-center justify-between text-sm text-slate-600">
-              <span>{copy.manageSession.confirmedPlayers}</span>
-              <span>{copy.common.joinCounts(roster.length, 10)}</span>
+              <span>Confirmed players</span>
+              <span>{formatJoinCounts(8, 10)}</span>
             </div>
             <ul className="grid gap-2 text-sm">
-              {roster.map((name) => (
+              {['Alex', 'Bo', 'Chen', 'Dana', 'Eli', 'Faye', 'Gus', 'Hana'].map((name) => (
                 <li
                   key={name}
                   className="flex items-center justify-between rounded border border-slate-200 px-3 py-2"
                 >
                   <span>{name}</span>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">{copy.common.message}</Button>
-                    <Button size="sm" variant="ghost">{copy.common.remove}</Button>
+                    <Button size="sm" variant="outline">Message</Button>
+                    <Button size="sm" variant="ghost">Remove</Button>
                   </div>
                 </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm">{copy.manageSession.copyInvite}</Button>
-              <Button variant="outline" size="sm">{copy.manageSession.exportRoster}</Button>
+              <Button variant="outline" size="sm">Copy invite link</Button>
+              <Button variant="outline" size="sm">Export roster</Button>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
-            <div className="text-sm font-semibold text-slate-900">{copy.manageSession.waitlist}</div>
-            {waitlist.length === 0 ? (
-              <p className="text-sm text-slate-500">{copy.manageSession.noWaitlist}</p>
-            ) : (
-              <ul className="grid gap-2 text-sm">
-                {waitlist.map((name) => (
-                  <li
-                    key={name}
-                    className="flex items-center justify-between rounded border border-slate-200 px-3 py-2"
-                  >
-                    <span>{name}</span>
-                    <div className="flex gap-2">
-                      <Button size="sm">{copy.manageSession.approve}</Button>
-                      <Button size="sm" variant="ghost">{copy.manageSession.decline}</Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="text-sm font-semibold text-slate-900">Waitlist</div>
+            <ul className="grid gap-2 text-sm">
+              {['Ivy', 'Jules'].map((name) => (
+                <li
+                  key={name}
+                  className="flex items-center justify-between rounded border border-slate-200 px-3 py-2"
+                >
+                  <span>{name}</span>
+                  <div className="flex gap-2">
+                    <Button size="sm">Approve</Button>
+                    <Button size="sm" variant="ghost">Decline</Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
 
         <Card className="border border-slate-200">
           <CardContent className="grid gap-3 p-6 sm:grid-cols-2">
-            <Button variant="outline">{copy.manageSession.sendUpdate}</Button>
-            <Button variant="outline">{copy.manageSession.cancelSession}</Button>
-            <Button variant="outline">{copy.manageSession.duplicateSession}</Button>
-            <Button variant="outline">{copy.manageSession.feedbackForm}</Button>
+            <Button variant="outline">Send update to roster</Button>
+            <Button variant="outline">Cancel session</Button>
+            <Button variant="outline">Duplicate session</Button>
+            <Button variant="outline">Open feedback form</Button>
           </CardContent>
         </Card>
       </section>

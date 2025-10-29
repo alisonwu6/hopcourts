@@ -1,11 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import SessionCard, { ExploreSession } from '@/components/explore/SessionCard'
-import { useCopy } from '@/i18n/LanguageProvider'
 import { trackEvent } from '@/lib/analytics'
 import { SearchField } from '@/components/search/SearchField'
-
-const DEFAULT_FILTER = 'All'
 
 const sampleSessions: ExploreSession[] = [
   {
@@ -77,13 +74,11 @@ const sampleSessions: ExploreSession[] = [
 ]
 
 export default function Home() {
-  const copy = useCopy()
-  const filters = useMemo(() => copy.home.explore.filters ?? [DEFAULT_FILTER], [copy.home.explore.filters])
-  const [selectedFilter, setSelectedFilter] = useState(DEFAULT_FILTER)
+  const [selectedFilter, setSelectedFilter] = useState('All')
 
   const filteredSessions = useMemo(() => {
     return sampleSessions.filter((session) => {
-      if (selectedFilter === DEFAULT_FILTER) return true
+      if (selectedFilter === 'All') return true
       return session.sport.toLowerCase() === selectedFilter.toLowerCase()
     })
   }, [selectedFilter])
@@ -104,7 +99,7 @@ export default function Home() {
           <div className="mx-auto w-full max-w-4xl">
             <div className="overflow-x-auto scrollbar-hidden">
               <div className="flex min-w-max items-center gap-2 px-4 py-3 sm:px-6">
-                {filters.map((filter) => {
+                {['All', 'Running', 'Basketball', 'Bouldering', 'Climbing', 'Hiking', 'Yoga', 'Surfing'].map((filter) => {
                   const isActive = filter === selectedFilter
                   return (
                     <button
@@ -121,7 +116,7 @@ export default function Home() {
                 })}
               </div>
             </div>
-            <SearchField placeholder={copy.home.explore.searchPlaceholder} />
+            <SearchField placeholder="Search by sport, host, or venue" />
           </div>
         </div>
       </div>
@@ -130,7 +125,7 @@ export default function Home() {
         <div className="space-y-5">
           {filteredSessions.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-[#E6E6E6] bg-white p-10 text-center text-sm text-[#6E6E6E]">
-              {copy.home.explore.emptyState}
+              No sessions match right now. Try another sport or widen your search.
             </div>
           ) : (
             filteredSessions.map((session) => (
@@ -144,7 +139,7 @@ export default function Home() {
         type="button"
         onClick={handleCreateIntent}
         className="fixed bottom-20 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-[#1B8FD2] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)] transition hover:bg-[#1679b3]"
-        aria-label={copy.home.explore.fabLabel}
+        aria-label="Create a session"
       >
         <Plus className="h-6 w-6" />
       </button>

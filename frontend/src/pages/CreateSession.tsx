@@ -3,19 +3,18 @@ import Input from '@/components/ui/Input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useCopy } from '@/i18n/LanguageProvider'
+import { SKILL_LEVEL_LABELS } from '@/data/mock/events'
 
 export default function CreateSession() {
-  const copy = useCopy()
 
   return (
     <MainLayout
-      title={copy.createSession.title}
-      description={copy.createSession.description}
+      title="Create a session"
+      description="Share the details and SportsMatch will help you fill the roster."
       contentWidth="md"
       actions={
         <Button variant="ghost" size="sm">
-          {copy.createSession.saveDraft}
+          Save draft
         </Button>
       }
     >
@@ -23,60 +22,60 @@ export default function CreateSession() {
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">{copy.createSession.basicsTitle}</h2>
+              <h2 className="text-base font-semibold text-slate-900">Session basics</h2>
               <p className="text-sm text-slate-500">
-                {copy.createSession.basicsDescription}
+                Tell players what they can expect and where to meet.
               </p>
             </div>
             <Input
-              label={copy.createSession.titleLabel}
+              label="Title"
               placeholder="Sunrise tempo run"
             />
             <Input
-              label={copy.createSession.sportLabel}
+              label="Sport"
               placeholder="Running"
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label={copy.createSession.datetimeLabel}
+                label="Date & start time"
                 type="datetime-local"
               />
               <Input
-                label={copy.createSession.durationLabel}
+                label="Duration (minutes)"
                 type="number"
                 placeholder="90"
               />
             </div>
             <Input
-              label={copy.createSession.locationLabel}
+              label="Location"
               placeholder="New Farm Park Riverwalk"
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label={copy.createSession.capacityLabel}
+                label="Capacity"
                 type="number"
                 placeholder="10"
               />
               <label className="grid gap-1 text-sm text-slate-600">
-                {copy.createSession.skillLabel}
+                Skill level
                 <select className="h-10 rounded border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200">
-                  <option value="">{copy.createSession.skillPlaceholder}</option>
-                  {(Object.keys(copy.mockEvents.skillLevels) as Array<keyof typeof copy.mockEvents.skillLevels>).map((level) => (
+                  <option value="">Select level</option>
+                  {Object.entries(SKILL_LEVEL_LABELS).map(([level, label]) => (
                     <option
                       key={level}
                       value={level}
                     >
-                      {copy.mockEvents.skillLevels[level]}
+                      {label}
                     </option>
                   ))}
                 </select>
               </label>
             </div>
             <label className="grid gap-1 text-sm text-slate-600">
-              {copy.createSession.descriptionLabel}
+              Description
               <textarea
                 rows={4}
-                placeholder={copy.createSession.descriptionPlaceholder}
+                placeholder="Outline the vibe, meeting spot, and any warm up plans..."
                 className="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
             </label>
@@ -86,13 +85,13 @@ export default function CreateSession() {
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">{copy.createSession.vibeTitle}</h2>
+              <h2 className="text-base font-semibold text-slate-900">Session vibe</h2>
               <p className="text-sm text-slate-500">
-                {copy.createSession.vibeDescription}
+                Tag your session so the right athletes can discover it.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-sm">
-              {copy.createSession.vibeTags.map((tag) => (
+              {['Beginner friendly', 'Competitive', 'Social', 'Coffee after'].map((tag) => (
                 <Badge
                   key={tag}
                   variant="outline"
@@ -103,20 +102,20 @@ export default function CreateSession() {
               ))}
             </div>
             <label className="grid gap-1 text-sm text-slate-600">
-              {copy.createSession.notesLabel}
+              Notes for attendees
               <textarea
                 rows={3}
-                placeholder={copy.createSession.notesPlaceholder}
+                placeholder="Anything they should bring or know before the session?"
                 className="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
-              <span className="text-xs text-slate-500">{copy.createSession.notesHint}</span>
+              <span className="text-xs text-slate-500">Visible only to people who join.</span>
             </label>
           </CardContent>
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button variant="outline">{copy.createSession.preview}</Button>
-          <Button type="submit">{copy.createSession.publish}</Button>
+          <Button variant="outline">Preview session</Button>
+          <Button type="submit">Publish session</Button>
         </div>
       </form>
     </MainLayout>

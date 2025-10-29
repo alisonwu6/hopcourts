@@ -5,4 +5,3 @@ export const colors = {
   bg: '#FFFFFF',
   softGray: '#F3F4F6',
 }
-export const appName = 'SportsMatch'

@@ -5,7 +5,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Users, Clock, Star, MapPin } from 'lucide-react'
 import { EventCardProps } from '@/interfaces/event'
-import { useCopy } from '@/i18n/LanguageProvider'
+import { EVENT_CARDS, SPORT_LABELS, SKILL_LEVEL_LABELS } from '@/data/mock/events'
+import { formatHostedBy, formatJoinCounts, formatStartsIn } from '@/lib/text'
 
 export default function EventCard({
   id,
@@ -18,10 +19,9 @@ export default function EventCard({
   host,
   participants,
 }: EventCardProps) {
-  const copy = useCopy()
-  const content = copy.mockEvents.cards[contentKey]
-  const sportLabel = copy.mockEvents.sportNames[sport] ?? sport
-  const skillLabel = skillLevel ? copy.mockEvents.skillLevels[skillLevel] : undefined
+  const content = EVENT_CARDS[contentKey as keyof typeof EVENT_CARDS]
+  const sportLabel = SPORT_LABELS[sport as keyof typeof SPORT_LABELS] ?? sport
+  const skillLabel = skillLevel ? SKILL_LEVEL_LABELS[skillLevel as keyof typeof SKILL_LEVEL_LABELS] : undefined
 
   if (!content) {
     return null
@@ -52,7 +52,7 @@ export default function EventCard({
                 variant="outline"
                 className="border-transparent bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
               >
-                {copy.common.startsIn(timeLeft)}
+                {formatStartsIn(timeLeft)}
               </Badge>
             </div>
             <Link
@@ -68,7 +68,7 @@ export default function EventCard({
           </div>
           <div className="flex flex-none items-center gap-2 rounded-full bg-slate-100/80 px-3 py-1.5 text-xs text-slate-600">
             <Users className="h-4 w-4 text-slate-400" />
-            <span>{copy.common.joinCounts(joinedCount, maxCount)}</span>
+            <span>{formatJoinCounts(joinedCount, maxCount)}</span>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export default function EventCard({
             <AvatarFallback>{host.name.slice(0, 1)}</AvatarFallback>
           </Avatar>
           <div className="text-sm">
-            <div className="font-medium text-slate-900">{copy.common.hostedBy(host.name)}</div>
+            <div className="font-medium text-slate-900">{formatHostedBy(host.name)}</div>
             <div className="text-slate-500">{host.tag}</div>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function EventCard({
             asChild
             className="flex-1 rounded-full"
           >
-            <Link to={`/sessions/${id}`}>{copy.eventCard.joinSession}</Link>
+            <Link to={`/sessions/${id}`}>Join session</Link>
           </Button>
           <Button
             asChild
@@ -136,7 +136,7 @@ export default function EventCard({
               to={`/sessions/${id}`}
               className="flex items-center gap-1"
             >
-              <Star className="h-4 w-4" /> {copy.eventCard.saveForLater}
+              <Star className="h-4 w-4" /> Save for later
             </Link>
           </Button>
         </div>
