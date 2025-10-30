@@ -23,7 +23,10 @@ export function ProfilePage() {
 
   const sessionsAttended = user.sessionsAttended ?? 0
   const isNewUser = sessionsAttended <= 1
-  const sportLine = user.sports && user.sports.length > 0 ? user.sports.join(' · ') : 'Ready to explore new sports'
+  const sportLine =
+    user.sports && user.sports.length > 0
+      ? user.sports.join(' · ')
+      : 'Ready to explore new sports'
 
   const displayStats = {
     totalSessions: Math.max(1, sessionsAttended),
@@ -67,17 +70,30 @@ export function ProfilePage() {
               <div>
                 <p className="font-semibold text-slate-900">Great start!</p>
                 <p className="mt-1 text-sm text-slate-700">
-                  You&apos;ve joined your first session. This is just the beginning of an amazing fitness journey.
+                  You&apos;ve joined your first session. This is just the
+                  beginning of an amazing fitness journey.
                 </p>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Session" value={displayStats.totalSessions.toString()} accent="text-blue-600" />
-            <StatCard label="Streak" value={`${displayStats.streakDays} 🔥`} accent="text-amber-600" />
+            <StatCard
+              label="Session"
+              value={displayStats.totalSessions.toString()}
+              accent="text-blue-600"
+            />
+            <StatCard
+              label="Streak"
+              value={`${displayStats.streakDays} 🔥`}
+              accent="text-amber-600"
+            />
             <EnergyCard energy={displayStats.energyLevel} />
-            <StatCard label="Badges" value={displayStats.badges.toString()} accent="text-yellow-600" />
+            <StatCard
+              label="Badges"
+              value={displayStats.badges.toString()}
+              accent="text-yellow-600"
+            />
           </div>
 
           <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 to-amber-50 p-5">
@@ -85,19 +101,36 @@ export function ProfilePage() {
               <span className="text-4xl">👣</span>
               <div>
                 <p className="font-semibold text-slate-900">First Step Badge</p>
-                <p className="text-xs text-slate-600">Join your first session</p>
+                <p className="text-xs text-slate-600">
+                  Join your first session
+                </p>
               </div>
             </div>
             <p className="mt-3 text-sm text-slate-700">
-              You did it! You&apos;ve taken your first step into the SportsMatch community.
+              You did it! You&apos;ve taken your first step into the SportsMatch
+              community.
             </p>
           </div>
 
           <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 text-lg font-semibold text-slate-900">🎯 Your next milestones</h3>
-            <Milestone step="2" title="Join one more session" description='Unlock the "Week Warrior" badge 🏆' />
-            <Milestone step="7" title="Keep a 7-day streak" description='Unlock "Consistency King" 🔥' />
-            <Milestone step="4" title="Complete 4 sessions this month" description="Hit your monthly goal 🎯" />
+            <h3 className="mb-4 text-lg font-semibold text-slate-900">
+              🎯 Your next milestones
+            </h3>
+            <Milestone
+              step="2"
+              title="Join one more session"
+              description='Unlock the "Week Warrior" badge 🏆'
+            />
+            <Milestone
+              step="7"
+              title="Keep a 7-day streak"
+              description='Unlock "Consistency King" 🔥'
+            />
+            <Milestone
+              step="4"
+              title="Complete 4 sessions this month"
+              description="Hit your monthly goal 🎯"
+            />
           </div>
 
           <button
@@ -116,6 +149,27 @@ export function ProfilePage() {
         </section>
       )}
 
+      <div className="space-y-2 border-t border-player-200 pt-6">
+        <ActionButton icon="📆" label="My sessions" onClick={() => navigate('/my-sessions')} />
+        <ActionButton icon="📊" label="Detailed stats" />
+        <ActionButton icon="❤️" label="Saved sessions" />
+        <ActionButton icon="⭐" label="My reviews" />
+        <ActionButton icon="👥" label="Following" />
+        <ActionButton
+          icon="⚙️"
+          label="Settings"
+          onClick={() => navigate('/settings')}
+        />
+        <ActionButton
+          icon="🚪"
+          label="Logout"
+          onClick={async () => {
+            await logout()
+            navigate('/login', { replace: true })
+          }}
+        />
+      </div>
+
       <div className="px-4 pb-8">
         <button
           type="button"
@@ -132,10 +186,20 @@ export function ProfilePage() {
   )
 }
 
-function StatCard({ label, value, accent }: { label: string; value: string; accent: string }) {
+function StatCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string
+  value: string
+  accent: string
+}) {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </p>
       <p className={`mt-2 text-3xl font-bold ${accent}`}>{value}</p>
     </div>
   )
@@ -144,7 +208,9 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
 function EnergyCard({ energy }: { energy: number }) {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Energy</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        Energy
+      </p>
       <p className="mt-2 text-3xl font-bold text-blue-600">{energy}%</p>
       <div className="mt-3 h-2 rounded-full bg-slate-200">
         <div
@@ -156,7 +222,15 @@ function EnergyCard({ energy }: { energy: number }) {
   )
 }
 
-function Milestone({ step, title, description }: { step: string; title: string; description: string }) {
+function Milestone({
+  step,
+  title,
+  description,
+}: {
+  step: string
+  title: string
+  description: string
+}) {
   return (
     <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-4">
       <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
@@ -167,5 +241,27 @@ function Milestone({ step, title, description }: { step: string; title: string; 
         <p className="text-xs text-slate-600">{description}</p>
       </div>
     </div>
+  )
+}
+
+function ActionButton({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: string
+  label: string
+  onClick?: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-lg bg-gray-100 px-4 py-3 text-left transition hover:bg-gray-200"
+    >
+      <span className="text-xl">{icon}</span>
+      <span className="font-semibold text-gray-900">{label}</span>
+      <span className="ml-auto text-gray-400">→</span>
+    </button>
   )
 }

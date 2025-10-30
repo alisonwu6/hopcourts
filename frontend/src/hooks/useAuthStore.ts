@@ -71,10 +71,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
           window.localStorage.setItem(TOKEN_KEY, response.data.token)
         }
         const onboardingState = useOnboardingStore.getState()
-        onboardingState.completeOnboarding({
-          role: onboardingState.role,
-          preferredSports: response.data.user.sports ?? sports,
-        })
+        onboardingState.setPreferredSports(response.data.user.sports ?? sports)
       } else {
         set({
           error: response.error?.message ?? 'Signup failed',

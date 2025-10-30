@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import MainLayout from '@/layouts/MainLayout'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components'
 
 export default function JoinConfirmation() {
   const { id } = useParams()
@@ -24,11 +24,11 @@ export default function JoinConfirmation() {
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Button asChild>
-              <Link to={`/sessions/${id}`}>Go to session</Link>
+            <Button asChild storyLine="venue">
+              <Link to={`/sessions/${id}`}>Go to game</Link>
             </Button>
-            <Button asChild variant="ghost">
-              <Link to="/home">Browse more sessions</Link>
+            <Button asChild variant="secondary" storyLine="venue">
+              <Link to="/home">Browse more games</Link>
             </Button>
           </div>
         </div>

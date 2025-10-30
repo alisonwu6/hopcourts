@@ -1,5 +1,5 @@
 import { ComponentType } from 'react'
-import { Building2, Compass, User, UserRound, Users } from 'lucide-react'
+import { Building2, Compass, User, Users } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 
@@ -15,17 +15,13 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Home',
     icon: Compass,
     path: '/home',
-    matchPaths: ['/home', '/explore', '/sessions'],
-  },
-  {
-    label: 'Players',
-    icon: UserRound,
-    path: '/players',
+    matchPaths: ['/home', '/session', '/my-sessions'],
   },
   {
     label: 'Venues',
     icon: Building2,
     path: '/venues',
+    matchPaths: ['/venues', '/venue'],
   },
   {
     label: 'Hosts',
@@ -35,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: 'Me',
     icon: User,
-    path: '/me',
+    path: '/profile',
   },
 ]
 

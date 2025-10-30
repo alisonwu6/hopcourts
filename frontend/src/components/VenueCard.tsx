@@ -8,8 +8,8 @@ type VenueCardProps = {
 
 export function VenueCard({ venue, onViewDetails }: VenueCardProps) {
   return (
-    <div className="mb-4 overflow-hidden rounded-lg bg-white shadow">
-      <div className="flex h-40 items-center justify-center bg-gradient-to-br from-purple-500 to-purple-600 text-5xl text-white">
+    <div className="mb-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow">
+      <div className="flex h-40 items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-5xl text-white">
         🏢
       </div>
 
@@ -17,24 +17,24 @@ export function VenueCard({ venue, onViewDetails }: VenueCardProps) {
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-lg font-bold text-slate-900">{venue.name}</h3>
-            <p className="text-sm text-slate-600">{venue.type}</p>
+            <p className="text-sm text-slate-600 capitalize">{venue.type}</p>
           </div>
           {venue.isVerified && <span className="text-xl text-blue-500">✓</span>}
         </div>
 
-        <p className="text-sm text-slate-600">{venue.description}</p>
+        <p className="text-sm text-slate-700">{venue.description}</p>
 
         <div className="grid grid-cols-3 gap-2 text-center text-sm">
-          <div className="rounded bg-slate-100 p-2">
-            <p className="font-semibold text-blue-600">{venue.rating.toFixed(1)}</p>
+          <div className="rounded bg-blue-50 p-2">
+            <p className="font-semibold text-blue-700">{venue.rating.toFixed(1)}</p>
             <p className="text-xs text-slate-600">rating</p>
           </div>
-          <div className="rounded bg-slate-100 p-2">
-            <p className="font-semibold text-blue-600">{venue.sessionsHosted}</p>
-            <p className="text-xs text-slate-600">sessions</p>
+          <div className="rounded bg-blue-50 p-2">
+            <p className="font-semibold text-blue-700">{venue.sessionsHosted}</p>
+            <p className="text-xs text-slate-600">games hosted</p>
           </div>
-          <div className="rounded bg-slate-100 p-2">
-            <p className="font-semibold text-blue-600">
+          <div className="rounded bg-blue-50 p-2">
+            <p className="font-semibold text-blue-700">
               {venue.basePrice ? `$${venue.basePrice}` : 'Free'}
             </p>
             <p className="text-xs text-slate-600">price</p>
@@ -42,10 +42,10 @@ export function VenueCard({ venue, onViewDetails }: VenueCardProps) {
         </div>
 
         <div>
-          <p className="mb-2 text-xs font-semibold text-slate-600">Amenities</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Amenities</p>
           <div className="flex flex-wrap gap-2">
             {venue.amenities.slice(0, 3).map((amenity) => (
-              <span key={amenity} className="rounded bg-slate-200 px-2 py-1 text-xs text-slate-700">
+              <span key={amenity} className="rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">
                 {amenity}
               </span>
             ))}

@@ -7,6 +7,7 @@ interface SearchFieldProps {
   value?: string
   onChange?: (value: string) => void
   inputClassName?: string
+  storyLine?: 'player' | 'venue' | 'host'
 }
 
 export function SearchField({
@@ -15,12 +16,20 @@ export function SearchField({
   value,
   onChange,
   inputClassName,
+  storyLine = 'player',
 }: SearchFieldProps) {
+  const tone = {
+    border: 'border-slate-200',
+    text: 'text-slate-900',
+    focus: 'focus:ring-blue-300',
+    icon: 'text-blue-600/70',
+  }
+
   return (
     <div className={clsx('px-4 pb-4 sm:px-6', className)}>
       <label className="relative block">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6E6E6E]"
+          className={clsx('pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2', tone.icon)}
           aria-hidden="true"
         />
         <input
@@ -29,7 +38,10 @@ export function SearchField({
           onChange={(event) => onChange?.(event.target.value)}
           placeholder={placeholder}
           className={clsx(
-            'h-11 w-full rounded-full border border-[#E6E6E6] bg-white pl-10 pr-4 text-sm text-[#051333] placeholder:text-[#6E6E6E] focus:outline-none focus:ring-2 focus:ring-[#CDE8FF] focus:ring-offset-0',
+            'h-11 w-full rounded-full border bg-white pl-10 pr-4 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-0',
+            tone.border,
+            tone.text,
+            tone.focus,
             inputClassName
           )}
         />

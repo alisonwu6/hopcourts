@@ -9,15 +9,11 @@ export default function ManageSession() {
 
   return (
     <MainLayout
-      title="Manage session"
+      title="Manage game"
       description="Keep your roster tidy and share updates with players."
       actions={
-        <Button
-          asChild
-          size="sm"
-          variant="outline"
-        >
-          <Link to={`/sessions/${id}`}>View public session</Link>
+        <Button asChild size="sm" variant="outline" className="border-host-600 text-host-600 hover:bg-host-50">
+          <Link to={`/sessions/${id}`}>View public game</Link>
         </Button>
       }
       contentWidth="md"
@@ -37,15 +33,23 @@ export default function ManageSession() {
                 >
                   <span>{name}</span>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">Message</Button>
-                    <Button size="sm" variant="ghost">Remove</Button>
+                    <Button size="sm" variant="outline" className="border-host-600 text-host-600 hover:bg-host-50">
+                      Message
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-host-600 hover:text-host-700">
+                      Remove
+                    </Button>
                   </div>
                 </li>
               ))}
             </ul>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm">Copy invite link</Button>
-              <Button variant="outline" size="sm">Export roster</Button>
+              <Button variant="outline" size="sm" className="border-host-600 text-host-600 hover:bg-host-50">
+                Copy invite link
+              </Button>
+              <Button variant="outline" size="sm" className="border-host-600 text-host-600 hover:bg-host-50">
+                Export roster
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -61,8 +65,12 @@ export default function ManageSession() {
                 >
                   <span>{name}</span>
                   <div className="flex gap-2">
-                    <Button size="sm">Approve</Button>
-                    <Button size="sm" variant="ghost">Decline</Button>
+                    <Button size="sm" className="bg-host-600 text-white hover:bg-host-700">
+                      Approve
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-host-600 hover:text-host-700">
+                      Decline
+                    </Button>
                   </div>
                 </li>
               ))}
@@ -72,10 +80,18 @@ export default function ManageSession() {
 
         <Card className="border border-slate-200">
           <CardContent className="grid gap-3 p-6 sm:grid-cols-2">
-            <Button variant="outline">Send update to roster</Button>
-            <Button variant="outline">Cancel session</Button>
-            <Button variant="outline">Duplicate session</Button>
-            <Button variant="outline">Open feedback form</Button>
+            <Button variant="outline" className="border-host-600 text-host-600 hover:bg-host-50">
+              Send update to roster
+            </Button>
+            <Button variant="outline" className="border-host-600 text-host-600 hover:bg-host-50">
+              Cancel game
+            </Button>
+            <Button variant="outline" className="border-host-600 text-host-600 hover:bg-host-50">
+              Duplicate game
+            </Button>
+            <Button variant="outline" className="border-host-600 text-host-600 hover:bg-host-50">
+              Open feedback form
+            </Button>
           </CardContent>
         </Card>
       </section>

@@ -1,50 +1,37 @@
 import { Link } from 'react-router-dom'
 import logoUrl from '@/assets/main-logo.png'
-import { Button } from '@/components/ui/button'
-import GoogleLoginButton from '@/components/button/GoogleLoginButton'
-import AppleLoginButton from '@/components/button/AppleLoginButton'
+import { Button } from '@/components'
 
-export default function Splash() {
-
-  const loginGoogle = () => {
-    console.log('loginGoogle')
-  }
-
-  const loginApple = () => {
-    console.log('loginApple')
-  }
-
+export function Splash() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-sky-100 via-amber-50 to-emerald-100">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(253,230,138,0.45),_transparent_60%)]" />
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-3xl flex-col items-center px-6 py-10 sm:px-10">
-        <main className="flex w-full flex-1 flex-col items-center justify-start gap-10 text-center">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-player-50 via-white to-player-200">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,199,44,0.25),_transparent_55%)]" />
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col items-center px-6 py-12 text-center">
+        <main className="flex w-full flex-1 flex-col items-center justify-center gap-10">
           <div className="flex flex-col items-center gap-6">
             <img
-              className="h-56 w-auto drop-shadow-lg sm:h-64"
+              className="h-48 w-auto drop-shadow-lg sm:h-60"
               src={logoUrl}
               alt="SportsMatch"
             />
             <div className="space-y-4">
-              <h1 className="text-3xl font-semibold leading-tight text-slate-900 sm:text-5xl">
+              <h1 className="text-3xl font-semibold leading-tight text-player-900 sm:text-5xl">
                 Pick-up sports that match your vibe.
               </h1>
-              <p className="mx-auto max-w-xl text-base text-slate-600">
+              <p className="mx-auto max-w-xl text-base text-player-900/70">
                 Join locals, play together, and build your squad with real follow-ups.
               </p>
             </div>
           </div>
+
           <div className="flex w-full max-w-sm flex-col gap-3">
-            <GoogleLoginButton loginGoogle={loginGoogle} />
-            <AppleLoginButton loginApple={loginApple} />
+            <Button asChild storyLine="player" className="w-full">
+              <Link to="/home">Explore SportsMatch</Link>
+            </Button>
+            <Button asChild storyLine="player" variant="secondary" className="w-full">
+              <Link to="/signup">Join SportsMatch</Link>
+            </Button>
           </div>
-          <Button
-            asChild
-            variant="secondary"
-            className="bg-emerald-500 text-white hover:bg-emerald-600"
-          >
-            <Link to="/home">Explore upcoming sessions</Link>
-          </Button>
         </main>
       </div>
     </div>

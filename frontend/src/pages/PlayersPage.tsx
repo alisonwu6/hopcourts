@@ -48,15 +48,16 @@ export function PlayersPage() {
   }, [searchTerm, selectedFilter])
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] pb-24 text-[#051333]">
-      <div className="sticky top-[56px] z-40 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-        <section className="border-t border-[#E6E6E6]">
+    <div className="min-h-screen bg-player-50 pb-24 text-player-900">
+      <div className="sticky top-[56px] z-40 bg-player-50/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+        <section className="border-t border-player-200">
           <div className="mx-auto w-full max-w-4xl">
-            <FilterChips filters={FILTERS} selected={selectedFilter} onSelect={setSelectedFilter} />
+            <FilterChips filters={FILTERS} selected={selectedFilter} onSelect={setSelectedFilter} storyLine="player" />
             <SearchField
               value={searchTerm}
               onChange={setSearchTerm}
               placeholder="Search by player, sport, or vibe"
+              storyLine="player"
             />
           </div>
         </section>
@@ -64,12 +65,12 @@ export function PlayersPage() {
 
       <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="mb-4">
-          <h1 className="text-lg font-bold text-slate-900">Players</h1>
-          <p className="text-sm text-slate-500">Find crew members who match your pace and vibe.</p>
+          <h1 className="text-lg font-bold text-player-900">Players</h1>
+          <p className="text-sm text-player-900/70">Find crew members who match your pace and vibe.</p>
         </div>
 
         {filteredAthletes.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#E6E6E6] bg-white p-10 text-center text-sm text-[#6E6E6E]">
+          <div className="rounded-2xl border border-dashed border-player-200 bg-white p-10 text-center text-sm text-gray-600">
             No players match right now. Try another sport or adjust your search.
           </div>
         ) : (

@@ -1,37 +1,50 @@
-import { useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, VenueCard } from '@/components'
-import { useVenuesStore } from '@/hooks'
+import { VenueRow } from '@/components/player/VenueRow'
+import { FilterChips } from '@/components/athlete/FilterChips'
+import { PLAYER_MOCK_VENUES } from '@/data/playerMocks'
+
+const sports = ['All', 'Running', 'Basketball', 'Climbing', 'Tennis']
 
 export function VenuesPage() {
   const navigate = useNavigate()
-  const { venues, isLoading, fetchVenues } = useVenuesStore()
+  const [selectedSport, setSelectedSport] = useState('All')
 
-  useEffect(() => {
-    fetchVenues()
-  }, [fetchVenues])
+  const filteredVenues = useMemo(() => {
+    if (selectedSport === 'All') return PLAYER_MOCK_VENUES
+    return PLAYER_MOCK_VENUES.filter((venue) => venue.sport.toLowerCase() === selectedSport.toLowerCase())
+  }, [selectedSport])
 
   return (
-    <div className="pb-24 pt-20">
-      <div className="flex items-center justify-between px-4">
-        <div>
-          <h1 className="text-lg font-bold text-slate-900">Venues</h1>
-          <p className="text-sm text-slate-500">Discover spaces hosting your next session.</p>
-        </div>
-        <Button variant="secondary" className="rounded-full text-sm" onClick={() => navigate('/create-venue')}>
-          + Add
-        </Button>
+    <div className="min-h-screen bg-blue-50 pb-24">
+      <div
+        className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-sm"
+        style={{ top: `4rem` }}
+      >
+        <FilterChips
+          filters={sports}
+          selected={selectedSport}
+          onSelect={setSelectedSport}
+          className="pt-4"
+        />
       </div>
 
-      <div className="px-4 py-6">
-        {isLoading ? (
-          <div className="py-10 text-center text-slate-500">Loading venues…</div>
-        ) : venues.length === 0 ? (
-          <div className="py-10 text-center text-slate-500">No venues found</div>
-        ) : (
-          venues.map((venue) => (
-            <VenueCard key={venue.id} venue={venue} onViewDetails={() => navigate(`/venue/${venue.id}`)} />
-          ))
+      <div className="px-4 py-6 mt-[3rem]">
+        <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-blue-700">Near you</h3>
+
+        <div className="space-y-3">
+          {filteredVenues.map((venue) => (
+            <VenueRow key={venue.id} venue={venue} onClick={() => navigate(`/venue/${venue.id}`)} />
+          ))}
+        </div>
+
+        {filteredVenues.length > 10 && (
+          <button
+            type="button"
+            className="mt-6 w-full py-2 text-sm font-semibold text-blue-600 hover:underline"
+          >
+            View all {filteredVenues.length} venues
+          </button>
         )}
       </div>
     </div>
