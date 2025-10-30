@@ -3,12 +3,67 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { AthleteCard } from '@/components/athlete/AthleteCard'
 import { mockAthlete } from '@/mocks/athlete'
 import { mockAthletes } from '@/data/mock/athletes'
+import { useAuthStore, useOnboardingStore } from '@/hooks'
+import type { OnboardingRole } from '@/hooks/useOnboardingStore'
+import type { AthleteCardProps } from '@/interfaces/athlete'
+
+function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: OnboardingRole, preferredSports: string[]): AthleteCardProps {
+  if (!user) {
+    return { ...mockAthlete, id: 'me', statusLabel: 'new' }
+  }
+
+  const combinedSports = preferredSports.length ? preferredSports : user.sports ?? []
+  const uniqueSports = Array.from(new Set(combinedSports))
+  const primarySport = uniqueSports[0] ?? user.sports?.[0] ?? mockAthlete.primarySport ?? 'Sport TBD'
+  const uniqueTags = Array.from(
+    new Set(
+      [primarySport, ...uniqueSports, ...(user.sports ?? []), ...(mockAthlete.tags ?? [])].filter(
+        (tag): tag is string => Boolean(tag)
+      )
+    )
+  )
+  const roleTone =
+    role === 'host'
+      ? 'Hosting sessions and rallying the crew.'
+      : 'Chasing good sessions and new teammates.'
+
+  return {
+    ...mockAthlete,
+    id: user.id,
+    name: user.name,
+    city: user.location,
+    sport: primarySport,
+    primarySport,
+    title: role === 'host' ? 'Community host · building the session vibe.' : 'Player · ready to jump in.',
+    toneLines: [roleTone, ...(mockAthlete.toneLines?.slice(0, 3) ?? [])],
+    visualTagline: uniqueSports.length ? uniqueSports.join(' · ') : mockAthlete.visualTagline,
+    stats: {
+      ...mockAthlete.stats,
+      sessions: user.sessionsAttended ?? mockAthlete.stats.sessions,
+      badges: mockAthlete.stats.badges ?? 0,
+      energy: mockAthlete.stats.energy ?? 72,
+    },
+    tags: uniqueTags,
+    vibes:
+      role === 'host'
+        ? Array.from(new Set(['Crew Builder', ...(mockAthlete.vibes ?? [])]))
+        : Array.from(new Set(['Game Ready', ...(mockAthlete.vibes ?? [])])),
+    bio: user.bio ?? mockAthlete.bio,
+    statusLabel: (user.sessionsAttended ?? 0) > 3 ? 'active' : 'new',
+    recentActivities: mockAthlete.recentActivities,
+  }
+}
 
 export default function AthleteCardPage() {
   const { username } = useParams<{ username: string }>()
   const navigate = useNavigate()
-  const isOwnProfile = username === 'me'
+  const { user } = useAuthStore()
+  const { role, preferredSports } = useOnboardingStore()
+  const isOwnProfile = !username || username === 'me'
   const athlete = useMemo(() => {
+    if (isOwnProfile) {
+      return buildSelfAthlete(user, role, preferredSports)
+    }
     if (!username) return mockAthlete
 
     const normalized = username.toLowerCase()
@@ -16,7 +71,7 @@ export default function AthleteCardPage() {
       mockAthletes.find((candidate) => candidate.id.toLowerCase() === normalized)
       ?? mockAthlete
     )
-  }, [username])
+  }, [isOwnProfile, preferredSports, role, user, username])
 
   return (
     <div className="min-h-screen bg-[#F3F7FB] overflow-x-hidden">

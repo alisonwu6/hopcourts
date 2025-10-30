@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { User } from '@/types'
 import { authService } from '@/services'
+import { useOnboardingStore } from './useOnboardingStore'
 
 interface AuthStore {
   user: User | null
@@ -35,6 +36,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(TOKEN_KEY, response.data.token)
         }
+        const onboardingState = useOnboardingStore.getState()
+        const inferredRole =
+          (response.data.user.sessionsHosted ?? 0) > 0 ? 'host' : onboardingState.role
+        onboardingState.completeOnboarding({
+          role: inferredRole,
+          preferredSports: response.data.user.sports ?? [],
+        })
       } else {
         set({
           error: response.error?.message ?? 'Login failed',
@@ -62,6 +70,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
         if (typeof window !== 'undefined') {
           window.localStorage.setItem(TOKEN_KEY, response.data.token)
         }
+        const onboardingState = useOnboardingStore.getState()
+        onboardingState.completeOnboarding({
+          role: onboardingState.role,
+          preferredSports: response.data.user.sports ?? sports,
+        })
       } else {
         set({
           error: response.error?.message ?? 'Signup failed',
@@ -84,6 +97,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(TOKEN_KEY)
       }
+      useOnboardingStore.getState().reset()
     } catch {
       set({ isLoading: false, error: 'Logout failed' })
     }

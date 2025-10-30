@@ -1,31 +1,51 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
-import { useAuthStore } from '@/hooks'
+import { useAuthStore, useOnboardingStore } from '@/hooks'
 
 const availableSports = ['Running', 'Basketball', 'Climbing', 'Yoga', 'Swimming']
+const roleOptions = [
+  {
+    value: 'player' as const,
+    title: 'Player',
+    description: 'Find sessions, squads, and teammates to train with.',
+  },
+  {
+    value: 'host' as const,
+    title: 'Host',
+    description: 'Create events, manage venues, and build your crew.',
+  },
+]
 
 export function OnboardingPage() {
   const navigate = useNavigate()
   const { signup, user, isLoading, error, clearError } = useAuthStore()
+  const {
+    role,
+    setRole,
+    preferredSports,
+    toggleSport,
+    hasCompletedOnboarding,
+    completeOnboarding,
+  } = useOnboardingStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [sports, setSports] = useState<string[]>([])
 
   useEffect(() => {
-    if (user) {
+    if (user && hasCompletedOnboarding) {
       navigate('/home', { replace: true })
     }
-  }, [user, navigate])
-
-  const toggleSport = (sport: string) => {
-    setSports((prev) => (prev.includes(sport) ? prev.filter((item) => item !== sport) : [...prev, sport]))
-  }
+  }, [user, hasCompletedOnboarding, navigate])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await signup(name, email, password, sports.length ? sports : ['Running'])
+    const selectedSports = preferredSports.length ? preferredSports : ['Running']
+    await signup(name, email, password, selectedSports)
+    const currentUser = useAuthStore.getState().user
+    if (currentUser) {
+      completeOnboarding({ role, preferredSports: selectedSports })
+    }
   }
 
   return (
@@ -78,10 +98,36 @@ export function OnboardingPage() {
           </label>
 
           <div className="md:col-span-2">
+            <p className="text-sm font-medium text-slate-700">How will you use SportsMatch?</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              {roleOptions.map((option) => {
+                const isActive = option.value === role
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setRole(option.value)}
+                    className={`rounded-2xl border px-4 py-3 text-left transition ${
+                      isActive
+                        ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm'
+                        : 'border-slate-300 text-slate-600 hover:border-blue-400'
+                    }`}
+                  >
+                    <span className="block text-base font-semibold">{option.title}</span>
+                    <span className={`mt-1 block text-sm ${isActive ? 'text-blue-600/80' : 'text-slate-500'}`}>
+                      {option.description}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
             <p className="text-sm font-medium text-slate-700">Pick your sports</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {availableSports.map((sport) => {
-                const selected = sports.includes(sport)
+                const selected = preferredSports.includes(sport)
                 return (
                   <button
                     key={sport}

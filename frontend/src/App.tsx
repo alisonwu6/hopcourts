@@ -1,17 +1,18 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
-import { useAuthStore } from '@/hooks'
+import { useAuthStore, useOnboardingStore } from '@/hooks'
 import { LoginPage } from '@/pages/LoginPage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
 import { VenuesPage } from '@/pages/VenuesPage'
 import { HostsPage } from '@/pages/HostsPage'
-import { ProfilePage } from '@/pages/ProfilePage'
 import { PlayersPage } from '@/pages/PlayersPage'
+import { ProfilePage } from '@/pages/ProfilePage'
 
 export default function App() {
   const { user } = useAuthStore()
+  const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding)
 
   if (!user) {
     return (
@@ -19,6 +20,15 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
+  }
+
+  if (!hasCompletedOnboarding) {
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
       </Routes>
     )
   }
