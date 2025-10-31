@@ -2,6 +2,9 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, InputField } from '@/components'
 import { useAuthStore } from '@/hooks'
+import logoUrl from '@/assets/sportsmatch.png'
+import GoogleLoginButton from '@/components/button/GoogleLoginButton'
+import AppleLoginButton from '@/components/button/AppleLoginButton'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -16,25 +19,43 @@ export function LoginPage() {
     }
   }, [navigate, user])
 
+  const loginGoogle = () => {
+    console.log('loginGoogle')
+  }
+
+  const loginApple = () => {
+    console.log('loginApple')
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     await login(email, password)
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-player-50">
-      <div className="px-4 py-4">
-        <h1 className="text-lg font-bold text-player-900">Login</h1>
-      </div>
-
-      <div className="flex flex-1 items-center justify-center px-4 pb-12">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h2 className="text-3xl font-bold text-player-900">SportsMatch</h2>
-            <p className="mt-2 text-player-600">Find your sport buddy</p>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-player-50 via-white to-player-200">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,199,44,0.2),_transparent_55%)]" />
+      <div className="relative z-10 flex min-h-screen items-start justify-center p-6">
+        <main className="w-full max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-xl backdrop-blur">
+          <img
+            className="mx-auto h-14 w-auto"
+            src={logoUrl}
+            alt="SportsMatch"
+          />
+          <div className="mt-2 space-y-2">
+            <h1 className="text-2xl font-semibold text-player-900">
+              {/* Join the movement. */}
+            </h1>
+            <p className="text-sm text-player-900/70">
+              {/* SportsMatch rallies athletes to keep every session energized—match
+              up, follow through, and build the crew that pushes you further. */}
+            </p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form
+            className="mt-4 space-y-4 text-left"
+            onSubmit={handleSubmit}
+          >
             <InputField
               label="Email Address"
               type="email"
@@ -62,59 +83,57 @@ export function LoginPage() {
               autoComplete="current-password"
             />
 
-            <div className="flex items-center">
-              <input
-                id="remember"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(event) => setRememberMe(event.target.checked)}
-                className="h-4 w-4 rounded border-player-200 text-player-600 focus:ring-player-600"
-              />
-              <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
-                Remember me
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <label className="inline-flex items-center gap-2">
+                <input
+                  id="remember"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
+                  className="h-4 w-4 rounded border-player-200 text-player-600 focus:ring-player-600"
+                />
+                <span>Remember me</span>
               </label>
+              <Link
+                to="/forgot-password"
+                className="font-semibold text-player-600 hover:text-player-700"
+              >
+                Forgot password?
+              </Link>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+            >
               {isLoading ? 'Logging in…' : 'Login'}
             </Button>
           </form>
 
           <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-300" />
-            <span className="px-2 text-sm text-gray-500">or</span>
-            <div className="flex-1 border-t border-gray-300" />
+            <div className="flex-1 border-t border-gray-200" />
+            <span className="px-3 text-xs uppercase tracking-wide text-player-900/40">
+              or
+            </span>
+            <div className="flex-1 border-t border-gray-200" />
           </div>
 
-          <div className="space-y-3">
-            <button
-              type="button"
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-            >
-              <span>🔍</span>
-              <span>Continue with Google</span>
-            </button>
-            <button
-              type="button"
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-            >
-              <span>🍎</span>
-              <span>Continue with Apple</span>
-            </button>
+          <div className="flex w-full max-w-sm flex-col gap-3">
+            <GoogleLoginButton loginGoogle={loginGoogle} />
+            <AppleLoginButton loginApple={loginApple} />
           </div>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-player-900/70">
             Don&apos;t have an account?{' '}
-            <Link to="/signup" className="font-semibold text-player-600 hover:text-player-700">
+            <Link
+              to="/signup"
+              className="font-semibold text-player-600 hover:text-player-700"
+            >
               Sign up
             </Link>
           </p>
-          <p className="mt-3 text-center text-sm">
-            <Link to="/forgot-password" className="text-player-600 hover:text-player-700">
-              Forgot password?
-            </Link>
-          </p>
-        </div>
+        </main>
       </div>
     </div>
   )

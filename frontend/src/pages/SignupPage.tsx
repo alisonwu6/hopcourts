@@ -1,7 +1,8 @@
 import { FormEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { InputField } from '@/components'
+import { Button, InputField } from '@/components'
 import { useAuthStore } from '@/hooks'
+import logoUrl from '@/assets/sportsmatch.png'
 
 export function SignupPage() {
   const navigate = useNavigate()
@@ -33,24 +34,20 @@ export function SignupPage() {
   const effectiveError = formError ?? error ?? undefined
 
   return (
-    <div className="flex min-h-screen flex-col bg-player-50">
-      <div className="flex items-center gap-3 px-4 py-4">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="text-xl text-player-600 transition hover:text-player-700"
-        >
-          ←
-        </button>
-        <h1 className="text-lg font-bold text-player-900">Create Account</h1>
-      </div>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-player-50 via-white to-player-200">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,199,44,0.2),_transparent_55%)]" />
+      <div className="relative z-10 flex min-h-screen items-start justify-center p-6">
+        <main className="w-full max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-xl backdrop-blur">
+          <img className="mx-auto h-16 w-auto" src={logoUrl} alt="SportsMatch" />
+          <div className="mt-3 space-y-2">
+            {/* <h1 className="text-2xl font-semibold text-player-900">Join the movement.</h1> */}
+            <p className="text-sm text-player-900/70">
+              SportsMatch is built to inspire players everywhere—match up with locals, commit to play,
+              and stay motivated through every session and pick-up game.
+            </p>
+          </div>
 
-      <div className="flex flex-1 items-center justify-center px-4 pb-12">
-        <div className="w-full max-w-md">
-          <h2 className="text-2xl font-bold text-player-900">Create Account</h2>
-          <p className="mt-2 text-sm text-gray-600">Start building your SportsMatch crew.</p>
-
-          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+          <form className="mt-4 space-y-4 text-left" onSubmit={handleSubmit}>
             <InputField
               label="Full Name"
               type="text"
@@ -101,7 +98,7 @@ export function SignupPage() {
               autoComplete="new-password"
             />
 
-            <div className="flex items-start gap-3 rounded-lg border border-gray-200 p-4">
+            <div className="flex items-start gap-3 rounded-xl border border-player-100 bg-white p-4 text-left text-sm text-player-900/70">
               <input
                 id="terms"
                 type="checkbox"
@@ -109,13 +106,13 @@ export function SignupPage() {
                 onChange={(event) => setAcceptedTerms(event.target.checked)}
                 className="mt-1 h-4 w-4 rounded border-player-200 text-player-600 focus:ring-player-600"
               />
-              <label htmlFor="terms" className="text-sm text-gray-600">
+              <label htmlFor="terms">
                 I agree to the{' '}
-                <a href="#" className="text-player-600 hover:underline">
+                <a href="#" className="font-semibold text-player-600 hover:text-player-700">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-player-600 hover:underline">
+                <a href="#" className="font-semibold text-player-600 hover:text-player-700">
                   Privacy Policy
                 </a>
               </label>
@@ -123,22 +120,18 @@ export function SignupPage() {
 
             {effectiveError && <p className="text-sm text-red-500">{effectiveError}</p>}
 
-            <button
-              type="submit"
-              className="mt-2 w-full rounded-lg bg-player-600 py-3 font-bold text-white transition hover:bg-player-700 disabled:bg-gray-400"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Creating account…' : 'Create Account'}
-            </button>
+            </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-player-900/70">
             Already have an account?{' '}
             <Link to="/login" className="font-semibold text-player-600 hover:text-player-700">
               Login
             </Link>
           </p>
-        </div>
+        </main>
       </div>
     </div>
   )
