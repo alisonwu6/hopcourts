@@ -2,29 +2,55 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, InputField } from '@/components'
 import { useAuthStore } from '@/hooks'
+import { authService } from '@/services/authService'
 import logoUrl from '@/assets/sportsmatch.png'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
 import AppleLoginButton from '@/components/button/AppleLoginButton'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { login, user, isLoading, error, clearError } = useAuthStore()
+  const { login, onboardingStatus, isAuthenticated, isLoading, error, clearError, setAuthData } =
+    useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
 
   useEffect(() => {
-    if (user) {
-      navigate('/home', { replace: true })
+    if (isAuthenticated) {
+      if (onboardingStatus?.isComplete) {
+        navigate('/home', { replace: true })
+      } else {
+        navigate('/onboarding', { replace: true })
+      }
     }
-  }, [navigate, user])
+  }, [isAuthenticated, onboardingStatus?.isComplete, navigate])
 
-  const loginGoogle = () => {
-    console.log('loginGoogle')
+  const loginGoogle = async () => {
+    try {
+      const response = await authService.signInWithGoogle()
+      setAuthData(response.user, response.token, response.onboardingStatus)
+      if (response.onboardingStatus.isComplete) {
+        navigate('/home', { replace: true })
+      } else {
+        navigate('/onboarding', { replace: true })
+      }
+    } catch (err: any) {
+      console.error(err)
+    }
   }
 
-  const loginApple = () => {
-    console.log('loginApple')
+  const loginApple = async () => {
+    try {
+      const response = await authService.signInWithApple()
+      setAuthData(response.user, response.token, response.onboardingStatus)
+      if (response.onboardingStatus.isComplete) {
+        navigate('/home', { replace: true })
+      } else {
+        navigate('/onboarding', { replace: true })
+      }
+    } catch (err: any) {
+      console.error(err)
+    }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -38,7 +64,7 @@ export function LoginPage() {
       <div className="relative z-10 flex min-h-screen items-start justify-center p-6">
         <main className="w-full max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-xl backdrop-blur">
           <img
-            className="mx-auto h-14 w-auto"
+            className="mx-auto h-16 w-auto"
             src={logoUrl}
             alt="SportsMatch"
           />

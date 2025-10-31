@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, InputField } from '@/components'
 import { useAuthStore } from '@/hooks'
@@ -6,13 +6,23 @@ import logoUrl from '@/assets/sportsmatch.png'
 
 export function SignupPage() {
   const navigate = useNavigate()
-  const { signup, isLoading, error, clearError } = useAuthStore()
+  const { signup, isLoading, error, clearError, isAuthenticated, onboardingStatus } = useAuthStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (onboardingStatus?.isComplete) {
+        navigate('/home', { replace: true })
+      } else {
+        navigate('/onboarding', { replace: true })
+      }
+    }
+  }, [isAuthenticated, onboardingStatus?.isComplete, navigate])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -25,10 +35,7 @@ export function SignupPage() {
       return
     }
     setFormError(null)
-    await signup(name, email, password, ['Running'])
-    if (useAuthStore.getState().user) {
-      navigate('/onboarding')
-    }
+    await signup(name, email, password)
   }
 
   const effectiveError = formError ?? error ?? undefined

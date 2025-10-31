@@ -4,7 +4,7 @@ import { AthleteCard } from '@/components/athlete/AthleteCard'
 import { mockAthlete } from '@/mocks/athlete'
 import { mockAthletes } from '@/data/mock/athletes'
 import { useAuthStore, useOnboardingStore } from '@/hooks'
-import type { OnboardingRole } from '@/hooks/useOnboardingStore'
+import type { OnboardingRole } from '@/store/onboardingStore'
 import type { AthleteCardProps } from '@/interfaces/athlete'
 
 function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: OnboardingRole, preferredSports: string[]): AthleteCardProps {
@@ -58,7 +58,9 @@ export default function AthleteCardPage() {
   const { username } = useParams<{ username: string }>()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { role, preferredSports } = useOnboardingStore()
+  const { data } = useOnboardingStore()
+  const role = (data.role as OnboardingRole | null) ?? 'player'
+  const preferredSports = data.sports ?? []
   const isOwnProfile = !username || username === 'me'
   const athlete = useMemo(() => {
     if (isOwnProfile) {

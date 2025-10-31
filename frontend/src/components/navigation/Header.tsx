@@ -8,9 +8,15 @@ type Props = {
   sticky?: boolean
   showBorder?: boolean
   className?: string
+  showActions?: boolean
 }
 
-export default function Header({ sticky = true, showBorder = true, className }: Props) {
+export default function Header({
+  sticky = true,
+  showBorder = true,
+  className,
+  showActions = true,
+}: Props) {
   const location = useLocation()
   const [messagesActive, setMessagesActive] = useState(false)
   const notificationsActive = location.pathname.startsWith('/notifications')
@@ -51,34 +57,36 @@ export default function Header({ sticky = true, showBorder = true, className }: 
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setMessagesActive((prev) => !prev)}
-            className={clsx(
-              'inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2]',
-              messagesActive && 'border-[#1B8FD2] text-[#1B8FD2]'
-            )}
-            aria-label="Open messages"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </button>
-          <Link
-            to="/notifications"
-            className="relative"
-          >
-            <span className="sr-only">Notifications</span>
-            <div
+        {showActions && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setMessagesActive((prev) => !prev)}
               className={clsx(
                 'inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2]',
-                notificationsActive && 'border-[#1B8FD2] text-[#1B8FD2]'
+                messagesActive && 'border-[#1B8FD2] text-[#1B8FD2]'
               )}
+              aria-label="Open messages"
             >
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-1 top-1 inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </div>
-          </Link>
-        </div>
+              <MessageCircle className="h-5 w-5" />
+            </button>
+            <Link
+              to="/notifications"
+              className="relative"
+            >
+              <span className="sr-only">Notifications</span>
+              <div
+                className={clsx(
+                  'inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white text-[#6E6E6E] shadow-sm transition hover:border-[#1B8FD2]/30 hover:text-[#1B8FD2]',
+                  notificationsActive && 'border-[#1B8FD2] text-[#1B8FD2]'
+                )}
+              >
+                <Bell className="h-5 w-5" />
+                <span className="absolute right-1 top-1 inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </div>
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   )

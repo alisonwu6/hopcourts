@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
-import { useAuthStore, useOnboardingStore } from '@/hooks'
+import { useAuthStore } from '@/hooks'
 import { Splash } from '@/pages/Splash'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
@@ -13,10 +13,12 @@ import { SessionDetailPage } from '@/pages/SessionDetailPage'
 import { MySessionsPage } from '@/pages/MySessionsPage'
 import { VenueDetailPage } from '@/pages/VenueDetailPage'
 import { ProfilePage } from '@/pages/ProfilePage'
+import CreateSession from '@/pages/CreateSession'
+import { OnboardingRoute } from '@/routes/OnboardingRoute'
 
 export default function App() {
-  const { user } = useAuthStore()
-  const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding)
+  const { isAuthenticated, onboardingStatus } = useAuthStore()
+  const isOnboardingComplete = onboardingStatus?.isComplete ?? false
 
   return (
     <Routes>
@@ -25,20 +27,20 @@ export default function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route
         path="/onboarding"
-        element={user ? <OnboardingPage /> : <Navigate to="/login" replace />}
+        element={
+          <OnboardingRoute>
+            <OnboardingPage />
+          </OnboardingRoute>
+        }
       />
       <Route
         path="/*"
         element={
-          user ? (
-            hasCompletedOnboarding ? (
-              <AuthenticatedApp />
-            ) : (
-              <Navigate to="/onboarding" replace />
-            )
-          ) : (
-            <Navigate to="/login" replace />
-          )
+          isAuthenticated
+            ? isOnboardingComplete
+              ? <AuthenticatedApp />
+              : <Navigate to="/onboarding" replace />
+            : <Navigate to="/login" replace />
         }
       />
     </Routes>
@@ -55,6 +57,7 @@ function AuthenticatedApp() {
         <Route path="/hosts" element={<HostsPage />} />
         <Route path="/session/:id" element={<SessionDetailPage />} />
         <Route path="/my-sessions" element={<MySessionsPage />} />
+        <Route path="/create-session" element={<CreateSession />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
