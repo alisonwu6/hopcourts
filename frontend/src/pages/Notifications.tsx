@@ -9,7 +9,7 @@ export default function Notifications() {
     <MainLayout
       title="Notifications"
       description="Stay on top of roster updates and reminders."
-      contentWidth="md"
+      contentWidth="page"
       actions={<Button variant="outline" size="sm">Mark all read</Button>}
     >
       <section className="space-y-3">

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { CirclePlus } from 'lucide-react'
 import { Button, SessionCard } from '@/components'
 import { FilterChips } from '@/components/athlete/FilterChips'
 import { PLAYER_MOCK_SESSIONS } from '@/data/playerMocks'
@@ -27,15 +28,17 @@ export function HomePage() {
         className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-sm"
         style={{ top: `${HEADER_HEIGHT_REM}rem` }}
       >
-        <FilterChips
-          filters={sports}
-          selected={selectedSport}
-          onSelect={setSelectedSport}
-          className="pt-4"
-        />
+        <div className="mx-auto w-full max-w-4xl px-4">
+          <FilterChips
+            filters={sports}
+            selected={selectedSport}
+            onSelect={setSelectedSport}
+            className="pt-4"
+          />
+        </div>
       </div>
 
-      <div className="px-4 py-6 mt-[3rem]">
+      <div className="mx-auto mt-[3rem] w-full max-w-4xl px-4 py-6">
         {filteredSessions.length === 0 ? (
           <div className="py-10 text-center text-slate-500">No games found</div>
         ) : (
@@ -51,10 +54,11 @@ export function HomePage() {
       </div>
 
       <Button
-        className="fixed bottom-24 right-4 h-14 w-14 rounded-full text-2xl"
+        className="fixed bottom-24 right-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-player-600 text-white shadow-lg transition hover:bg-player-700"
         onClick={() => navigate('/create-session')}
+        aria-label="Create session"
       >
-        +
+        <CirclePlus className="h-26 w-26" />
       </Button>
     </div>
   )

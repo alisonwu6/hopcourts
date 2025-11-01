@@ -42,8 +42,8 @@ export function VenueDetailPage() {
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
-      <div className="sticky top-0 z-10 border-b border-blue-200 bg-blue-50 px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="sticky top-0 z-10 border-b border-blue-200 bg-blue-50">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -60,11 +60,13 @@ export function VenueDetailPage() {
         </div>
       </div>
 
-      <div className="flex h-32 items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-6xl text-white">
-        {resolveVenueIcon(venue.type)}
+      <div className="bg-gradient-to-br from-blue-500 to-blue-600">
+        <div className="mx-auto flex h-32 w-full max-w-4xl items-center justify-center text-6xl text-white">
+          {resolveVenueIcon(venue.type)}
+        </div>
       </div>
 
-      <div className="px-4 py-4">
+      <div className="mx-auto w-full max-w-4xl px-4 py-4">
         <h2 className="text-2xl font-bold text-blue-900">{venue.name}</h2>
         <p className="text-sm text-slate-600 capitalize">{venue.type}</p>
 

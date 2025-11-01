@@ -39,8 +39,8 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
-      <section className="bg-gradient-to-br from-blue-600 to-blue-500 px-4 py-6 text-white">
-        <div className="flex items-start gap-4">
+      <section className="bg-gradient-to-br from-blue-600 to-blue-500">
+        <div className="mx-auto flex w-full max-w-4xl items-start gap-4 px-4 py-6 text-white">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl font-bold backdrop-blur">
             {user.avatar ?? user.name.charAt(0)}
           </div>
@@ -55,15 +55,17 @@ export function ProfilePage() {
           </div>
         </div>
         {isNewUser && (
-          <div className="mt-4 rounded-xl bg-white/10 p-3 text-sm backdrop-blur">
-            <p className="font-medium text-white">🎯 Goals locked in</p>
-            <p className="text-blue-100">{sportLine}</p>
+          <div className="mx-auto mt-4 w-full max-w-4xl px-4">
+            <div className="rounded-xl bg-white/10 p-3 text-sm text-white backdrop-blur">
+              <p className="font-medium text-white">🎯 Goals locked in</p>
+              <p className="text-blue-100">{sportLine}</p>
+            </div>
           </div>
         )}
       </section>
 
       {isNewUser ? (
-        <section className="space-y-4 px-4 py-6">
+        <section className="mx-auto w-full max-w-4xl space-y-4 px-4 py-6">
           <div className="rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-100 to-blue-50 p-5">
             <div className="flex gap-3">
               <span className="text-3xl">🎬</span>
@@ -142,14 +144,14 @@ export function ProfilePage() {
           </button>
         </section>
       ) : (
-        <section className="px-4 py-6">
+        <section className="mx-auto w-full max-w-4xl px-4 py-6">
           <div className="rounded-2xl bg-white p-6 text-center text-slate-500 shadow-sm">
             Regular profile view coming soon…
           </div>
         </section>
       )}
 
-      <div className="space-y-2 border-t border-player-200 pt-6">
+      <div className="mx-auto w-full max-w-4xl space-y-2 border-t border-player-200 px-4 pt-6">
         <ActionButton icon="📆" label="My sessions" onClick={() => navigate('/my-sessions')} />
         <ActionButton icon="📊" label="Detailed stats" />
         <ActionButton icon="❤️" label="Saved sessions" />
@@ -170,7 +172,7 @@ export function ProfilePage() {
         />
       </div>
 
-      <div className="px-4 pb-8">
+      <div className="mx-auto w-full max-w-4xl px-4 pb-8">
         <button
           type="button"
           onClick={async () => {

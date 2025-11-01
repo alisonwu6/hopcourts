@@ -9,7 +9,7 @@ export default function Settings() {
     <MainLayout
       title="Settings"
       description="Control connected accounts, syncing, and privacy options."
-      contentWidth="md"
+      contentWidth="page"
     >
       <section className="space-y-4">
         <Card className="overflow-hidden rounded-3xl border border-slate-100 shadow-sm">

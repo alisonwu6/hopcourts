@@ -21,15 +21,17 @@ export function VenuesPage() {
         className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-sm"
         style={{ top: `4rem` }}
       >
-        <FilterChips
-          filters={sports}
-          selected={selectedSport}
-          onSelect={setSelectedSport}
-          className="pt-4"
-        />
+        <div className="mx-auto w-full max-w-4xl px-4">
+          <FilterChips
+            filters={sports}
+            selected={selectedSport}
+            onSelect={setSelectedSport}
+            className="pt-4"
+          />
+        </div>
       </div>
 
-      <div className="px-4 py-6 mt-[3rem]">
+      <div className="mx-auto mt-[3rem] w-full max-w-4xl px-4 py-6">
         <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-blue-700">Near you</h3>
 
         <div className="space-y-3">

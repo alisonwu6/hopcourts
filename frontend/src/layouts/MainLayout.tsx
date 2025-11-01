@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import clsx from 'clsx'
 
-type ContentWidth = 'sm' | 'md' | 'lg' | 'xl' | 'full'
+type ContentWidth = 'sm' | 'md' | 'lg' | 'xl' | 'page' | 'full'
 
 type Props = {
   children: ReactNode
@@ -16,6 +16,7 @@ const widthClass: Record<ContentWidth, string> = {
   md: 'max-w-lg',
   lg: 'max-w-xl',
   xl: 'max-w-2xl',
+  page: 'max-w-4xl',
   full: 'max-w-none',
 }
 
@@ -24,7 +25,7 @@ export default function MainLayout({
   title,
   description,
   actions,
-  contentWidth = 'md',
+  contentWidth = 'page',
 }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-900">

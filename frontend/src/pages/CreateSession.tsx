@@ -6,19 +6,31 @@ import { Badge } from '@/components/ui/badge'
 import { SKILL_LEVEL_LABELS } from '@/data/mock/events'
 
 export default function CreateSession() {
-
   return (
     <MainLayout
       title="Create a session"
       description="Share the details and SportsMatch will help you fill the roster."
-      contentWidth="md"
-      actions={
-        <Button variant="ghost" size="sm">
-          Save draft
-        </Button>
-      }
+      contentWidth="page"
     >
-      <form className="space-y-6">
+      <div className="-mx-4 sticky top-0 z-30 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm font-semibold text-slate-700">
+            Session controls
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="ghost" size="sm" type="button">
+              Save draft
+            </Button>
+            <Button variant="outline" size="sm" type="button">
+              Preview session
+            </Button>
+            <Button size="sm" type="submit" form="session-form">
+              Publish session
+            </Button>
+          </div>
+        </div>
+      </div>
+      <form id="session-form" className="space-y-6">
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div>
@@ -113,10 +125,6 @@ export default function CreateSession() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-3">
-          <Button variant="outline">Preview session</Button>
-          <Button type="submit">Publish session</Button>
-        </div>
       </form>
     </MainLayout>
   )

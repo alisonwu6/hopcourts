@@ -44,8 +44,8 @@ export function SessionDetailPage() {
     typeof session.hostSessionsCount === 'number' ? session.hostSessionsCount : '—'
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-24">
-      <div className="px-4 pt-6">
+    <div className="min-h-screen bg-blue-50 pb-32">
+      <div className="mx-auto w-full max-w-4xl px-4 pt-6">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -55,7 +55,7 @@ export function SessionDetailPage() {
         </button>
       </div>
 
-      <main className="space-y-4 px-4 py-6">
+      <main className="mx-auto w-full max-w-4xl space-y-4 px-4 py-6">
         <section className="overflow-hidden rounded-lg bg-white shadow">
           <div className="flex items-center justify-between border-b border-slate-200 p-4">
             <div className="flex items-center gap-3">
@@ -116,13 +116,15 @@ export function SessionDetailPage() {
         )}
       </main>
 
-      <div className="fixed bottom-24 left-0 right-0 border-t border-slate-200 bg-white px-4 py-4">
-        <Button className="w-full">
+      <div className="fixed bottom-24 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-4 py-4">
+          <Button className="w-full">
           Join
         </Button>
-        <Button variant="secondary" className="mt-3 w-full text-sm">
-          ♡ Save for later
-        </Button>
+          <Button variant="secondary" className="w-full text-sm">
+            ♡ Save for later
+          </Button>
+        </div>
       </div>
     </div>
   )

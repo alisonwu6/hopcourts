@@ -9,7 +9,7 @@ export default function MapView() {
       title="Map view"
       description="Scan upcoming games by suburb and vibe."
       actions={<Button variant="secondary" storyLine="venue">Filters</Button>}
-      contentWidth="xl"
+      contentWidth="page"
     >
       <section className="space-y-4">
         <Card className="border border-slate-200">

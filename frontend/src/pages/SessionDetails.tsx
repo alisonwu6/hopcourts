@@ -51,14 +51,14 @@ export default function SessionDetails() {
       actions={
         <div className="flex gap-2">
           <Button asChild variant="outline">
-            <Link to={`/sessions/${event.id}/manage`}>Manage session</Link>
+            <Link to={`/session/${event.id}/manage`}>Manage session</Link>
           </Button>
           <Button asChild>
-            <Link to={`/sessions/${event.id}/joined`}>Join session</Link>
+            <Link to={`/session/${event.id}/joined`}>Join session</Link>
           </Button>
         </div>
       }
-      contentWidth="xl"
+      contentWidth="page"
     >
       <section className="grid gap-6 lg:grid-cols-[2fr,1fr]">
         <Card className="border border-slate-200">
@@ -173,7 +173,7 @@ export default function SessionDetails() {
                 variant="ghost"
                 className="justify-start text-blue-600"
               >
-                <Link to={`/sessions/${event.id}/manage`}>Manage session</Link>
+                <Link to={`/session/${event.id}/manage`}>Manage session</Link>
               </Button>
             </CardContent>
           </Card>

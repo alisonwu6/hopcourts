@@ -699,7 +699,7 @@ export function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-player-50 via-white to-player-200">
       <Header showActions={false} />
-      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-12 pt-6">
+      <div className="mx-auto w-full max-w-4xl space-y-6 px-4 pb-12 pt-6">
         {canGoBack && (
           <button
             type="button"

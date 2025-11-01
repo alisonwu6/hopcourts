@@ -24,7 +24,7 @@ export function HostsPage() {
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
-      <div className="px-4">
+      <div className="mx-auto w-full max-w-4xl px-4">
         <h1 className="text-lg font-bold text-blue-900">Hosts</h1>
         <p className="text-sm text-slate-600">Follow organisers bringing the best games to life.</p>
       </div>
@@ -33,15 +33,17 @@ export function HostsPage() {
         className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-sm"
         style={{ top: `4rem` }}
       >
-        <FilterChips
-          filters={sports}
-          selected={selectedSport}
-          onSelect={setSelectedSport}
-          className="pt-4"
-        />
+        <div className="mx-auto w-full max-w-4xl px-4">
+          <FilterChips
+            filters={sports}
+            selected={selectedSport}
+            onSelect={setSelectedSport}
+            className="pt-4"
+          />
+        </div>
       </div>
 
-      <div className="px-4 py-6">
+      <div className="mx-auto mt-[3rem] w-full max-w-4xl px-4 py-6">
         {isLoading ? (
           <div className="py-10 text-center text-slate-600">Loading hosts…</div>
         ) : filteredHosts.length === 0 ? (

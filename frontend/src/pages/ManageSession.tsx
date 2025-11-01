@@ -16,7 +16,7 @@ export default function ManageSession() {
           <Link to={`/sessions/${id}`}>View public game</Link>
         </Button>
       }
-      contentWidth="md"
+      contentWidth="page"
     >
       <section className="space-y-4">
         <Card className="border border-slate-200">
