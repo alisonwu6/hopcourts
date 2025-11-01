@@ -12,7 +12,7 @@ const baseButton =
 
 export function FilterChips({ filters, selected = 'All', onSelect, className }: Props) {
   return (
-    <div className={clsx('px-4', className)}>
+    <div className={clsx('', className)}>
       <div
         className="w-full overflow-x-auto overflow-y-hidden py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden touch-pan-x overscroll-x-contain [-webkit-overflow-scrolling:touch]"
       >
