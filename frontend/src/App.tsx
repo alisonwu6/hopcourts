@@ -40,7 +40,7 @@ export default function App() {
             ? isOnboardingComplete
               ? <AuthenticatedApp />
               : <Navigate to="/onboarding" replace />
-            : <Navigate to="/login" replace />
+            : <GuestApp />
         }
       />
     </Routes>
@@ -58,6 +58,24 @@ function AuthenticatedApp() {
         <Route path="/session/:id" element={<SessionDetailPage />} />
         <Route path="/my-sessions" element={<MySessionsPage />} />
         <Route path="/create-session" element={<CreateSession />} />
+        <Route path="/venue/:id" element={<VenueDetailPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+      <BottomNav />
+    </div>
+  )
+}
+
+function GuestApp() {
+  return (
+    <div className="pb-20">
+      <Header showActions={false} />
+      <Routes>
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/venues" element={<VenuesPage />} />
+        <Route path="/hosts" element={<HostsPage />} />
+        <Route path="/session/:id" element={<SessionDetailPage />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />

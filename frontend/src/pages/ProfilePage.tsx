@@ -7,16 +7,39 @@ export function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="px-4 pt-24 text-slate-600">
-        <h1 className="text-xl font-semibold text-slate-900">Profile</h1>
-        <p className="mt-4 text-sm">Please log in to view your profile.</p>
-        <button
-          type="button"
-          onClick={() => navigate('/login')}
-          className="mt-6 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-        >
-          Sign in
-        </button>
+      <div className="min-h-screen bg-slate-50 pb-24">
+        <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-6 pt-16 text-center">
+          <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-100 text-3xl">
+            👋
+          </div>
+          <h1 className="text-2xl font-semibold text-slate-900">Your SportsMatch profile</h1>
+          <p className="mt-3 max-w-md text-sm text-slate-600">
+            Save favourite games, build your crew, and track your streak once you create an account.
+          </p>
+          <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+            >
+              Create an account
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="inline-flex items-center justify-center rounded-xl border border-blue-200 px-4 py-3 text-sm font-semibold text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+            >
+              I already have an account
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/home')}
+              className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100"
+            >
+              Keep exploring
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
