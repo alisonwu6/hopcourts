@@ -19,14 +19,13 @@ export function VenuesPage() {
     <div className="min-h-screen bg-blue-50 pb-24">
       <div
         className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-sm"
-        style={{ top: `4rem` }}
+        style={{ top: '80px' }}
       >
         <div className="mx-auto w-full max-w-4xl px-4">
           <FilterChips
             filters={sports}
             selected={selectedSport}
             onSelect={setSelectedSport}
-            className="pt-4"
           />
         </div>
       </div>

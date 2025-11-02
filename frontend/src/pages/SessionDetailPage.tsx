@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components'
 import { PLAYER_MOCK_SESSIONS } from '@/data/playerMocks'
@@ -21,6 +21,7 @@ const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minu
 export function SessionDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [isSaved, setIsSaved] = useState(false)
 
   const session = useMemo(() => PLAYER_MOCK_SESSIONS.find((item) => item.id === id), [id])
 
@@ -44,15 +45,48 @@ export function SessionDetailPage() {
     typeof session.hostSessionsCount === 'number' ? session.hostSessionsCount : '—'
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-32">
-      <div className="mx-auto w-full max-w-4xl px-4 pt-6">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-        >
-          ← Back
-        </button>
+    <div className="min-h-screen bg-blue-50 pb-24">
+      <div className="sticky top-[80px] z-40 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+        <div className="border-t border-[#E6E6E6]">
+          <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
+            <div className="flex h-[52px] min-w-max items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+              >
+                ← Back
+              </button>
+              <div className="ml-auto flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSaved((prev) => !prev)}
+                  className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-blue-200 text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
+                  aria-pressed={isSaved}
+                  aria-label={isSaved ? 'Saved' : 'Save for later'}
+                >
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill={isSaved ? 'currentColor' : 'none'}
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 21.35 10.55 20.03C5.4 15.36 2 12.28 2 8.5 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35Z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <Button className="flex-shrink-0 !h-9 !px-5 !py-2 text-sm font-semibold leading-none">
+                  Join
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <main className="mx-auto w-full max-w-4xl space-y-4 px-4 py-6">
@@ -116,16 +150,6 @@ export function SessionDetailPage() {
         )}
       </main>
 
-      <div className="fixed bottom-24 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-4 py-4">
-          <Button className="w-full">
-          Join
-        </Button>
-          <Button variant="secondary" className="w-full text-sm">
-            ♡ Save for later
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }

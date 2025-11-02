@@ -7,8 +7,6 @@ import { PLAYER_MOCK_SESSIONS } from '@/data/playerMocks'
 
 const sports = ['All', 'Running', 'Basketball', 'Climbing', 'Tennis']
 
-const HEADER_HEIGHT_REM = 4
-const FILTER_BAR_HEIGHT_REM = 0
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -26,14 +24,13 @@ export function HomePage() {
     <div className="min-h-screen bg-blue-50 pb-24">
       <div
         className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-sm"
-        style={{ top: `${HEADER_HEIGHT_REM}rem` }}
+        style={{ top: '80px'}}
       >
         <div className="mx-auto w-full max-w-4xl px-4">
           <FilterChips
             filters={sports}
             selected={selectedSport}
             onSelect={setSelectedSport}
-            className="pt-4"
           />
         </div>
       </div>
