@@ -40,9 +40,8 @@ export function GameDetailPage() {
   const end = game.endTime instanceof Date ? game.endTime : new Date(game.endTime)
   const icon = sportIcons[game.sport.toLowerCase()] ?? '🏅'
   const hostRating =
-    typeof game.hostRating === 'number' ? game.hostRating.toFixed(1) : '4.8'
-  const hostedCount =
-    typeof game.hostGamesCount === 'number' ? game.hostGamesCount : '—'
+    typeof game.host.rating === 'number' ? game.host.rating.toFixed(1) : '4.8'
+  const hostedCount = game.attendeeCount
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
@@ -94,12 +93,12 @@ export function GameDetailPage() {
           <div className="flex items-center justify-between border-b border-slate-200 p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-lg text-white">
-                {game.hostName.charAt(0)}
+                {game.host.name.charAt(0)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">{game.hostName}</p>
+                <p className="text-sm font-semibold text-slate-900">{game.host.name}</p>
                 <p className="text-xs text-slate-500">
-                  {hostRating}★ · {hostedCount} hosted
+                  {hostRating}★ · {hostedCount} joined
                 </p>
               </div>
             </div>

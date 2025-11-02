@@ -118,7 +118,7 @@ export function VenueDetailPage() {
                 startTime={game.startTime}
                 attendeeCount={game.attendeeCount}
                 locationName={game.location.name}
-                hostName={game.hostName}
+                hostName={game.host.name}
                 onClick={() => navigate(`/game/${game.id}`)}
                 storyLine="venue"
               />
