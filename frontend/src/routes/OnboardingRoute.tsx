@@ -31,7 +31,7 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
         const remoteStatus = onboardingStatus ?? (await authService.getOnboardingStatus())
         initializeOnboarding(remoteStatus, {
           fullName: user?.name ?? '',
-          role: user && user.sessionsHosted > 0 ? 'host' : null,
+          role: user && user.gamesHosted > 0 ? 'host' : null,
           username: (user as any)?.username ?? '',
         })
       } catch (error: any) {

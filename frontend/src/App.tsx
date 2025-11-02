@@ -9,11 +9,11 @@ import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
 import { VenuesPage } from '@/pages/VenuesPage'
 import { HostsPage } from '@/pages/HostsPage'
-import { SessionDetailPage } from '@/pages/SessionDetailPage'
-import { MySessionsPage } from '@/pages/MySessionsPage'
+import { GameDetailPage } from '@/pages/GameDetailPage'
+import { MyGamesPage } from '@/pages/MyGamesPage'
 import { VenueDetailPage } from '@/pages/VenueDetailPage'
 import { ProfilePage } from '@/pages/ProfilePage'
-import CreateSession from '@/pages/CreateSession'
+import CreateGame from '@/pages/CreateGame'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 
 export default function App() {
@@ -55,9 +55,9 @@ function AuthenticatedApp() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/venues" element={<VenuesPage />} />
         <Route path="/hosts" element={<HostsPage />} />
-        <Route path="/session/:id" element={<SessionDetailPage />} />
-        <Route path="/my-sessions" element={<MySessionsPage />} />
-        <Route path="/create-session" element={<CreateSession />} />
+        <Route path="/game/:id" element={<GameDetailPage />} />
+        <Route path="/my-games" element={<MyGamesPage />} />
+        <Route path="/create-game" element={<CreateGame />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
@@ -75,7 +75,7 @@ function GuestApp() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/venues" element={<VenuesPage />} />
         <Route path="/hosts" element={<HostsPage />} />
-        <Route path="/session/:id" element={<SessionDetailPage />} />
+        <Route path="/game/:id" element={<GameDetailPage />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />

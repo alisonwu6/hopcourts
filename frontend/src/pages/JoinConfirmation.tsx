@@ -25,7 +25,7 @@ export default function JoinConfirmation() {
           </div>
           <div className="flex flex-col gap-2">
             <Button asChild storyLine="venue">
-              <Link to={`/sessions/${id}`}>Go to game</Link>
+              <Link to={`/games/${id}`}>Go to game</Link>
             </Button>
             <Button asChild variant="secondary" storyLine="venue">
               <Link to="/home">Browse more games</Link>

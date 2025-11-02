@@ -9,15 +9,15 @@ import { CalendarClock, MapPin, Users, MessageCircle } from 'lucide-react'
 import { EVENT_CARDS, SPORT_LABELS, SKILL_LEVEL_LABELS } from '@/data/mock/events'
 import { formatHostedBy, formatJoinCounts, formatRosterCount, formatSpotsAvailable } from '@/lib/text'
 
-export default function SessionDetails() {
+export default function GameDetails() {
   const { id } = useParams()
-  const event = mockEvents.find((session) => session.id === id)
+  const event = mockEvents.find((game) => game.id === id)
 
   if (!event) {
     return (
       <MainLayout
-        title="Session not found"
-        description="This session may have been cancelled or moved."
+        title="Game not found"
+        description="This game may have been cancelled or moved."
       >
         <Card>
           <CardContent className="space-y-4 p-6 text-sm text-slate-600">
@@ -35,7 +35,7 @@ export default function SessionDetails() {
 
   const contentKey = event.contentKey as keyof typeof EVENT_CARDS
   const content = EVENT_CARDS[contentKey] ?? {
-    title: 'Upcoming session',
+    title: 'Upcoming game',
     location: 'Location to be announced',
     time: 'Time to be announced',
     description: '',
@@ -51,10 +51,10 @@ export default function SessionDetails() {
       actions={
         <div className="flex gap-2">
           <Button asChild variant="outline">
-            <Link to={`/session/${event.id}/manage`}>Manage session</Link>
+            <Link to={`/game/${event.id}/manage`}>Manage game</Link>
           </Button>
           <Button asChild>
-            <Link to={`/session/${event.id}/joined`}>Join session</Link>
+            <Link to={`/game/${event.id}/joined`}>Join game</Link>
           </Button>
         </div>
       }
@@ -173,7 +173,7 @@ export default function SessionDetails() {
                 variant="ghost"
                 className="justify-start text-blue-600"
               >
-                <Link to={`/session/${event.id}/manage`}>Manage session</Link>
+                <Link to={`/game/${event.id}/manage`}>Manage game</Link>
               </Button>
             </CardContent>
           </Card>
@@ -184,7 +184,7 @@ export default function SessionDetails() {
         <Card className="border border-slate-200">
           <CardContent className="grid gap-4 p-6 sm:grid-cols-3">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900">Post-session follow up</h3>
+              <h3 className="text-sm font-semibold text-slate-900">Post-game follow up</h3>
               <p className="text-sm text-slate-500">
                 Keep the momentum. Add it to your calendar and invite your squad.
               </p>

@@ -30,7 +30,7 @@ export function VenueCard({ venue, onViewDetails }: VenueCardProps) {
             <p className="text-xs text-slate-600">rating</p>
           </div>
           <div className="rounded bg-blue-50 p-2">
-            <p className="font-semibold text-blue-700">{venue.sessionsHosted}</p>
+            <p className="font-semibold text-blue-700">{venue.gamesHosted}</p>
             <p className="text-xs text-slate-600">games hosted</p>
           </div>
           <div className="rounded bg-blue-50 p-2">

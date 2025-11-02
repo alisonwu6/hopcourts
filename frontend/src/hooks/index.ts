@@ -1,5 +1,5 @@
 export { useAuthStore } from './useAuthStore'
-export { useSessionsStore } from './useSessionsStore'
+export { useGamesStore } from './useGamesStore'
 export { useVenuesStore } from './useVenuesStore'
 export { useHostsStore } from './useHostsStore'
 export { useOnboardingStore } from './useOnboardingStore'

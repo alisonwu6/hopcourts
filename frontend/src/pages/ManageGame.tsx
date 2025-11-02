@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatJoinCounts } from '@/lib/text'
 
-export default function ManageSession() {
+export default function ManageGame() {
   const { id } = useParams()
 
   return (
@@ -13,7 +13,7 @@ export default function ManageSession() {
       description="Keep your roster tidy and share updates with players."
       actions={
         <Button asChild size="sm" variant="outline" className="border-host-600 text-host-600 hover:bg-host-50">
-          <Link to={`/sessions/${id}`}>View public game</Link>
+          <Link to={`/game/${id}`}>View public game</Link>
         </Button>
       }
       contentWidth="page"

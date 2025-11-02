@@ -56,8 +56,8 @@ type Props = {
     sports: string[]
     strengths: string[]
     badges: string[]
-    recentSessions: Array<{ title: string; sport: string; date: string }>
-    upcomingSessions: Array<{ title: string; sport: string; date: string }>
+    recentGames: Array<{ title: string; sport: string; date: string }>
+    upcomingGames: Array<{ title: string; sport: string; date: string }>
   squad: Array<{ name: string; sport: string; lastPlayed: string; avatarUrl: string }>
     trustNote: string
     editFabLabel: string
@@ -141,16 +141,16 @@ export default function AthleteCardView({
             ))}
           </div>
           <div className="space-y-3 text-left">
-            <h3 className="text-sm font-semibold text-slate-700">Recent sessions</h3>
+            <h3 className="text-sm font-semibold text-slate-700">Recent games</h3>
             <div className="grid gap-3 sm:grid-cols-3">
-              {copy.recentSessions.map((session) => (
+              {copy.recentGames.map((game) => (
                 <div
-                  key={`${session.title}-${session.date}`}
+                  key={`${game.title}-${game.date}`}
                   className="rounded-2xl border border-slate-100 bg-slate-50/70 px-3 py-2 text-xs text-slate-600"
                 >
-                  <div className="text-sm font-semibold text-slate-800">{session.title}</div>
-                  <div>{session.sport}</div>
-                  <div className="text-[11px] text-slate-500">{session.date}</div>
+                  <div className="text-sm font-semibold text-slate-800">{game.title}</div>
+                  <div>{game.sport}</div>
+                  <div className="text-[11px] text-slate-500">{game.date}</div>
                 </div>
               ))}
             </div>
@@ -158,14 +158,14 @@ export default function AthleteCardView({
           <div className="space-y-3 text-left">
             <h3 className="text-sm font-semibold text-slate-700">Upcoming play</h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              {copy.upcomingSessions.map((session) => (
+              {copy.upcomingGames.map((game) => (
                 <div
-                  key={`${session.title}-${session.date}`}
+                  key={`${game.title}-${game.date}`}
                   className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm"
                 >
                   <div>
-                    <div className="font-semibold text-slate-800">{session.title}</div>
-                    <div className="text-xs text-slate-500">{session.date}</div>
+                    <div className="font-semibold text-slate-800">{game.title}</div>
+                    <div className="text-xs text-slate-500">{game.date}</div>
                   </div>
                   <Button
                     variant="outline"
@@ -187,7 +187,7 @@ export default function AthleteCardView({
             </Button>
           </div>
           <footer className="mt-4 flex justify-between text-xs text-slate-400">
-            <span>{copy.recentSessions.length} recent sessions</span>
+            <span>{copy.recentGames.length} recent games</span>
             <span>{copy.badges.length} badges collected</span>
           </footer>
         </CardContent>

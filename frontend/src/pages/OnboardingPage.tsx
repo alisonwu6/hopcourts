@@ -324,7 +324,7 @@ export function OnboardingPage() {
             </div>
           </div>
           <p className="mt-4 text-sm text-player-900/70">
-            Join sessions, meet new athletes, and stay motivated with curated
+            Join games, meet new athletes, and stay motivated with curated
             matches.
           </p>
         </button>
@@ -481,7 +481,7 @@ export function OnboardingPage() {
         step={currentIndex + 1}
         total={totalSteps}
         title="Which sports fire you up?"
-        description={`Pick up to ${MAX_SPORTS}. We’ll use this to match you with sessions and teammates.`}
+        description={`Pick up to ${MAX_SPORTS}. We’ll use this to match you with games and teammates.`}
       />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {SPORTS.map((sport) => (
@@ -577,7 +577,7 @@ export function OnboardingPage() {
         step={currentIndex + 1}
         total={totalSteps}
         title="You’re almost there!"
-        description="Add a profile photo (optional) and pick what drives your next session."
+        description="Add a profile photo (optional) and pick what drives your next game."
       />
       <div className="flex flex-col items-center gap-4">
         {data.avatarPreview ? (

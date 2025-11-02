@@ -1,14 +1,14 @@
 export type AthleteVisibility = 'public' | 'smart' | 'private'
 
 export interface AthleteStats {
-  sessions: number
+  games: number
   streakWeeks?: number
   energy?: number
   badges?: number
 }
 
 export interface AthleteRelationship {
-  sessionsTogether?: number
+  gamesTogether?: number
 }
 
 export interface ActivityCardProps {

@@ -10,7 +10,7 @@ export interface SquadCoreSummary {
   energy: number
   city: string
   memberCount: number
-  sessionCount: number
+  gameCount: number
   toneLine: string
   heroImageUrl?: string
   members: SquadMemberThumb[]

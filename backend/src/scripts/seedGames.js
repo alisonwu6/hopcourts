@@ -64,7 +64,7 @@ const sampleGames = [
     starts_at: '2025-09-01 19:00:00',
     ends_at: '2025-09-01 21:00:00',
     max_players: 8,
-    tags_json: ['night session', 'outdoor', 'mixed'],
+    tags_json: ['night game', 'outdoor', 'mixed'],
     status: 'open',
   },
   {
@@ -101,7 +101,7 @@ const sampleGames = [
     status: 'open',
   },
   {
-    title: 'Touch Rugby Beginner Session',
+    title: 'Touch Rugby Beginner Game',
     sport: 'rugby',
     venue: 'Kangaroo Point Fields',
     host_name: 'Ethan',
@@ -112,7 +112,7 @@ const sampleGames = [
     status: 'open',
   },
   {
-    title: 'Netball Skill Session',
+    title: 'Netball Skill Game',
     sport: 'netball',
     venue: 'Carina Indoor Centre',
     host_name: 'Olivia',

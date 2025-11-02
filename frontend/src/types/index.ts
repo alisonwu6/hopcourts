@@ -17,8 +17,8 @@ export interface User {
   followers: string[]
   hostProfile?: Host
   managedVenues: string[]
-  sessionsAttended: number
-  sessionsHosted: number
+  gamesAttended: number
+  gamesHosted: number
   createdAt: Date
   updatedAt: Date
 }
@@ -37,7 +37,7 @@ export interface Host {
   verified: boolean
   verificationDate?: Date
   verificationReason?: string
-  sessionsHosted: number
+  gamesHosted: number
   rating: number
   ratingCount: number
   followerCount: number
@@ -82,12 +82,12 @@ export interface Venue {
   managerId?: string
   basePrice?: number
   currency: string
-  priceModel: 'per_session' | 'per_hour' | 'per_month' | 'free'
+  priceModel: 'per_game' | 'per_hour' | 'per_month' | 'free'
   isVerified: boolean
   verificationDate?: Date
   rating: number
   ratingCount: number
-  sessionsHosted: number
+  gamesHosted: number
   operatingHours?: {
     monday: { open: string; close: string }
     tuesday: { open: string; close: string }
@@ -105,7 +105,7 @@ export interface Venue {
 // SESSION / EVENT
 // ============================================================================
 
-export interface Session {
+export interface Game {
   id: string
   title: string
   description: string
@@ -173,12 +173,12 @@ export interface Squad {
   memberCount: number
   visibility: 'public' | 'private' | 'invite-only'
   allowVisitors: boolean
-  totalSessions: number
+  totalGames: number
   energy: number
   rating: number
   tags: string[]
   vibe?: string
-  sessions: string[]
+  games: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -190,7 +190,7 @@ export interface SquadMember {
   role: 'admin' | 'moderator' | 'member'
   status: 'active' | 'inactive' | 'left'
   joinedAt: Date
-  sessionsAttended?: number
+  gamesAttended?: number
   lastAttendedAt?: Date
 }
 
@@ -200,7 +200,7 @@ export interface SquadMember {
 
 export interface Chat {
   id: string
-  type: 'direct_message' | 'squad_chat' | 'session_chat' | 'venue_chat'
+  type: 'direct_message' | 'squad_chat' | 'game_chat' | 'venue_chat'
   participantIds: string[]
   participantCount: number
   messages: Message[]
@@ -210,7 +210,7 @@ export interface Chat {
   lastMessageAt: Date
   lastMessageContent?: string
   unreadCounts: Record<string, number>
-  linkedSessionId?: string
+  linkedGameId?: string
   linkedSquadId?: string
   linkedVenueId?: string
   createdAt: Date
@@ -245,10 +245,10 @@ export interface Review {
   reviewerId: string
   reviewerName: string
   reviewerAvatar?: string
-  type: 'host' | 'venue' | 'session'
+  type: 'host' | 'venue' | 'game'
   hostId?: string
   venueId?: string
-  sessionId?: string
+  gameId?: string
   rating: 1 | 2 | 3 | 4 | 5
   comment: string
   aspects?: Record<string, number | undefined>
@@ -269,9 +269,9 @@ export interface Notification {
   id: string
   userId: string
   type:
-    | 'session_created'
-    | 'session_reminder'
-    | 'session_cancelled'
+    | 'game_created'
+    | 'game_reminder'
+    | 'game_cancelled'
     | 'attendee_joined'
     | 'attendee_cancelled'
     | 'message_received'
@@ -317,7 +317,7 @@ export interface PaginatedResponse<T> {
 // FILTER & SEARCH TYPES
 // ============================================================================
 
-export interface SessionFilter {
+export interface GameFilter {
   sport?: string
   skillLevel?: 'beginner' | 'intermediate' | 'advanced'
   minPrice?: number
@@ -352,7 +352,7 @@ export interface HostFilter {
   sport?: string
   minRating?: number
   verified?: boolean
-  sortBy?: 'followers' | 'rating' | 'sessionsHosted'
+  sortBy?: 'followers' | 'rating' | 'gamesHosted'
   page?: number
   pageSize?: number
 }
@@ -361,7 +361,7 @@ export interface HostFilter {
 // FORM TYPES
 // ============================================================================
 
-export interface CreateSessionInput {
+export interface CreateGameInput {
   title: string
   description?: string
   sport: string
@@ -379,7 +379,7 @@ export interface CreateSessionInput {
   isFree: boolean
   pricePerPerson?: number
   isRecurring?: boolean
-  recurringPattern?: Session['recurringPattern']
+  recurringPattern?: Game['recurringPattern']
   tags?: string[]
   difficulty?: 1 | 2 | 3 | 4 | 5
 }
@@ -412,6 +412,6 @@ export interface CreateVenueInput {
   email?: string
   website?: string
   basePrice?: number
-  priceModel: 'per_session' | 'per_hour' | 'per_month' | 'free'
+  priceModel: 'per_game' | 'per_hour' | 'per_month' | 'free'
   images?: string[]
 }

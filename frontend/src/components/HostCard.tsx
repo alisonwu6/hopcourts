@@ -29,7 +29,7 @@ export function HostCard({ host, onFollow, onViewProfile }: HostCardProps) {
 
       <div className="mb-4 grid grid-cols-3 gap-2 text-center text-sm">
         <div className="rounded bg-blue-50 p-2">
-          <p className="font-semibold text-blue-700">{host.sessionsHosted}</p>
+          <p className="font-semibold text-blue-700">{host.gamesHosted}</p>
           <p className="text-xs text-slate-600">games hosted</p>
         </div>
         <div className="rounded bg-blue-50 p-2">

@@ -44,20 +44,20 @@ export function ProfilePage() {
     )
   }
 
-  const sessionsAttended = user.sessionsAttended ?? 0
-  const isNewUser = sessionsAttended <= 1
+  const gamesAttended = user.gamesAttended ?? 0
+  const isNewUser = gamesAttended <= 1
   const sportLine =
     user.sports && user.sports.length > 0
       ? user.sports.join(' · ')
       : 'Ready to explore new sports'
 
   const displayStats = {
-    totalSessions: Math.max(1, sessionsAttended),
-    streakDays: Math.max(1, sessionsAttended > 0 ? 1 : 0),
+    totalGames: Math.max(1, gamesAttended),
+    streakDays: Math.max(1, gamesAttended > 0 ? 1 : 0),
     energyLevel: 85,
-    badges: Math.max(1, sessionsAttended > 0 ? 1 : 0),
-    rank: sessionsAttended > 1 ? 320 : 9999,
-    points: sessionsAttended > 0 ? 5 : 0,
+    badges: Math.max(1, gamesAttended > 0 ? 1 : 0),
+    rank: gamesAttended > 1 ? 320 : 9999,
+    points: gamesAttended > 0 ? 5 : 0,
   }
 
   return (
@@ -72,7 +72,7 @@ export function ProfilePage() {
             <p className="text-blue-100">📍 {user.location}</p>
             {!isNewUser && (
               <p className="text-sm text-blue-100">
-                Sessions attended · {sessionsAttended}
+                Games attended · {gamesAttended}
               </p>
             )}
           </div>
@@ -95,7 +95,7 @@ export function ProfilePage() {
               <div>
                 <p className="font-semibold text-slate-900">Great start!</p>
                 <p className="mt-1 text-sm text-slate-700">
-                  You&apos;ve joined your first session. This is just the
+                  You&apos;ve joined your first game. This is just the
                   beginning of an amazing fitness journey.
                 </p>
               </div>
@@ -104,8 +104,8 @@ export function ProfilePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <StatCard
-              label="Session"
-              value={displayStats.totalSessions.toString()}
+              label="Game"
+              value={displayStats.totalGames.toString()}
               accent="text-blue-600"
             />
             <StatCard
@@ -127,7 +127,7 @@ export function ProfilePage() {
               <div>
                 <p className="font-semibold text-slate-900">First Step Badge</p>
                 <p className="text-xs text-slate-600">
-                  Join your first session
+                  Join your first game
                 </p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export function ProfilePage() {
             </h3>
             <Milestone
               step="2"
-              title="Join one more session"
+              title="Join one more game"
               description='Unlock the "Week Warrior" badge 🏆'
             />
             <Milestone
@@ -153,7 +153,7 @@ export function ProfilePage() {
             />
             <Milestone
               step="4"
-              title="Complete 4 sessions this month"
+              title="Complete 4 games this month"
               description="Hit your monthly goal 🎯"
             />
           </div>
@@ -163,7 +163,7 @@ export function ProfilePage() {
             onClick={() => navigate('/home')}
             className="w-full rounded-xl bg-blue-600 py-4 text-lg font-semibold text-white transition hover:bg-blue-700"
           >
-            🏃 Join another session
+            🏃 Join another game
           </button>
         </section>
       ) : (
@@ -175,9 +175,9 @@ export function ProfilePage() {
       )}
 
       <div className="mx-auto w-full max-w-4xl space-y-2 border-t border-player-200 px-4 pt-6">
-        <ActionButton icon="📆" label="My sessions" onClick={() => navigate('/my-sessions')} />
+        <ActionButton icon="📆" label="My games" onClick={() => navigate('/my-games')} />
         <ActionButton icon="📊" label="Detailed stats" />
-        <ActionButton icon="❤️" label="Saved sessions" />
+        <ActionButton icon="❤️" label="Saved games" />
         <ActionButton icon="⭐" label="My reviews" />
         <ActionButton icon="👥" label="Following" />
         <ActionButton

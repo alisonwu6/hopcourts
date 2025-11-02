@@ -17,7 +17,7 @@ export const mockAthlete: AthleteCardProps = {
   visualTagline: 'Still learning, still moving.',
   avatarUrl: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=200&q=60',
   coverUrl: '/mock/covers/court.jpg',
-  stats: { sessions: 42, streakWeeks: 5, energy: 78, badges: 5 },
+  stats: { games: 42, streakWeeks: 5, energy: 78, badges: 5 },
   tags: [
     'Basketball',
     'Running',
@@ -38,7 +38,7 @@ export const mockAthlete: AthleteCardProps = {
     { id: 's3', title: 'Strength & Mobility', sport: 'Strength', time: '2025-10-03T19:00:00Z', partners: ['Leo'], stats: { highFives: 3 } },
   ],
   visibility: 'public',
-  relationship: { sessionsTogether: 18 },
+  relationship: { gamesTogether: 18 },
   highFiveCount: 37,
   statusLabel: 'active',
   activeNow: true,

@@ -15,21 +15,39 @@ export function Splash() {
               alt="SportsMatch"
             />
             <div className="space-y-4">
-              <h1 className="text-3xl font-semibold leading-tight text-player-900 sm:text-5xl">
-                Pick-up sports that match your vibe.
+              {/* <h1 className="text-2xl font-semibold leading-tight text-player-900 sm:text-5xl">
+                Pick-up sports that <br /> match your vibe.
+              </h1> */}
+              <h1 className="text-xl font-semibold leading-tight text-player-900 sm:text-5xl">
+                Discover local games and build your crew in Brisbane.
               </h1>
-              <p className="mx-auto max-w-xl text-base text-player-900/70">
-                Join locals, play together, and build your squad with real follow-ups.
-              </p>
+              <ul className="mt-6">
+                <li>Meet new mates.</li>
+                <li>Play your favourite sports.</li>
+                <li>Feel part of something real.</li>
+              </ul>
             </div>
           </div>
 
           <div className="flex w-full max-w-sm flex-col gap-3">
-            <Button asChild storyLine="player" className="w-full">
-              <Link to="/home">Explore SportsMatch</Link>
+            <Button
+              asChild
+              storyLine="player"
+              className="w-full"
+            >
+              <Link to="/home" className="flex w-full items-center justify-center">
+                Explore SportsMatch
+              </Link>
             </Button>
-            <Button asChild storyLine="player" variant="secondary" className="w-full">
-              <Link to="/signup">Join SportsMatch</Link>
+            <Button
+              asChild
+              storyLine="player"
+              variant="secondary"
+              className="w-full"
+            >
+              <Link to="/signup" className="flex w-full items-center justify-center">
+                Join SportsMatch
+              </Link>
             </Button>
           </div>
         </main>

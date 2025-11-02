@@ -1,6 +1,6 @@
-export type SessionStatus = 'open' | 'closed' | 'cancelled'
+export type GameStatus = 'open' | 'closed' | 'cancelled'
 
-export interface SessionMeta {
+export interface GameMeta {
   tags: string[]
   description?: string
   notes?: string
@@ -9,7 +9,7 @@ export interface SessionMeta {
   distanceKm?: number
 }
 
-export interface Session {
+export interface Game {
   id: number
   title: string
   sport: string
@@ -20,6 +20,6 @@ export interface Session {
   playerCount: number
   venue: string
   tags: string[]
-  status: SessionStatus
-  details?: SessionMeta
+  status: GameStatus
+  details?: GameMeta
 }

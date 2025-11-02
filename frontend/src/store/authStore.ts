@@ -34,7 +34,7 @@ const persistToken = (token: string | null) => {
 const handleOnboardingInitialization = (status: OnboardingStatus, user: User | null) => {
   const onboarding = useOnboardingStore.getState()
   const inferredRole =
-    user && user.sessionsHosted > 0 ? 'host' : user ? 'player' : null
+    user && user.gamesHosted > 0 ? 'host' : user ? 'player' : null
   onboarding.initializeOnboarding(status, {
     fullName: user?.name ?? '',
     role: inferredRole,

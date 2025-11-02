@@ -5,36 +5,36 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { SKILL_LEVEL_LABELS } from '@/data/mock/events'
 
-export default function CreateSession() {
+export default function CreateGame() {
   return (
     <MainLayout
-      title="Create a session"
+      title="Create a game"
       description="Share the details and SportsMatch will help you fill the roster."
       contentWidth="page"
     >
       <div className="-mx-4 sticky top-0 z-30 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-sm font-semibold text-slate-700">
-            Session controls
+            Game controls
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="ghost" size="sm" type="button">
               Save draft
             </Button>
             <Button variant="outline" size="sm" type="button">
-              Preview session
+              Preview game
             </Button>
-            <Button size="sm" type="submit" form="session-form">
-              Publish session
+            <Button size="sm" type="submit" form="game-form">
+              Publish game
             </Button>
           </div>
         </div>
       </div>
-      <form id="session-form" className="space-y-6">
+      <form id="game-form" className="space-y-6">
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Session basics</h2>
+              <h2 className="text-base font-semibold text-slate-900">Game basics</h2>
               <p className="text-sm text-slate-500">
                 Tell players what they can expect and where to meet.
               </p>
@@ -97,9 +97,9 @@ export default function CreateSession() {
         <Card className="border border-slate-200">
           <CardContent className="space-y-4 p-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Session vibe</h2>
+              <h2 className="text-base font-semibold text-slate-900">Game vibe</h2>
               <p className="text-sm text-slate-500">
-                Tag your session so the right athletes can discover it.
+                Tag your game so the right athletes can discover it.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-sm">
@@ -117,7 +117,7 @@ export default function CreateSession() {
               Notes for attendees
               <textarea
                 rows={3}
-                placeholder="Anything they should bring or know before the session?"
+                placeholder="Anything they should bring or know before the game?"
                 className="rounded border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
               <span className="text-xs text-slate-500">Visible only to people who join.</span>

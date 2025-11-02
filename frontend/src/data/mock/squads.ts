@@ -7,7 +7,7 @@ export const mockSquadPageData: SquadPageData = {
     energy: 78,
     city: 'Brisbane',
     memberCount: 5,
-    sessionCount: 12,
+    gameCount: 12,
     toneLine: 'Flowing strong this week.',
     heroImageUrl: '/mock/squads/river_bg.jpg',
     members: [
@@ -25,7 +25,7 @@ export const mockSquadPageData: SquadPageData = {
       energy: 78,
       city: 'Brisbane',
       memberCount: 5,
-      sessionCount: 12,
+      gameCount: 12,
       toneLine: 'Tempo run locked for Thursday night.',
       heroImageUrl: '/mock/squads/river_bg.jpg',
       members: [
@@ -41,7 +41,7 @@ export const mockSquadPageData: SquadPageData = {
       energy: 64,
       city: 'Brisbane',
       memberCount: 8,
-      sessionCount: 18,
+      gameCount: 18,
       toneLine: 'Pacing drills added for Saturday.',
       heroImageUrl: '/mock/squads/dawn_bg.jpg',
       members: [

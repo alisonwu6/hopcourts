@@ -22,7 +22,7 @@ export default function Notifications() {
               >
                 roster
               </Badge>
-              <p className="text-slate-700">Bo joined your session for Friday futsal</p>
+              <p className="text-slate-700">Bo joined your game for Friday futsal</p>
             </div>
             <div className="text-xs text-slate-400">2m ago</div>
           </CardContent>

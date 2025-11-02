@@ -24,8 +24,8 @@ function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: O
   )
   const roleTone =
     role === 'host'
-      ? 'Hosting sessions and rallying the crew.'
-      : 'Chasing good sessions and new teammates.'
+      ? 'Hosting games and rallying the crew.'
+      : 'Chasing good games and new teammates.'
 
   return {
     ...mockAthlete,
@@ -34,12 +34,12 @@ function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: O
     city: user.location,
     sport: primarySport,
     primarySport,
-    title: role === 'host' ? 'Community host · building the session vibe.' : 'Player · ready to jump in.',
+    title: role === 'host' ? 'Community host · building the game vibe.' : 'Player · ready to jump in.',
     toneLines: [roleTone, ...(mockAthlete.toneLines?.slice(0, 3) ?? [])],
     visualTagline: uniqueSports.length ? uniqueSports.join(' · ') : mockAthlete.visualTagline,
     stats: {
       ...mockAthlete.stats,
-      sessions: user.sessionsAttended ?? mockAthlete.stats.sessions,
+      games: user.gamesAttended ?? mockAthlete.stats.games,
       badges: mockAthlete.stats.badges ?? 0,
       energy: mockAthlete.stats.energy ?? 72,
     },
@@ -49,7 +49,7 @@ function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: O
         ? Array.from(new Set(['Crew Builder', ...(mockAthlete.vibes ?? [])]))
         : Array.from(new Set(['Game Ready', ...(mockAthlete.vibes ?? [])])),
     bio: user.bio ?? mockAthlete.bio,
-    statusLabel: (user.sessionsAttended ?? 0) > 3 ? 'active' : 'new',
+    statusLabel: (user.gamesAttended ?? 0) > 3 ? 'active' : 'new',
     recentActivities: mockAthlete.recentActivities,
   }
 }

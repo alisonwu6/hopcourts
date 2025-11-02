@@ -1,4 +1,4 @@
-export interface PlayerSession {
+export interface PlayerGame {
   id: string
   title: string
   sport: string
@@ -11,7 +11,7 @@ export interface PlayerSession {
   }
   hostName: string
   hostRating?: number
-  hostSessionsCount?: number
+  hostGamesCount?: number
   attendeeCount: number
   maxAttendees: number
   difficulty: 1 | 2 | 3 | 4 | 5
@@ -35,13 +35,13 @@ export interface PlayerVenue {
   rating: number
   reviewCount: number
   memberCount: number
-  sessionsThisMonth: number
+  gamesThisMonth: number
   amenities: string[]
 }
 
-export const PLAYER_MOCK_SESSIONS: PlayerSession[] = [
+export const PLAYER_MOCK_GAMES: PlayerGame[] = [
   {
-    id: 'session-1',
+    id: 'game-1',
     title: 'Running with Tom',
     sport: 'running',
     startTime: new Date('2024-12-15T19:00:00'),
@@ -53,7 +53,7 @@ export const PLAYER_MOCK_SESSIONS: PlayerSession[] = [
     },
     hostName: 'Tom Wilson',
     hostRating: 4.8,
-    hostSessionsCount: 12,
+    hostGamesCount: 12,
     attendeeCount: 5,
     maxAttendees: 8,
     difficulty: 3,
@@ -66,7 +66,7 @@ export const PLAYER_MOCK_SESSIONS: PlayerSession[] = [
     ],
   },
   {
-    id: 'session-2',
+    id: 'game-2',
     title: 'Sunset Climbing Crew',
     sport: 'climbing',
     startTime: new Date('2024-12-16T18:00:00'),
@@ -78,7 +78,7 @@ export const PLAYER_MOCK_SESSIONS: PlayerSession[] = [
     },
     hostName: 'Mika Chen',
     hostRating: 4.9,
-    hostSessionsCount: 21,
+    hostGamesCount: 21,
     attendeeCount: 7,
     maxAttendees: 10,
     difficulty: 4,
@@ -87,7 +87,7 @@ export const PLAYER_MOCK_SESSIONS: PlayerSession[] = [
     description: 'Rope climbs and bouldering circuits with belay checks.',
   },
   {
-    id: 'session-3',
+    id: 'game-3',
     title: 'Morning Tennis Doubles',
     sport: 'tennis',
     startTime: new Date('2024-11-30T07:30:00'),
@@ -99,7 +99,7 @@ export const PLAYER_MOCK_SESSIONS: PlayerSession[] = [
     },
     hostName: 'Sarah Wu',
     hostRating: 4.6,
-    hostSessionsCount: 15,
+    hostGamesCount: 15,
     attendeeCount: 3,
     maxAttendees: 4,
     difficulty: 2,
@@ -128,7 +128,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     rating: 4.8,
     reviewCount: 23,
     memberCount: 230,
-    sessionsThisMonth: 15,
+    gamesThisMonth: 15,
     amenities: ['Belay Certification', 'Rental Equipment', 'Locker Rooms', 'Café'],
   },
   {
@@ -144,7 +144,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     rating: 4.6,
     reviewCount: 18,
     memberCount: 185,
-    sessionsThisMonth: 22,
+    gamesThisMonth: 22,
     amenities: ['Secure Lockers', 'Showers', 'Parking', 'Refill Station'],
   },
   {
@@ -160,7 +160,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     rating: 4.7,
     reviewCount: 31,
     memberCount: 210,
-    sessionsThisMonth: 18,
+    gamesThisMonth: 18,
     amenities: ['Court Hire', 'Coaching', 'Clubhouse', 'Pro Shop'],
   },
 ]

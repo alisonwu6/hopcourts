@@ -1,5 +1,5 @@
 import type { SquadCoreSummary } from '@/interfaces/squad'
-import fallbackHero from '@/assets/placeholders/session-fallback.svg'
+import fallbackHero from '@/assets/placeholders/game-fallback.svg'
 import { SquadEnergyBar } from './SquadEnergyBar'
 
 interface Props {
@@ -19,7 +19,7 @@ export function SquadHeader({ squad }: Props) {
               <div className="text-sm font-medium uppercase tracking-wide text-[#6E6E6E]">Living squad</div>
               <div className="text-2xl font-semibold text-[#051333]">{squad.name}</div>
               <div className="text-sm text-[#6E6E6E]">
-                {squad.city} · {squad.memberCount} Members · {squad.sessionCount} Sessions
+                {squad.city} · {squad.memberCount} Members · {squad.gameCount} Games
               </div>
               <p className="text-sm text-[#1B8FD2]">“{squad.toneLine}”</p>
             </div>

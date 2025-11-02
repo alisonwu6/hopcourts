@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { InfoRow } from '@/components/player/InfoRow'
-import { SessionRow } from '@/components/player/SessionRow'
-import { PLAYER_MOCK_SESSIONS, PLAYER_MOCK_VENUES } from '@/data/playerMocks'
+import { GameRow } from '@/components/player/GameRow'
+import { PLAYER_MOCK_GAMES, PLAYER_MOCK_VENUES } from '@/data/playerMocks'
 
 const venueIcons: Record<string, string> = {
   climbing: '🧗',
@@ -21,10 +21,10 @@ export function VenueDetailPage() {
 
   const venue = useMemo(() => PLAYER_MOCK_VENUES.find((item) => item.id === id), [id])
 
-  const sessionsAtVenue = useMemo(
+  const gamesAtVenue = useMemo(
     () =>
-      PLAYER_MOCK_SESSIONS.filter(
-        (session) => venue && session.location.name.toLowerCase() === venue.location.name.toLowerCase()
+      PLAYER_MOCK_GAMES.filter(
+        (game) => venue && game.location.name.toLowerCase() === venue.location.name.toLowerCase()
       ),
     [venue]
   )
@@ -110,16 +110,16 @@ export function VenueDetailPage() {
             Games here
           </h3>
           <div className="space-y-3">
-            {sessionsAtVenue.map((session) => (
-              <SessionRow
-                key={session.id}
-                title={session.title}
-                sport={session.sport}
-                startTime={session.startTime}
-                attendeeCount={session.attendeeCount}
-                locationName={session.location.name}
-                hostName={session.hostName}
-                onClick={() => navigate(`/session/${session.id}`)}
+            {gamesAtVenue.map((game) => (
+              <GameRow
+                key={game.id}
+                title={game.title}
+                sport={game.sport}
+                startTime={game.startTime}
+                attendeeCount={game.attendeeCount}
+                locationName={game.location.name}
+                hostName={game.hostName}
+                onClick={() => navigate(`/game/${game.id}`)}
                 storyLine="venue"
               />
             ))}

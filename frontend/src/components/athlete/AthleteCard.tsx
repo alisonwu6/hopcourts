@@ -24,7 +24,7 @@ import { trackEvent } from '@/lib/analytics'
 
 const tokens = athleteCardTokens
 
-type StatKey = 'sessions' | 'streak' | 'energy' | 'badges'
+type StatKey = 'games' | 'streak' | 'energy' | 'badges'
 
 type DisplayStatus = 'active' | 'rest' | 'new' | 'none'
 
@@ -73,7 +73,7 @@ function resolveDisplayStatus(athlete: AthleteCardProps): DisplayStatus {
     return athlete.statusLabel as DisplayStatus
   }
 
-  const sessions = athlete.stats.sessions ?? 0
+  const games = athlete.stats.games ?? 0
   const streak = athlete.stats.streakWeeks ?? 0
   const energy = athlete.stats.energy ?? 0
   const activityCount = athlete.recentActivities?.length ?? 0
@@ -81,7 +81,7 @@ function resolveDisplayStatus(athlete: AthleteCardProps): DisplayStatus {
   if (streak >= 1 && activityCount >= 1) {
     return 'active'
   }
-  if (sessions <= 3) {
+  if (games <= 3) {
     return 'new'
   }
   if (energy < 45 || activityCount === 0) {
@@ -279,10 +279,10 @@ export const AthleteCard = memo((props: AthleteCardComponentProps) => {
     const energyValue = Math.max(0, Math.min(100, stats.energy ?? 0))
     return [
       {
-        key: 'sessions' as const,
-        label: 'Sessions',
-        value: `${stats.sessions ?? 0}`,
-        meterPercent: Math.min(100, (stats.sessions / 40) * 100 || 0),
+        key: 'games' as const,
+        label: 'Games',
+        value: `${stats.games ?? 0}`,
+        meterPercent: Math.min(100, (stats.games / 40) * 100 || 0),
         icon: <CalendarCheck2 className="h-4 w-4" aria-hidden="true" />,
         isMuted: false,
       },
@@ -311,7 +311,7 @@ export const AthleteCard = memo((props: AthleteCardComponentProps) => {
         isMuted: !(stats.badges && stats.badges > 0),
       },
     ]
-  }, [stats.badges, stats.energy, stats.sessions, stats.streakWeeks])
+  }, [stats.badges, stats.energy, stats.games, stats.streakWeeks])
 
   const activities = recentActivities.slice(0, 3)
 
@@ -377,7 +377,7 @@ export const AthleteCard = memo((props: AthleteCardComponentProps) => {
         },
       ]
 
-  const ownerBadgeCount = relationship?.sessionsTogether ?? 0
+  const ownerBadgeCount = relationship?.gamesTogether ?? 0
   const ownerBadgeLabel = ownerBadgeCount > 0 ? `Trained together ${ownerBadgeCount} times` : ''
 
   return (
@@ -752,8 +752,8 @@ function energyGradient(percentage: number) {
 
 function drawerTitle(key: StatKey) {
   switch (key) {
-    case 'sessions':
-      return 'Sessions history'
+    case 'games':
+      return 'Games history'
     case 'streak':
       return 'Streak insights'
     case 'energy':

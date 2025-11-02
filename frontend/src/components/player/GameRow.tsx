@@ -1,6 +1,6 @@
 type StoryLine = 'player' | 'venue' | 'host'
 
-interface SessionRowProps {
+interface GameRowProps {
   title: string
   sport: string
   startTime: Date
@@ -51,7 +51,7 @@ const palette: Record<
   },
 }
 
-export function SessionRow({
+export function GameRow({
   title,
   sport,
   startTime,
@@ -60,7 +60,7 @@ export function SessionRow({
   hostName,
   onClick,
   storyLine = 'player',
-}: SessionRowProps) {
+}: GameRowProps) {
   const tone = palette[storyLine]
 
   return (

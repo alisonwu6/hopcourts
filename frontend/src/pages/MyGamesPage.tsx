@@ -1,33 +1,33 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PLAYER_MOCK_SESSIONS, type PlayerSession } from '@/data/playerMocks'
+import { PLAYER_MOCK_GAMES, type PlayerGame } from '@/data/playerMocks'
 
 type TabKey = 'upcoming' | 'completed'
 
-function isCompleted(session: PlayerSession) {
-  return Boolean(session.completedDate && session.completedDate < new Date())
+function isCompleted(game: PlayerGame) {
+  return Boolean(game.completedDate && game.completedDate < new Date())
 }
 
-function groupByDate(sessions: PlayerSession[]) {
+function groupByDate(games: PlayerGame[]) {
   const formatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' })
-  const map = new Map<string, PlayerSession[]>()
-  sessions.forEach((session) => {
-    const label = formatter.format(session.startTime)
-    map.set(label, [...(map.get(label) ?? []), session])
+  const map = new Map<string, PlayerGame[]>()
+  games.forEach((game) => {
+    const label = formatter.format(game.startTime)
+    map.set(label, [...(map.get(label) ?? []), game])
   })
   return Array.from(map.entries())
 }
 
-export function MySessionsPage() {
+export function MyGamesPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<TabKey>('upcoming')
 
-  const upcomingSessions = useMemo(
-    () => PLAYER_MOCK_SESSIONS.filter((session) => !isCompleted(session)),
+  const upcomingGames = useMemo(
+    () => PLAYER_MOCK_GAMES.filter((game) => !isCompleted(game)),
     []
   )
-  const completedSessions = useMemo(
-    () => PLAYER_MOCK_SESSIONS.filter((session) => isCompleted(session)),
+  const completedGames = useMemo(
+    () => PLAYER_MOCK_GAMES.filter((game) => isCompleted(game)),
     []
   )
 
@@ -38,21 +38,21 @@ export function MySessionsPage() {
       </div>
 
       <div className="sticky top-14 z-10 flex border-b border-blue-200 bg-blue-50">
-        <TabButton label={`Upcoming (${upcomingSessions.length})`} active={tab === 'upcoming'} onClick={() => setTab('upcoming')} />
-        <TabButton label={`Completed (${completedSessions.length})`} active={tab === 'completed'} onClick={() => setTab('completed')} />
+        <TabButton label={`Upcoming (${upcomingGames.length})`} active={tab === 'upcoming'} onClick={() => setTab('upcoming')} />
+        <TabButton label={`Completed (${completedGames.length})`} active={tab === 'completed'} onClick={() => setTab('completed')} />
       </div>
 
       <div className="px-4 py-6">
         {tab === 'upcoming' ? (
-          <SessionGroupList
-            groups={groupByDate(upcomingSessions)}
+          <GameGroupList
+            groups={groupByDate(upcomingGames)}
             emptyState={
               <EmptyState icon="📭" title="No games yet" description="Browse games to join your first one" />
             }
           />
         ) : (
-          <SessionGroupList
-            groups={groupByDate(completedSessions)}
+          <GameGroupList
+            groups={groupByDate(completedGames)}
             emptyState={
               <EmptyState icon="✓" title="No completed games" description="Completed games will appear here" />
             }
@@ -87,11 +87,11 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
   )
 }
 
-function SessionGroupList({
+function GameGroupList({
   groups,
   emptyState,
 }: {
-  groups: Array<[string, PlayerSession[]]>
+  groups: Array<[string, PlayerGame[]]>
   emptyState: JSX.Element
 }) {
   const navigate = useNavigate()
@@ -102,33 +102,33 @@ function SessionGroupList({
 
   return (
     <div className="space-y-6">
-      {groups.map(([dateLabel, sessions]) => (
+      {groups.map(([dateLabel, games]) => (
         <div key={dateLabel}>
           <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
           <div className="space-y-3">
-            {sessions.map((session) => (
+            {games.map((game) => (
               <button
-                key={session.id}
+                key={game.id}
                 type="button"
-                onClick={() => navigate(`/session/${session.id}`)}
+                onClick={() => navigate(`/game/${game.id}`)}
                 className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-slate-900">{session.title}</h4>
+                    <h4 className="font-semibold text-slate-900">{game.title}</h4>
                     <p className="mt-2 text-xs text-gray-600">
-                      {session.startTime.toLocaleDateString()} ·{' '}
-                      {session.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {game.startTime.toLocaleDateString()} ·{' '}
+                      {game.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
-                    <p className="mt-1 text-xs text-gray-600">📍 {session.location.name}</p>
+                    <p className="mt-1 text-xs text-gray-600">📍 {game.location.name}</p>
                     <p className="mt-2 text-xs font-semibold text-blue-600">
-                      {isCompleted(session)
+                      {isCompleted(game)
                         ? '⭐⭐⭐⭐⭐ Leave review →'
-                        : `✓ Joined (${session.attendeeCount}/${session.maxAttendees})`}
+                        : `✓ Joined (${game.attendeeCount}/${game.maxAttendees})`}
                     </p>
                   </div>
                   <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xl text-white">
-                    {resolveSportIcon(session.sport)}
+                    {resolveSportIcon(game.sport)}
                   </div>
                 </div>
               </button>

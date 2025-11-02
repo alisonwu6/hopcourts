@@ -8,7 +8,7 @@ const NAV_ITEMS = [
     label: 'Explore',
     icon: Compass,
     path: '/home',
-    matchPaths: ['/home', '/explore', '/sessions', '/map'],
+    matchPaths: ['/home', '/explore', '/games', '/map'],
   },
   {
     label: 'Search athletes',

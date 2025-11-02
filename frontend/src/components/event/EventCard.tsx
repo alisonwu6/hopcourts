@@ -56,7 +56,7 @@ export default function EventCard({
               </Badge>
             </div>
             <Link
-              to={`/sessions/${id}`}
+              to={`/games/${id}`}
               className="text-lg font-semibold leading-tight text-slate-900 hover:text-blue-600"
             >
               {content.title}
@@ -125,7 +125,7 @@ export default function EventCard({
             asChild
             className="flex-1 rounded-full"
           >
-            <Link to={`/sessions/${id}`}>Join session</Link>
+            <Link to={`/games/${id}`}>Join game</Link>
           </Button>
           <Button
             asChild
@@ -133,7 +133,7 @@ export default function EventCard({
             className="rounded-full sm:w-auto"
           >
             <Link
-              to={`/sessions/${id}`}
+              to={`/games/${id}`}
               className="flex items-center gap-1"
             >
               <Star className="h-4 w-4" /> Save for later

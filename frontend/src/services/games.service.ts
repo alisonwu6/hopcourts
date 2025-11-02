@@ -1,8 +1,8 @@
-import { ApiResponse, CreateSessionInput, PaginatedResponse, Session, SessionFilter } from '@/types'
+import { ApiResponse, CreateGameInput, PaginatedResponse, Game, GameFilter } from '@/types'
 
-const mockSessions: Session[] = [
+const mockGames: Game[] = [
   {
-    id: 'session-1',
+    id: 'game-1',
     title: 'Sunrise Climbing Meetup',
     description: 'Beautiful morning climb at Kangaroo Point',
     sport: 'Climbing',
@@ -41,7 +41,7 @@ const mockSessions: Session[] = [
     requiresApproval: false,
   },
   {
-    id: 'session-2',
+    id: 'game-2',
     title: 'Evening Basketball Game',
     description: 'Casual basketball at Holland Park',
     sport: 'Basketball',
@@ -76,26 +76,26 @@ const mockSessions: Session[] = [
 
 const simulateDelay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-export const sessionsService = {
-  async getSessions(filters?: SessionFilter): Promise<ApiResponse<PaginatedResponse<Session>>> {
+export const gamesService = {
+  async getGames(filters?: GameFilter): Promise<ApiResponse<PaginatedResponse<Game>>> {
     await simulateDelay(500)
 
-    let results = [...mockSessions]
+    let results = [...mockGames]
 
     if (filters?.sport) {
-      results = results.filter((session) => session.sport.toLowerCase() === filters.sport?.toLowerCase())
+      results = results.filter((game) => game.sport.toLowerCase() === filters.sport?.toLowerCase())
     }
     if (filters?.skillLevel) {
-      results = results.filter((session) => session.skillLevel === filters.skillLevel || session.skillLevel === 'mixed')
+      results = results.filter((game) => game.skillLevel === filters.skillLevel || game.skillLevel === 'mixed')
     }
     if (filters?.isFree !== undefined) {
-      results = results.filter((session) => session.isFree === filters.isFree)
+      results = results.filter((game) => game.isFree === filters.isFree)
     }
     if (filters?.minPrice !== undefined) {
-      results = results.filter((session) => (session.pricePerPerson || 0) >= filters.minPrice!)
+      results = results.filter((game) => (game.pricePerPerson || 0) >= filters.minPrice!)
     }
     if (filters?.maxPrice !== undefined) {
-      results = results.filter((session) => (session.pricePerPerson || 0) <= filters.maxPrice!)
+      results = results.filter((game) => (game.pricePerPerson || 0) <= filters.maxPrice!)
     }
 
     const page = filters?.page ?? 1
@@ -116,16 +116,16 @@ export const sessionsService = {
     }
   },
 
-  async getSessionById(id: string): Promise<ApiResponse<Session>> {
+  async getGameById(id: string): Promise<ApiResponse<Game>> {
     await simulateDelay(300)
 
-    const session = mockSessions.find((item) => item.id === id)
-    if (!session) {
+    const game = mockGames.find((item) => item.id === id)
+    if (!game) {
       return {
         success: false,
         error: {
           code: 'NOT_FOUND',
-          message: 'Session not found',
+          message: 'Game not found',
         },
         timestamp: new Date(),
       }
@@ -133,16 +133,16 @@ export const sessionsService = {
 
     return {
       success: true,
-      data: session,
+      data: game,
       timestamp: new Date(),
     }
   },
 
-  async createSession(input: CreateSessionInput, hostId: string): Promise<ApiResponse<Session>> {
+  async createGame(input: CreateGameInput, hostId: string): Promise<ApiResponse<Game>> {
     await simulateDelay(800)
 
-    const newSession: Session = {
-      id: `session-${Math.random().toString(36).slice(2)}`,
+    const newGame: Game = {
+      id: `game-${Math.random().toString(36).slice(2)}`,
       ...input,
       hostId,
       hostName: 'Current User',
@@ -159,83 +159,83 @@ export const sessionsService = {
       isRecurring: Boolean(input.isRecurring),
     }
 
-    mockSessions.push(newSession)
+    mockGames.push(newGame)
 
     return {
       success: true,
-      data: newSession,
+      data: newGame,
       timestamp: new Date(),
     }
   },
 
-  async joinSession(sessionId: string, userId: string): Promise<ApiResponse<Session>> {
+  async joinGame(gameId: string, userId: string): Promise<ApiResponse<Game>> {
     await simulateDelay(500)
 
-    const session = mockSessions.find((item) => item.id === sessionId)
-    if (!session) {
+    const game = mockGames.find((item) => item.id === gameId)
+    if (!game) {
       return {
         success: false,
         error: {
           code: 'NOT_FOUND',
-          message: 'Session not found',
+          message: 'Game not found',
         },
         timestamp: new Date(),
       }
     }
 
-    if (session.attendees.includes(userId)) {
+    if (game.attendees.includes(userId)) {
       return {
         success: false,
         error: {
           code: 'ALREADY_JOINED',
-          message: 'Already joined this session',
+          message: 'Already joined this game',
         },
         timestamp: new Date(),
       }
     }
 
-    if (session.attendees.length >= session.maxAttendees) {
+    if (game.attendees.length >= game.maxAttendees) {
       return {
         success: false,
         error: {
           code: 'FULL',
-          message: 'Session is full',
+          message: 'Game is full',
         },
         timestamp: new Date(),
       }
     }
 
-    session.attendees.push(userId)
-    session.attendeeCount = session.attendees.length
+    game.attendees.push(userId)
+    game.attendeeCount = game.attendees.length
 
     return {
       success: true,
-      data: session,
+      data: game,
       timestamp: new Date(),
     }
   },
 
-  async leaveSession(sessionId: string, userId: string): Promise<ApiResponse<Session>> {
+  async leaveGame(gameId: string, userId: string): Promise<ApiResponse<Game>> {
     await simulateDelay(500)
 
-    const session = mockSessions.find((item) => item.id === sessionId)
-    if (!session) {
+    const game = mockGames.find((item) => item.id === gameId)
+    if (!game) {
       return {
         success: false,
         error: {
           code: 'NOT_FOUND',
-          message: 'Session not found',
+          message: 'Game not found',
         },
         timestamp: new Date(),
       }
     }
 
-    session.attendees = session.attendees.filter((id) => id !== userId)
-    session.attendeeCount = session.attendees.length
+    game.attendees = game.attendees.filter((id) => id !== userId)
+    game.attendeeCount = game.attendees.length
 
     return {
       success: true,
-      data: session,
+      data: game,
       timestamp: new Date(),
     }
   },

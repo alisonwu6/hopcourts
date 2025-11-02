@@ -73,7 +73,7 @@ export function LoginPage() {
               {/* Join the movement. */}
             </h1>
             <p className="text-sm text-player-900/70">
-              {/* SportsMatch rallies athletes to keep every session energized—match
+              {/* SportsMatch rallies athletes to keep every game energized—match
               up, follow through, and build the crew that pushes you further. */}
             </p>
           </div>

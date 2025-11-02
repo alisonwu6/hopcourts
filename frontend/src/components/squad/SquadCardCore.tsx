@@ -1,5 +1,5 @@
 import type { SquadCoreSummary } from '@/interfaces/squad'
-import fallbackHero from '@/assets/placeholders/session-fallback.svg'
+import fallbackHero from '@/assets/placeholders/game-fallback.svg'
 
 interface Props {
   squad: SquadCoreSummary

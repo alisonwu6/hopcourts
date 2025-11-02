@@ -2,7 +2,7 @@ import { memo } from 'react'
 import { HandMetal } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import type { AthleteCardProps } from '@/interfaces/athlete'
-import fallbackHero from '@/assets/placeholders/session-fallback.svg'
+import fallbackHero from '@/assets/placeholders/game-fallback.svg'
 import fallbackAvatar from '@/assets/placeholders/avatar-fallback.svg'
 
 const gradientOverlay = 'linear-gradient(180deg, rgba(5,19,51,0.05) 0%, rgba(5,19,51,0.65) 100%)'

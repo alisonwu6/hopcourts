@@ -1,6 +1,6 @@
 export type AnalyticsEventName =
   | 'FilterSelect'
-  | 'SessionView'
+  | 'GameView'
   | 'JoinClick'
   | 'SaveClick'
   | 'MapClick'

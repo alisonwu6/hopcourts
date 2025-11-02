@@ -15,7 +15,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Home',
     icon: Compass,
     path: '/home',
-    matchPaths: ['/home', '/session', '/my-sessions'],
+    matchPaths: ['/home', '/game', '/my-games'],
   },
   {
     label: 'Venues',

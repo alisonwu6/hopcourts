@@ -42,8 +42,8 @@ const buildUser = (overrides?: Partial<User>): User => ({
   followers: overrides?.followers ?? [],
   hostProfile: overrides?.hostProfile,
   managedVenues: overrides?.managedVenues ?? [],
-  sessionsAttended: overrides?.sessionsAttended ?? 0,
-  sessionsHosted: overrides?.sessionsHosted ?? 0,
+  gamesAttended: overrides?.gamesAttended ?? 0,
+  gamesHosted: overrides?.gamesHosted ?? 0,
   createdAt: overrides?.createdAt ?? new Date(),
   updatedAt: overrides?.updatedAt ?? new Date(),
 })
@@ -81,7 +81,7 @@ export const authService = {
           name: storedUser?.name ?? 'Returning Athlete',
           avatar: storedUser?.avatar,
           sports: storedUser?.sports ?? [],
-          sessionsHosted: storedUser?.sessionsHosted ?? 0,
+          gamesHosted: storedUser?.gamesHosted ?? 0,
         },
         {
           signUpSource: 'email_password',

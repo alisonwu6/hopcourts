@@ -34,7 +34,7 @@ export function VenueRow({ venue, onClick }: VenueRowProps) {
           <div className="mt-2 flex flex-wrap gap-4 text-xs text-gray-600">
             <span>{venue.rating}⭐</span>
             <span>{venue.memberCount} members</span>
-            <span>{venue.sessionsThisMonth} games this month</span>
+            <span>{venue.gamesThisMonth} games this month</span>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 export { Button } from './Button'
 export { Card } from './Card'
-export { SessionCard } from './SessionCard'
+export { GameCard } from './GameCard'
 export { VenueCard } from './VenueCard'
 export { HostCard } from './HostCard'
 export { BottomNav } from './BottomNav'

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components'
-import { PLAYER_MOCK_SESSIONS } from '@/data/playerMocks'
+import { PLAYER_MOCK_GAMES } from '@/data/playerMocks'
 
 const sportIcons: Record<string, string> = {
   running: '🏃',
@@ -18,14 +18,14 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 })
 const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' })
 
-export function SessionDetailPage() {
+export function GameDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [isSaved, setIsSaved] = useState(false)
 
-  const session = useMemo(() => PLAYER_MOCK_SESSIONS.find((item) => item.id === id), [id])
+  const game = useMemo(() => PLAYER_MOCK_GAMES.find((item) => item.id === id), [id])
 
-  if (!session) {
+  if (!game) {
     return (
       <div className="px-4 pt-24 text-sm text-slate-600">
         <button type="button" onClick={() => navigate(-1)} className="mb-4 text-slate-700">
@@ -36,13 +36,13 @@ export function SessionDetailPage() {
     )
   }
 
-  const start = session.startTime instanceof Date ? session.startTime : new Date(session.startTime)
-  const end = session.endTime instanceof Date ? session.endTime : new Date(session.endTime)
-  const icon = sportIcons[session.sport.toLowerCase()] ?? '🏅'
+  const start = game.startTime instanceof Date ? game.startTime : new Date(game.startTime)
+  const end = game.endTime instanceof Date ? game.endTime : new Date(game.endTime)
+  const icon = sportIcons[game.sport.toLowerCase()] ?? '🏅'
   const hostRating =
-    typeof session.hostRating === 'number' ? session.hostRating.toFixed(1) : '4.8'
+    typeof game.hostRating === 'number' ? game.hostRating.toFixed(1) : '4.8'
   const hostedCount =
-    typeof session.hostSessionsCount === 'number' ? session.hostSessionsCount : '—'
+    typeof game.hostGamesCount === 'number' ? game.hostGamesCount : '—'
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
@@ -94,17 +94,17 @@ export function SessionDetailPage() {
           <div className="flex items-center justify-between border-b border-slate-200 p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-lg text-white">
-                {session.hostName.charAt(0)}
+                {game.hostName.charAt(0)}
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">{session.hostName}</p>
+                <p className="text-sm font-semibold text-slate-900">{game.hostName}</p>
                 <p className="text-xs text-slate-500">
                   {hostRating}★ · {hostedCount} hosted
                 </p>
               </div>
             </div>
             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-600">
-              {session.sport}
+              {game.sport}
             </span>
           </div>
 
@@ -113,28 +113,28 @@ export function SessionDetailPage() {
           </div>
 
           <div className="space-y-3 p-4">
-            <h1 className="text-lg font-bold text-slate-900">{session.title}</h1>
+            <h1 className="text-lg font-bold text-slate-900">{game.title}</h1>
             <DetailRow
               icon="📅"
               label="When"
               value={`${dateFormatter.format(start)} · ${timeFormatter.format(start)} – ${timeFormatter.format(end)}`}
             />
-            <DetailRow icon="📍" label="Where" value={session.location.address} />
+            <DetailRow icon="📍" label="Where" value={game.location.address} />
             <DetailRow
               icon="👥"
               label="Players"
-              value={`${session.attendeeCount}/${session.maxAttendees} joined`}
+              value={`${game.attendeeCount}/${game.maxAttendees} joined`}
             />
-            <DetailRow icon="🎯" label="Difficulty" value={`Level ${session.difficulty}`} />
+            <DetailRow icon="🎯" label="Difficulty" value={`Level ${game.difficulty}`} />
             <DetailRow
               icon="💰"
               label="Price"
               value={
-                session.isFree
+                game.isFree
                   ? 'Free'
-                  : session.price ?? session.pricePerPerson
-                  ? `$${session.price ?? session.pricePerPerson}${
-                      session.currency ? ` ${session.currency}` : ''
+                  : game.price ?? game.pricePerPerson
+                  ? `$${game.price ?? game.pricePerPerson}${
+                      game.currency ? ` ${game.currency}` : ''
                     }`
                   : 'Check with host'
               }
@@ -142,10 +142,10 @@ export function SessionDetailPage() {
           </div>
         </section>
 
-        {session.description && (
+        {game.description && (
           <section className="rounded-lg bg-white p-4 shadow">
             <h2 className="text-sm font-semibold text-slate-900">About this game</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{session.description}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-700">{game.description}</p>
           </section>
         )}
       </main>

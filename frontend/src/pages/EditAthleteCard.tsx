@@ -26,7 +26,7 @@ export default function EditAthleteCard() {
     level: 'Intermediate guard',
     sports: ['Basketball', 'Running', 'Strength'],
     strengths: ['On-ball defense', 'Fast break leader', 'Always early'],
-    badges: ['First Match', '10 Sessions', 'Night Owl Runner'],
+    badges: ['First Match', '10 Games', 'Night Owl Runner'],
   })
   const [saving, setSaving] = useState(false)
   const [savedStamp, setSavedStamp] = useState<number | null>(null)
@@ -208,10 +208,10 @@ export default function EditAthleteCard() {
                 <div className="space-y-3">
                   {[
                     { id: 'first-match', label: 'First Match', description: 'Completed your first game with SportsMatch.' },
-                    { id: 'ten-sessions', label: '10 Sessions', description: 'Played in ten sessions this season.' },
+                    { id: 'ten-games', label: '10 Games', description: 'Played in ten games this season.' },
                     { id: 'host-helper', label: 'Host Helper', description: 'Regularly steps up to co-host or cover drop-outs.' },
                     { id: 'night-owl', label: 'Night Owl Runner', description: 'Joined at least five late-night runs.' },
-                    { id: 'early-bird', label: 'Early Bird', description: 'Shows up for dawn sessions week after week.' },
+                    { id: 'early-bird', label: 'Early Bird', description: 'Shows up for dawn games week after week.' },
                   ].map((badge) => {
                     const isActive = state.badges.includes(badge.label)
                     return (
