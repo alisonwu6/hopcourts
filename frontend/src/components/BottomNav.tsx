@@ -24,9 +24,10 @@ const NAV_ITEMS: NavItem[] = [
     matchPaths: ['/venues', '/venue'],
   },
   {
-    label: 'Hosts',
+    label: 'Mates',
     icon: Users,
-    path: '/hosts',
+    path: '/mates',
+    matchPaths: ['/mates'],
   },
   {
     label: 'Me',
