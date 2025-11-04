@@ -1,32 +1,18 @@
-import { useState } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
-import { Calendar, CircleDollarSign, Clock8, MapPin, MapPinned, MapPinPlusInside, TicketCheck, UserRoundPlus } from 'lucide-react'
+import { Calendar, CircleDollarSign, Clock8, MapPin, MapPinned, MapPinPlusInside, UserRoundPlus } from 'lucide-react'
 import { PlayerGame } from '@/data/playerMocks'
 import { getSportTheme } from '@/lib/sportColors'
 
 type GameCardProps = {
   game: PlayerGame
-  onJoin?: (gameId: string) => Promise<void> | void
-  onLeave?: (gameId: string) => Promise<void> | void
   onViewDetails?: (gameId: string) => void
-  requireAuth?: () => void
-  isAuthenticated?: boolean
 }
 
 export function GameCard({
   game,
-  onJoin,
-  onLeave,
   onViewDetails,
-  requireAuth,
-  isAuthenticated = true,
 }: GameCardProps) {
-  const [isJoined, setIsJoined] = useState(Boolean(game.joined))
-  const [attendeeCount, setAttendeeCount] = useState(game.attendeeCount)
-  const [participantList, setParticipantList] = useState(game.participants)
-  const CURRENT_USER_ID = 'current-user'
-
   const theme = getSportTheme(game.sport)
   const sportLabel = formatSportName(game.sport)
   const skillLabel = friendlySkill(game.skillLevel)
@@ -36,47 +22,9 @@ export function GameCard({
   const timeRangeLabel = formatTimeRange(game.startTime, game.endTime)
   const priceLabel = game.priceRange ?? (game.isFree ? 'Free to join' : 'Paid event')
 
-  const participantPreview = participantList.slice(0, 4)
+  const attendeeCount = game.attendeeCount
+  const participantPreview = game.participants.slice(0, 4)
   const remaining = Math.max(attendeeCount - participantPreview.length, 0)
-
-  const handleAuthRequired = () => {
-    if (!isAuthenticated) {
-      requireAuth?.()
-      return true
-    }
-    return false
-  }
-
-  const handleJoin = async () => {
-    if (handleAuthRequired()) return
-    if (isJoined) {
-      setIsJoined(false)
-      setAttendeeCount((count) => Math.max(count - 1, 0))
-      setParticipantList((list) => list.filter((participant) => participant.id !== CURRENT_USER_ID))
-      onLeave?.(game.id)
-      return
-    }
-    setIsJoined(true)
-    setAttendeeCount((count) => Math.min(count + 1, game.maxAttendees))
-    setParticipantList((list) => {
-      if (list.some((participant) => participant.id === CURRENT_USER_ID)) return list
-      return [{ id: CURRENT_USER_ID, name: 'You', avatarUrl: undefined }, ...list]
-    })
-    onJoin?.(game.id)
-  }
-
-  const joinButtonStyles = isJoined
-    ? {
-        backgroundColor: theme.primary,
-        borderColor: theme.primary,
-        color: '#FFFFFF',
-      }
-    : {
-        borderColor: theme.primary,
-        color: theme.primary,
-      }
-
-  const joinIconStyle = isJoined ? { color: '#1F2937' } : { color: joinButtonStyles.color }
 
   return (
     <article className="relative mb-6 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)] transition-shadow hover:shadow-[0_24px_60px_rgba(15,41,77,0.12)]">
@@ -157,23 +105,6 @@ export function GameCard({
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={handleJoin}
-            style={joinButtonStyles}
-            className={clsx(
-              'inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-              isJoined ? 'shadow-sm focus-visible:ring-offset-white' : 'bg-white focus-visible:ring-offset-white'
-            )}
-            aria-pressed={isJoined}
-          >
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90" style={joinIconStyle}>
-              <TicketCheck className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-            </span>
-            {isJoined ? "You're in" : "I'm in"}
-          </button>
-        </div>
       </div>
     </article>
   )

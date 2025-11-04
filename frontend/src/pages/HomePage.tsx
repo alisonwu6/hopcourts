@@ -43,7 +43,6 @@ export function HomePage() {
             <GameCard
               key={game.id}
               game={game}
-              onJoin={() => console.info('Join', game.id)}
               onViewDetails={() => navigate(`/game/${game.id}`)}
             />
           ))

@@ -51,7 +51,7 @@ export interface PlayerVenue {
   id: string
   name: string
   type: string
-  sport: string
+  sports: string[]
   location: {
     name: string
     address: string
@@ -573,7 +573,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     id: 'venue-basketball-1',
     name: 'South Bank Hoops Centre',
     type: 'court',
-    sport: 'Basketball',
+    sports: ['Basketball'],
     location: {
       name: 'South Bank Hoops Centre',
       address: '45 Grey St',
@@ -589,7 +589,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     id: 'venue-badminton-1',
     name: 'Yeronga Badminton Hub',
     type: 'indoor',
-    sport: 'Badminton',
+    sports: ['Badminton', 'Pickleball'],
     location: {
       name: 'Yeronga Community Centre',
       address: '120 School Rd',
@@ -605,7 +605,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     id: 'venue-pickleball-1',
     name: 'Riverwalk Pickleball Courts',
     type: 'court',
-    sport: 'Pickleball',
+    sports: ['Pickleball'],
     location: {
       name: 'New Farm Pickleball Courts',
       address: '82 Griffith St',
@@ -621,7 +621,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     id: 'venue-climbing-1',
     name: 'Kangaroo Point Climbing',
     type: 'outdoor',
-    sport: 'Climbing',
+    sports: ['Climbing', 'Bouldering'],
     location: {
       name: 'Kangaroo Point Cliffs',
       address: 'River Terrace',
@@ -637,7 +637,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     id: 'venue-running-1',
     name: 'South Bank Running Hub',
     type: 'outdoor',
-    sport: 'Running',
+    sports: ['Running', 'Stretching'],
     location: {
       name: 'South Bank Parklands',
       address: 'Stanley St Plaza',
@@ -653,7 +653,7 @@ export const PLAYER_MOCK_VENUES: PlayerVenue[] = [
     id: 'venue-hiking-1',
     name: 'Mount Coot-tha Trail Base',
     type: 'outdoor',
-    sport: 'Hiking',
+    sports: ['Hiking'],
     location: {
       name: 'JC Slaughter Falls',
       address: '600 Mount Coot-tha Rd',

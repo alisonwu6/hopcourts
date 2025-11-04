@@ -31,7 +31,7 @@ export function VenuesPage() {
       </div>
 
       <div className="mx-auto mt-[3rem] w-full max-w-4xl px-4 py-6">
-        <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-blue-700">Near you</h3>
+        {/* <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-blue-700">Near you</h3> */}
 
         <div className="space-y-3">
           {filteredVenues.map((venue) => (
