@@ -12,7 +12,10 @@ export function VenuesPage() {
 
   const filteredVenues = useMemo(() => {
     if (selectedSport === 'All') return PLAYER_MOCK_VENUES
-    return PLAYER_MOCK_VENUES.filter((venue) => venue.sport.toLowerCase() === selectedSport.toLowerCase())
+    const lowered = selectedSport.toLowerCase()
+    return PLAYER_MOCK_VENUES.filter((venue) =>
+      venue.sports.some((sport) => sport.toLowerCase() === lowered)
+    )
   }, [selectedSport])
 
   return (

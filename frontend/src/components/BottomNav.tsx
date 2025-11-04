@@ -41,8 +41,8 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 backdrop-blur"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.25rem)' }}
+      className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white backdrop-blur"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-2">
         {NAV_ITEMS.map(({ label, icon: Icon, path, matchPaths }) => {

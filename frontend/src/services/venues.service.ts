@@ -210,7 +210,10 @@ export const venuesService = {
     let results = [...mockVenues]
 
     if (filters?.sport) {
-      results = results.filter((venue) => venue.sports.includes(filters.sport!))
+      const lowered = filters.sport.toLowerCase()
+      results = results.filter((venue) =>
+        venue.sports.some((sport) => sport.toLowerCase() === lowered)
+      )
     }
     if (filters?.type) {
       results = results.filter((venue) => venue.type === filters.type)
