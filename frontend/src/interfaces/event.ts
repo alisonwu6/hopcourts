@@ -6,7 +6,7 @@ export interface HostInfo {
 
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced'
 
-export type SportKey = 'basketball' | 'volleyball' | 'running'
+export type SportKey = 'basketball' | 'badminton' | 'pickleball' | 'climbing' | 'running' | 'hiking'
 
 export interface EventCardProps {
   id: string

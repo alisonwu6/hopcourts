@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CirclePlus } from 'lucide-react'
+import { MapPin, PenLine } from 'lucide-react'
 import { Button, GameCard } from '@/components'
 import { FilterChips } from '@/components/athlete/FilterChips'
 import { PLAYER_MOCK_GAMES } from '@/data/playerMocks'
 
-const sports = ['All', 'Running', 'Basketball', 'Climbing', 'Tennis']
+const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 
 
 export function HomePage() {
@@ -55,7 +55,10 @@ export function HomePage() {
         onClick={() => navigate('/create-game')}
         aria-label="Create game"
       >
-        <CirclePlus className="h-26 w-26" />
+        <span className="relative flex h-6 w-6 items-center justify-center">
+          <MapPin className="h-6 w-6" strokeWidth={2} />
+          <PenLine className="absolute bottom-0 right-0 h-3 w-3" strokeWidth={2} />
+        </span>
       </Button>
     </div>
   )

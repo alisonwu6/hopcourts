@@ -24,7 +24,7 @@ export default function EditAthleteCard() {
     displayName: 'Alex Blue',
     location: 'Brisbane · Basketball',
     level: 'Intermediate guard',
-    sports: ['Basketball', 'Running', 'Strength'],
+    sports: ['Basketball', 'Running', 'Hiking'],
     strengths: ['On-ball defense', 'Fast break leader', 'Always early'],
     badges: ['First Match', '10 Games', 'Night Owl Runner'],
   })
@@ -145,7 +145,7 @@ export default function EditAthleteCard() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-2">
-                    {['Basketball', 'Running', 'Strength', 'Volleyball', 'Futsal', 'Badminton', 'Climbing'].map((sport) => {
+                    {['Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking'].map((sport) => {
                       const isActive = state.sports.includes(sport)
                       return (
                         <button

@@ -4,7 +4,7 @@ import { VenueRow } from '@/components/player/VenueRow'
 import { FilterChips } from '@/components/athlete/FilterChips'
 import { PLAYER_MOCK_VENUES } from '@/data/playerMocks'
 
-const sports = ['All', 'Running', 'Basketball', 'Climbing', 'Tennis']
+const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 
 export function VenuesPage() {
   const navigate = useNavigate()

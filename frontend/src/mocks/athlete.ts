@@ -21,7 +21,7 @@ export const mockAthlete: AthleteCardProps = {
   tags: [
     'Basketball',
     'Running',
-    'StrengthTraining',
+    'Pickleball',
     'Yoga',
     'Climbing',
     'MorningCrew',
@@ -29,13 +29,13 @@ export const mockAthlete: AthleteCardProps = {
     'BuildInMotion',
   ],
   vibes: ['MorningCrew', 'FlowState', 'BuilderMindset'],
-  bio: "I move to stay clear.\nBasketball gives me rhythm, running keeps me grounded, strength training builds control, yoga resets the system, and climbing - that's where focus turns quiet.",
+  bio: "I move to stay clear.\nBasketball gives me rhythm, running keeps me grounded, pickleball keeps the reflexes sharp, yoga resets the system, and climbing - that's where focus turns quiet.",
   story:
     "I've always believed movement is a kind of thinking. Each sport teaches something different - patience, precision, awareness. I build systems the same way I train: consistent reps, honest feedback, slow mastery. SportsMatch began as a side project to connect training data with real connection - now it's my way of exploring how technology can make community feel human again.",
   recentActivities: [
     { id: 's1', title: 'Pre-dawn Court Drills', sport: 'Basketball', time: '2025-10-04T04:45:00Z', partners: ['Jamie'], stats: { highFives: 5, comments: 2 } },
     { id: 's2', title: 'River Loop Tempo', sport: 'Running', time: '2025-10-02T05:45:00Z', partners: ['Mika'], stats: { highFives: 2 } },
-    { id: 's3', title: 'Strength & Mobility', sport: 'Strength', time: '2025-10-03T19:00:00Z', partners: ['Leo'], stats: { highFives: 3 } },
+    { id: 's3', title: 'Pickleball Partner Drills', sport: 'Pickleball', time: '2025-10-03T19:00:00Z', partners: ['Leo'], stats: { highFives: 3 } },
   ],
   visibility: 'public',
   relationship: { gamesTogether: 18 },

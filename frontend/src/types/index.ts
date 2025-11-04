@@ -38,6 +38,7 @@ export interface Host {
   verificationDate?: Date
   verificationReason?: string
   gamesHosted: number
+  sports?: string[]
   rating: number
   ratingCount: number
   followerCount: number

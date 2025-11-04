@@ -4,7 +4,7 @@ import { HostCard } from '@/components'
 import { useHostsStore } from '@/hooks'
 import { FilterChips } from '@/components/athlete/FilterChips'
 
-const sports = ['All', 'Running', 'Basketball', 'Climbing', 'Tennis']
+const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 
 export function HostsPage() {
   const navigate = useNavigate()

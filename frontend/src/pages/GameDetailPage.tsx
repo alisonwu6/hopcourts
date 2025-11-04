@@ -1,22 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components'
-import { PLAYER_MOCK_GAMES } from '@/data/playerMocks'
-
-const sportIcons: Record<string, string> = {
-  running: '🏃',
-  basketball: '🏀',
-  climbing: '🧗',
-  tennis: '🎾',
-  hiking: '🥾',
-}
-
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
-  weekday: 'long',
-  month: 'short',
-  day: 'numeric',
-})
-const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' })
+import { PLAYER_MOCK_GAMES, type PlayerGame } from '@/data/playerMocks'
+import clsx from 'clsx'
+import {
+  BarChart3,
+  Calendar,
+  CircleDollarSign,
+  Clock8,
+  MapPin,
+  MapPinPlusInside,
+  TicketCheck,
+  UserRoundPlus,
+} from 'lucide-react'
+import { getSportTheme } from '@/lib/sportColors'
 
 export function GameDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -36,11 +33,15 @@ export function GameDetailPage() {
     )
   }
 
-  const start = game.startTime instanceof Date ? game.startTime : new Date(game.startTime)
-  const end = game.endTime instanceof Date ? game.endTime : new Date(game.endTime)
-  const icon = sportIcons[game.sport.toLowerCase()] ?? '🏅'
-  const hostRating =
-    typeof game.host.rating === 'number' ? game.host.rating.toFixed(1) : '4.8'
+  const theme = getSportTheme(game.sport)
+  const sportLabel = formatSportName(game.sport)
+  const skillLabel = friendlySkill(game.skillLevel)
+  const locationCity = game.location?.city
+  const locationLabel = game.location?.address ?? game.location?.name ?? 'Venue to be confirmed'
+  const dateLabel = formatFullDate(game.startTime)
+  const timeRangeLabel = formatTimeRange(game.startTime, game.endTime)
+  const priceLabel = game.priceRange ?? (game.isFree ? 'Free to join' : 'Paid event')
+  const hostRating = typeof game.host.rating === 'number' ? game.host.rating.toFixed(1) : '4.8'
   const hostedCount = game.attendeeCount
 
   return (
@@ -52,7 +53,7 @@ export function GameDetailPage() {
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="inline-flex items-center text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+                className="inline-flex items-center text-sm font-semibold text-slate-500 transition hover:text-slate-700"
               >
                 ← Back
               </button>
@@ -79,88 +80,332 @@ export function GameDetailPage() {
                     />
                   </svg>
                 </button>
-                <Button className="flex-shrink-0 !h-9 !px-5 !py-2 text-sm font-semibold leading-none">
-                  Join
-                </Button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                  style={{
+                    borderColor: theme.primary,
+                    color: theme.primary,
+                  }}
+                >
+                  <span className="inline-flex  items-center justify-center rounded-full bg-white/90">
+                    <TicketCheck
+                      className="h-4 w-4"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  </span>
+                  I'm in
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-4xl space-y-4 px-4 py-6">
-        <section className="overflow-hidden rounded-lg bg-white shadow">
-          <div className="flex items-center justify-between border-b border-slate-200 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-lg text-white">
-                {game.host.name.charAt(0)}
+      <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 pb-32">
+        <section className="relative overflow-hidden rounded-[30px] border border-slate-100 bg-white shadow-[0_24px_60px_rgba(15,41,77,0.12)]">
+          <div
+            className="absolute left-6 top-6 hidden h-12 w-12 items-center justify-center rounded-2xl sm:flex"
+            style={{ backgroundColor: theme.primary, color: '#FFFFFF' }}
+          >
+            <MapPinPlusInside
+              className="h-5 w-5"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+          </div>
+
+          <div className="space-y-6 px-6 py-6 sm:px-8 sm:py-8">
+            <header className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 items-start gap-3">
+                <AvatarCircle
+                  name={game.host.name}
+                  src={game.host.avatarUrl}
+                />
+                <div className="space-y-1 leading-tight">
+                  <p className="text-base font-semibold text-slate-900">
+                    {game.host.name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {hostRating}★ · {hostedCount} joined
+                  </p>
+                  {locationCity && (
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <MapPin
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                      <span>{locationCity}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{game.host.name}</p>
-                <p className="text-xs text-slate-500">
-                  {hostRating}★ · {hostedCount} joined
-                </p>
-              </div>
+
+              <span
+                className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                style={{ backgroundColor: theme.surface, color: theme.dark }}
+              >
+                {sportLabel}
+              </span>
+            </header>
+
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
+                style={{ backgroundColor: theme.surface, color: theme.dark }}
+              >
+                {skillLabel}
+              </span>
             </div>
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-600">
-              {game.sport}
-            </span>
-          </div>
 
-          <div className="flex h-32 items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-4xl text-white">
-            {icon}
-          </div>
+            <div className="space-y-5">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold text-slate-900">
+                  {game.title}
+                </h1>
+                {game.detail?.description ?? game.description ? (
+                  <p className="text-sm text-slate-600">
+                    {game.detail?.description ?? game.description}
+                  </p>
+                ) : null}
+              </div>
 
-          <div className="space-y-3 p-4">
-            <h1 className="text-lg font-bold text-slate-900">{game.title}</h1>
-            <DetailRow
-              icon="📅"
-              label="When"
-              value={`${dateFormatter.format(start)} · ${timeFormatter.format(start)} – ${timeFormatter.format(end)}`}
-            />
-            <DetailRow icon="📍" label="Where" value={game.location.address} />
-            <DetailRow
-              icon="👥"
-              label="Players"
-              value={`${game.attendeeCount}/${game.maxAttendees} joined`}
-            />
-            <DetailRow icon="🎯" label="Difficulty" value={`Level ${game.difficulty}`} />
-            <DetailRow
-              icon="💰"
-              label="Price"
-              value={
-                game.isFree
-                  ? 'Free'
-                  : game.price ?? game.pricePerPerson
-                  ? `$${game.price ?? game.pricePerPerson}${
-                      game.currency ? ` ${game.currency}` : ''
-                    }`
-                  : 'Check with host'
-              }
-            />
+              <div className="grid gap-4 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-3">
+                <InfoTile
+                  icon={MapPinPlusInside}
+                  label="Address"
+                  value={locationLabel}
+                />
+                <InfoTile
+                  icon={Calendar}
+                  label="Date"
+                  value={dateLabel}
+                />
+                <InfoTile
+                  icon={Clock8}
+                  label="Time"
+                  value={timeRangeLabel}
+                />
+                <InfoTile
+                  icon={CircleDollarSign}
+                  label="Price"
+                  value={priceLabel}
+                />
+                <InfoTile
+                  icon={UserRoundPlus}
+                  label="Joined"
+                  value={`${game.attendeeCount}/${game.maxAttendees}`}
+                />
+                <InfoTile
+                  icon={BarChart3}
+                  label="Skill level"
+                  value={skillLabel}
+                />
+              </div>
+
+              {!game.detail?.hideParticipants &&
+                game.participants.length > 0 && (
+                  <ParticipantsList participants={game.participants} />
+                )}
+            </div>
           </div>
         </section>
 
-        {game.description && (
-          <section className="rounded-lg bg-white p-4 shadow">
-            <h2 className="text-sm font-semibold text-slate-900">About this game</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{game.description}</p>
-          </section>
-        )}
+        <GameDetailsSections game={game} />
       </main>
-
     </div>
   )
 }
 
-function DetailRow({ icon, label, value }: { icon: string; label: string; value: string }) {
+function AvatarCircle({ name, src }: { name: string; src?: string }) {
   return (
-    <div className="flex items-start gap-3 rounded-md bg-slate-50 p-3 text-sm">
-      <span className="text-lg">{icon}</span>
-      <div>
+    <div
+      className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-lg font-semibold text-slate-700"
+      style={
+        src
+          ? {
+              backgroundImage: `url(${src})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }
+          : undefined
+      }
+    >
+      {!src && name.charAt(0).toUpperCase()}
+    </div>
+  )
+}
+
+function IconBadge({ icon: Icon }: { icon: LucideIcon }) {
+  return (
+    <span className="inline-flex h-8 w-8 items-center justify-center text-slate-500">
+      <Icon className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+    </span>
+  )
+}
+
+function InfoTile({ icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-3">
+      <IconBadge icon={icon} />
+      <div className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-        <p className="text-sm text-slate-700">{value}</p>
+        <p className="text-sm font-medium text-slate-700">{value}</p>
       </div>
     </div>
   )
+}
+
+function ParticipantsList({
+  participants,
+}: {
+  participants: PlayerGame['participants']
+}) {
+  const preview = participants.slice(0, 12)
+  return (
+    <section className="space-y-3 rounded-3xl border border-slate-100 bg-white/80 px-4 py-4 shadow-sm">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        Who's joining ({participants.length})
+      </h3>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {preview.map((participant) => (
+          <div
+            key={participant.id}
+            className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm"
+          >
+            <div
+              className={clsx(
+                'flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700'
+              )}
+              style={
+                participant.avatarUrl
+                  ? {
+                      backgroundImage: `url(${participant.avatarUrl})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }
+                  : undefined
+              }
+            >
+              {!participant.avatarUrl && participant.name.charAt(0).toUpperCase()}
+            </div>
+            <span>{participant.name}</span>
+          </div>
+        ))}
+      </div>
+      {participants.length > preview.length && (
+        <p className="text-xs text-slate-500">+{participants.length - preview.length} more</p>
+      )}
+    </section>
+  )
+}
+
+function GameDetailsSections({ game }: { game: PlayerGame }) {
+  const detail = game.detail ?? {}
+  const sections: Array<{ icon: string; title: string; lines: string[] }> = []
+
+  if (detail.description ?? game.description) {
+    sections.push({
+      icon: '📝',
+      title: 'About this game',
+      lines: [detail.description ?? game.description ?? 'Host has not shared details yet.'],
+    })
+  }
+
+  if (detail.lookingFor) {
+    const { skillLevel, vibe, notes } = detail.lookingFor
+    const lines: string[] = []
+    if (skillLevel) lines.push(`Skill level: ${skillLevel}`)
+    if (vibe) lines.push(`Team vibe: ${vibe}`)
+    if (notes) lines.push(`Special notes: ${notes}`)
+    if (lines.length) {
+      sections.push({
+        icon: '🎯',
+        title: "What the host is looking for",
+        lines,
+      })
+    }
+  }
+
+  if (detail.rules) {
+    const { duration, courtType, equipment, rotation } = detail.rules
+    const lines: string[] = []
+    if (duration) lines.push(`Duration: ${duration}`)
+    if (courtType) lines.push(`Court: ${courtType}`)
+    if (equipment) lines.push(`Equipment: ${equipment}`)
+    if (rotation) lines.push(`Rotation: ${rotation}`)
+    if (lines.length) {
+      sections.push({
+        icon: '⚙️',
+        title: 'Game rules',
+        lines,
+      })
+    }
+  }
+
+  if (!sections.length) {
+    return null
+  }
+
+  return (
+    <div className="space-y-4">
+      {sections.map((section) => (
+        <section
+          key={section.title}
+          className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm"
+        >
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            {section.icon} {section.title}
+          </h2>
+          <div className="mt-3 space-y-2 text-sm leading-relaxed text-slate-700">
+            {section.lines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+function formatSportName(value: string) {
+  if (!value) return 'Sport'
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+}
+
+function friendlySkill(level: PlayerGame['skillLevel']) {
+  switch (level) {
+    case 'beginner':
+      return 'Beginner friendly'
+    case 'intermediate':
+      return 'Intermediate pace'
+    case 'advanced':
+      return 'Advanced crew'
+    case 'mixed':
+    default:
+      return 'All levels welcome'
+  }
+}
+
+function toDate(value: Date | string) {
+  return value instanceof Date ? value : new Date(value)
+}
+
+function formatFullDate(value: Date | string) {
+  const date = toDate(value)
+  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' })
+  const day = date.toLocaleDateString(undefined, { day: '2-digit' })
+  const month = date.toLocaleDateString(undefined, { month: '2-digit' })
+  const year = date.toLocaleDateString(undefined, { year: 'numeric' })
+  return `${weekday}, ${day}/${month}/${year}`
+}
+
+function formatTimeRange(start: Date | string, end: Date | string) {
+  const startDate = toDate(start)
+  const endDate = toDate(end)
+  const startLabel = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const endLabel = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return `${startLabel}-${endLabel}`
 }

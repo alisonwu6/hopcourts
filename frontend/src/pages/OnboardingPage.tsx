@@ -18,16 +18,12 @@ const AVATAR_STEP = 6
 const MAX_SPORTS = 3
 
 const SPORTS = [
-  { id: 'running', label: 'Running', icon: '🏃' },
   { id: 'basketball', label: 'Basketball', icon: '🏀' },
-  { id: 'football', label: 'Football', icon: '⚽' },
-  { id: 'tennis', label: 'Tennis', icon: '🎾' },
-  { id: 'volleyball', label: 'Volleyball', icon: '🏐' },
-  { id: 'swimming', label: 'Swimming', icon: '🏊' },
-  { id: 'cycling', label: 'Cycling', icon: '🚴' },
-  { id: 'golf', label: 'Golf', icon: '🏌️' },
-  { id: 'yoga', label: 'Yoga', icon: '🧘' },
-  { id: 'fitness', label: 'Fitness', icon: '💪' },
+  { id: 'badminton', label: 'Badminton', icon: '🏸' },
+  { id: 'pickleball', label: 'Pickleball', icon: '🏓' },
+  { id: 'climbing', label: 'Climbing', icon: '🧗' },
+  { id: 'running', label: 'Running', icon: '🏃' },
+  { id: 'hiking', label: 'Hiking', icon: '🥾' },
 ]
 
 const SKILL_OPTIONS: Array<{

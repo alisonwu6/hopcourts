@@ -17,30 +17,25 @@ const sportPalette: Record<string, { ring: string; chipBg: string; chipText: str
     chipBg: 'bg-[#E6F9F1]',
     chipText: 'text-[#0F9F77]',
   },
+  pickleball: {
+    ring: 'from-[#0EA5E9] to-[#3B82F6]',
+    chipBg: 'bg-[#DBF0FF]',
+    chipText: 'text-[#0369A1]',
+  },
+  climbing: {
+    ring: 'from-[#7C3AED] to-[#9333EA]',
+    chipBg: 'bg-[#EFE7FF]',
+    chipText: 'text-[#7C3AED]',
+  },
   running: {
     ring: 'from-[#0F9F77] to-[#4CA65A]',
     chipBg: 'bg-[#E6F9F1]',
     chipText: 'text-[#0F9F77]',
   },
-  strength: {
-    ring: 'from-[#7C3AED] to-[#9333EA]',
-    chipBg: 'bg-[#EFE7FF]',
-    chipText: 'text-[#7C3AED]',
-  },
-  '路跑': {
-    ring: 'from-[#0F9F77] to-[#4CA65A]',
-    chipBg: 'bg-[#E6F9F1]',
-    chipText: 'text-[#0F9F77]',
-  },
-  籃球: {
-    ring: 'from-[#F47920] to-[#F59E0B]',
-    chipBg: 'bg-[#FEE8D9]',
-    chipText: 'text-[#F47920]',
-  },
-  肌力: {
-    ring: 'from-[#7C3AED] to-[#9333EA]',
-    chipBg: 'bg-[#EFE7FF]',
-    chipText: 'text-[#7C3AED]',
+  hiking: {
+    ring: 'from-[#4C7A34] to-[#86B049]',
+    chipBg: 'bg-[#EDF7DE]',
+    chipText: 'text-[#3F6212]',
   },
 }
 

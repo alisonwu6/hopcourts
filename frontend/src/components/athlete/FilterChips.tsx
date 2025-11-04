@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { getSportTheme } from '@/lib/sportColors'
 
 interface Props {
   filters: string[]
@@ -8,7 +9,7 @@ interface Props {
 }
 
 const baseButton =
-  'whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-300'
+  'whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-300'
 
 export function FilterChips({ filters, selected = 'All', onSelect, className }: Props) {
   return (
@@ -19,6 +20,13 @@ export function FilterChips({ filters, selected = 'All', onSelect, className }: 
         <div className="flex w-max items-center gap-2">
           {filters.map((filter) => {
             const isActive = filter === selected
+            const theme = getSportTheme(filter)
+            const isSportChip = !theme.isDefault
+            const style =
+              isActive && isSportChip
+                ? { backgroundColor: theme.surface, color: theme.dark, borderColor: theme.primary }
+                : undefined
+
             return (
               <button
                 key={filter}
@@ -27,9 +35,12 @@ export function FilterChips({ filters, selected = 'All', onSelect, className }: 
                 className={clsx(
                   baseButton,
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    ? isSportChip
+                      ? 'shadow-sm'
+                      : 'border-transparent bg-blue-600 text-white shadow-sm'
+                    : 'border-transparent bg-blue-100 text-blue-700 hover:bg-blue-200'
                 )}
+                style={style}
               >
                 {filter}
               </button>
