@@ -45,7 +45,7 @@ export function Splash() {
               variant="secondary"
               className="w-full"
             >
-              <Link to="/signup" className="flex w-full items-center justify-center">
+              <Link to="/login" className="flex w-full items-center justify-center">
                 Join SportsMatch
               </Link>
             </Button>
