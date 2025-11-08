@@ -22,10 +22,10 @@ function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: O
       )
     )
   )
-  const roleTone =
-    role === 'host'
-      ? 'Hosting games and rallying the crew.'
-      : 'Chasing good games and new teammates.'
+  const isVenueManager = role === 'venue_manager'
+  const roleTone = isVenueManager
+    ? 'Hosting games and rallying the crew.'
+    : 'Chasing good games and new teammates.'
 
   return {
     ...mockAthlete,
@@ -34,7 +34,7 @@ function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: O
     city: user.location,
     sport: primarySport,
     primarySport,
-    title: role === 'host' ? 'Community host · building the game vibe.' : 'Player · ready to jump in.',
+    title: isVenueManager ? 'Community host · building the game vibe.' : 'Player · ready to jump in.',
     toneLines: [roleTone, ...(mockAthlete.toneLines?.slice(0, 3) ?? [])],
     visualTagline: uniqueSports.length ? uniqueSports.join(' · ') : mockAthlete.visualTagline,
     stats: {
@@ -45,7 +45,7 @@ function buildSelfAthlete(user: ReturnType<typeof useAuthStore>['user'], role: O
     },
     tags: uniqueTags,
     vibes:
-      role === 'host'
+      isVenueManager
         ? Array.from(new Set(['Crew Builder', ...(mockAthlete.vibes ?? [])]))
         : Array.from(new Set(['Game Ready', ...(mockAthlete.vibes ?? [])])),
     bio: user.bio ?? mockAthlete.bio,
