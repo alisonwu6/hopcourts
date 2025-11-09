@@ -6,6 +6,8 @@ import {
   useOnboardingStore,
 } from './onboardingStore'
 
+import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
+
 interface AuthState {
   user: User | null
   token: string | null
@@ -20,14 +22,12 @@ interface AuthState {
   clearError: () => void
 }
 
-const TOKEN_KEY = 'auth_token'
-
 const persistToken = (token: string | null) => {
   if (typeof window === 'undefined') return
   if (token) {
-    window.localStorage.setItem(TOKEN_KEY, token)
+    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token)
   } else {
-    window.localStorage.removeItem(TOKEN_KEY)
+    window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
   }
 }
 

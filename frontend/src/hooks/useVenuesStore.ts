@@ -1,16 +1,15 @@
 import { create } from 'zustand'
-import { CreateVenueInput, Venue, VenueFilter } from '@/types'
+import { PlayerVenue, VenueFilter } from '@/types'
 import { venuesService } from '@/services'
 
 interface VenuesStore {
-  venues: Venue[]
-  selectedVenue: Venue | null
+  venues: PlayerVenue[]
+  selectedVenue: PlayerVenue | null
   isLoading: boolean
   error: string | null
   fetchVenues: (filters?: VenueFilter) => Promise<void>
   fetchVenueById: (id: string) => Promise<void>
-  createVenue: (input: CreateVenueInput, ownerId: string) => Promise<void>
-  setSelectedVenue: (venue: Venue | null) => void
+  setSelectedVenue: (venue: PlayerVenue | null) => void
 }
 
 export const useVenuesStore = create<VenuesStore>((set) => ({
@@ -59,22 +58,5 @@ export const useVenuesStore = create<VenuesStore>((set) => ({
     }
   },
 
-  createVenue: async (input: CreateVenueInput, ownerId: string) => {
-    try {
-      const response = await venuesService.createVenue(input, ownerId)
-      if (response.success && response.data) {
-        set((state) => ({
-          venues: [...state.venues, response.data!],
-        }))
-      } else {
-        set({
-          error: response.error?.message ?? 'Failed to create venue',
-        })
-      }
-    } catch {
-      set({ error: 'An error occurred' })
-    }
-  },
-
-  setSelectedVenue: (venue: Venue | null) => set({ selectedVenue: venue }),
+  setSelectedVenue: (venue: PlayerVenue | null) => set({ selectedVenue: venue }),
 }))

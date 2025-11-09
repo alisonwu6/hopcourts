@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { GameRow } from '@/components/player/GameRow'
-import { PLAYER_MOCK_GAMES, PLAYER_MOCK_VENUES } from '@/data/playerMocks'
 import { getSportTheme } from '@/lib/sportColors'
 import clsx from 'clsx'
 import {
@@ -14,21 +13,35 @@ import {
   Star,
   UsersRound,
 } from 'lucide-react'
+import { useVenuesStore } from '@/hooks'
+import { useGamesStore } from '@/hooks'
 
 export function VenueDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [isSaved, setIsSaved] = useState(false)
+  const venue = useVenuesStore((state) => state.selectedVenue)
+  const isLoading = useVenuesStore((state) => state.isLoading)
+  const venueError = useVenuesStore((state) => state.error)
+  const fetchVenueById = useVenuesStore((state) => state.fetchVenueById)
+  const fetchGames = useGamesStore((state) => state.fetchGames)
+  const games = useGamesStore((state) => state.games)
 
-  const venue = useMemo(() => PLAYER_MOCK_VENUES.find((item) => item.id === id), [id])
+  useEffect(() => {
+    if (id) {
+      void fetchVenueById(id)
+      void fetchGames()
+    }
+  }, [id, fetchVenueById, fetchGames])
 
-  const gamesAtVenue = useMemo(
-    () =>
-      PLAYER_MOCK_GAMES.filter(
-        (game) => venue && game.location.name.toLowerCase() === venue.location.name.toLowerCase()
-      ),
-    [venue]
-  )
+  const gamesAtVenue = useMemo(() => {
+    if (!venue) return []
+    return games.filter(
+      (game) =>
+        game.location?.name &&
+        game.location.name.toLowerCase() === venue.location.name.toLowerCase()
+    )
+  }, [games, venue])
 
   if (!venue) {
     return (
@@ -36,7 +49,7 @@ export function VenueDetailPage() {
         <button type="button" onClick={() => navigate(-1)} className="mb-4 text-slate-500">
           ← Back
         </button>
-        Venue not found.
+        {isLoading ? 'Loading venue…' : venueError ?? 'Venue not found.'}
       </div>
     )
   }
@@ -212,7 +225,7 @@ function InfoTile({
   )
 }
 
-function AboutSection({ venue }: { venue: (typeof PLAYER_MOCK_VENUES)[number] }) {
+function AboutSection({ venue }: { venue: PlayerVenue }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 text-sm text-slate-700 sm:grid-cols-2">
@@ -261,7 +274,7 @@ function GamesSection({
   games,
   navigate,
 }: {
-  games: typeof PLAYER_MOCK_GAMES
+  games: PlayerGame[]
   navigate: ReturnType<typeof useNavigate>
 }) {
   if (!games.length) {

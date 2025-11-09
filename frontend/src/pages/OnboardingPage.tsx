@@ -499,6 +499,19 @@ export function OnboardingPage() {
     }
   }
 
+  const buildCompletionRequest = (motivationValue: string) => ({
+    fullName: basicInfo.fullName,
+    city: basicInfo.city,
+    gender: basicInfo.gender,
+    username,
+    sports: selectedSports.map((sport) => ({
+      sport,
+      skillLevel: data.skillLevels[sport] ?? 'mixed',
+      playingStyle: data.playingStyle ?? 'mixed',
+    })),
+    motivation: motivationValue || data.athleteMotivation,
+  })
+
   const handleCompleteFlow = async (motivationOverride?: string) => {
     if (data.role === 'venue_manager' && !data.venueConsent) {
       setError('Please authorize contact so we can verify your venue.')
@@ -508,8 +521,9 @@ export function OnboardingPage() {
     setLoading(true)
     setError(null)
     try {
-      const payload = buildCompletionPayload(motivationOverride ?? motivationText)
-      const response = await authService.completeOnboarding(payload)
+      const motivationValue = motivationOverride ?? motivationText
+      const statusPayload = buildCompletionPayload(motivationValue)
+      const response = await authService.completeOnboarding(buildCompletionRequest(motivationValue))
       setStatus(response.onboardingStatus)
       setAuthData(response.user, response.token, response.onboardingStatus)
       navigate(data.role === 'venue_manager' ? '/venues' : '/home', { replace: true })

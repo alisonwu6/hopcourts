@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MapPin, PenLine } from 'lucide-react'
 import { Button, GameCard } from '@/components'
 import { FilterChips } from '@/components/athlete/FilterChips'
-import { PLAYER_MOCK_GAMES } from '@/data/playerMocks'
+import { useGamesStore } from '@/hooks'
 
 const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 
@@ -11,14 +11,21 @@ const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Run
 export function HomePage() {
   const navigate = useNavigate()
   const [selectedSport, setSelectedSport] = useState('All')
+  const games = useGamesStore((state) => state.games)
+  const isLoading = useGamesStore((state) => state.isLoading)
+  const error = useGamesStore((state) => state.error)
+  const fetchGames = useGamesStore((state) => state.fetchGames)
+
+  useEffect(() => {
+    void fetchGames()
+  }, [fetchGames])
 
   const filteredGames = useMemo(() => {
-    return selectedSport === 'All'
-      ? PLAYER_MOCK_GAMES
-      : PLAYER_MOCK_GAMES.filter(
-          (game) => game.sport.toLowerCase() === selectedSport.toLowerCase()
-        )
-  }, [selectedSport])
+    if (selectedSport === 'All') return games
+    return games.filter(
+      (game) => game.sport.toLowerCase() === selectedSport.toLowerCase()
+    )
+  }, [games, selectedSport])
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
@@ -36,7 +43,14 @@ export function HomePage() {
       </div>
 
       <div className="mx-auto mt-[3rem] w-full max-w-4xl px-4 py-6">
-        {filteredGames.length === 0 ? (
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {isLoading ? (
+          <div className="flex justify-center py-10 text-slate-500">Loading games…</div>
+        ) : filteredGames.length === 0 ? (
           <div className="py-10 text-center text-slate-500">No games found</div>
         ) : (
           filteredGames.map((game) => (

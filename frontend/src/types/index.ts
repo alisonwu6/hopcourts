@@ -359,6 +359,121 @@ export interface HostFilter {
 }
 
 // ============================================================================
+// PLAYER-FACING ENTITIES
+// ============================================================================
+
+export interface PlayerGame {
+  id: string
+  title: string
+  sport: string
+  vibeIcon: string
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed'
+  startTime: Date | string
+  endTime: Date | string
+  location: {
+    name: string
+    address: string
+    city: string
+  }
+  host: {
+    id: string
+    name: string
+    avatarUrl?: string
+    rating?: number
+    distanceKm?: number
+    level?: string
+  }
+  highFives: number
+  joined: boolean
+  attendeeCount: number
+  maxAttendees: number
+  difficulty: 1 | 2 | 3 | 4 | 5
+  isFree: boolean
+  price?: number
+  priceRange?: string
+  description?: string
+  participants: Array<{ id: string; name: string; avatarUrl?: string }>
+  completedDate?: Date
+  detail?: {
+    description?: string
+    lookingFor?: {
+      skillLevel?: string
+      vibe?: string
+      notes?: string
+    }
+    rules?: {
+      duration?: string
+      courtType?: string
+      equipment?: string
+      rotation?: string
+    }
+    hideParticipants?: boolean
+  }
+}
+
+export interface PlayerVenue {
+  id: string
+  name: string
+  type: string
+  sports: string[]
+  location: {
+    name: string
+    address: string
+    city: string
+  }
+  rating: number
+  reviewCount: number
+  memberCount: number
+  gamesThisMonth: number
+  amenities: string[]
+}
+
+export interface GameApi {
+  id: number
+  creator_id: number
+  venue_id?: number | null
+  title: string
+  sport: string
+  description?: string
+  skill_level?: 'beginner' | 'intermediate' | 'advanced' | 'mixed'
+  energy?: number
+  location_name?: string
+  location_address?: string
+  area?: string
+  city?: string
+  latitude?: number | null
+  longitude?: number | null
+  start_time: string
+  end_time: string
+  max_players: number
+  price?: number
+  currency?: string
+  requires_approval?: boolean
+  status: 'scheduled' | 'completed' | 'cancelled'
+  host_name?: string
+  host_avatar?: string
+  attendee_count?: number
+  venue_name?: string
+  venue_address?: string
+  venue_city?: string
+  attendees?: Array<{
+    player_id: number
+    full_name: string
+    avatar_url?: string
+    status: string
+  }>
+  messages?: Array<{
+    id: number
+    game_id: number
+    sender_id: number
+    sender_name: string
+    sender_avatar?: string
+    body: string
+    created_at: string
+  }>
+}
+
+// ============================================================================
 // FORM TYPES
 // ============================================================================
 

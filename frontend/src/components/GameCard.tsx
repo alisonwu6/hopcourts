@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
 import { Calendar, CircleDollarSign, Clock8, MapPin, MapPinned, MapPinPlusInside, UserRoundPlus } from 'lucide-react'
-import { PlayerGame } from '@/data/playerMocks'
+import { PlayerGame } from '@/types'
 import { getSportTheme } from '@/lib/sportColors'
 
 type GameCardProps = {

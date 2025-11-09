@@ -1,22 +1,30 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { VenueRow } from '@/components/player/VenueRow'
 import { FilterChips } from '@/components/athlete/FilterChips'
-import { PLAYER_MOCK_VENUES } from '@/data/playerMocks'
+import { useVenuesStore } from '@/hooks'
 
 const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 
 export function VenuesPage() {
   const navigate = useNavigate()
   const [selectedSport, setSelectedSport] = useState('All')
+  const venues = useVenuesStore((state) => state.venues)
+  const fetchVenues = useVenuesStore((state) => state.fetchVenues)
+  const isLoading = useVenuesStore((state) => state.isLoading)
+  const error = useVenuesStore((state) => state.error)
+
+  useEffect(() => {
+    void fetchVenues()
+  }, [fetchVenues])
 
   const filteredVenues = useMemo(() => {
-    if (selectedSport === 'All') return PLAYER_MOCK_VENUES
+    if (selectedSport === 'All') return venues
     const lowered = selectedSport.toLowerCase()
-    return PLAYER_MOCK_VENUES.filter((venue) =>
+    return venues.filter((venue) =>
       venue.sports.some((sport) => sport.toLowerCase() === lowered)
     )
-  }, [selectedSport])
+  }, [venues, selectedSport])
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
@@ -36,11 +44,24 @@ export function VenuesPage() {
       <div className="mx-auto mt-[3rem] w-full max-w-4xl px-4 py-6">
         {/* <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-blue-700">Near you</h3> */}
 
-        <div className="space-y-3">
-          {filteredVenues.map((venue) => (
-            <VenueRow key={venue.id} venue={venue} onClick={() => navigate(`/venue/${venue.id}`)} />
-          ))}
-        </div>
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {isLoading ? (
+          <div className="py-10 text-center text-slate-500">Loading venues…</div>
+        ) : (
+          <div className="space-y-3">
+            {filteredVenues.map((venue) => (
+              <VenueRow
+                key={venue.id}
+                venue={venue}
+                onClick={() => navigate(`/venue/${venue.id}`)}
+              />
+            ))}
+          </div>
+        )}
 
         {filteredVenues.length > 10 && (
           <button

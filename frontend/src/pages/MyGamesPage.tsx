@@ -1,11 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { PLAYER_MOCK_GAMES, type PlayerGame } from '@/data/playerMocks'
+import type { PlayerGame } from '@/types'
+import { useGamesStore } from '@/hooks'
 
 type TabKey = 'upcoming' | 'completed'
 
 function isCompleted(game: PlayerGame) {
-  return Boolean(game.completedDate && game.completedDate < new Date())
+  if (game.completedDate) {
+    return new Date(game.completedDate) < new Date()
+  }
+  return false
 }
 
 function groupByDate(games: PlayerGame[]) {
@@ -21,14 +25,22 @@ function groupByDate(games: PlayerGame[]) {
 export function MyGamesPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<TabKey>('upcoming')
+  const games = useGamesStore((state) => state.games)
+  const fetchMyGames = useGamesStore((state) => state.fetchMyGames)
+  const isLoading = useGamesStore((state) => state.isLoading)
+  const error = useGamesStore((state) => state.error)
+
+  useEffect(() => {
+    void fetchMyGames()
+  }, [fetchMyGames])
 
   const upcomingGames = useMemo(
-    () => PLAYER_MOCK_GAMES.filter((game) => !isCompleted(game)),
-    []
+    () => games.filter((game) => !isCompleted(game)),
+    [games]
   )
   const completedGames = useMemo(
-    () => PLAYER_MOCK_GAMES.filter((game) => isCompleted(game)),
-    []
+    () => games.filter((game) => isCompleted(game)),
+    [games]
   )
 
   return (
@@ -43,7 +55,14 @@ export function MyGamesPage() {
       </div>
 
       <div className="px-4 py-6">
-        {tab === 'upcoming' ? (
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {isLoading ? (
+          <div className="py-10 text-center text-slate-500">Loading your games…</div>
+        ) : tab === 'upcoming' ? (
           <GameGroupList
             groups={groupByDate(upcomingGames)}
             emptyState={
@@ -117,8 +136,8 @@ function GameGroupList({
                   <div className="flex-1">
                     <h4 className="font-semibold text-slate-900">{game.title}</h4>
                     <p className="mt-2 text-xs text-gray-600">
-                      {game.startTime.toLocaleDateString()} ·{' '}
-                      {game.startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(game.startTime).toLocaleDateString()} ·{' '}
+                      {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                     <p className="mt-1 text-xs text-gray-600">📍 {game.location.name}</p>
                     <p className="mt-2 text-xs font-semibold text-blue-600">

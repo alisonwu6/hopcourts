@@ -1,18 +1,19 @@
 import { create } from 'zustand'
-import { CreateGameInput, Game, GameFilter } from '@/types'
+import { CreateGameInput, GameFilter, PlayerGame } from '@/types'
 import { gamesService } from '@/services'
 
 interface GamesStore {
-  games: Game[]
-  selectedGame: Game | null
+  games: PlayerGame[]
+  selectedGame: PlayerGame | null
   isLoading: boolean
   error: string | null
   fetchGames: (filters?: GameFilter) => Promise<void>
   fetchGameById: (id: string) => Promise<void>
-  createGame: (input: CreateGameInput, hostId: string) => Promise<void>
-  joinGame: (gameId: string, userId: string) => Promise<void>
-  leaveGame: (gameId: string, userId: string) => Promise<void>
-  setSelectedGame: (game: Game | null) => void
+  fetchMyGames: () => Promise<void>
+  createGame: (input: CreateGameInput) => Promise<void>
+  joinGame: (gameId: string) => Promise<void>
+  leaveGame: (gameId: string) => Promise<void>
+  setSelectedGame: (game: PlayerGame | null) => void
 }
 
 export const useGamesStore = create<GamesStore>((set) => ({
@@ -61,9 +62,29 @@ export const useGamesStore = create<GamesStore>((set) => ({
     }
   },
 
-  createGame: async (input: CreateGameInput, hostId: string) => {
+  fetchMyGames: async () => {
+    set({ isLoading: true, error: null })
     try {
-      const response = await gamesService.createGame(input, hostId)
+      const response = await gamesService.getMyGames()
+      if (response.success && response.data) {
+        set({ games: response.data.data, isLoading: false })
+      } else {
+        set({
+          error: response.error?.message ?? 'Failed to load games',
+          isLoading: false,
+        })
+      }
+    } catch {
+      set({
+        error: 'An error occurred',
+        isLoading: false,
+      })
+    }
+  },
+
+  createGame: async (input: CreateGameInput) => {
+    try {
+      const response = await gamesService.createGame(input)
       if (response.success && response.data) {
         set((state) => ({
           games: [...state.games, response.data!],
@@ -78,12 +99,13 @@ export const useGamesStore = create<GamesStore>((set) => ({
     }
   },
 
-  joinGame: async (gameId: string, userId: string) => {
+  joinGame: async (gameId: string) => {
     try {
-      const response = await gamesService.joinGame(gameId, userId)
+      const response = await gamesService.joinGame(gameId)
       if (response.success && response.data) {
         set((state) => ({
           games: state.games.map((game) => (game.id === gameId ? response.data! : game)),
+          selectedGame: state.selectedGame?.id === gameId ? response.data! : state.selectedGame,
         }))
       } else {
         set({
@@ -95,12 +117,13 @@ export const useGamesStore = create<GamesStore>((set) => ({
     }
   },
 
-  leaveGame: async (gameId: string, userId: string) => {
+  leaveGame: async (gameId: string) => {
     try {
-      const response = await gamesService.leaveGame(gameId, userId)
+      const response = await gamesService.leaveGame(gameId)
       if (response.success && response.data) {
         set((state) => ({
           games: state.games.map((game) => (game.id === gameId ? response.data! : game)),
+          selectedGame: state.selectedGame?.id === gameId ? response.data! : state.selectedGame,
         }))
       } else {
         set({
@@ -112,5 +135,5 @@ export const useGamesStore = create<GamesStore>((set) => ({
     }
   },
 
-  setSelectedGame: (game: Game | null) => set({ selectedGame: game }),
+  setSelectedGame: (game: PlayerGame | null) => set({ selectedGame: game }),
 }))

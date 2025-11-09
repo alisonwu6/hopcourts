@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components'
-import { PLAYER_MOCK_GAMES, type PlayerGame } from '@/data/playerMocks'
+import type { PlayerGame } from '@/types'
 import clsx from 'clsx'
 import {
   BarChart3,
@@ -14,13 +14,28 @@ import {
   UserRoundPlus,
 } from 'lucide-react'
 import { getSportTheme } from '@/lib/sportColors'
+import { useGamesStore } from '@/hooks'
+import { useAuthStore } from '@/store/authStore'
 
 export function GameDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [isSaved, setIsSaved] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
+  const selectedGame = useGamesStore((state) => state.selectedGame)
+  const fetchGameById = useGamesStore((state) => state.fetchGameById)
+  const joinGame = useGamesStore((state) => state.joinGame)
+  const leaveGame = useGamesStore((state) => state.leaveGame)
+  const gamesLoading = useGamesStore((state) => state.isLoading)
+  const { user } = useAuthStore()
 
-  const game = useMemo(() => PLAYER_MOCK_GAMES.find((item) => item.id === id), [id])
+  useEffect(() => {
+    if (id) {
+      void fetchGameById(id)
+    }
+  }, [id, fetchGameById])
+
+  const game = selectedGame
 
   if (!game) {
     return (
@@ -28,9 +43,23 @@ export function GameDetailPage() {
         <button type="button" onClick={() => navigate(-1)} className="mb-4 text-slate-700">
           ← Back
         </button>
-        Game not found.
+        {gamesLoading ? 'Loading game…' : 'Game not found.'}
       </div>
     )
+  }
+
+  const handleJoinToggle = async () => {
+    if (!game) return
+    setActionLoading(true)
+    try {
+      if (game.joined) {
+        await leaveGame(game.id)
+      } else {
+        await joinGame(game.id)
+      }
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   const theme = getSportTheme(game.sport)
@@ -82,11 +111,20 @@ export function GameDetailPage() {
                 </button>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                  style={{
-                    borderColor: theme.primary,
-                    color: theme.primary,
-                  }}
+                  onClick={handleJoinToggle}
+                  disabled={actionLoading}
+                  className={clsx(
+                    'inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                    game.joined ? 'bg-player-600 text-white border-player-600' : ''
+                  )}
+                  style={
+                    game.joined
+                      ? undefined
+                      : {
+                          borderColor: theme.primary,
+                          color: theme.primary,
+                        }
+                  }
                 >
                   <span className="inline-flex  items-center justify-center rounded-full bg-white/90">
                     <TicketCheck
@@ -95,7 +133,7 @@ export function GameDetailPage() {
                       aria-hidden="true"
                     />
                   </span>
-                  I'm in
+                  {game.joined ? 'Joined' : "I'm in"}
                 </button>
               </div>
             </div>

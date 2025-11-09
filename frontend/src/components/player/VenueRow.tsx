@@ -1,4 +1,4 @@
-import type { PlayerVenue } from '@/data/playerMocks'
+import type { PlayerVenue } from '@/types'
 import { Building2, MapPin, Star } from 'lucide-react'
 import { getSportTheme } from '@/lib/sportColors'
 
