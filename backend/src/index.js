@@ -16,6 +16,10 @@ const cpuRoutes = require('./routes/cpuRoutes')
 const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
 const gameRoutes = require('./routes/gameRoutes')
+const gameJoinRoutes = require('./routes/gameJoinRoutes')
+const messageRoutes = require('./routes/messageRoutes')
+const onboardingRoutes = require('./routes/onboardingRoutes')
+const venueRoutes = require('./routes/venueRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const s3Routes = require('./routes/s3')
 const s3CheckRoutes = require('./routes/s3-check')
@@ -33,7 +37,11 @@ app.use('/uploads', express.static('src/uploads')) // serve 圖片
 app.use('/api/admin', adminRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
-app.use('/api/games', gameRoutes)
+app.use('/api', gameRoutes)
+app.use('/api', gameJoinRoutes)
+app.use('/api', messageRoutes)
+app.use('/api/onboarding', onboardingRoutes)
+app.use('/api/venues', venueRoutes)
 
 function burn(ms) {
   const end = Date.now() + ms

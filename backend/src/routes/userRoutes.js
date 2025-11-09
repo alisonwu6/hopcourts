@@ -1,15 +1,16 @@
 const express = require('express')
 const router = express.Router()
 const {
-  handleGetMe,
-  handleCreateUser,
-  handleGetUserAvatar,
+  getMyProfile,
+  updateMyProfile,
+  getUserProfile,
+  checkUsernameAvailability,
 } = require('../controllers/userController')
-const uploadImage = require('../middleware/uploadImage')
 const verifyToken = require('../middleware/verifyToken')
 
-router.post('/', uploadImage.single('avatar'), handleCreateUser)
-router.get('/:userId/avatar', handleGetUserAvatar)
-router.get('/me', verifyToken, handleGetMe)
+router.get('/me', verifyToken, getMyProfile)
+router.put('/me', verifyToken, updateMyProfile)
+router.get('/check/username', checkUsernameAvailability)
+router.get('/:id', getUserProfile)
 
 module.exports = router

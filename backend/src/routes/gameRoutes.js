@@ -1,12 +1,13 @@
 const express = require('express')
 const router = express.Router()
-const controller = require('../controllers/gameController')
 const verifyToken = require('../middleware/verifyToken')
+const gameController = require('../controllers/gameController')
 
-router.post('/', verifyToken, controller.handleCreateGame)
-router.get('/', controller.handleGetGames)
-router.get('/:id', controller.handleGetGameById)
-router.put('/:id', verifyToken, controller.handleUpdateGame)
-router.delete('/:id', verifyToken, controller.handleDeleteGame)
+router.get('/discover/games', gameController.discoverGames)
+router.get('/games/mine', verifyToken, gameController.getMyGames)
+router.get('/games/:id', gameController.getGame)
+router.post('/games', verifyToken, gameController.createGame)
+router.put('/games/:id', verifyToken, gameController.updateGame)
+router.delete('/games/:id', verifyToken, gameController.deleteGame)
 
 module.exports = router

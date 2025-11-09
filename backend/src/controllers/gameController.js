@@ -1,113 +1,105 @@
 const gameModel = require('../models/gameModel')
-const waitForDB = require('../utils/db')
-const { getCache, setCache, delCache } = require('../cache')
 
-const handleCreateGame = async (req, res) => {
+async function discoverGames(req, res) {
   try {
-    const id = await gameModel.createGame(req.body)
-
-    await delCache('games:all')
-
-    res.status(201).json({ id })
+    const filters = {
+      sport: req.query.sport,
+      area: req.query.area,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+    }
+    const games = await gameModel.listGames(filters)
+    res.json({ data: games })
   } catch (error) {
-    console.error('Failed to create game:', error)
-    res.status(500).send('Create failed')
+    console.error('Failed to fetch games', error)
+    res.status(500).json({ message: 'Failed to load games' })
   }
 }
 
-const handleGetGames = async (req, res) => {
-  try {
-    const { sport } = req.query
-    console.log('sport', sport)
-
-    const cacheKey = 'games:all'
-
-    // check cache
-    const cached = await getCache(cacheKey)
-    if (cached) {
-      console.log('Cache HIT: games list')
-      return res.json(cached)
-    }
-
-    if (sport) {
-      return await getFilteredGames(req, res)
-    }
-
-    const games = await gameModel.getAllGames()
-
-    // save redis
-    await setCache(cacheKey, games, 60)
-    console.log('set cache')
-
-    res.json(games)
-  } catch (error) {
-    res.status(500).send('Read failed')
-  }
-}
-
-const handleGetGameById = async (req, res) => {
+async function getGame(req, res) {
   try {
     const game = await gameModel.getGameById(req.params.id)
-    if (!game) return res.status(404).send('Not found')
+    if (!game) {
+      return res.status(404).json({ message: 'Game not found' })
+    }
     res.json(game)
   } catch (error) {
-    res.status(500).send('Read failed')
+    console.error('Failed to fetch game', error)
+    res.status(500).json({ message: 'Failed to load game' })
   }
 }
 
-const handleUpdateGame = async (req, res) => {
+async function createGame(req, res) {
   try {
-    const updatedFields = { ...req.body }
-
-    // host_name is not allowed to modify for later use.
-    delete updatedFields.host_name
-
-    const success = await gameModel.updateGame(req.params.id, updatedFields)
-    if (!success) {
-      return res.status(404).send('Game not found or update failed')
+    const required = ['title', 'sport', 'startTime', 'endTime', 'maxPlayers']
+    const missing = required.filter((field) => !req.body?.[field])
+    if (missing.length) {
+      return res.status(400).json({ message: `Missing fields: ${missing.join(', ')}` })
     }
-    res.sendStatus(204)
+    const gameId = await gameModel.createGame({
+      ...req.body,
+      creatorId: req.userId,
+    })
+    const game = await gameModel.getGameById(gameId)
+    res.status(201).json(game)
   } catch (error) {
-    console.error('Failed to update game:', error)
-    res.status(500).send('Update failed')
+    console.error('Failed to create game', error)
+    res.status(500).json({ message: 'Failed to create game' })
   }
 }
 
-const handleDeleteGame = async (req, res) => {
+async function updateGame(req, res) {
   try {
+    const existing = await gameModel.getGameById(req.params.id)
+    if (!existing) {
+      return res.status(404).json({ message: 'Game not found' })
+    }
+    if (existing.creator_id !== req.userId) {
+      return res.status(403).json({ message: 'Not allowed to update this game' })
+    }
+    const game = await gameModel.updateGame(req.params.id, req.body)
+    if (!game) {
+      return res.status(404).json({ message: 'Game not found' })
+    }
+    res.json(game)
+  } catch (error) {
+    console.error('Failed to update game', error)
+    res.status(500).json({ message: 'Failed to update game' })
+  }
+}
+
+async function deleteGame(req, res) {
+  try {
+    const game = await gameModel.getGameById(req.params.id)
+    if (!game) {
+      return res.status(404).json({ message: 'Game not found' })
+    }
+    if (game.creator_id !== req.userId) {
+      return res.status(403).json({ message: 'Not allowed to delete this game' })
+    }
     await gameModel.deleteGame(req.params.id)
     res.sendStatus(204)
   } catch (error) {
-    res.status(500).send('Delete failed')
+    console.error('Failed to delete game', error)
+    res.status(500).json({ message: 'Failed to delete game' })
   }
 }
 
-const getFilteredGames = async (req, res) => {
-  // console.log(getFilteredGames, req.query)
+async function getMyGames(req, res) {
   try {
-    const db = await waitForDB()
-    const { sport } = req.query
-
-    let query = 'SELECT * FROM games'
-    const params = []
-
-    if (sport) {
-      query += ' WHERE sport = ?'
-      params.push(sport)
-    }
-
-    const [rows] = await db.execute(query, params)
-    res.status(200).json(rows)
+    const games = await gameModel.listGames({ joinedUserId: req.userId })
+    res.json({ data: games })
   } catch (error) {
-    console.error('Error fetching games:', error)
-    res.status(500).json({ message: 'Internal server error' })
+    console.error('Failed to fetch user games', error)
+    res.status(500).json({ message: 'Failed to load joined games' })
   }
 }
 
 module.exports = {
-  handleCreateGame,
-  handleGetGames,
-  handleGetGameById,
-  handleUpdateGame,
-  handleDeleteGame,
+  discoverGames,
+  getGame,
+  createGame,
+  updateGame,
+  deleteGame,
+  getMyGames,
 }
