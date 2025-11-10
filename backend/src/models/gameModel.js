@@ -30,12 +30,12 @@ async function createGame(payload) {
   const db = await waitForDB()
   const columns = Object.keys(dbFields)
   const values = Object.values(dbFields)
-  const placeholders = columns.map(() => '?').join(', ')
-  const [result] = await db.execute(
-    `INSERT INTO games (${columns.join(', ')}) VALUES (${placeholders})`,
+  const placeholders = columns.map((_, idx) => `$${idx + 1}`).join(', ')
+  const res = await db.query(
+    `INSERT INTO games (${columns.join(', ')}) VALUES (${placeholders}) RETURNING id`,
     values
   )
-  return result.insertId
+  return res.rows[0]?.id
 }
 
 async function updateGame(id, updates = {}) {
@@ -45,18 +45,20 @@ async function updateGame(id, updates = {}) {
   )
   if (!entries.length) return null
 
-  const setClause = entries.map(([key]) => `${key} = ?`).join(', ')
+  const assignments = entries
+    .map(([key], idx) => `${key} = $${idx + 1}`)
+    .join(', ')
   const values = entries.map(([, value]) => value)
   values.push(id)
 
   const db = await waitForDB()
-  await db.execute(`UPDATE games SET ${setClause} WHERE id = ?`, values)
+  await db.query(`UPDATE games SET ${assignments} WHERE id = $${entries.length + 1}`, values)
   return getGameById(id)
 }
 
 async function deleteGame(id) {
   const db = await waitForDB()
-  await db.execute('DELETE FROM games WHERE id = ?', [id])
+  await db.query('DELETE FROM games WHERE id = $1', [id])
 }
 
 async function listGames(filters = {}) {
@@ -65,33 +67,34 @@ async function listGames(filters = {}) {
   let whereClauses = []
 
   if (filters.sport) {
-    whereClauses.push('s.sport = ?')
     params.push(filters.sport)
+    whereClauses.push(`s.sport = $${params.length}`)
   }
 
   if (filters.area) {
-    whereClauses.push('s.area = ?')
     params.push(filters.area)
+    whereClauses.push(`s.area = $${params.length}`)
   }
 
   if (filters.startDate) {
-    whereClauses.push('s.start_time >= ?')
     params.push(filters.startDate)
+    whereClauses.push(`s.start_time >= $${params.length}`)
   }
 
   if (filters.endDate) {
-    whereClauses.push('s.start_time <= ?')
     params.push(filters.endDate)
+    whereClauses.push(`s.start_time <= $${params.length}`)
   }
 
   if (filters.joinedUserId) {
+    params.push(filters.joinedUserId)
+    const idx = params.length
     whereClauses.push(`EXISTS (
       SELECT 1 FROM player_game_joins ps
       WHERE ps.game_id = s.id
-        AND ps.player_id = ?
+        AND ps.player_id = $${idx}
         AND ps.status = 'joined'
     )`)
-    params.push(filters.joinedUserId)
   }
 
   const where = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : ''
@@ -102,7 +105,7 @@ async function listGames(filters = {}) {
       u.full_name AS host_name,
       u.avatar_url AS host_avatar,
       v.name AS venue_name,
-      IFNULL(j.joined_count, 0) AS attendee_count
+      COALESCE(j.joined_count, 0) AS attendee_count
     FROM games s
     JOIN users u ON u.id = s.creator_id
     LEFT JOIN venues v ON v.id = s.venue_id
@@ -116,8 +119,8 @@ async function listGames(filters = {}) {
     ORDER BY s.start_time ASC
   `
 
-  const [rows] = await db.execute(sql, params)
-  return rows
+  const res = await db.query(sql, params)
+  return res.rows
 }
 
 async function getGameById(id) {
@@ -133,34 +136,34 @@ async function getGameById(id) {
     FROM games s
     JOIN users u ON u.id = s.creator_id
     LEFT JOIN venues v ON v.id = s.venue_id
-    WHERE s.id = ?
+    WHERE s.id = $1
   `
-  const [rows] = await db.execute(sql, [id])
-  if (!rows[0]) return null
+  const res = await db.query(sql, [id])
+  if (!res.rows[0]) return null
 
-  const [attendees] = await db.execute(
+  const attendeesRes = await db.query(
     `SELECT psj.player_id, psj.status, users.full_name, users.avatar_url
      FROM player_game_joins psj
      JOIN users ON users.id = psj.player_id
-     WHERE psj.game_id = ? AND psj.status = 'joined'
+     WHERE psj.game_id = $1 AND psj.status = 'joined'
      ORDER BY psj.created_at ASC`,
     [id]
   )
 
-  const [messages] = await db.execute(
+  const messagesRes = await db.query(
     `SELECT m.*, u.full_name AS sender_name, u.avatar_url AS sender_avatar
      FROM messages m
      JOIN users u ON u.id = m.sender_id
-     WHERE m.game_id = ?
+     WHERE m.game_id = $1
      ORDER BY m.created_at ASC`,
     [id]
   )
 
   return {
-    ...rows[0],
-    attendee_count: attendees.length,
-    attendees,
-    messages,
+    ...res.rows[0],
+    attendee_count: attendeesRes.rows.length,
+    attendees: attendeesRes.rows,
+    messages: messagesRes.rows,
   }
 }
 

@@ -10,8 +10,8 @@ const {
 } = require('../controllers/onboardingController')
 
 router.get('/player/progress', verifyToken, getPlayerProgress)
-router.post('/player/:step', verifyToken, handlePlayerStep)
 router.post('/player/complete', verifyToken, completePlayerOnboarding)
+router.post('/player/:step', verifyToken, handlePlayerStep)
 router.post('/venue/:step', verifyToken, handleVenueStep)
 router.get('/venue/verify/:token', verifyVenueToken)
 

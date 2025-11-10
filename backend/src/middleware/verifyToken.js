@@ -16,12 +16,12 @@ async function getSupabaseUserFromToken(token) {
       if (error.status === 401) {
         return null
       }
-      console.warn('[verifyToken] Supabase getUser error:', error.message)
+      console.warn('[verifyToken] Supabase getUser error:', error.message, error.name)
       return null
     }
     return data?.user || null
   } catch (err) {
-    console.error('[verifyToken] Supabase token verification failed:', err.message)
+    console.error('[verifyToken] Supabase token verification failed:', err)
     return null
   }
 }

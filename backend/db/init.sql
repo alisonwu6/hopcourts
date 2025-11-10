@@ -1,121 +1,114 @@
-DROP TABLE IF EXISTS messages;
-DROP TABLE IF EXISTS player_game_joins;
-DROP TABLE IF EXISTS games;
-DROP TABLE IF EXISTS venue_sports;
-DROP TABLE IF EXISTS venues;
-DROP TABLE IF EXISTS player_preferred_areas;
-DROP TABLE IF EXISTS player_sports;
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS messages CASCADE;
+DROP TABLE IF EXISTS player_game_joins CASCADE;
+DROP TABLE IF EXISTS games CASCADE;
+DROP TABLE IF EXISTS venue_sports CASCADE;
+DROP TABLE IF EXISTS venues CASCADE;
+DROP TABLE IF EXISTS player_preferred_areas CASCADE;
+DROP TABLE IF EXISTS player_sports CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
-  full_name VARCHAR(200) NOT NULL,
-  username VARCHAR(100) UNIQUE,
-  role ENUM('player', 'venue_manager') NOT NULL DEFAULT 'player',
-  city VARCHAR(120),
-  gender VARCHAR(32),
+  id SERIAL PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  full_name TEXT NOT NULL,
+  username TEXT UNIQUE,
+  role TEXT NOT NULL DEFAULT 'player' CHECK (role IN ('player', 'venue_manager')),
+  city TEXT,
+  gender TEXT,
   bio TEXT,
-  avatar_url VARCHAR(255),
+  avatar_url TEXT,
   motivation TEXT,
-  onboarding_status JSON,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  onboarding_status JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE player_sports (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  sport VARCHAR(100) NOT NULL,
-  skill_level ENUM('beginner', 'intermediate', 'advanced') NOT NULL,
-  playing_style ENUM('social', 'competitive', 'learning', 'mixed') DEFAULT 'mixed',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  sport TEXT NOT NULL,
+  skill_level TEXT NOT NULL CHECK (skill_level IN ('beginner', 'intermediate', 'advanced')),
+  playing_style TEXT DEFAULT 'mixed' CHECK (playing_style IN ('social', 'competitive', 'learning', 'mixed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE player_preferred_areas (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
-  area_name VARCHAR(120) NOT NULL,
-  postal_code VARCHAR(20),
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  area_name TEXT NOT NULL,
+  postal_code TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE venues (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  manager_id INT NOT NULL,
-  name VARCHAR(200) NOT NULL,
-  address VARCHAR(255),
-  city VARCHAR(120),
-  state VARCHAR(120),
-  postal_code VARCHAR(20),
+  id SERIAL PRIMARY KEY,
+  manager_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  address TEXT,
+  city TEXT,
+  state TEXT,
+  postal_code TEXT,
   description TEXT,
-  phone VARCHAR(50),
-  email VARCHAR(120),
-  website VARCHAR(200),
-  photo_url VARCHAR(255),
+  phone TEXT,
+  email TEXT,
+  website TEXT,
+  photo_url TEXT,
   verified BOOLEAN NOT NULL DEFAULT FALSE,
-  latitude DECIMAL(10,7),
-  longitude DECIMAL(10,7),
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE CASCADE
+  latitude NUMERIC(10,7),
+  longitude NUMERIC(10,7),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE venue_sports (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  venue_id INT NOT NULL,
-  sport VARCHAR(100) NOT NULL,
-  FOREIGN KEY (venue_id) REFERENCES venues(id) ON DELETE CASCADE
+  id SERIAL PRIMARY KEY,
+  venue_id INT NOT NULL REFERENCES venues(id) ON DELETE CASCADE,
+  sport TEXT NOT NULL
 );
 
 CREATE TABLE games (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  creator_id INT NOT NULL,
-  venue_id INT,
-  title VARCHAR(200) NOT NULL,
-  sport VARCHAR(100) NOT NULL,
+  id SERIAL PRIMARY KEY,
+  creator_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  venue_id INT REFERENCES venues(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  sport TEXT NOT NULL,
   description TEXT,
-  skill_level ENUM('beginner', 'intermediate', 'advanced', 'mixed') DEFAULT 'mixed',
+  skill_level TEXT DEFAULT 'mixed' CHECK (skill_level IN ('beginner', 'intermediate', 'advanced', 'mixed')),
   energy INT DEFAULT 60,
-  location_name VARCHAR(200),
-  location_address VARCHAR(255),
-  area VARCHAR(120),
-  city VARCHAR(120),
-  latitude DECIMAL(10,7),
-  longitude DECIMAL(10,7),
-  start_time DATETIME NOT NULL,
-  end_time DATETIME NOT NULL,
+  location_name TEXT,
+  location_address TEXT,
+  area TEXT,
+  city TEXT,
+  latitude NUMERIC(10,7),
+  longitude NUMERIC(10,7),
+  start_time TIMESTAMPTZ NOT NULL,
+  end_time TIMESTAMPTZ NOT NULL,
   max_players INT NOT NULL,
-  price DECIMAL(10,2) DEFAULT 0,
-  currency VARCHAR(8) DEFAULT 'AUD',
+  price NUMERIC(10,2) DEFAULT 0,
+  currency TEXT DEFAULT 'AUD',
   requires_approval BOOLEAN DEFAULT FALSE,
-  status ENUM('scheduled', 'completed', 'cancelled') DEFAULT 'scheduled',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (creator_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (venue_id) REFERENCES venues(id) ON DELETE SET NULL
+  status TEXT DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'completed', 'cancelled')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE player_game_joins (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  game_id INT NOT NULL,
-  player_id INT NOT NULL,
-  status ENUM('joined', 'cancelled', 'waitlisted') DEFAULT 'joined',
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uniq_join (game_id, player_id),
-  FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
-  FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE
+  id SERIAL PRIMARY KEY,
+  game_id INT NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  player_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'joined' CHECK (status IN ('joined', 'cancelled', 'waitlisted')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (game_id, player_id)
 );
 
 CREATE TABLE messages (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  game_id INT NOT NULL,
-  sender_id INT NOT NULL,
+  id SERIAL PRIMARY KEY,
+  game_id INT NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  sender_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   body TEXT NOT NULL,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
-  FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_games_start_time ON games (start_time);
+CREATE INDEX IF NOT EXISTS idx_games_sport ON games (sport);

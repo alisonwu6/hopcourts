@@ -1,28 +1,51 @@
-const mysql = require('mysql2/promise')
+const { Pool } = require('pg')
 
-const waitForDB = async () => {
-  let connected = false
-  let pool
+let pool
 
-  while (!connected) {
+function buildPoolConfig() {
+  const sslMode = (process.env.PGSSLMODE || '').toLowerCase()
+  let ssl
+  if (sslMode && sslMode !== 'disable' && sslMode !== 'allow') {
+    ssl = { rejectUnauthorized: sslMode === 'verify-full' }
+  } else if (sslMode === 'require') {
+    ssl = { rejectUnauthorized: false }
+  } else if (sslMode === 'allow') {
+    ssl = { rejectUnauthorized: false }
+  }
+
+  return {
+    host: process.env.PGHOST || 'localhost',
+    port: Number(process.env.PGPORT || 5432),
+    database: process.env.PGDATABASE || 'postgres',
+    user: process.env.PGUSER || 'postgres',
+    password: process.env.PGPASSWORD || '',
+    ssl,
+    max: Number(process.env.PG_POOL_SIZE || 10),
+  }
+}
+
+async function waitForDB() {
+  if (pool) return pool
+
+  const config = buildPoolConfig()
+
+  while (!pool) {
     try {
-      pool = mysql.createPool({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'sportsmatch',
-        waitForConnections: true,
-        connectionLimit: 10,
+      pool = new Pool(config)
+      pool.on('error', (err) => {
+        console.error('[db] idle client error', err.message)
       })
-
-      const conn = await pool.getConnection()
-      console.log('✅ Connected to DB')
-      conn.release()
-      connected = true
+      pool.execute = async (text, params = []) => {
+        const res = await pool.query(text, params)
+        return [res.rows, res]
+      }
+      const client = await pool.connect()
+      console.log('✅ Connected to Postgres')
+      client.release()
     } catch (err) {
-      console.log('⏳ Waiting for DB to be ready...')
-      // console.error('Database error:', err.message)
-      await new Promise(res => setTimeout(res, 2000))
+      console.error('⏳ Waiting for Postgres to be ready...', err.message)
+      pool = null
+      await new Promise((res) => setTimeout(res, 2000))
     }
   }
 

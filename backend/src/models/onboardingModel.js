@@ -21,9 +21,9 @@ const DEFAULT_STATUS = {
 
 async function getOnboardingStatus(userId) {
   const db = await waitForDB()
-  const [rows] = await db.execute('SELECT onboarding_status FROM users WHERE id = ?', [userId])
-  if (!rows[0]) return DEFAULT_STATUS
-  const status = rows[0].onboarding_status
+  const res = await db.query('SELECT onboarding_status FROM users WHERE id = $1', [userId])
+  if (!res.rows[0]) return DEFAULT_STATUS
+  const status = res.rows[0].onboarding_status
   const parsed = !status
     ? {}
     : typeof status === 'string'
@@ -36,7 +36,7 @@ async function saveOnboardingStatus(userId, partialStatus) {
   const current = await getOnboardingStatus(userId)
   const merged = { ...current, ...partialStatus }
   const db = await waitForDB()
-  await db.execute('UPDATE users SET onboarding_status = ? WHERE id = ?', [
+  await db.query('UPDATE users SET onboarding_status = $1 WHERE id = $2', [
     JSON.stringify(merged),
     userId,
   ])

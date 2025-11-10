@@ -36,16 +36,23 @@ async function createVenue({ managerId, sports = [], ...payload }) {
     payload.longitude || null,
   ]
 
-  const placeholders = fields.map(() => '?').join(', ')
-  const [result] = await db.execute(
-    `INSERT INTO venues (${fields.join(', ')}) VALUES (${placeholders})`,
+  const placeholders = fields.map((_, idx) => `$${idx + 1}`).join(', ')
+  const res = await db.query(
+    `INSERT INTO venues (${fields.join(', ')}) VALUES (${placeholders}) RETURNING id`,
     values
   )
-  const venueId = result.insertId
+  const venueId = res.rows[0]?.id
 
   if (sports.length) {
-    const sportValues = sports.map((sport) => [venueId, sport])
-    await db.query('INSERT INTO venue_sports (venue_id, sport) VALUES ?', [sportValues])
+    const rows = sports.map((sport) => [venueId, sport])
+    const flatValues = rows.flat()
+    const placeholdersSports = rows
+      .map((_, idx) => `($${idx * 2 + 1}, $${idx * 2 + 2})`)
+      .join(', ')
+    await db.query(
+      `INSERT INTO venue_sports (venue_id, sport) VALUES ${placeholdersSports}`,
+      flatValues
+    )
   }
 
   return venueId
@@ -79,41 +86,47 @@ async function updateVenue(id, updates = {}) {
 
   if (!entries.length) return null
 
-  const setClause = entries.map(([key]) => `${key} = ?`).join(', ')
+  const assignments = entries.map(([key], idx) => `${key} = $${idx + 1}`).join(', ')
   const values = entries.map(([, value]) => value)
   values.push(id)
 
   const db = await waitForDB()
-  await db.execute(`UPDATE venues SET ${setClause} WHERE id = ?`, values)
+  await db.query(`UPDATE venues SET ${assignments} WHERE id = $${entries.length + 1}`, values)
   return getVenueById(id)
 }
 
 async function replaceVenueSports(id, sports = []) {
   const db = await waitForDB()
-  await db.execute('DELETE FROM venue_sports WHERE venue_id = ?', [id])
+  await db.query('DELETE FROM venue_sports WHERE venue_id = $1', [id])
   if (!sports.length) return
-  const values = sports.map((sport) => [id, sport])
-  await db.query('INSERT INTO venue_sports (venue_id, sport) VALUES ?', [values])
+  const rows = sports.map((sport) => [id, sport])
+  const flatValues = rows.flat()
+  const placeholders = rows.map((_, idx) => `($${idx * 2 + 1}, $${idx * 2 + 2})`).join(', ')
+  await db.query(
+    `INSERT INTO venue_sports (venue_id, sport) VALUES ${placeholders}`,
+    flatValues
+  )
 }
 
 async function getVenueById(id) {
   const db = await waitForDB()
-  const [rows] = await db.execute('SELECT * FROM venues WHERE id = ?', [id])
-  if (!rows[0]) return null
-  const [sports] = await db.execute('SELECT sport FROM venue_sports WHERE venue_id = ?', [id])
-  return { ...rows[0], sports: sports.map((s) => s.sport) }
+  const venueRes = await db.query('SELECT * FROM venues WHERE id = $1', [id])
+  if (!venueRes.rows[0]) return null
+  const sportsRes = await db.query('SELECT sport FROM venue_sports WHERE venue_id = $1', [id])
+  return { ...venueRes.rows[0], sports: sportsRes.rows.map((s) => s.sport) }
 }
 
 async function listVenues() {
   const db = await waitForDB()
-  const [rows] = await db.execute('SELECT * FROM venues ORDER BY created_at DESC')
+  const venuesRes = await db.query('SELECT * FROM venues ORDER BY created_at DESC')
+  const rows = venuesRes.rows
   if (!rows.length) return []
   const venueIds = rows.map((venue) => venue.id)
-  const [sportsRows] = await db.query(
-    'SELECT venue_id, sport FROM venue_sports WHERE venue_id IN (?)',
+  const sportsRes = await db.query(
+    'SELECT venue_id, sport FROM venue_sports WHERE venue_id = ANY($1::int[])',
     [venueIds]
   )
-  const sportsMap = sportsRows.reduce((acc, row) => {
+  const sportsMap = sportsRes.rows.reduce((acc, row) => {
     acc[row.venue_id] = acc[row.venue_id] || []
     acc[row.venue_id].push(row.sport)
     return acc

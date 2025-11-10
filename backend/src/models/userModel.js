@@ -25,9 +25,10 @@ async function insertUserRow({
   const normalizedEmail = normalizeEmail(email)
 
   const execInsert = async (nameForInsert) => {
-    const [result] = await db.execute(
+    const res = await db.query(
       `INSERT INTO users (full_name, email, password_hash, username, role, city, gender)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id`,
       [
         fullName,
         normalizedEmail,
@@ -38,14 +39,14 @@ async function insertUserRow({
         gender || null,
       ]
     )
-    return result.insertId
+    return res.rows[0]?.id
   }
 
   try {
     return await execInsert(username)
   } catch (err) {
     const duplicateUsername =
-      err?.code === 'ER_DUP_ENTRY' && /users\.username/.test(err?.message || '')
+      err?.code === '23505' && (err?.constraint === 'users_username_key' || /users_username_key/.test(err?.detail || ''))
     if (duplicateUsername) {
       return execInsert(null)
     }
@@ -78,20 +79,20 @@ async function findUserByEmail(email) {
   const normalizedEmail = normalizeEmail(email)
   if (!normalizedEmail) return null
   const db = await waitForDB()
-  const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [normalizedEmail])
-  return rows[0]
+  const res = await db.query('SELECT * FROM users WHERE email = $1', [normalizedEmail])
+  return res.rows[0] || null
 }
 
 async function findUserByUsername(username) {
   const db = await waitForDB()
-  const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username])
-  return rows[0]
+  const res = await db.query('SELECT * FROM users WHERE username = $1', [username])
+  return res.rows[0] || null
 }
 
 async function findUserById(id) {
   const db = await waitForDB()
-  const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [id])
-  return rows[0]
+  const res = await db.query('SELECT * FROM users WHERE id = $1', [id])
+  return res.rows[0] || null
 }
 
 async function verifyPassword(password, passwordHash) {
@@ -115,12 +116,14 @@ async function updateUser(id, updates) {
   const entries = Object.entries(updates).filter(([key, value]) => allowedFields.includes(key) && value !== undefined)
   if (entries.length === 0) return null
 
-  const setClause = entries.map(([key]) => `${key} = ?`).join(', ')
   const values = entries.map(([, value]) => value)
   values.push(id)
 
   const db = await waitForDB()
-  await db.execute(`UPDATE users SET ${setClause} WHERE id = ?`, values)
+  const assignments = entries
+    .map(([key], idx) => `${key} = $${idx + 1}`)
+    .join(', ')
+  await db.query(`UPDATE users SET ${assignments} WHERE id = $${entries.length + 1}`, values)
   return findUserById(id)
 }
 
@@ -153,7 +156,7 @@ async function createUserFromSupabaseProfile({
     return findUserById(insertId)
   } catch (err) {
     const duplicateEmail =
-      err?.code === 'ER_DUP_ENTRY' && /users\.email/.test(err?.message || '')
+      err?.code === '23505' && (err?.constraint === 'users_email_key' || /users_email_key/.test(err?.detail || ''))
     if (duplicateEmail) {
       return findUserByEmail(normalizedEmail)
     }

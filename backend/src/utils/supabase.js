@@ -6,6 +6,8 @@ const SUPABASE_SERVICE_ROLE_KEY =
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.warn('[supabase] Missing SUPABASE_URL or service role key. Supabase features are disabled.')
+} else {
+  console.log('[supabase] client configured with service role key')
 }
 
 const client =

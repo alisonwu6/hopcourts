@@ -1,21 +1,6 @@
 version: '3.8'
 name: sportsmatch
 services:
-  db:
-    image: mysql:8.0
-    container_name: sportsmatch-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: sportsmatch
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: asdf
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-
   api:
     build: .
     container_name: sportsmatch-backend
@@ -24,19 +9,6 @@ services:
     working_dir: /app
     ports:
       - "3000:3000"
-    depends_on:
-      - db
     env_file:
       - .env
     command: npm run dev
-
-  adminer:
-    image: adminer
-    container_name: sportsmatch-adminer
-    restart: always
-    # Bind Adminer to localhost only to prevent public exposure
-    ports:
-      - "127.0.0.1:8080:8080"
-
-volumes:
-  mysql-data:
