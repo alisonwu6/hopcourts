@@ -2,15 +2,14 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, InputField } from '@/components'
 import { useAuthStore } from '@/hooks'
-import { authService } from '@/services/authService'
+import { signInWithGoogle, signInWithApple } from '@/services/auth'
 import logoUrl from '@/assets/sportsmatch.png'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
 import AppleLoginButton from '@/components/button/AppleLoginButton'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { login, onboardingStatus, isAuthenticated, isLoading, error, clearError, setAuthData } =
-    useAuthStore()
+  const { login, onboardingStatus, isAuthenticated, isLoading, error, clearError } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -27,35 +26,37 @@ export function LoginPage() {
 
   const loginGoogle = async () => {
     try {
-      const response = await authService.signInWithGoogle()
-      setAuthData(response.user, response.token, response.onboardingStatus)
-      if (response.onboardingStatus.isComplete) {
-        navigate('/home', { replace: true })
-      } else {
-        navigate('/onboarding', { replace: true })
+      const { data, error } = await signInWithGoogle()
+      if (error) {
+        throw new Error(error.message)
+      }
+      if (data?.url) {
+        window.location.href = data.url
       }
     } catch (err: any) {
       console.error(err)
+      alert(err?.message ?? 'Unable to start Google login.')
     }
   }
 
   const loginApple = async () => {
     try {
-      const response = await authService.signInWithApple()
-      setAuthData(response.user, response.token, response.onboardingStatus)
-      if (response.onboardingStatus.isComplete) {
-        navigate('/home', { replace: true })
-      } else {
-        navigate('/onboarding', { replace: true })
+      const { data, error } = await signInWithApple()
+      if (error) {
+        throw new Error(error.message)
+      }
+      if (data?.url) {
+        window.location.href = data.url
       }
     } catch (err: any) {
       console.error(err)
+      alert(err?.message ?? 'Unable to start Apple login.')
     }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await login(email, password)
+    await login(email, password, rememberMe)
   }
 
   return (

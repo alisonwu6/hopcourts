@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { User } from '@/types'
-import { authService } from '@/services/authService'
+import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/services/auth'
+import { sessionService } from '@/services/sessionService'
 import {
   OnboardingStatus,
   useOnboardingStore,
@@ -15,19 +16,28 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  login: (email: string, password: string) => Promise<void>
-  signup: (name: string, email: string, password: string) => Promise<void>
+  login: (email: string, password: string, remember?: boolean) => Promise<void>
+  signup: (name: string, email: string, password: string, remember?: boolean) => Promise<void>
   logout: () => Promise<void>
-  setAuthData: (user: User | null, token: string | null, status?: OnboardingStatus | null) => void
+  setAuthData: (
+    user: User | null,
+    token: string | null,
+    status?: OnboardingStatus | null,
+    options?: { remember?: boolean }
+  ) => void
   clearError: () => void
 }
 
-const persistToken = (token: string | null) => {
+const persistToken = (token: string | null, remember = true) => {
   if (typeof window === 'undefined') return
   if (token) {
-    window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token)
+    const target = remember ? window.localStorage : window.sessionStorage
+    const other = remember ? window.sessionStorage : window.localStorage
+    target.setItem(AUTH_TOKEN_STORAGE_KEY, token)
+    other.removeItem(AUTH_TOKEN_STORAGE_KEY)
   } else {
     window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
+    window.sessionStorage.removeItem(AUTH_TOKEN_STORAGE_KEY)
   }
 }
 
@@ -53,12 +63,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: false,
   error: null,
 
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string, remember = true) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await authService.login(email, password)
+      const { data, error } = await signInWithEmail(email, password)
+      if (error || !data?.session?.access_token) {
+        throw new Error(error?.message ?? 'Unable to sign in with Supabase')
+      }
+      const response = await sessionService.bootstrap(data.session.access_token)
       const { token, user, onboardingStatus } = response
-      persistToken(token)
+      persistToken(token, remember)
       handleOnboardingInitialization(onboardingStatus, user)
       set({
         user,
@@ -80,22 +94,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  signup: async (name: string, email: string, password: string) => {
+  signup: async (name: string, email: string, password: string, remember = true) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await authService.register({
-        email,
-        password,
-        confirmPassword: password,
-        name,
-      })
-      const { token, user, onboardingStatus } = response
-      persistToken(token)
-      handleOnboardingInitialization(onboardingStatus, user)
+      const { data, error } = await signUpWithEmail(email, password)
+      if (error) {
+        throw new Error(error.message)
+      }
+      if (!data.session?.access_token) {
+        throw new Error('Signup successful. Please verify your email before logging in.')
+      }
+      const response = await sessionService.bootstrap(data.session.access_token)
+      persistToken(response.token, remember)
+      handleOnboardingInitialization(response.onboardingStatus, response.user)
       set({
-        user,
-        token,
-        onboardingStatus,
+        user: response.user,
+        token: response.token,
+        onboardingStatus: response.onboardingStatus,
         isAuthenticated: true,
         isLoading: false,
       })
@@ -110,7 +125,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     set({ isLoading: true })
     try {
-      await authService.logout()
+      await supabaseSignOut()
+      await sessionService.logoutBackend()
     } catch (error: any) {
       set({ error: error?.message ?? 'Logout failed' })
     } finally {
@@ -126,8 +142,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  setAuthData: (user, token, status) => {
-    persistToken(token)
+  setAuthData: (user, token, status, options) => {
+    persistToken(token, options?.remember ?? true)
     if (status) {
       handleOnboardingInitialization(status, user)
     }

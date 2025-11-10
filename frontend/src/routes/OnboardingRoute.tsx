@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
-import { authService } from '@/services/authService'
+import { sessionService } from '@/services/sessionService'
 import { useOnboardingStore } from '@/store/onboardingStore'
 
 interface OnboardingRouteProps {
@@ -28,7 +28,7 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
     const loadStatus = async () => {
       try {
         setLoading(true)
-        const remoteStatus = onboardingStatus ?? (await authService.getOnboardingStatus())
+        const remoteStatus = onboardingStatus ?? (await sessionService.getOnboardingStatus())
         initializeOnboarding(remoteStatus, {
           fullName: user?.name ?? '',
           role: user && (user.managedVenues?.length ?? 0) > 0 ? 'venue_manager' : null,

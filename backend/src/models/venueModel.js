@@ -113,7 +113,7 @@ async function listVenues() {
     'SELECT venue_id, sport FROM venue_sports WHERE venue_id IN (?)',
     [venueIds]
   )
-  const sportsMap = sportsRows.reduce<Record<number, string[]>>((acc, row) => {
+  const sportsMap = sportsRows.reduce((acc, row) => {
     acc[row.venue_id] = acc[row.venue_id] || []
     acc[row.venue_id].push(row.sport)
     return acc

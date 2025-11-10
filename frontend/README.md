@@ -1,13 +1,13 @@
-# React + Vite
+# SportsMatch Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Supabase configuration
 
-Currently, two official plugins are available:
+The frontend now authenticates directly with Supabase. Copy `src/.env` to the project root (or create your own) and provide:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=public-anon-key
+VITE_SUPABASE_EMAIL_REDIRECT=http://localhost:5173/auth/callback
+```
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# sportsmatch-frontend
+`VITE_SUPABASE_EMAIL_REDIRECT` is optional, but recommended if email confirmations are enabled in your Supabase project.

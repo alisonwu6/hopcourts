@@ -7,9 +7,18 @@ type RequestOptions = {
   body?: unknown
   auth?: boolean
   headers?: Record<string, string>
+  authTokenOverride?: string
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api'
+
+const getStoredToken = () => {
+  if (typeof window === 'undefined') return null
+  return (
+    window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
+    window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
+  )
+}
 
 const buildUrl = (path: string, params?: RequestOptions['params']) => {
   const url = new URL(path.replace(/^\//, ''), `${API_BASE_URL.replace(/\/$/, '')}/`)
@@ -31,7 +40,7 @@ export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { body, params, auth = true, headers = {} } = options
+  const { body, params, auth = true, headers = {}, authTokenOverride } = options
 
   const requestHeaders: HeadersInit = {
     'Content-Type': 'application/json',
@@ -39,8 +48,7 @@ export async function apiRequest<T>(
   }
 
   if (auth) {
-    const token =
-      typeof window !== 'undefined' ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null
+    const token = authTokenOverride || getStoredToken()
     if (token) {
       requestHeaders.Authorization = `Bearer ${token}`
     }

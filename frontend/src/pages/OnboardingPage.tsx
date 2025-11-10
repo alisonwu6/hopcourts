@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button, InputField } from '@/components'
 import { SportCard } from '@/components/onboarding/SportCard'
 import Header from '@/components/navigation/Header'
-import { authService } from '@/services/authService'
+import { sessionService } from '@/services/sessionService'
 import { useAuthStore } from '@/store/authStore'
 import {
   useOnboardingStore,
@@ -314,7 +314,7 @@ export function OnboardingPage() {
 
     setUsernameStatus('checking')
     try {
-      const result = await authService.checkUsername(trimmed)
+      const result = await sessionService.checkUsername(trimmed)
       setUsername(trimmed, result.available)
       if (result.available) {
         setError(null)
@@ -523,7 +523,7 @@ export function OnboardingPage() {
     try {
       const motivationValue = motivationOverride ?? motivationText
       const statusPayload = buildCompletionPayload(motivationValue)
-      const response = await authService.completeOnboarding(buildCompletionRequest(motivationValue))
+      const response = await sessionService.completeOnboarding(buildCompletionRequest(motivationValue))
       setStatus(response.onboardingStatus)
       setAuthData(response.user, response.token, response.onboardingStatus)
       navigate(data.role === 'venue_manager' ? '/venues' : '/home', { replace: true })

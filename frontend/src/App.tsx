@@ -5,6 +5,8 @@ import { useAuthStore } from '@/hooks'
 import { Splash } from '@/pages/Splash'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+import { AuthCallback } from '@/pages/AuthCallback'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
 import { VenuesPage } from '@/pages/VenuesPage'
@@ -25,6 +27,8 @@ export default function App() {
       <Route path="/" element={<Splash />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
         path="/onboarding"
         element={

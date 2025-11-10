@@ -3,15 +3,7 @@ import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
 import { User } from '@/types'
 import { OnboardingStatus } from '@/store/onboardingStore'
 
-interface RegisterRequest {
-  email: string
-  password: string
-  confirmPassword: string
-  name: string
-  role?: 'player' | 'venue_manager'
-}
-
-export interface SignInResponse {
+export interface SessionContext {
   token: string
   user: User
   onboardingStatus: OnboardingStatus
@@ -39,38 +31,32 @@ const adaptUser = (payload: RawUser): User => ({
   updatedAt: payload.updated_at ? new Date(payload.updated_at) : new Date(),
 })
 
-const adaptSignInResponse = (data: any): SignInResponse => ({
-  token: data.token,
-  user: adaptUser(data.user),
-  onboardingStatus: data.onboardingStatus,
-})
+async function fetchAuthenticatedContext(token: string) {
+  const [profile, onboardingStatus] = await Promise.all([
+    apiRequest<any>('GET', '/users/me', {
+      authTokenOverride: token,
+    }),
+    apiRequest<OnboardingStatus>('GET', '/onboarding/player/progress', {
+      authTokenOverride: token,
+    }),
+  ])
 
-export const authService = {
-  async login(email: string, password: string): Promise<SignInResponse> {
-    const response = await apiRequest<any>('POST', '/auth/login', {
-      auth: false,
-      body: { email, password },
-    })
-    return adaptSignInResponse(response)
-  },
+  return {
+    user: adaptUser(profile),
+    onboardingStatus,
+  }
+}
 
-  async register(data: RegisterRequest): Promise<SignInResponse> {
-    if (data.password !== data.confirmPassword) {
-      throw new Error('Passwords do not match')
+export const sessionService = {
+  async bootstrap(token: string): Promise<SessionContext> {
+    const context = await fetchAuthenticatedContext(token)
+    return {
+      token,
+      ...context,
     }
-    const response = await apiRequest<any>('POST', '/auth/signup', {
-      auth: false,
-      body: {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        role: data.role ?? 'player',
-      },
-    })
-    return adaptSignInResponse(response)
   },
 
-  async logout(): Promise<void> {
+  async logoutBackend(): Promise<void> {
     try {
       await apiRequest('POST', '/auth/logout', {})
     } catch {
@@ -79,24 +65,14 @@ export const authService = {
   },
 
   async checkUsername(username: string): Promise<{ available: boolean }> {
-    const response = await apiRequest<{ available: boolean }>(
-      'GET',
-      '/users/check/username',
-      {
-        auth: false,
-        params: { value: username },
-      }
-    )
-    return response
+    return apiRequest<{ available: boolean }>('GET', '/users/check/username', {
+      auth: false,
+      params: { value: username },
+    })
   },
 
   async getOnboardingStatus(): Promise<OnboardingStatus> {
     return apiRequest<OnboardingStatus>('GET', '/onboarding/player/progress', {})
-  },
-
-  async isOnboardingComplete(): Promise<boolean> {
-    const status = await this.getOnboardingStatus()
-    return status.isComplete
   },
 
   async completeOnboarding(payload: {
@@ -107,7 +83,7 @@ export const authService = {
     sports?: Array<{ sport: string; skillLevel: string; playingStyle?: string }>
     areas?: Array<{ areaName: string; postalCode?: string }>
     motivation?: string
-  }): Promise<SignInResponse> {
+  }): Promise<SessionContext> {
     await apiRequest('POST', '/onboarding/player/complete', {
       body: {
         fullName: payload.fullName,
@@ -130,7 +106,9 @@ export const authService = {
     const profile = await apiRequest<any>('GET', '/users/me', {})
     const currentToken =
       typeof window !== 'undefined'
-        ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ?? ''
+        ? window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
+          window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
+          ''
         : ''
     return {
       token: currentToken,

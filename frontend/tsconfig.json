@@ -8,7 +8,8 @@
     "target": "es2016",
 
     /* Module resolution */
-    "module": "commonjs",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
 
     /* Use `@/` as alias for `src/` */
     "baseUrl": "./src",
