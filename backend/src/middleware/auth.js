@@ -1,31 +1,40 @@
-// Cognito JWT verifier middleware (stateless)
-const { CognitoJwtVerifier } = require('aws-jwt-verify')
-require('dotenv').config()
-
-const REGION = process.env.AWS_REGION || process.env.REGION || 'ap-southeast-2'
-const USER_POOL_ID = process.env.USER_POOL_ID
-const CLIENT_ID = process.env.COGNITO_CLIENT_ID
-
-if (!USER_POOL_ID) console.warn('[auth] Missing USER_POOL_ID')
-if (!CLIENT_ID) console.warn('[auth] Missing COGNITO_CLIENT_ID')
-
-const verifier = CognitoJwtVerifier.create({
-  userPoolId: USER_POOL_ID,
-  tokenUse: 'access',
-  clientId: CLIENT_ID,
-})
+const supabase = require('../utils/supabase')
 
 async function auth(req, res, next) {
+  if (!supabase) {
+    return res
+      .status(500)
+      .json({ error: 'Supabase credentials are not configured on the API' })
+  }
+
   try {
     const header = req.headers.authorization || ''
     const token = header.startsWith('Bearer ') ? header.slice(7) : null
     if (!token) return res.status(401).json({ error: 'Missing Bearer token' })
-    const payload = await verifier.verify(token)
+
+    const { data, error } = await supabase.auth.getUser(token)
+    if (error || !data?.user) {
+      return res.status(401).json({ error: 'Invalid or expired token' })
+    }
+
+    const user = data.user
+    const groups = Array.isArray(user.app_metadata?.groups)
+      ? [...user.app_metadata.groups]
+      : []
+    const role = user.app_metadata?.role || user.user_metadata?.role || null
+    if (role && !groups.includes(role)) groups.push(role)
 
     req.user = {
-      sub: payload.sub,
-      username: payload.username || payload['cognito:username'],
-      groups: payload['cognito:groups'] || [],
+      id: user.id,
+      email: user.email,
+      username:
+        user.user_metadata?.username ||
+        user.email?.split('@')?.[0] ||
+        user.id,
+      groups,
+      role,
+      appMetadata: user.app_metadata,
+      userMetadata: user.user_metadata,
     }
 
     return next()
