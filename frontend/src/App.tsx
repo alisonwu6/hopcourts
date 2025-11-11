@@ -7,6 +7,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { AuthCallback } from '@/pages/AuthCallback'
+import { ResetPasswordPage } from '@/pages/ResetPassword'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
 import { VenuesPage } from '@/pages/VenuesPage'
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/auth/reset" element={<ResetPasswordPage />} />
       <Route
         path="/onboarding"
         element={

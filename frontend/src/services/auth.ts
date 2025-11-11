@@ -1,9 +1,15 @@
 import { supabase } from '@/lib/supabase'
 
-const redirect =
-  import.meta.env.VITE_SUPABASE_EMAIL_REDIRECT ||
+const authRedirect =
+  import.meta.env.VITE_SUPABASE_AUTH_REDIRECT ||
   (typeof window !== 'undefined'
     ? `${window.location.origin}/auth/callback`
+    : undefined)
+
+const resetRedirect =
+  import.meta.env.VITE_SUPABASE_RESET_REDIRECT ||
+  (typeof window !== 'undefined'
+    ? `${window.location.origin}/auth/reset`
     : undefined)
 
 function ensureSupabase() {
@@ -25,20 +31,20 @@ export async function signUpWithEmail(email: string, password: string) {
   return client.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: redirect },
+    options: { emailRedirectTo: authRedirect },
   })
 }
 
 export async function resetPassword(email: string) {
   const client = ensureSupabase()
-  return client.auth.resetPasswordForEmail(email, { redirectTo: redirect })
+  return client.auth.resetPasswordForEmail(email, { redirectTo: resetRedirect })
 }
 
 export async function signInWithGoogle() {
   const client = ensureSupabase()
   return client.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: redirect },
+    options: { redirectTo: authRedirect },
   })
 }
 
@@ -46,7 +52,7 @@ export async function signInWithApple() {
   const client = ensureSupabase()
   return client.auth.signInWithOAuth({
     provider: 'apple',
-    options: { redirectTo: redirect },
+    options: { redirectTo: authRedirect },
   })
 }
 
