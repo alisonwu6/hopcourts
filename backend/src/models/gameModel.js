@@ -1,27 +1,36 @@
 const waitForDB = require('../utils/db')
 
-function toDbFields(data) {
+function toDbFields(data, { partial = false } = {}) {
+  const has = (prop) => Object.prototype.hasOwnProperty.call(data, prop)
+
+  const pick = (prop, fallback) => {
+    if (partial && !has(prop)) return undefined
+    const value = data[prop]
+    return value === undefined ? fallback : value
+  }
+
   return {
-    creator_id: data.creatorId,
-    venue_id: data.venueId ?? null,
-    title: data.title,
-    sport: data.sport,
-    description: data.description ?? null,
-    skill_level: data.skillLevel ?? 'mixed',
-    energy: data.energy ?? 60,
-    location_name: data.locationName ?? null,
-    location_address: data.locationAddress ?? null,
-    area: data.area ?? null,
-    city: data.city ?? null,
-    latitude: data.latitude ?? null,
-    longitude: data.longitude ?? null,
-    start_time: data.startTime,
-    end_time: data.endTime,
-    max_players: data.maxPlayers,
-    price: data.price ?? 0,
-    currency: data.currency ?? 'AUD',
-    requires_approval: data.requiresApproval ?? false,
-    status: data.status ?? 'scheduled',
+    creator_id: partial ? pick('creatorId') : data.creatorId,
+    venue_id: pick('venueId', null),
+    title: pick('title'),
+    sport: pick('sport'),
+    description: pick('description', null),
+    skill_level: pick('skillLevel', 'mixed'),
+    energy: pick('energy', 60),
+    location_name: pick('locationName', null),
+    location_address: pick('locationAddress', null),
+    area: pick('area', null),
+    city: pick('city', null),
+    latitude: pick('latitude', null),
+    longitude: pick('longitude', null),
+    start_time: pick('startTime'),
+    end_time: pick('endTime'),
+    max_players: pick('maxPlayers'),
+    price: pick('price', 0),
+    currency: pick('currency', 'AUD'),
+    requires_approval: pick('requiresApproval', false),
+    status: pick('status', 'scheduled'),
+    cancel_reason: pick('cancelReason', null),
   }
 }
 
@@ -39,10 +48,8 @@ async function createGame(payload) {
 }
 
 async function updateGame(id, updates = {}) {
-  const dbFields = toDbFields(updates)
-  const entries = Object.entries(dbFields).filter(
-    ([, value]) => value !== undefined
-  )
+  const dbFields = toDbFields(updates, { partial: true })
+  const entries = Object.entries(dbFields).filter(([, value]) => value !== undefined)
   if (!entries.length) return null
 
   const assignments = entries
@@ -59,6 +66,16 @@ async function updateGame(id, updates = {}) {
 async function deleteGame(id) {
   const db = await waitForDB()
   await db.query('DELETE FROM games WHERE id = $1', [id])
+}
+
+async function cancelGame(id, reason) {
+  const db = await waitForDB()
+  await db.query('UPDATE games SET status = $1, cancel_reason = $2 WHERE id = $3', [
+    'cancelled',
+    reason ?? null,
+    id,
+  ])
+  return getGameById(id)
 }
 
 async function listGames(filters = {}) {
@@ -171,6 +188,7 @@ module.exports = {
   createGame,
   updateGame,
   deleteGame,
+  cancelGame,
   listGames,
   getGameById,
 }

@@ -10,7 +10,7 @@ interface GamesStore {
   fetchGames: (filters?: GameFilter) => Promise<void>
   fetchGameById: (id: string) => Promise<void>
   fetchMyGames: () => Promise<void>
-  createGame: (input: CreateGameInput) => Promise<void>
+  createGame: (input: CreateGameInput) => Promise<PlayerGame>
   joinGame: (gameId: string) => Promise<void>
   leaveGame: (gameId: string) => Promise<void>
   setSelectedGame: (game: PlayerGame | null) => void
@@ -88,14 +88,17 @@ export const useGamesStore = create<GamesStore>((set) => ({
       if (response.success && response.data) {
         set((state) => ({
           games: [...state.games, response.data!],
+          error: null,
         }))
-      } else {
-        set({
-          error: response.error?.message ?? 'Failed to create game',
-        })
+        return response.data
       }
-    } catch {
-      set({ error: 'An error occurred' })
+      const message = response.error?.message ?? 'Failed to create game'
+      set({ error: message })
+      throw new Error(message)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An error occurred'
+      set({ error: message })
+      throw new Error(message)
     }
   },
 

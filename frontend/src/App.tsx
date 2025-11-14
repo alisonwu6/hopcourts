@@ -82,6 +82,7 @@ function GuestApp() {
         <Route path="/venues" element={<VenuesPage />} />
         <Route path="/mates" element={<MatesPage />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
+        <Route path="/create-game" element={<Navigate to="/login" replace />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />

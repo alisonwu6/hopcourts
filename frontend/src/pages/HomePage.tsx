@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPin, PenLine } from 'lucide-react'
+import { MapPinPlus } from 'lucide-react'
 import { Button, GameCard } from '@/components'
 import { FilterChips } from '@/components/athlete/FilterChips'
-import { useGamesStore } from '@/hooks'
+import { useAuthStore, useGamesStore } from '@/hooks'
 
 const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 
@@ -15,6 +15,7 @@ export function HomePage() {
   const isLoading = useGamesStore((state) => state.isLoading)
   const error = useGamesStore((state) => state.error)
   const fetchGames = useGamesStore((state) => state.fetchGames)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   useEffect(() => {
     void fetchGames()
@@ -31,7 +32,7 @@ export function HomePage() {
     <div className="min-h-screen bg-blue-50 pb-24">
       <div
         className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white shadow-sm"
-        style={{ top: '80px'}}
+        style={{ top: '80px' }}
       >
         <div className="mx-auto w-full max-w-4xl px-4">
           <FilterChips
@@ -49,7 +50,9 @@ export function HomePage() {
           </div>
         )}
         {isLoading ? (
-          <div className="flex justify-center py-10 text-slate-500">Loading games…</div>
+          <div className="flex justify-center py-10 text-slate-500">
+            Loading games…
+          </div>
         ) : filteredGames.length === 0 ? (
           <div className="py-10 text-center text-slate-500">No games found</div>
         ) : (
@@ -64,13 +67,15 @@ export function HomePage() {
       </div>
 
       <Button
-        className="fixed bottom-24 right-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-player-600 text-white shadow-lg transition hover:bg-player-700"
-        onClick={() => navigate('/create-game')}
+        className="fixed bottom-10 left-1/2 z-50 flex h-14 w-14 -translate-x-1/2 transform items-center justify-center rounded-full bg-player-600 text-white"
+        onClick={() => navigate(isAuthenticated ? '/create-game' : '/login')}
         aria-label="Create game"
       >
         <span className="relative flex h-6 w-6 items-center justify-center">
-          <MapPin className="h-6 w-6" strokeWidth={2} />
-          <PenLine className="absolute bottom-0 right-0 h-3 w-3" strokeWidth={2} />
+          <MapPinPlus
+            className="h-6 w-6"
+            aria-hidden="true"
+          />
         </span>
       </Button>
     </div>

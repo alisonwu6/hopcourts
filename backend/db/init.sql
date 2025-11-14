@@ -89,6 +89,7 @@ CREATE TABLE games (
   currency TEXT DEFAULT 'AUD',
   requires_approval BOOLEAN DEFAULT FALSE,
   status TEXT DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'completed', 'cancelled')),
+  cancel_reason TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

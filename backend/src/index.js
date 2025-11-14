@@ -22,6 +22,7 @@ const onboardingRoutes = require('./routes/onboardingRoutes')
 const venueRoutes = require('./routes/venueRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const storageRoutes = require('./routes/storageRoutes')
+const sportsRoutes = require('./routes/sportsRoutes')
 // Middleware
 app.use(cors())
 app.use(morgan('dev'))
@@ -41,6 +42,7 @@ app.use('/api', gameJoinRoutes)
 app.use('/api', messageRoutes)
 app.use('/api/onboarding', onboardingRoutes)
 app.use('/api/venues', venueRoutes)
+app.use('/api', sportsRoutes)
 
 function burn(ms) {
   const end = Date.now() + ms

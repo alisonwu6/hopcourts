@@ -59,6 +59,7 @@ export const SPORT_LABELS = {
 } as const
 
 export const SKILL_LEVEL_LABELS = {
+  mixed: 'All levels',
   beginner: 'Beginner',
   intermediate: 'Intermediate',
   advanced: 'Advanced',

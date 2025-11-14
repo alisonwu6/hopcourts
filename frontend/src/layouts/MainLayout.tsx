@@ -9,6 +9,7 @@ type Props = {
   description?: string
   actions?: ReactNode
   contentWidth?: ContentWidth
+  backgroundClassName?: string
 }
 
 const widthClass: Record<ContentWidth, string> = {
@@ -26,9 +27,10 @@ export default function MainLayout({
   description,
   actions,
   contentWidth = 'page',
+  backgroundClassName = 'bg-white',
 }: Props) {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-900">
+    <div className={clsx('flex min-h-screen flex-col text-slate-900', backgroundClassName)}>
       <div className="flex min-h-screen flex-col">
         <div
           className={clsx(

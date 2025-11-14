@@ -25,6 +25,7 @@ const mapGameApiToPlayerGame = (game: GameApi, currentUserId?: string): PlayerGa
   id: String(game.id),
   title: game.title,
   sport: game.sport,
+  heroImageUrl: game.hero_image_url ?? undefined,
   vibeIcon: SPORT_ICONS[game.sport.toLowerCase()] ?? '🎯',
   skillLevel: game.skill_level ?? 'mixed',
   startTime: new Date(game.start_time),
@@ -63,6 +64,7 @@ const mapGameApiToPlayerGame = (game: GameApi, currentUserId?: string): PlayerGa
     rules: {
       duration: `${getDurationMinutes(game.start_time, game.end_time)} mins`,
     },
+    heroImageUrl: game.hero_image_url ?? undefined,
   },
   completedDate: game.status === 'completed' ? new Date(game.end_time) : undefined,
 })

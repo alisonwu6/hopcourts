@@ -1,6 +1,7 @@
+import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
-import { Calendar, CircleDollarSign, Clock8, MapPin, MapPinned, MapPinPlusInside, UserRoundPlus } from 'lucide-react'
+import { Calendar, CircleDollarSign, Earth, MapPin, MapPinPlusInside, UserRoundPlus } from 'lucide-react'
 import { PlayerGame } from '@/types'
 import { getSportTheme } from '@/lib/sportColors'
 
@@ -18,93 +19,150 @@ export function GameCard({
   const skillLabel = friendlySkill(game.skillLevel)
   const locationCity = game.location?.city
   const locationLabel = game.location?.address ?? game.location?.name ?? 'Venue to be confirmed'
-  const dateLabel = formatFullDate(game.startTime)
-  const timeRangeLabel = formatTimeRange(game.startTime, game.endTime)
+  const scheduleLabel = formatSchedule(game.startTime, game.endTime)
   const priceLabel = game.priceRange ?? (game.isFree ? 'Free to join' : 'Paid event')
+  const cityLabel = locationCity ?? 'City to be confirmed'
 
   const attendeeCount = game.attendeeCount
   const participantPreview = game.participants.slice(0, 4)
   const remaining = Math.max(attendeeCount - participantPreview.length, 0)
+  const isClickable = Boolean(onViewDetails)
+  const heroImage =
+    (game as PlayerGame & { heroImageUrl?: string }).heroImageUrl ?? game.detail?.heroImageUrl
+  const heroStyle = heroImage
+    ? {
+        backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.15), rgba(2,6,23,0.55)), url(${heroImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : {
+        backgroundImage: `linear-gradient(135deg, ${theme.surface}, ${theme.primary})`,
+      }
+
+  const handleCardClick = () => onViewDetails?.(game.id)
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onViewDetails?.(game.id)
+    }
+  }
+
+  const interactionHandlers = isClickable
+    ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onClick: handleCardClick,
+        onKeyDown: handleCardKeyDown,
+        'aria-label': `View details for ${game.title}`,
+      }
+    : {}
 
   return (
-    <article className="relative mb-6 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)] transition-shadow hover:shadow-[0_24px_60px_rgba(15,41,77,0.12)]">
+    <article
+      {...interactionHandlers}
+      className={clsx(
+        'relative mb-6 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)] transition-all hover:shadow-[0_24px_60px_rgba(15,41,77,0.12)]',
+        isClickable &&
+          'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500'
+      )}
+    >
       <div
         className="absolute left-6 top-6 hidden h-12 w-12 items-center justify-center rounded-2xl sm:flex"
         style={{ backgroundColor: theme.primary, color: '#FFFFFF' }}
       >
-        <MapPinPlusInside className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+        <MapPinPlusInside
+          className="h-5 w-5"
+          strokeWidth={2}
+          aria-hidden="true"
+        />
       </div>
 
-      <div className="space-y-6 px-6 py-6 sm:px-8 sm:py-7">
-        <header className="flex flex-wrap items-start justify-between gap-4">
+      <div className="space-y-2 px-3 py-3 sm:px-8 sm:py-7">
+        <header className="flex flex-wrap items-start justify-between">
           <div className="flex items-start gap-3">
-            <AvatarCircle name={game.host.name} src={game.host.avatarUrl} />
-            <div className="space-y-1 leading-tight">
-              <p className="text-base font-semibold text-slate-900">{game.host.name}</p>
-              {locationCity && (
-                <div className="flex items-center gap-1 text-sm text-slate-500">
-                  <MapPin className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-                  <span>{locationCity}</span>
-                </div>
-              )}
+            <AvatarCircle
+              name={game.host.name}
+              src={game.host.avatarUrl}
+            />
+            <div>
+              <p className="text-base font-semibold text-slate-900">
+                {game.host.name}
+              </p>
+              <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                <Earth
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+                {/* <span>{cityLabel}</span> */}
+                <span>Holland Park West, Brisbane</span>
+              </div>
             </div>
           </div>
+        </header>
 
+        <div className="overflow-hidden rounded-2xl">
+          <div
+            className="relative h-48 w-full rounded-2xl"
+            style={heroStyle}
+          >
+            {!heroImage && (
+              <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-30">
+                {game.vibeIcon}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between">
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
+            {skillLabel}
+          </span>
           <span
-            className="rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
+            className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
             style={{ backgroundColor: theme.surface, color: theme.dark }}
           >
             {sportLabel}
           </span>
-        </header>
-
-        <div className="flex items-center justify-between gap-3">
-          <span
-            className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide"
-            style={{ backgroundColor: theme.surface, color: theme.dark }}
-          >
-            {skillLabel}
-          </span>
-          <button
-            type="button"
-            onClick={() => onViewDetails?.(game.id)}
-            className="text-sm font-semibold text-slate-500 transition hover:text-slate-700"
-          >
-            View details →
-          </button>
         </div>
 
-        <div className="space-y-5">
-          <div className="space-y-1">
-            <h3 className="text-xl font-semibold text-slate-900">{game.title}</h3>
-          </div>
+        <div className="space-y-1">
+          <h3 className="text-xl font-semibold leading-snug text-slate-900">
+            {game.title}
+          </h3>
 
-          <div className="space-y-1.5 text-sm text-slate-600">
-            <InfoRow icon={MapPinned} label={locationLabel} />
-            <InfoRow icon={Calendar} label={dateLabel} />
-            <InfoRow icon={Clock8} label={timeRangeLabel} />
-            <InfoRow icon={CircleDollarSign} label={priceLabel} />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <IconBadge icon={UserRoundPlus} />
-            <div className="flex -space-x-2">
-              {participantPreview.map((participant) => (
-                <AvatarCircle
-                  key={participant.id}
-                  name={participant.name}
-                  src={participant.avatarUrl}
-                  size="sm"
-                  ring
-                />
-              ))}
+          <div className="flex flex-col text-sm text-slate-600">
+            <InfoRow
+              icon={Calendar}
+              label={scheduleLabel}
+            />
+            <InfoRow
+              icon={MapPin}
+              label={locationLabel}
+            />
+            <div className="flex flex-wrap items-center">
+              <IconBadge icon={UserRoundPlus} />
+              <div className="flex -space-x-2">
+                {participantPreview.map((participant) => (
+                  <AvatarCircle
+                    key={participant.id}
+                    name={participant.name}
+                    src={participant.avatarUrl}
+                    size="sm"
+                    ring
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-slate-600">
+                {summaryText(attendeeCount, game.maxAttendees, remaining)}
+              </span>
             </div>
-            <span className="text-sm text-slate-600">
-              {summaryText(attendeeCount, game.maxAttendees, remaining)}
-            </span>
+            <InfoRow
+              icon={CircleDollarSign}
+              label={priceLabel}
+            />
           </div>
         </div>
-
       </div>
     </article>
   )
@@ -154,7 +212,7 @@ function IconBadge({ icon: Icon }: { icon: LucideIcon }) {
 
 function InfoRow({ icon, label }: { icon: LucideIcon; label: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center">
       <IconBadge icon={icon} />
       <span>{label}</span>
     </div>
@@ -180,6 +238,16 @@ function formatTimeRange(start: Date | string, end: Date | string) {
   const startLabel = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   const endLabel = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   return `${startLabel} - ${endLabel}`
+}
+
+function formatSchedule(start: Date | string, end: Date | string) {
+  const startDate = toDate(start)
+  const dateLabel = startDate.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+  return `${dateLabel} ${formatTimeRange(start, end)}`
 }
 
 function summaryText(attending: number, max: number, remaining: number) {

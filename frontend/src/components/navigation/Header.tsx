@@ -47,8 +47,8 @@ export default function Header({
             />
           </Link>
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 text-sm font-medium text-[#051333]">
-              <MapPin className="h-4 w-4 text-[#1B8FD2]" aria-hidden="true" />
+            <div className="flex items-center gap-1 text-sm font-medium text-[#051333]">
+              <MapPin className="h-4 w-4 text-blue-600" aria-hidden="true" />
               Brisbane
             </div>
             <div className="text-xs text-slate-500" style={{ whiteSpace: 'pre-line' }}>

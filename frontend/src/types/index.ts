@@ -366,6 +366,7 @@ export interface PlayerGame {
   id: string
   title: string
   sport: string
+  heroImageUrl?: string
   vibeIcon: string
   skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed'
   startTime: Date | string
@@ -408,6 +409,7 @@ export interface PlayerGame {
       rotation?: string
     }
     hideParticipants?: boolean
+    heroImageUrl?: string
   }
 }
 
@@ -456,6 +458,7 @@ export interface GameApi {
   venue_name?: string
   venue_address?: string
   venue_city?: string
+  hero_image_url?: string
   attendees?: Array<{
     player_id: number
     full_name: string
@@ -486,8 +489,8 @@ export interface CreateGameInput {
   duration: number
   maxAttendees: number
   location: {
-    lat: number
-    lng: number
+    lat?: number | null
+    lng?: number | null
     address: string
     instructions?: string
   }
