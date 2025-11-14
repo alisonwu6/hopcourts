@@ -1,21 +1,24 @@
-const swaggerJsdoc = require('swagger-jsdoc')
+const fs = require('fs')
+const path = require('path')
+const yaml = require('yaml')
 
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'SportsMatch API',
-      version: '1.0.0',
-      description: 'API documentation for SportsMatch backend',
-    },
-    servers: [
-      { url: 'http://localhost:3000', description: 'Local server' },
-      // { url: 'https://api.sportsmatch.com', description: 'Production' },
-    ],
-  },
-  apis: ['./src/docs/*.yaml'],
+const SPEC_PATH = path.join(__dirname, '../../api/openapi.yaml')
+
+function loadSpec() {
+  try {
+    const file = fs.readFileSync(SPEC_PATH, 'utf8')
+    return yaml.parse(file)
+  } catch (error) {
+    console.error('[swagger] Failed to load OpenAPI spec:', error.message)
+    return {
+      openapi: '3.0.0',
+      info: {
+        title: 'SportsMatch API',
+        version: '1.0.0',
+        description: 'Fallback spec because api/openapi.yaml was unavailable.',
+      },
+    }
+  }
 }
 
-const swaggerSpec = swaggerJsdoc(options)
-
-module.exports = swaggerSpec
+module.exports = loadSpec()
