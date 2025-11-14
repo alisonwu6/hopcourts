@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import { getSportTheme } from '@/lib/sportColors'
 
 interface Props {
   filters: string[]
@@ -20,12 +19,6 @@ export function FilterChips({ filters, selected = 'All', onSelect, className }: 
         <div className="flex w-max items-center gap-2">
           {filters.map((filter) => {
             const isActive = filter === selected
-            const theme = getSportTheme(filter)
-            const isSportChip = !theme.isDefault
-            const style =
-              isActive && isSportChip
-                ? { backgroundColor: theme.surface, color: theme.dark, borderColor: theme.primary }
-                : undefined
 
             return (
               <button
@@ -35,12 +28,9 @@ export function FilterChips({ filters, selected = 'All', onSelect, className }: 
                 className={clsx(
                   baseButton,
                   isActive
-                    ? isSportChip
-                      ? 'shadow-sm'
-                      : 'border-transparent bg-blue-600 text-white shadow-sm'
+                    ? 'border-transparent bg-blue-600 text-white shadow-sm'
                     : 'border-transparent bg-blue-100 text-blue-700 hover:bg-blue-200'
                 )}
-                style={style}
               >
                 {filter}
               </button>

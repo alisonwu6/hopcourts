@@ -1,7 +1,6 @@
 import clsx from 'clsx'
 import { MessageCircle, PlusCircle, UserPlus } from 'lucide-react'
 import { Mate } from '@/data/mates'
-import { getSportTheme } from '@/lib/sportColors'
 
 type MateCardProps = {
   mate: Mate
@@ -23,7 +22,6 @@ const ACTIVITY_TONE: Record<Mate['activityStatus'], { dot: string; label: string
 }
 
 export function MateCard({ mate, onFollow, onInvite, onMessage }: MateCardProps) {
-  const theme = getSportTheme(mate.primarySport)
   const connectionTone = CONNECTION_LABEL[mate.connectionStatus]
   const activityTone = ACTIVITY_TONE[mate.activityStatus]
 
@@ -35,17 +33,10 @@ export function MateCard({ mate, onFollow, onInvite, onMessage }: MateCardProps)
         ? 'Following'
         : 'Connected'
 
-  const followButtonStyle =
+  const followButtonTone =
     mate.connectionStatus === 'none'
-      ? {
-          borderColor: theme.primary,
-          color: theme.primary,
-        }
-      : {
-          backgroundColor: theme.primary,
-          borderColor: theme.primary,
-          color: '#0B1A2A',
-        }
+      ? 'border-blue-600 text-blue-600 hover:bg-blue-50'
+      : 'border-blue-600 bg-blue-600 text-white'
 
   return (
     <article className="rounded-3xl border border-slate-100 bg-white shadow-sm transition hover:shadow-lg">
@@ -67,10 +58,7 @@ export function MateCard({ mate, onFollow, onInvite, onMessage }: MateCardProps)
               </div>
               <p className="text-xs text-slate-500">{mate.tagline}</p>
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span
-                  className={clsx('flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]')}
-                  style={{ backgroundColor: theme.surface, color: theme.dark }}
-                >
+                <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] text-blue-700">
                   {mate.skillLevel === 'beginner'
                     ? 'Beginner'
                     : mate.skillLevel === 'intermediate'
@@ -90,18 +78,14 @@ export function MateCard({ mate, onFollow, onInvite, onMessage }: MateCardProps)
         </header>
 
         <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-          {mate.sports.map((sport) => {
-            const tone = getSportTheme(sport)
-            return (
-              <span
-                key={sport}
-                className="rounded-full px-2.5 py-1"
-                style={{ backgroundColor: tone.surface, color: tone.dark }}
-              >
-                {sport}
-              </span>
-            )
-          })}
+          {mate.sports.map((sport) => (
+            <span
+              key={sport}
+              className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700"
+            >
+              {sport}
+            </span>
+          ))}
         </div>
 
         <div className="grid gap-3 text-sm text-slate-700 sm:grid-cols-3">
@@ -141,9 +125,9 @@ export function MateCard({ mate, onFollow, onInvite, onMessage }: MateCardProps)
           <button
             type="button"
             className={clsx(
-              'inline-flex flex-1 items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:flex-none sm:px-6'
+              'inline-flex flex-1 items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:flex-none sm:px-6',
+              followButtonTone
             )}
-            style={followButtonStyle}
             onClick={() => onFollow?.(mate.id)}
           >
             <UserPlus className="h-4 w-4" strokeWidth={2} aria-hidden="true" />

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { GameRow } from '@/components/player/GameRow'
-import { getSportTheme } from '@/lib/sportColors'
 import clsx from 'clsx'
 import {
   Building2,
@@ -54,8 +53,6 @@ export function VenueDetailPage() {
     )
   }
 
-  const primarySport = venue.sports[0]
-  const theme = getSportTheme(primarySport)
   const chips = venue.sports.length ? venue.sports : ['General']
   const [activeTab, setActiveTab] = useState<'about' | 'games'>('about')
 
@@ -115,7 +112,7 @@ export function VenueDetailPage() {
           <div className="border-b border-slate-100 px-6 py-6 sm:px-8">
             <header className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-start gap-3">
-                <LogoBadge theme={theme} />
+                <LogoBadge />
                 <div className="space-y-1">
                   <h1 className="text-2xl font-semibold text-slate-900">{venue.name}</h1>
                   <p className="text-sm text-slate-600 capitalize">{venue.type}</p>
@@ -134,12 +131,9 @@ export function VenueDetailPage() {
                 className={clsx(
                   'relative px-3 py-2 transition',
                   activeTab === 'about'
-                    ? 'text-slate-900 after:absolute after:inset-x-0 after:-bottom-[1px] after:h-0.5 after:rounded-full after:bg-[var(--tab-color,theme(colors.blue.500))]'
+                    ? 'text-slate-900 after:absolute after:inset-x-0 after:-bottom-[1px] after:h-0.5 after:rounded-full after:bg-blue-500'
                     : 'hover:text-slate-700'
                 )}
-                style={
-                  activeTab === 'about' ? { ['--tab-color' as string]: theme.primary } : undefined
-                }
               >
                 About
               </button>
@@ -149,12 +143,9 @@ export function VenueDetailPage() {
                 className={clsx(
                   'relative px-3 py-2 transition',
                   activeTab === 'games'
-                    ? 'text-slate-900 after:absolute after:inset-x-0 after:-bottom-[1px] after:h-0.5 after:rounded-full after:bg-[var(--tab-color,theme(colors.blue.500))]'
+                    ? 'text-slate-900 after:absolute after:inset-x-0 after:-bottom-[1px] after:h-0.5 after:rounded-full after:bg-blue-500'
                     : 'hover:text-slate-700'
                 )}
-                style={
-                  activeTab === 'games' ? { ['--tab-color' as string]: theme.primary } : undefined
-                }
               >
                 Games
               </button>
@@ -163,18 +154,14 @@ export function VenueDetailPage() {
 
           <div className="space-y-6 px-6 py-6 sm:px-8">
             <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-              {chips.map((sport) => {
-                const tone = getSportTheme(sport)
-                return (
-                  <span
-                    key={sport}
-                    className="rounded-full px-2.5 py-1"
-                    style={{ backgroundColor: tone.surface, color: tone.dark }}
-                  >
-                    {sport}
-                  </span>
-                )
-              })}
+              {chips.map((sport) => (
+                <span
+                  key={sport}
+                  className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700"
+                >
+                  {sport}
+                </span>
+              ))}
             </div>
 
             {activeTab === 'about' ? (
@@ -189,11 +176,10 @@ export function VenueDetailPage() {
   )
 }
 
-function LogoBadge({ theme }: { theme: ReturnType<typeof getSportTheme> }) {
+function LogoBadge() {
   return (
     <span
-      className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-100"
-      style={{ backgroundColor: theme.surface }}
+      className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-100 bg-blue-50"
     >
       <Building2 className="h-5 w-5 text-slate-500" strokeWidth={2} aria-hidden="true" />
     </span>

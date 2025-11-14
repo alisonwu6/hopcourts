@@ -3,7 +3,13 @@ import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
 import { Calendar, CircleDollarSign, Earth, MapPin, MapPinPlusInside, UserRoundPlus } from 'lucide-react'
 import { PlayerGame } from '@/types'
-import { getSportTheme } from '@/lib/sportColors'
+
+const ACCENT = {
+  primary: '#2563EB',
+  surface: '#DBEAFE',
+  dark: '#1D4ED8',
+  gradient: 'linear-gradient(135deg, #DBEAFE, #2563EB)',
+}
 
 type GameCardProps = {
   game: PlayerGame
@@ -14,7 +20,6 @@ export function GameCard({
   game,
   onViewDetails,
 }: GameCardProps) {
-  const theme = getSportTheme(game.sport)
   const sportLabel = formatSportName(game.sport)
   const skillLabel = friendlySkill(game.skillLevel)
   const locationCity = game.location?.city
@@ -36,7 +41,7 @@ export function GameCard({
         backgroundPosition: 'center',
       }
     : {
-        backgroundImage: `linear-gradient(135deg, ${theme.surface}, ${theme.primary})`,
+        backgroundImage: ACCENT.gradient,
       }
 
   const handleCardClick = () => onViewDetails?.(game.id)
@@ -67,8 +72,7 @@ export function GameCard({
       )}
     >
       <div
-        className="absolute left-6 top-6 hidden h-12 w-12 items-center justify-center rounded-2xl sm:flex"
-        style={{ backgroundColor: theme.primary, color: '#FFFFFF' }}
+        className="absolute left-6 top-6 hidden h-12 w-12 items-center justify-center rounded-2xl bg-player-600 text-white sm:flex"
       >
         <MapPinPlusInside
           className="h-5 w-5"
@@ -119,8 +123,7 @@ export function GameCard({
             {skillLabel}
           </span>
           <span
-            className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide"
-            style={{ backgroundColor: theme.surface, color: theme.dark }}
+            className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold tracking-wide text-blue-700"
           >
             {sportLabel}
           </span>

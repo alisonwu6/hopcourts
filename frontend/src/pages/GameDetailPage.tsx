@@ -13,7 +13,6 @@ import {
   TicketCheck,
   UserRoundPlus,
 } from 'lucide-react'
-import { getSportTheme } from '@/lib/sportColors'
 import { useGamesStore } from '@/hooks'
 import { useAuthStore } from '@/store/authStore'
 
@@ -62,7 +61,6 @@ export function GameDetailPage() {
     }
   }
 
-  const theme = getSportTheme(game.sport)
   const sportLabel = formatSportName(game.sport)
   const skillLabel = friendlySkill(game.skillLevel)
   const locationCity = game.location?.city
@@ -113,19 +111,13 @@ export function GameDetailPage() {
                   type="button"
                   onClick={handleJoinToggle}
                   disabled={actionLoading}
-                  className={clsx(
-                    'inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-                    game.joined ? 'bg-player-600 text-white border-player-600' : ''
-                  )}
-                  style={
-                    game.joined
-                      ? undefined
-                      : {
-                          borderColor: theme.primary,
-                          color: theme.primary,
-                        }
-                  }
-                >
+                className={clsx(
+                  'inline-flex items-center gap-3 rounded-full border px-5 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  game.joined
+                    ? 'bg-player-600 text-white border-player-600'
+                    : 'border-blue-600 text-blue-600 hover:bg-blue-50'
+                )}
+              >
                   <span className="inline-flex  items-center justify-center rounded-full bg-white/90">
                     <TicketCheck
                       className="h-4 w-4"
@@ -144,8 +136,7 @@ export function GameDetailPage() {
       <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-6 pb-32">
         <section className="relative overflow-hidden rounded-[30px] border border-slate-100 bg-white shadow-[0_24px_60px_rgba(15,41,77,0.12)]">
           <div
-            className="absolute left-6 top-6 hidden h-12 w-12 items-center justify-center rounded-2xl sm:flex"
-            style={{ backgroundColor: theme.primary, color: '#FFFFFF' }}
+            className="absolute left-6 top-6 hidden h-12 w-12 items-center justify-center rounded-2xl bg-player-600 text-white sm:flex"
           >
             <MapPinPlusInside
               className="h-5 w-5"
@@ -182,8 +173,7 @@ export function GameDetailPage() {
               </div>
 
               <span
-                className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
-                style={{ backgroundColor: theme.surface, color: theme.dark }}
+                className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700"
               >
                 {sportLabel}
               </span>
@@ -191,8 +181,7 @@ export function GameDetailPage() {
 
             <div className="flex items-center justify-between gap-3">
               <span
-                className="inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
-                style={{ backgroundColor: theme.surface, color: theme.dark }}
+                className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700"
               >
                 {skillLabel}
               </span>
