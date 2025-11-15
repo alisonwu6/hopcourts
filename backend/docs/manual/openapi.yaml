@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: SportsMatch API
+  version: 0.1.0
+  description: |
+    Hand-authored OpenAPI spec for SportsMatch.
+    Single source of truth for public endpoints and contracts.
+    This file is maintained manually (no auto-generation).
+
+  contact:
+    name: SportsMatch Dev
+    email: dev@sportsmatch.app
+
+servers:
+  - url: https://api.sportsmatch.local   # 本地/代理端點（自行調整）
+    description: Local/dev gateway
+  - url: https://example.com             # 預留正式位址
+    description: Production (placeholder)
+
+tags:
+  - name: Auth
+    description: Authentication & session
+  - name: Profiles
+    description: Player profiles and preferences
+  - name: Games
+    description: Sports games discovery & management
+  - name: GameMembers
+    description: Join/leave games and membership states
+  - name: Venues
+    description: Venue directory
+  - name: Health
+    description: Service health & metadata
+
+paths: {}  # ← 目前不定義任何 API，之後新增請看下方註解樣板
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas: {}   # 之後把資料模型放這裡（例如 Profile, Game, GameMember）
+
+  responses:
+    UnauthorizedError:
+      description: Missing or invalid access token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Unauthorized
+
+  parameters: {}     # 共用查詢參數可放這裡（例如 page/limit）
+  requestBodies: {}  # 共用請求體可放這裡
+
+security:
+  - bearerAuth: []    # 預設所有路由需要 Bearer（公開路由可在各 path 覆蓋）
+
+externalDocs:
+  description: API style guide & usage notes
+  url: https://your-docs-hub.example.com
