@@ -1,17 +1,31 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPinPlus, Search, X } from 'lucide-react'
+import { MapPinPlus, Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react'
+import { addDays, format, isSameDay, isToday, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
 import { Button, GameCard } from '@/components'
 import { useAuthStore, useGamesStore } from '@/hooks'
 
 const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
+const skillOptions = [
+  { value: 'all', label: 'All Levels' },
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
+  { value: 'mixed', label: 'All levels welcome' },
+]
 
 export function HomePage() {
   const navigate = useNavigate()
+  const today = startOfDay(new Date())
   const [selectedSports, setSelectedSports] = useState<string[]>(['All'])
   const [pendingSports, setPendingSports] = useState<string[]>(['All'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(today))
+  const [selectedSkill, setSelectedSkill] = useState('all')
+  const [isSkillFilterOpen, setIsSkillFilterOpen] = useState(false)
   const games = useGamesStore((state) => state.games)
   const isLoading = useGamesStore((state) => state.isLoading)
   const error = useGamesStore((state) => state.error)
@@ -22,12 +36,46 @@ export function HomePage() {
     void fetchGames()
   }, [fetchGames])
 
+  useEffect(() => {
+    if (!isCalendarOpen && selectedDate) {
+      setCalendarMonth(startOfMonth(selectedDate))
+    }
+  }, [isCalendarOpen, selectedDate])
+
+  const gamesByDay = useMemo(() => {
+    return games.reduce<Record<string, number>>((acc, game) => {
+      const key = startOfDay(new Date(game.startTime)).toISOString()
+      acc[key] = (acc[key] ?? 0) + 1
+      return acc
+    }, {})
+  }, [games])
+
   const filteredGames = useMemo(() => {
-    if (selectedSports.includes('All')) return games
-    return games.filter((game) =>
-      selectedSports.some((sport) => game.sport.toLowerCase() === sport.toLowerCase())
-    )
-  }, [games, selectedSports])
+    const todayStart = startOfDay(new Date())
+    const upcomingGames = games.filter((game) => new Date(game.startTime) >= todayStart)
+
+    const dateFiltered = selectedDate
+      ? upcomingGames.filter((game) => isSameDay(new Date(game.startTime), selectedDate))
+      : upcomingGames
+
+    const sportFiltered = selectedSports.includes('All')
+      ? dateFiltered
+      : dateFiltered.filter((game) =>
+          selectedSports.some((sport) => game.sport.toLowerCase() === sport.toLowerCase())
+        )
+
+    if (selectedSkill === 'all') return sportFiltered
+    return sportFiltered.filter((game) => game.skillLevel === selectedSkill)
+  }, [games, selectedSports, selectedSkill, selectedDate])
+
+  const dateLabel = selectedDate ? format(selectedDate, 'EEE, dd MMM') : 'Select a date'
+  const showTodayLabel = Boolean(selectedDate && isSameDay(selectedDate, today))
+  const skillLabel = skillOptions.find((option) => option.value === selectedSkill)?.label ?? 'All Levels'
+
+  const handleDateSelect = (date: Date) => {
+    const normalized = startOfDay(date)
+    setSelectedDate(normalized)
+  }
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
@@ -35,7 +83,7 @@ export function HomePage() {
         className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur shadow-sm"
         style={{ top: '80px' }}
       >
-        <div className="mx-auto flex w-full max-w-4xl items-center px-4 py-3">
+        <div className="mx-auto w-full max-w-4xl space-y-3 px-4 py-3">
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
@@ -49,10 +97,37 @@ export function HomePage() {
               sport
             </span>
           </button>
+
+          <div className="flex w-full gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const baseDate = selectedDate ?? today
+                setCalendarMonth(startOfMonth(baseDate))
+                setIsCalendarOpen(true)
+              }}
+            className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
+          >
+            <CalendarIcon className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
+            <div className="flex flex-col text-left">
+              <span className="text-sm font-semibold text-slate-700">{dateLabel}</span>
+              {showTodayLabel && <span className="text-xs font-medium text-blue-500">Today</span>}
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsSkillFilterOpen(true)}
+            className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
+          >
+            <BarChart3 className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
+            <span className="flex-1 truncate">{skillLabel}</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">skill</span>
+          </button>
+        </div>
         </div>
       </div>
 
-      <div className="mx-auto mt-[6rem] w-full max-w-4xl px-4 py-6">
+      <div className="mx-auto mt-30 w-full max-w-4xl px-4 py-6">
         {error && (
           <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
@@ -96,6 +171,22 @@ export function HomePage() {
           setSelectedSports(pendingSports.length ? pendingSports : ['All'])
           setIsFilterOpen(false)
         }}
+      />
+      <CalendarSheet
+        open={isCalendarOpen}
+        month={calendarMonth}
+        selectedDate={selectedDate}
+        onSelect={(day) => {
+          handleDateSelect(day)
+          setIsCalendarOpen(false)
+        }}
+        onMonthChange={(date) => setCalendarMonth(startOfMonth(date))}
+        onClose={() => setIsCalendarOpen(false)}
+        onClear={() => {
+          setSelectedDate(null)
+          setIsCalendarOpen(false)
+        }}
+        counts={gamesByDay}
       />
     </div>
   )
@@ -185,6 +276,147 @@ function SportFilterSheet({
             className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
           >
             Apply
+          </button>
+        </div>
+      </div>
+      <style>
+        {`@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }`}
+      </style>
+    </div>
+  )
+}
+
+type CalendarSheetProps = {
+  open: boolean
+  month: Date
+  selectedDate: Date | null
+  onSelect: (date: Date) => void
+  onMonthChange: (date: Date) => void
+  onClose: () => void
+  onClear: () => void
+  counts: Record<string, number>
+}
+
+function CalendarSheet({
+  open,
+  month,
+  selectedDate,
+  onSelect,
+  onMonthChange,
+  onClose,
+  onClear,
+  counts = {},
+}: CalendarSheetProps) {
+  if (!open) return null
+
+  const monthStart = startOfMonth(month)
+  const monthEnd = endOfMonth(month)
+  const start = startOfWeek(monthStart, { weekStartsOn: 1 })
+  const end = endOfWeek(monthEnd, { weekStartsOn: 1 })
+
+  const days: Date[] = []
+  let current = start
+  while (current <= end) {
+    days.push(current)
+    current = addDays(current, 1)
+  }
+
+  const currentYear = getYear(month)
+  const years = Array.from({ length: 7 }, (_, index) => currentYear - 3 + index)
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/40 backdrop-blur-sm">
+      <div className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)] animate-[sheetIn_0.25s_ease-out]">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">full calendar</p>
+            <h2 className="text-xl font-semibold text-slate-900">{format(month, 'MMMM yyyy')}</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={currentYear}
+              onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
+              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => onMonthChange(addMonths(month, -1))}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+              aria-label="Previous month"
+            >
+              <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onMonthChange(addMonths(month, 1))}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+              aria-label="Next month"
+            >
+              <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+              aria-label="Close calendar"
+            >
+              <X className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 py-4">
+          <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => (
+              <span key={label}>{label}</span>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-7 gap-2">
+            {days.map((day) => {
+              const inactive = !isSameMonth(day, month)
+              const active = selectedDate ? isSameDay(day, selectedDate) : false
+              const key = startOfDay(day).toISOString()
+              const hasEvents = Boolean(counts?.[key])
+              return (
+                <button
+                  key={day.toISOString()}
+                  type="button"
+                  onClick={() => onSelect(day)}
+                  className={clsx(
+                    'flex h-12 flex-col items-center justify-center rounded-full border text-sm font-semibold transition',
+                    inactive && 'text-slate-300 border-transparent',
+                    !inactive && 'border-transparent',
+                    active && '!border-blue-500 bg-blue-50 text-blue-700'
+                  )}
+                >
+                  <span>{format(day, 'd')}</span>
+                  {hasEvents && <span className="mt-1 h-1 w-1 rounded-full bg-blue-500" />}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-sm font-semibold text-slate-500 hover:text-slate-800"
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+          >
+            Done
           </button>
         </div>
       </div>
