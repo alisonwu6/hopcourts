@@ -16,7 +16,7 @@ import { GameDetailPage } from '@/pages/GameDetailPage'
 import { MyGamesPage } from '@/pages/MyGamesPage'
 import { VenueDetailPage } from '@/pages/VenueDetailPage'
 import { ProfilePage } from '@/pages/ProfilePage'
-import CreateGame from '@/pages/CreateGame'
+import CreateGamePage from '@/pages/CreateGamePage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 
 export default function App() {
@@ -55,7 +55,7 @@ export default function App() {
 
 function useDetailLayout() {
   const { pathname } = useLocation()
-  return pathname.startsWith('/game/')
+  return pathname.startsWith('/game/') || pathname.startsWith('/create-game')
 }
 
 function AuthenticatedApp() {
@@ -69,7 +69,7 @@ function AuthenticatedApp() {
         <Route path="/mates" element={<MatesPage />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
         <Route path="/my-games" element={<MyGamesPage />} />
-        <Route path="/create-game" element={<CreateGame />} />
+        <Route path="/create-game" element={<CreateGamePage />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />

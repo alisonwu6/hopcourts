@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
+import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import clsx from 'clsx'
-import { ArrowLeft, Calendar, CircleDollarSign, Heart, MapPin, MessageCircle, PersonStanding, Share2 } from 'lucide-react'
+import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import heroPlaceholder from '@/assets/placeholders/game-placeholder.JPEG'
 
@@ -43,11 +44,14 @@ export function GameDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#f3f5f8] pb-12">
-      <Toolbar
+      <ActionToolbar
         onBack={() => navigate(-1)}
         onShare={handleShare}
         onToggleFavorite={() => setIsFavorite((prev) => !prev)}
         isFavorite={isFavorite}
+        showShare
+        showFavorite
+        contentClassName="w-full max-w-[400px] px-4"
       />
       <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
         <div className="relative overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)] mb-0">
@@ -60,22 +64,23 @@ export function GameDetailPage() {
         </div>
         <div className="-mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)] relative z-10">
           <div className="px-5 pb-6 pt-6">
-            <div className="rounded-[26px] border border-slate-100 bg-white px-4 py-4 text-left shadow-[0_18px_40px_rgba(15,41,77,0.12)]">
-              <div className="flex items-center gap-3">
-                <AvatarCircle name={mockGame.host.name} src={mockGame.host.avatar} />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Hosted by {mockGame.host.name}</p>
-                  <p className="text-xs text-slate-500">{mockGame.host.subtitle}</p>
-                </div>
+            
+            <div className="flex items-center gap-3">
+              <AvatarCircle name={mockGame.host.name} src={mockGame.host.avatar} />
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Hosted by {mockGame.host.name}</p>
+                <p className="text-xs text-slate-500">{mockGame.host.subtitle}</p>
               </div>
             </div>
 
-            <div className="mt-6 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide">
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
-                {mockGame.skillLabel}
-              </span>
+            <hr className="my-6 border-slate-200" />
+
+            <div className="mt-6 flex justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide">
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                 {mockGame.sport}
+              </span>
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
+                {mockGame.skillLabel}
               </span>
             </div>
 
@@ -143,55 +148,6 @@ function AvatarCircle({ name, src }: { name: string; src?: string }) {
       }
     >
       {!src && name.charAt(0).toUpperCase()}
-    </div>
-  )
-}
-
-function Toolbar({
-  onBack,
-  onShare,
-  onToggleFavorite,
-  isFavorite,
-}: {
-  onBack: () => void
-  onShare: () => void
-  onToggleFavorite: () => void
-  isFavorite: boolean
-}) {
-  return (
-    <div className="sticky top-0 z-30 bg-[#f3f5f8]/90 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-[400px] items-center justify-between px-4 py-4">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
-        </button>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onShare}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-white text-[#1E6DEB] transition hover:bg-blue-50"
-            aria-label="Share"
-          >
-            <Share2 className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={onToggleFavorite}
-            className={clsx(
-              'flex h-10 w-10 items-center justify-center rounded-full border transition',
-              isFavorite ? 'border-blue-200 bg-blue-50 text-[#1E6DEB]' : 'border-blue-200 bg-white text-[#1E6DEB] hover:bg-blue-50'
-            )}
-            aria-pressed={isFavorite}
-            aria-label={isFavorite ? 'Saved' : 'Save for later'}
-          >
-            <Heart className={clsx('h-5 w-5', isFavorite && 'fill-current')} strokeWidth={2} aria-hidden="true" />
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
