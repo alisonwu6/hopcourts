@@ -9,10 +9,8 @@ import { useAuthStore, useGamesStore } from '@/hooks'
 const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 const skillOptions = [
   { value: 'all', label: 'All Levels' },
-  { value: 'beginner', label: 'Beginner' },
   { value: 'intermediate', label: 'Intermediate' },
   { value: 'advanced', label: 'Advanced' },
-  { value: 'mixed', label: 'All levels welcome' },
 ]
 
 export function HomePage() {
@@ -22,6 +20,7 @@ export function HomePage() {
   const [pendingSports, setPendingSports] = useState<string[]>(['All'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [pendingDate, setPendingDate] = useState<Date | null>(null)
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(today))
   const [selectedSkill, setSelectedSkill] = useState('all')
@@ -72,11 +71,6 @@ export function HomePage() {
   const showTodayLabel = Boolean(selectedDate && isSameDay(selectedDate, today))
   const skillLabel = skillOptions.find((option) => option.value === selectedSkill)?.label ?? 'All Levels'
 
-  const handleDateSelect = (date: Date) => {
-    const normalized = startOfDay(date)
-    setSelectedDate(normalized)
-  }
-
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
       <div
@@ -100,12 +94,13 @@ export function HomePage() {
 
           <div className="flex w-full gap-3">
             <button
-              type="button"
-              onClick={() => {
-                const baseDate = selectedDate ?? today
-                setCalendarMonth(startOfMonth(baseDate))
-                setIsCalendarOpen(true)
-              }}
+            type="button"
+            onClick={() => {
+              const baseDate = selectedDate ?? today
+              setPendingDate(selectedDate)
+              setCalendarMonth(startOfMonth(baseDate))
+              setIsCalendarOpen(true)
+            }}
             className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
           >
             <CalendarIcon className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
@@ -176,17 +171,28 @@ export function HomePage() {
         open={isCalendarOpen}
         month={calendarMonth}
         selectedDate={selectedDate}
-        onSelect={(day) => {
-          handleDateSelect(day)
+        pendingDate={pendingDate}
+        onSelect={setPendingDate}
+        onMonthChange={(date) => setCalendarMonth(startOfMonth(date))}
+        onClose={() => {
+          setPendingDate(selectedDate)
           setIsCalendarOpen(false)
         }}
-        onMonthChange={(date) => setCalendarMonth(startOfMonth(date))}
-        onClose={() => setIsCalendarOpen(false)}
-        onClear={() => {
-          setSelectedDate(null)
+        onClear={() => setPendingDate(null)}
+        onApply={() => {
+          setSelectedDate(pendingDate)
           setIsCalendarOpen(false)
         }}
         counts={gamesByDay}
+      />
+      <SkillFilterSheet
+        open={isSkillFilterOpen}
+        selected={selectedSkill}
+        onSelect={(value) => {
+          setSelectedSkill(value)
+          setIsSkillFilterOpen(false)
+        }}
+        onClose={() => setIsSkillFilterOpen(false)}
       />
     </div>
   )
@@ -290,10 +296,12 @@ type CalendarSheetProps = {
   open: boolean
   month: Date
   selectedDate: Date | null
+  pendingDate: Date | null
   onSelect: (date: Date) => void
   onMonthChange: (date: Date) => void
   onClose: () => void
   onClear: () => void
+  onApply: () => void
   counts: Record<string, number>
 }
 
@@ -301,10 +309,12 @@ function CalendarSheet({
   open,
   month,
   selectedDate,
+  pendingDate,
   onSelect,
   onMonthChange,
   onClose,
   onClear,
+  onApply,
   counts = {},
 }: CalendarSheetProps) {
   if (!open) return null
@@ -380,7 +390,7 @@ function CalendarSheet({
           <div className="mt-2 grid grid-cols-7 gap-2">
             {days.map((day) => {
               const inactive = !isSameMonth(day, month)
-              const active = selectedDate ? isSameDay(day, selectedDate) : false
+              const active = pendingDate ? isSameDay(day, pendingDate) : false
               const key = startOfDay(day).toISOString()
               const hasEvents = Boolean(counts?.[key])
               return (
@@ -413,11 +423,70 @@ function CalendarSheet({
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={onApply}
             className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
           >
             Done
           </button>
+        </div>
+      </div>
+      <style>
+        {`@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }`}
+      </style>
+    </div>
+  )
+}
+
+type SkillSheetProps = {
+  open: boolean
+  selected: string
+  onSelect: (value: string) => void
+  onClose: () => void
+}
+
+function SkillFilterSheet({ open, selected, onSelect, onClose }: SkillSheetProps) {
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/40 backdrop-blur-sm">
+      <div className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)] animate-[sheetIn_0.25s_ease-out]">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">skill filter</p>
+            <h2 className="text-xl font-semibold text-slate-900">Pick your pace</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
+            aria-label="Close skill filter"
+          >
+            <X className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="px-6 py-6">
+          <div className="flex flex-col gap-3">
+            {skillOptions.map((option) => {
+              const active = option.value === selected
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => onSelect(option.value)}
+                  className={clsx(
+                    'flex h-16 items-center justify-between rounded-[24px] border px-4 text-left text-sm font-semibold transition',
+                    active
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                      : 'border-slate-200 text-slate-700 hover:border-blue-200'
+                  )}
+                >
+                  <span>{option.label}</span>
+                  {active && <span className="text-xs text-blue-500">Selected</span>}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
       <style>
