@@ -20,7 +20,7 @@ type FormState = {
   title: string
   sport: string
   startTime: string
-  duration: string
+  endTime: string
   location: string
   capacity: string
   priceNote: string
@@ -33,9 +33,9 @@ const initialState: FormState = {
   title: '',
   sport: '',
   startTime: '',
-  duration: '90',
+  endTime: '',
   location: '',
-  capacity: '10',
+  capacity: '3',
   priceNote: 'Pay on site',
   skillLevel: 'mixed',
   description: '',
@@ -56,7 +56,7 @@ export default function CreateGame() {
       form.title.trim() &&
       form.sport.trim() &&
       form.startTime &&
-      Number(form.duration) > 0 &&
+      form.endTime &&
       Number(form.capacity) > 0 &&
       form.location.trim()
     )
@@ -96,16 +96,25 @@ export default function CreateGame() {
     event.preventDefault()
     if (!canSubmit || isSubmitting) return
 
-    const duration = Number(form.duration)
     const capacity = Number(form.capacity)
     const startDate = new Date(form.startTime)
+    const endDate = new Date(form.endTime)
 
     if (Number.isNaN(startDate.getTime())) {
       setError('Please choose a valid start date and time.')
       return
     }
-    if (Number.isNaN(duration) || duration <= 0) {
-      setError('Duration must be a positive number.')
+    if (Number.isNaN(endDate.getTime())) {
+      setError('Please choose a valid end date and time.')
+      return
+    }
+    if (endDate <= startDate) {
+      setError('End time must be after the start time.')
+      return
+    }
+    const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000)
+    if (Number.isNaN(durationMinutes) || durationMinutes <= 0) {
+      setError('Unable to calculate duration — please adjust your times.')
       return
     }
     if (Number.isNaN(capacity) || capacity <= 0) {
@@ -122,7 +131,7 @@ export default function CreateGame() {
         description: form.description.trim() || undefined,
         skillLevel: form.skillLevel,
         startTime: startDate,
-        duration,
+        duration: durationMinutes,
         maxAttendees: capacity,
         location: {
           lat: null,
@@ -190,7 +199,7 @@ export default function CreateGame() {
           <FieldSection title="Schedule & logistics" description="Set when and where your group will meet.">
             <div className="grid gap-4 sm:grid-cols-2">
               <FloatingField
-                label="Date & start time"
+                label="Start date & time"
                 name="startTime"
                 type="datetime-local"
                 value={form.startTime}
@@ -198,11 +207,10 @@ export default function CreateGame() {
                 required
               />
               <FloatingField
-                label="Duration (minutes)"
-                name="duration"
-                type="number"
-                min={15}
-                value={form.duration}
+                label="End date & time"
+                name="endTime"
+                type="datetime-local"
+                value={form.endTime}
                 onChange={handleInputChange}
                 required
               />
@@ -213,16 +221,8 @@ export default function CreateGame() {
               value={form.location}
               onChange={handleInputChange}
               required
-              supportingText="Share the exact venue or meeting landmark."
             />
             <div className="grid gap-4 sm:grid-cols-2">
-              <FloatingField
-                label="Payment info"
-                name="priceNote"
-                value={form.priceNote}
-                onChange={handleInputChange}
-                supportingText="e.g. Pay on site, $15 via app, etc."
-              />
               <FloatingField
                 label="Capacity"
                 name="capacity"
@@ -243,7 +243,7 @@ export default function CreateGame() {
               rows={4}
               value={form.description}
               onChange={handleInputChange}
-              supportingText="Introduce yourself, the plan, or any warm-up ideas."
+              supportingText="Describe what this session is about — the vibe, the pace, and what people can expect."
             />
             <FloatingField
               as="textarea"
@@ -252,7 +252,7 @@ export default function CreateGame() {
               rows={3}
               value={form.notes}
               onChange={handleInputChange}
-              supportingText="Visible only to people who join (e.g. gear to bring, host requests)."
+              supportingText="Updates and important details for attendees only."
             />
           </FieldSection>
         </section>
