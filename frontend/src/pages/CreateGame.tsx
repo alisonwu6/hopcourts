@@ -1,5 +1,7 @@
+import clsx from 'clsx'
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ArrowLeft, Heart, Share2 } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -51,6 +53,7 @@ export default function CreateGame() {
   const [sportOptions, setSportOptions] = useState<SportOption[]>([])
   const [sportsError, setSportsError] = useState<string | null>(null)
   const [isLoadingSports, setIsLoadingSports] = useState(true)
+  const [isFavorite, setIsFavorite] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -161,39 +164,69 @@ export default function CreateGame() {
     }
   }
 
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Create a game on SportsMatch',
+      text: 'Plan your next match with SportsMatch.',
+      url: window.location.href,
+    }
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch {
+        // ignore if user cancels
+      }
+      return
+    }
+
+    try {
+      await navigator.clipboard?.writeText(shareData.url)
+      window.alert('Link copied to clipboard')
+    } catch {
+      window.alert('Unable to copy link right now.')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-blue-50 pb-32">
-      <div className="sticky top-[80px] z-40 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
-        <div className="border-t border-blue-100">
-          <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
-            <div className="flex h-[58px] items-center gap-3 text-sm font-semibold text-slate-500">
+      <div className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto w-full max-w-4xl px-4 sm:px-6">
+          <div className="flex h-[56px] items-center justify-between">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+            </button>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={handleCancel}
-                className="transition hover:text-slate-800"
+                onClick={handleShare}
+                className="flex h-11 w-11 items-center justify-center rounded-full text-blue-600 transition hover:bg-blue-50"
+                aria-label="Share"
               >
-                ← Cancel
+                <Share2 className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
               </button>
-              <div className="ml-auto flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  type="button"
-                  disabled
-                  className="rounded-full border-blue-200 text-blue-500"
-                >
-                  Preview
-                </Button>
-                <Button
-                  size="sm"
-                  type="submit"
-                  form="game-form"
-                  disabled={!canSubmit || isSubmitting}
-                  className="rounded-full px-6"
-                >
-                  {isSubmitting ? 'Publishing…' : 'Publish'}
-                </Button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsFavorite((prev) => !prev)}
+                className={clsx(
+                  'flex h-11 w-11 items-center justify-center rounded-full transition',
+                  isFavorite
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                )}
+                aria-pressed={isFavorite}
+                aria-label="Save draft"
+              >
+                <Heart
+                  className={clsx('h-5 w-5', isFavorite && 'fill-current')}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -201,7 +234,7 @@ export default function CreateGame() {
 
       <form
         id="game-form"
-        className="mx-auto mt-6 w-full max-w-3xl space-y-4 px-4 sm:px-6"
+        className="mx-auto mt-6 w-full max-w-3xl space-y-4 px-4 pb-20 sm:px-6"
         onSubmit={handleSubmit}
       >
         {error && (
@@ -391,6 +424,29 @@ export default function CreateGame() {
           </div>
         </section>
       </form>
+
+      <div className="mx-auto mt-4 w-full max-w-3xl px-4 pb-10 sm:px-6">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            disabled
+            className="flex-1 rounded-full border-blue-200 text-blue-500"
+          >
+            Preview
+          </Button>
+          <Button
+            size="sm"
+            type="submit"
+            form="game-form"
+            disabled={!canSubmit || isSubmitting}
+            className="flex-1 rounded-full px-6"
+          >
+            {isSubmitting ? 'Publishing…' : 'Publish'}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

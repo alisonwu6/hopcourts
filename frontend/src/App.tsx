@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
 import { useAuthStore } from '@/hooks'
@@ -53,10 +53,16 @@ export default function App() {
   )
 }
 
+function useDetailLayout() {
+  const { pathname } = useLocation()
+  return pathname.startsWith('/game/')
+}
+
 function AuthenticatedApp() {
+  const isDetail = useDetailLayout()
   return (
-    <div className="pb-20">
-      <Header />
+    <div className={isDetail ? '' : 'pb-20'}>
+      {!isDetail && <Header />}
       <Routes>
         <Route path="/home" element={<HomePage />} />
         <Route path="/venues" element={<VenuesPage />} />
@@ -68,15 +74,16 @@ function AuthenticatedApp() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
-      <BottomNav />
+      {!isDetail && <BottomNav />}
     </div>
   )
 }
 
 function GuestApp() {
+  const isDetail = useDetailLayout()
   return (
-    <div className="pb-20">
-      <Header showActions={false} />
+    <div className={isDetail ? '' : 'pb-20'}>
+      {!isDetail && <Header showActions={false} />}
       <Routes>
         <Route path="/home" element={<HomePage />} />
         <Route path="/venues" element={<VenuesPage />} />
@@ -87,7 +94,7 @@ function GuestApp() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
-      <BottomNav />
+      {!isDetail && <BottomNav />}
     </div>
   )
 }
