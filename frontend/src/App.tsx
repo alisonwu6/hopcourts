@@ -1,8 +1,8 @@
+import type { ReactNode } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
 import { useAuthStore } from '@/hooks'
-import { Splash } from '@/pages/Splash'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
@@ -25,12 +25,27 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Splash />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <AppChrome showActions={isAuthenticated}>
+            <HomePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <AppChrome showHeader={false} showActions={false}>
+            <LoginPage />
+          </AppChrome>
+        }
+      />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/auth/reset" element={<ResetPasswordPage />} />
+      <Route path="/home" element={<Navigate to="/" replace />} />
       <Route
         path="/onboarding"
         element={
@@ -58,13 +73,31 @@ function useDetailLayout() {
   return pathname.startsWith('/game/') || pathname.startsWith('/create-game')
 }
 
-function AuthenticatedApp() {
+function AppChrome({
+  children,
+  showActions = true,
+  showHeader = true,
+}: {
+  children: ReactNode
+  showActions?: boolean
+  showHeader?: boolean
+}) {
   const isDetail = useDetailLayout()
   return (
     <div className={isDetail ? '' : 'pb-20'}>
-      {!isDetail && <Header />}
+      {!isDetail && showHeader && <Header showActions={showActions} />}
+      {children}
+      {!isDetail && <BottomNav />}
+    </div>
+  )
+}
+
+function AuthenticatedApp() {
+  return (
+    <AppChrome>
       <Routes>
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/venues" element={<VenuesPage />} />
         <Route path="/mates" element={<MatesPage />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
@@ -72,29 +105,26 @@ function AuthenticatedApp() {
         <Route path="/create-game" element={<CreateGamePage />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {!isDetail && <BottomNav />}
-    </div>
+    </AppChrome>
   )
 }
 
 function GuestApp() {
-  const isDetail = useDetailLayout()
   return (
-    <div className={isDetail ? '' : 'pb-20'}>
-      {!isDetail && <Header showActions={false} />}
+    <AppChrome showActions={false}>
       <Routes>
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/venues" element={<VenuesPage />} />
         <Route path="/mates" element={<MatesPage />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
-        <Route path="/create-game" element={<Navigate to="/login" replace />} />
+        <Route path="/create-game" element={<CreateGamePage />} />
         <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {!isDetail && <BottomNav />}
-    </div>
+    </AppChrome>
   )
 }

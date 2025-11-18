@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { MapPinPlus, Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react'
 import { addDays, format, isSameDay, isToday, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
 import { Button, GameCard } from '@/components'
+import { IntroSheet } from '@/components/IntroSheet'
+import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { useAuthStore, useGamesStore } from '@/hooks'
 
 const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
@@ -12,6 +14,8 @@ const skillOptions = [
   { value: 'intermediate', label: 'Intermediate' },
   { value: 'advanced', label: 'Advanced' },
 ]
+
+const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -30,6 +34,9 @@ export function HomePage() {
   const error = useGamesStore((state) => state.error)
   const fetchGames = useGamesStore((state) => state.fetchGames)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const [showIntroSheet, setShowIntroSheet] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [hasSeenIntro, setHasSeenIntro] = useState(false)
 
   useEffect(() => {
     void fetchGames()
@@ -40,6 +47,37 @@ export function HomePage() {
       setCalendarMonth(startOfMonth(selectedDate))
     }
   }, [isCalendarOpen, selectedDate])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (isAuthenticated) {
+      setShowIntroSheet(false)
+      return
+    }
+    const seen = window.localStorage.getItem(INTRO_SHEET_STORAGE_KEY) === 'dismissed'
+    setHasSeenIntro(seen)
+    setShowIntroSheet(!seen)
+  }, [isAuthenticated])
+
+  const handleIntroClose = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(INTRO_SHEET_STORAGE_KEY, 'dismissed')
+    }
+    setHasSeenIntro(true)
+    setShowIntroSheet(false)
+  }
+
+  const handleCreateClick = () => {
+    if (isAuthenticated) {
+      navigate('/create-game')
+      return
+    }
+    if (!hasSeenIntro) {
+      setShowIntroSheet(true)
+    } else {
+      setShowLoginPrompt(true)
+    }
+  }
 
   const gamesByDay = useMemo(() => {
     return games.reduce<Record<string, number>>((acc, game) => {
@@ -134,20 +172,30 @@ export function HomePage() {
           <div className="py-10 text-center text-slate-500">No games found</div>
         ) : (
           filteredGames.map((game) => (
-            <GameCard key={game.id} game={game} onViewDetails={() => navigate(`/game/${game.id}`)} />
+            <GameCard
+              key={game.id}
+              game={game}
+              onViewDetails={() => {
+                if (isAuthenticated) {
+                  navigate(`/game/${game.id}`)
+                } else {
+                  setShowLoginPrompt(true)
+                }
+              }}
+            />
           ))
         )}
       </div>
 
-      <Button
+      {/* <Button
         className="fixed bottom-10 left-1/2 z-50 flex h-14 w-14 -translate-x-1/2 transform items-center justify-center rounded-full bg-player-600 text-white"
-        onClick={() => navigate(isAuthenticated ? '/create-game' : '/login')}
+        onClick={handleCreateClick}
         aria-label="Create game"
       >
         <span className="relative flex h-6 w-6 items-center justify-center">
           <MapPinPlus className="h-6 w-6" aria-hidden="true" />
         </span>
-      </Button>
+      </Button> */}
 
       <SportFilterSheet
         open={isFilterOpen}
@@ -193,6 +241,18 @@ export function HomePage() {
           setIsSkillFilterOpen(false)
         }}
         onClose={() => setIsSkillFilterOpen(false)}
+      />
+
+      <IntroSheet
+        open={showIntroSheet}
+        onClose={handleIntroClose}
+        description={'Looking for people\nwho love the same stuff you do?\nBuild your crew here.'}
+        dismissLabel={null}
+      />
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onSignup={() => navigate('/signup')}
       />
     </div>
   )

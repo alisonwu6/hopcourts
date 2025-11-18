@@ -82,7 +82,7 @@ export function MyGamesPage() {
       <div className="px-4 py-4">
         <button
           type="button"
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/')}
           className="w-full py-2 text-sm font-semibold text-blue-600 hover:underline"
         >
           Browse more games

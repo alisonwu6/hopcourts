@@ -1,7 +1,8 @@
 import { ComponentType } from 'react'
-import { Building2, Compass, User, Users } from 'lucide-react'
+import { Building2, Compass, DoorClosed, PersonStanding, Users } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
+import { useAuthStore } from '@/hooks'
 
 type NavItem = {
   label: string
@@ -10,35 +11,50 @@ type NavItem = {
   matchPaths?: string[]
 }
 
-const NAV_ITEMS: NavItem[] = [
-  {
-    label: 'Home',
-    icon: Compass,
-    path: '/home',
-    matchPaths: ['/home', '/game', '/my-games'],
-  },
-  {
-    label: 'Venues',
-    icon: Building2,
-    path: '/venues',
-    matchPaths: ['/venues', '/venue'],
-  },
-  {
-    label: 'Mates',
-    icon: Users,
-    path: '/mates',
-    matchPaths: ['/mates'],
-  },
-  {
-    label: 'Me',
-    icon: User,
-    path: '/profile',
-  },
-]
-
 export function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const matchesPath = (segment: string) => {
+    if (segment === '/') {
+      return location.pathname === '/'
+    }
+    return location.pathname.startsWith(segment)
+  }
+
+  const navItems: NavItem[] = [
+    {
+      label: 'Home',
+      icon: Compass,
+      path: '/',
+      matchPaths: ['/', '/game', '/my-games'],
+    },
+    {
+      label: 'Venues',
+      icon: Building2,
+      path: '/venues',
+      matchPaths: ['/venues', '/venue'],
+    },
+    {
+      label: 'Mates',
+      icon: Users,
+      path: '/mates',
+      matchPaths: ['/mates'],
+    },
+    isAuthenticated
+      ? {
+          label: 'Me',
+          icon: PersonStanding,
+          path: '/profile',
+          matchPaths: ['/profile', '/settings'],
+        }
+      : {
+          label: 'Log in',
+          icon: DoorClosed,
+          path: '/login',
+          matchPaths: ['/login', '/signup'],
+        },
+  ]
 
   return (
     <nav
@@ -46,10 +62,10 @@ export function BottomNav() {
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-2">
-        {NAV_ITEMS.map(({ label, icon: Icon, path, matchPaths }) => {
+        {navItems.map(({ label, icon: Icon, path, matchPaths }) => {
           const isActive = matchPaths
-            ? matchPaths.some((segment) => location.pathname.startsWith(segment))
-            : location.pathname.startsWith(path)
+            ? matchPaths.some(matchesPath)
+            : matchesPath(path)
 
           return (
             <button

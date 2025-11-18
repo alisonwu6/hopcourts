@@ -17,7 +17,7 @@ export function SignupPage() {
   useEffect(() => {
     if (isAuthenticated) {
       if (onboardingStatus?.isComplete) {
-        navigate('/home', { replace: true })
+        navigate('/', { replace: true })
       } else {
         navigate('/onboarding', { replace: true })
       }

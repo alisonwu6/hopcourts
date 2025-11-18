@@ -526,7 +526,7 @@ export function OnboardingPage() {
       const response = await sessionService.completeOnboarding(buildCompletionRequest(motivationValue))
       setStatus(response.onboardingStatus)
       setAuthData(response.user, response.token, response.onboardingStatus)
-      navigate(data.role === 'venue_manager' ? '/venues' : '/home', { replace: true })
+      navigate(data.role === 'venue_manager' ? '/venues' : '/', { replace: true })
     } catch (err: any) {
       setError(err?.message ?? 'Failed to complete onboarding.')
     } finally {

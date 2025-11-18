@@ -106,7 +106,7 @@ export function ResetPasswordPage() {
         setAuthData(context.user, context.token, context.onboardingStatus)
       }
       setStatus('Password updated. Redirecting...')
-      setTimeout(() => navigate('/home', { replace: true }), 1200)
+      setTimeout(() => navigate('/', { replace: true }), 1200)
     } catch (err: any) {
       setError(err?.message ?? 'Unable to update password.')
     } finally {

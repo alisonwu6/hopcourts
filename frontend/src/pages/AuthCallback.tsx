@@ -37,7 +37,7 @@ export function AuthCallback() {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token, context.onboardingStatus)
         setOk('Signed in! Redirecting…')
-        setTimeout(() => navigate('/home', { replace: true }), 900)
+        setTimeout(() => navigate('/', { replace: true }), 900)
       } catch (bootstrapError: any) {
         setErr(bootstrapError?.message ?? 'Unable to finish sign in.')
       } finally {
@@ -72,7 +72,7 @@ export function AuthCallback() {
         setAuthData(context.user, context.token, context.onboardingStatus)
       }
       setOk('Password updated. Redirecting…')
-      setTimeout(() => navigate('/home', { replace: true }), 1200)
+      setTimeout(() => navigate('/', { replace: true }), 1200)
     } catch (bootstrapError: any) {
       setErr(bootstrapError?.message ?? 'Password updated but failed to refresh session.')
     } finally {
