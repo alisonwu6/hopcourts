@@ -28,7 +28,7 @@ export default function JoinConfirmation() {
               <Link to={`/games/${id}`}>Go to game</Link>
             </Button>
             <Button asChild variant="secondary" storyLine="venue">
-              <Link to="/home">Browse more games</Link>
+              <Link to="/">Browse more games</Link>
             </Button>
           </div>
         </div>

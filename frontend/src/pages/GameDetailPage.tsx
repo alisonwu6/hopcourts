@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
+import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import clsx from 'clsx'
 import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import heroPlaceholder from '@/assets/placeholders/game-placeholder.JPEG'
+import { useAuthStore } from '@/hooks'
 
 const mockGame = {
   title: 'Bouldering Session',
@@ -37,9 +39,19 @@ export function GameDetailPage() {
   const navigate = useNavigate()
   const [isFavorite, setIsFavorite] = useState(false)
   const [isJoined, setIsJoined] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   const handleShare = () => {
     window.alert('Share coming soon')
+  }
+
+  const handleJoinClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
+    setIsJoined((prev) => !prev)
   }
 
   return (
@@ -128,7 +140,12 @@ export function GameDetailPage() {
           </div>
         </div>
       </div>
-      <JoinBar isJoined={isJoined} onToggle={() => setIsJoined((prev) => !prev)} />
+      <JoinBar isJoined={isJoined} onClick={handleJoinClick} />
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onSignup={() => navigate('/signup')}
+      />
     </div>
   )
 }
@@ -163,14 +180,16 @@ function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   )
 }
 
-function JoinBar({ isJoined, onToggle }: { isJoined: boolean; onToggle: () => void }) {
+function JoinBar({ isJoined, onClick }: { isJoined: boolean; onClick: () => void }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 bg-[#f3f5f8]/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(15,41,77,0.12)] backdrop-blur">
-      <div className="mx-auto w-full max-w-[400px] px-4">
+    <div className="fixed inset-x-0 bottom-0 z-30 overflow-hidden pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.2)]">
+      <div className="absolute inset-0 bg-gradient-to-br from-player-50/95 via-white/95 to-player-200/95" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,199,44,0.25),_transparent_60%)]" />
+      <div className="relative mx-auto w-full max-w-[420px] px-4">
         <Button
-          onClick={onToggle}
+          onClick={onClick}
           className={clsx(
-            'h-12 w-full rounded-full text-base font-semibold shadow-sm transition',
+            'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
             isJoined ? 'bg-player-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
           )}
         >

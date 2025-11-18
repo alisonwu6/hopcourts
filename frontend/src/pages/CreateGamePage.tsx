@@ -4,8 +4,9 @@ import { useMemo, useState, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { SKILL_LEVEL_LABELS } from '@/data/mock/events'
-import { useGamesStore } from '@/hooks'
+import { useGamesStore, useAuthStore } from '@/hooks'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
 type SkillLevelKey = keyof typeof SKILL_LEVEL_LABELS
 
@@ -45,11 +46,13 @@ const initialState: FormState = {
 export default function CreateGame() {
   const navigate = useNavigate()
   const createGame = useGamesStore((state) => state.createGame)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
   const [heroPreview, setHeroPreview] = useState<string>('')
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   const canSubmit = useMemo(() => {
     return Boolean(
@@ -88,13 +91,17 @@ export default function CreateGame() {
     if (window.history.length > 1) {
       navigate(-1)
     } else {
-      navigate('/home')
+      navigate('/')
     }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canSubmit || isSubmitting) return
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
 
     const capacity = Number(form.capacity)
     const startDate = new Date(form.startTime)
@@ -154,7 +161,8 @@ export default function CreateGame() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-16">
+    <>
+      <div className="min-h-screen bg-blue-50 pb-16">
       <ActionToolbar
         onBack={handleCancel}
         onToggleFavorite={() => setIsFavorite((prev) => !prev)}
@@ -259,7 +267,13 @@ export default function CreateGame() {
       </form>
 
       <ActionBar canSubmit={canSubmit} isSubmitting={isSubmitting} />
-    </div>
+      </div>
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        onSignup={() => navigate('/signup')}
+      />
+    </>
   )
 }
 

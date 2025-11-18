@@ -7,8 +7,8 @@ const NAV_ITEMS = [
   {
     label: 'Explore',
     icon: Compass,
-    path: '/home',
-    matchPaths: ['/home', '/explore', '/games', '/map'],
+    path: '/',
+    matchPaths: ['/', '/explore', '/games', '/map'],
   },
   {
     label: 'Search athletes',
@@ -37,6 +37,12 @@ type NavItem = {
 export function BottomNavBar() {
   const navigate = useNavigate()
   const location = useLocation()
+  const matchesPath = (segment: string) => {
+    if (segment === '/') {
+      return location.pathname === '/'
+    }
+    return location.pathname.startsWith(segment)
+  }
 
   return (
     <nav
@@ -46,8 +52,8 @@ export function BottomNavBar() {
       <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-2">
         {NAV_ITEMS.map(({ label, icon: Icon, path, matchPaths }) => {
           const isActive = matchPaths
-            ? matchPaths.some((segment) => location.pathname.startsWith(segment))
-            : location.pathname.startsWith(path)
+            ? matchPaths.some(matchesPath)
+            : matchesPath(path)
 
           return (
             <button

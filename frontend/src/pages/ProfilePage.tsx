@@ -33,7 +33,7 @@ export function ProfilePage() {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/home')}
+              onClick={() => navigate('/')}
               className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100"
             >
               Keep exploring
@@ -160,7 +160,7 @@ export function ProfilePage() {
 
           <button
             type="button"
-            onClick={() => navigate('/home')}
+            onClick={() => navigate('/')}
             className="w-full rounded-xl bg-blue-600 py-4 text-lg font-semibold text-white transition hover:bg-blue-700"
           >
             🏃 Join another game
@@ -190,7 +190,7 @@ export function ProfilePage() {
           label="Logout"
           onClick={async () => {
             await logout()
-            navigate('/login', { replace: true })
+            navigate('/', { replace: true })
           }}
         />
       </div>
@@ -200,7 +200,7 @@ export function ProfilePage() {
           type="button"
           onClick={async () => {
             await logout()
-            navigate('/login', { replace: true })
+            navigate('/', { replace: true })
           }}
           className="w-full rounded-lg py-3 text-sm font-semibold text-red-600 hover:underline"
         >

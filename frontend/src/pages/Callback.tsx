@@ -7,7 +7,7 @@ export default function Callback() {
   const nav = useNavigate()
 
   useEffect(() => {
-    nav('/home', { replace: true })
+    nav('/', { replace: true })
   }, [nav])
 
   return (

@@ -60,7 +60,7 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
   }
 
   if (status.isComplete) {
-    return <Navigate to="/home" replace />
+    return <Navigate to="/" replace />
   }
 
   return <>{children}</>
