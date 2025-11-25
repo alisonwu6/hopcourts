@@ -5,7 +5,10 @@ import {
   CreateGameInput,
   GameFilter,
   PlayerGame,
+  GameCardDTO,
+  GameDetailDTO,
   GameApi,
+  SaveGamePayload,
 } from '@/types'
 import { format } from 'date-fns'
 import { useAuthStore } from '@/store/authStore'
@@ -21,52 +24,91 @@ const SPORT_ICONS: Record<string, string> = {
   volleyball: '🏐',
 }
 
-const mapGameApiToPlayerGame = (game: GameApi, currentUserId?: string): PlayerGame => ({
+type GameSource = GameCardDTO | GameDetailDTO | GameApi
+
+const isGameApi = (game: GameSource): game is GameApi => 'creator_id' in game
+
+const mapGameDtoToPlayerGame = (
+  game: GameSource,
+  currentUserId?: string,
+): PlayerGame => ({
   id: String(game.id),
   title: game.title,
   sport: game.sport,
-  heroImageUrl: game.hero_image_url ?? undefined,
+  heroImageUrl: isGameApi(game) ? game.hero_image_url ?? undefined : game.coverPhotoUrl ?? undefined,
   vibeIcon: SPORT_ICONS[game.sport.toLowerCase()] ?? '🎯',
-  skillLevel: game.skill_level ?? 'mixed',
-  startTime: new Date(game.start_time),
-  endTime: new Date(game.end_time),
+  skillLevel: (isGameApi(game) ? game.skill_level : game.skillLevel) ?? 'mixed',
+  startTime: new Date(isGameApi(game) ? game.start_time : game.startDateTime),
+  endTime: new Date(isGameApi(game) ? game.end_time : game.endDateTime),
   location: {
-    name: game.location_name || game.venue_name || 'Location TBC',
-    address: game.location_address || game.venue_address || '',
-    city: game.city || game.venue_city || '',
+    name: (isGameApi(game) ? game.location_name : game.locationName) || 'Location TBC',
+    address: isGameApi(game)
+      ? game.location_address || ''
+      : 'addressLine' in game && game.addressLine
+      ? game.addressLine
+      : '',
+    city: (isGameApi(game) ? game.city : (game as GameCardDTO | GameDetailDTO).city) ?? '',
   },
   host: {
-    id: String(game.creator_id),
-    name: game.host_name || 'Host',
-    avatarUrl: game.host_avatar || undefined,
+    id: isGameApi(game) ? String(game.creator_id) : String(game.host.id),
+    name: isGameApi(game) ? game.host_name || 'Host' : game.host.displayName || 'Host',
+    avatarUrl: isGameApi(game) ? game.host_avatar ?? undefined : game.host.avatarUrl ?? undefined,
   },
-  highFives: game.energy ?? 0,
-  joined: currentUserId
-    ? (game.attendees ?? []).some((participant) => String(participant.player_id) === currentUserId)
-    : false,
-  attendeeCount: game.attendee_count ?? game.attendees?.length ?? 0,
-  maxAttendees: game.max_players,
-  difficulty: Math.min(Math.max(['beginner', 'mixed', 'intermediate', 'advanced'].indexOf(game.skill_level ?? 'mixed') + 1, 1), 4) as 1 | 2 | 3 | 4,
-  isFree: !game.price,
-  price: game.price ?? 0,
-  priceRange: game.price ? `$${game.price}` : 'Free to join',
-  description: game.description ?? '',
-  participants: (game.attendees ?? []).map((participant) => ({
-    id: String(participant.player_id),
-    name: participant.full_name,
-    avatarUrl: participant.avatar_url ?? undefined,
-  })),
+  highFives: 0, // TODO: wire to a proper "energy" or kudos metric when available in the DTO
+  joined:
+    'isUserJoined' in game && typeof game.isUserJoined === 'boolean'
+      ? game.isUserJoined
+      : false,
+  attendeeCount: isGameApi(game) ? Number(game.attendee_count ?? 0) : game.joinedCount ?? 0,
+  maxAttendees: isGameApi(game) ? game.max_players : game.capacity,
+  difficulty: Math.min(
+    Math.max(
+      ['beginner', 'mixed', 'intermediate', 'advanced'].indexOf(
+        ((isGameApi(game) ? game.skill_level : game.skillLevel) ?? 'mixed').toLowerCase(),
+      ) + 1,
+      1,
+    ),
+    4,
+  ) as 1 | 2 | 3 | 4,
+  isFree: isGameApi(game)
+    ? game.price_type === 'free' || !game.price
+    : game.isFree ?? game.priceType === 'free',
+  price: ((): number => {
+    if (isGameApi(game)) return game.price ?? 0
+    return game.priceAmount ?? 0
+  })(),
+  priceRange:
+    (isGameApi(game) ? game.price_type === 'free' || !game.price : game.priceType === 'free' || !game.priceAmount)
+      ? 'Free to join'
+      : `$${(isGameApi(game) ? game.price ?? 0 : game.priceAmount ?? 0).toFixed(2)}`,
+  description: (game as GameSource).description ?? '',
+  participants: (() => {
+    if ('attendees' in game && game.attendees) {
+      return game.attendees.map((participant) => ({
+        id: String(isGameApi(game) ? participant.player_id : participant.id),
+        name: isGameApi(game) ? participant.full_name ?? 'Player' : participant.displayName,
+        avatarUrl: isGameApi(game) ? participant.avatar_url ?? undefined : participant.avatarUrl ?? undefined,
+      }))
+    }
+    return []
+  })(),
   detail: {
-    description: game.description ?? '',
+    description: (game as GameSource).description ?? '',
     lookingFor: {
-      skillLevel: game.skill_level ?? 'mixed',
+      skillLevel: (isGameApi(game) ? game.skill_level : game.skillLevel) ?? 'mixed',
     },
     rules: {
-      duration: `${getDurationMinutes(game.start_time, game.end_time)} mins`,
+      duration: `${getDurationMinutes(
+        isGameApi(game) ? game.start_time : game.startDateTime,
+        isGameApi(game) ? game.end_time : game.endDateTime,
+      )} mins`,
     },
-    heroImageUrl: game.hero_image_url ?? undefined,
+    heroImageUrl: isGameApi(game) ? game.hero_image_url ?? undefined : game.coverPhotoUrl ?? undefined,
   },
-  completedDate: game.status === 'completed' ? new Date(game.end_time) : undefined,
+  completedDate:
+    (game as any).status === 'completed'
+      ? new Date(isGameApi(game) ? game.end_time : game.endDateTime)
+      : undefined,
 })
 
 const getDurationMinutes = (start: string, end: string) => {
@@ -90,11 +132,11 @@ export const gamesService = {
     if (filters?.lat) params.lat = String(filters.lat)
     if (filters?.lng) params.lng = String(filters.lng)
 
-    const response = await apiRequest<{ data: GameApi[] }>('GET', '/discover/games', {
+    const response = await apiRequest<{ data: (GameCardDTO | GameApi)[] }>('GET', '/games', {
       auth: false,
       params,
     })
-    const games = response.data.map(mapGameApiToPlayerGame)
+    const games = response.data.map((game) => mapGameDtoToPlayerGame(game))
     return wrapSuccess({
       data: games,
       total: games.length,
@@ -106,14 +148,14 @@ export const gamesService = {
 
   async getGameById(id: string): Promise<ApiResponse<PlayerGame>> {
     const currentUserId = useAuthStore.getState().user?.id
-    const response = await apiRequest<GameApi>('GET', `/games/${id}`, {})
-    return wrapSuccess(mapGameApiToPlayerGame(response, currentUserId))
+    const response = await apiRequest<GameDetailDTO>('GET', `/games/${id}`, {})
+    return wrapSuccess(mapGameDtoToPlayerGame(response, currentUserId))
   },
 
   async getMyGames(): Promise<ApiResponse<PaginatedResponse<PlayerGame>>> {
     const currentUserId = useAuthStore.getState().user?.id
-    const response = await apiRequest<{ data: GameApi[] }>('GET', '/games/mine', {})
-    const games = response.data.map((apiGame) => mapGameApiToPlayerGame(apiGame, currentUserId))
+    const response = await apiRequest<{ data: (GameCardDTO | GameApi)[] }>('GET', '/games/mine', {})
+    const games = response.data.map((apiGame) => mapGameDtoToPlayerGame(apiGame, currentUserId))
     return wrapSuccess({
       data: games,
       total: games.length,
@@ -124,23 +166,30 @@ export const gamesService = {
   },
 
   async createGame(input: CreateGameInput): Promise<ApiResponse<PlayerGame>> {
-    const payload = {
+    const payload: SaveGamePayload = {
+      id: undefined,
       title: input.title,
       sport: input.sport,
-      description: input.description,
       skillLevel: input.skillLevel,
-      startTime: input.startTime.toISOString(),
-      endTime: new Date(input.startTime.getTime() + input.duration * 60000).toISOString(),
-      maxPlayers: input.maxAttendees,
-      locationName: input.location?.address,
-      locationAddress: input.location?.address,
-      latitude: input.location?.lat,
-      longitude: input.location?.lng,
-      price: input.isFree ? 0 : input.pricePerPerson ?? 0,
-      energy: input.difficulty ? input.difficulty * 20 : 60,
+      startDateTime: input.startTime.toISOString(),
+      endDateTime: new Date(input.startTime.getTime() + input.duration * 60000).toISOString(),
+      locationName: input.location?.name || input.location?.address || 'Location TBC',
+      addressLine: input.location?.address ?? null,
+      area: input.location?.area ?? null,
+      city: input.location?.city ?? null,
+      countryCode: input.location?.countryCode ?? null,
+      latitude: input.location?.lat ?? null,
+      longitude: input.location?.lng ?? null,
+      capacity: input.maxAttendees,
+      priceType: input.isFree ? 'free' : 'fixed',
+      priceAmount: input.isFree ? null : input.pricePerPerson ?? null,
+      description: input.description ?? '',
+      notesForAttendees: input.notesForAttendees ?? null,
+      coverPhotoUrl: input.coverPhotoUrl ?? null,
+      status: 'published',
     }
-    const game = await apiRequest<GameApi>('POST', '/games', { body: payload })
-    return wrapSuccess(mapGameApiToPlayerGame(game))
+    const game = await apiRequest<GameDetailDTO>('POST', '/games', { body: payload })
+    return wrapSuccess(mapGameDtoToPlayerGame(game))
   },
 
   async joinGame(gameId: string): Promise<ApiResponse<PlayerGame>> {
