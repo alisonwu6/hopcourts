@@ -15,38 +15,9 @@ export interface User {
   skillLevel: 'beginner' | 'intermediate' | 'advanced'
   following: string[]
   followers: string[]
-  hostProfile?: Host
   managedVenues: string[]
   gamesAttended: number
   gamesHosted: number
-  createdAt: Date
-  updatedAt: Date
-}
-
-// ============================================================================
-// HOST & HOSTING
-// ============================================================================
-
-export interface Host {
-  id: string
-  userId: string
-  name: string
-  avatar?: string
-  bio: string
-  type: 'individual' | 'venue' | 'organization'
-  verified: boolean
-  verificationDate?: Date
-  verificationReason?: string
-  gamesHosted: number
-  sports?: string[]
-  rating: number
-  ratingCount: number
-  followerCount: number
-  mostRecentRatings: number[]
-  website?: string
-  instagram?: string
-  facebook?: string
-  venueId?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -103,195 +74,6 @@ export interface Venue {
 }
 
 // ============================================================================
-// SESSION / EVENT
-// ============================================================================
-
-export interface Game {
-  id: string
-  title: string
-  description: string
-  sport: string
-  difficulty: 1 | 2 | 3 | 4 | 5
-  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed'
-  hostId: string
-  hostName: string
-  hostAvatar?: string
-  hostRating: number
-  venueId?: string
-  location: {
-    lat: number
-    lng: number
-    address: string
-    instructions?: string
-  }
-  startTime: Date
-  endTime: Date
-  duration: number
-  isRecurring: boolean
-  recurringPattern?: {
-    frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly'
-    daysOfWeek?: number[]
-    endDate?: Date
-    maxOccurrences?: number
-  }
-  maxAttendees: number
-  minAttendees?: number
-  requiresApproval: boolean
-  attendees: string[]
-  attendeeCount: number
-  waitlist?: string[]
-  tags: string[]
-  language?: string
-  isFree: boolean
-  pricePerPerson?: number
-  currency?: string
-  squadId?: string
-  isSquadOnly?: boolean
-  energy?: number
-  joinedLastWeek?: number
-  status: 'draft' | 'published' | 'cancelled' | 'completed'
-  cancelReason?: string
-  likedBy: string[]
-  createdAt: Date
-  updatedAt: Date
-  publishedAt?: Date
-}
-
-// ============================================================================
-// SQUAD / GROUP
-// ============================================================================
-
-export interface Squad {
-  id: string
-  name: string
-  description: string
-  avatar?: string
-  sport: string
-  alternativeSports?: string[]
-  location: string
-  primaryVenueId?: string
-  members: SquadMember[]
-  memberCount: number
-  visibility: 'public' | 'private' | 'invite-only'
-  allowVisitors: boolean
-  totalGames: number
-  energy: number
-  rating: number
-  tags: string[]
-  vibe?: string
-  games: string[]
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface SquadMember {
-  userId: string
-  name: string
-  avatar?: string
-  role: 'admin' | 'moderator' | 'member'
-  status: 'active' | 'inactive' | 'left'
-  joinedAt: Date
-  gamesAttended?: number
-  lastAttendedAt?: Date
-}
-
-// ============================================================================
-// CHAT & MESSAGING
-// ============================================================================
-
-export interface Chat {
-  id: string
-  type: 'direct_message' | 'squad_chat' | 'game_chat' | 'venue_chat'
-  participantIds: string[]
-  participantCount: number
-  messages: Message[]
-  messageCount: number
-  title?: string
-  avatar?: string
-  lastMessageAt: Date
-  lastMessageContent?: string
-  unreadCounts: Record<string, number>
-  linkedGameId?: string
-  linkedSquadId?: string
-  linkedVenueId?: string
-  createdAt: Date
-}
-
-export interface Message {
-  id: string
-  chatId: string
-  senderId: string
-  senderName: string
-  senderAvatar?: string
-  content: string
-  type: 'text' | 'image' | 'location' | 'file'
-  media?: {
-    url: string
-    type: 'image' | 'video' | 'file'
-    size?: number
-  }
-  reactions?: Record<string, string[]>
-  status: 'sent' | 'delivered' | 'read'
-  readBy?: Record<string, Date>
-  createdAt: Date
-  editedAt?: Date
-}
-
-// ============================================================================
-// REVIEWS & RATINGS
-// ============================================================================
-
-export interface Review {
-  id: string
-  reviewerId: string
-  reviewerName: string
-  reviewerAvatar?: string
-  type: 'host' | 'venue' | 'game'
-  hostId?: string
-  venueId?: string
-  gameId?: string
-  rating: 1 | 2 | 3 | 4 | 5
-  comment: string
-  aspects?: Record<string, number | undefined>
-  response?: {
-    text: string
-    respondedAt: Date
-  }
-  helpfulCount: number
-  createdAt: Date
-  updatedAt?: Date
-}
-
-// ============================================================================
-// NOTIFICATIONS
-// ============================================================================
-
-export interface Notification {
-  id: string
-  userId: string
-  type:
-    | 'game_created'
-    | 'game_reminder'
-    | 'game_cancelled'
-    | 'attendee_joined'
-    | 'attendee_cancelled'
-    | 'message_received'
-    | 'host_message'
-    | 'rating_received'
-    | 'squad_invited'
-    | 'venue_update'
-    | 'friend_action'
-  title: string
-  message: string
-  icon?: string
-  targetId?: string
-  targetType?: string
-  isRead: boolean
-  readAt?: Date
-  createdAt: Date
-}
-
-// ============================================================================
 // API RESPONSE TYPES
 // ============================================================================
 
@@ -318,6 +100,7 @@ export interface PaginatedResponse<T> {
 // FILTER & SEARCH TYPES
 // ============================================================================
 
+// ACTIVE: consumed by games.service.ts and useGamesStore filters.
 export interface GameFilter {
   sport?: string
   skillLevel?: 'beginner' | 'intermediate' | 'advanced'
@@ -349,19 +132,112 @@ export interface VenueFilter {
   pageSize?: number
 }
 
-export interface HostFilter {
-  sport?: string
-  minRating?: number
-  verified?: boolean
-  sortBy?: 'followers' | 'rating' | 'gamesHosted'
-  page?: number
-  pageSize?: number
-}
-
 // ============================================================================
 // PLAYER-FACING ENTITIES
 // ============================================================================
 
+type SkillLevelDTO = 'all' | 'beginner' | 'intermediate' | 'advanced'
+type PriceTypeDTO = 'free' | 'pay_on_site' | 'fixed'
+type GameStatusDTO = 'draft' | 'published' | 'cancelled' | 'completed'
+
+export interface HostSummaryDTO {
+  id: string
+  displayName: string
+  avatarUrl?: string | null
+  tagline?: string | null
+  rating?: number | null
+  totalHostedSessions?: number | null
+}
+
+export interface AttendeeSummaryDTO {
+  id: string
+  displayName: string
+  avatarUrl?: string | null
+  isHost: boolean
+}
+
+export interface GameCardDTO {
+  id: string
+  title: string
+  sport: string
+  skillLevel: SkillLevelDTO
+  coverPhotoUrl?: string | null
+  startDateTime: string
+  endDateTime: string
+  locationName: string
+  area?: string | null
+  city?: string | null
+  countryCode?: string | null
+  priceType: PriceTypeDTO
+  priceAmount?: number | null
+  currency?: string | null
+  capacity: number
+  joinedCount: number
+  waitlistCount: number
+  host: HostSummaryDTO
+  spotsRemaining: number
+  isFull: boolean
+  isFree: boolean
+}
+
+export interface GameDetailDTO {
+  id: string
+  title: string
+  sport: string
+  skillLevel: SkillLevelDTO
+  status: GameStatusDTO
+  coverPhotoUrl?: string | null
+  host: HostSummaryDTO
+  startDateTime: string
+  endDateTime: string
+  locationName: string
+  addressLine?: string | null
+  area?: string | null
+  city?: string | null
+  countryCode?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  priceType: PriceTypeDTO
+  priceAmount?: number | null
+  currency?: string | null
+  capacity: number
+  joinedCount: number
+  waitlistCount: number
+  spotsRemaining: number
+  isFull: boolean
+  description: string
+  notesForAttendees?: string | null
+  attendees: AttendeeSummaryDTO[]
+  isUserHost: boolean
+  isUserJoined: boolean
+  isUserWaitlisted: boolean
+}
+
+export interface SaveGamePayload {
+  id?: string
+  title: string
+  sport: string
+  skillLevel: SkillLevelDTO
+  startDateTime: string
+  endDateTime: string
+  locationName: string
+  addressLine?: string | null
+  area?: string | null
+  city?: string | null
+  countryCode?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  capacity: number
+  priceType: PriceTypeDTO
+  priceAmount?: number | null
+  currency?: string | null
+  description: string
+  notesForAttendees?: string | null
+  coverPhotoUrl?: string | null
+  status: GameStatusDTO
+}
+
+// ACTIVE: canonical UI game model used across the app.
 export interface PlayerGame {
   id: string
   title: string
@@ -431,48 +307,40 @@ export interface PlayerVenue {
 }
 
 export interface GameApi {
-  id: number
-  creator_id: number
-  venue_id?: number | null
+  id: string
+  creator_id: string
+  venue_id?: string | null
   title: string
   sport: string
-  description?: string
-  skill_level?: 'beginner' | 'intermediate' | 'advanced' | 'mixed'
-  energy?: number
-  location_name?: string
-  location_address?: string
-  area?: string
-  city?: string
+  description?: string | null
+  skill_level?: string | null
+  location_name?: string | null
+  location_address?: string | null
+  area?: string | null
+  city?: string | null
+  country_code?: string | null
   latitude?: number | null
   longitude?: number | null
   start_time: string
   end_time: string
   max_players: number
-  price?: number
-  currency?: string
-  requires_approval?: boolean
-  status: 'scheduled' | 'completed' | 'cancelled'
-  host_name?: string
-  host_avatar?: string
-  attendee_count?: number
-  venue_name?: string
-  venue_address?: string
-  venue_city?: string
-  hero_image_url?: string
+  price?: number | null
+  price_type?: string | null
+  currency?: string | null
+  status?: string | null
+  cancel_reason?: string | null
+  hero_image_url?: string | null
+  host_name?: string | null
+  host_avatar?: string | null
+  venue_name?: string | null
+  venue_address?: string | null
+  venue_city?: string | null
+  attendee_count?: number | null
   attendees?: Array<{
-    player_id: number
-    full_name: string
-    avatar_url?: string
-    status: string
-  }>
-  messages?: Array<{
-    id: number
-    game_id: number
-    sender_id: number
-    sender_name: string
-    sender_avatar?: string
-    body: string
-    created_at: string
+    player_id: string | number
+    full_name?: string | null
+    avatar_url?: string | null
+    status?: string
   }>
 }
 
@@ -480,6 +348,14 @@ export interface GameApi {
 // FORM TYPES
 // ============================================================================
 
+type RecurringPatternInput = {
+  frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly'
+  daysOfWeek?: number[]
+  endDate?: Date
+  maxOccurrences?: number
+}
+
+// ACTIVE: create-game flow + SaveGamePayload mapping rely on this shape.
 export interface CreateGameInput {
   title: string
   description?: string
@@ -489,48 +365,22 @@ export interface CreateGameInput {
   duration: number
   maxAttendees: number
   location: {
+    name?: string | null
+    address: string
+    area?: string | null
+    city?: string | null
+    countryCode?: string | null
     lat?: number | null
     lng?: number | null
-    address: string
     instructions?: string
   }
   venueId?: string
   isFree: boolean
   pricePerPerson?: number
+  notesForAttendees?: string
+  coverPhotoUrl?: string | null
   isRecurring?: boolean
-  recurringPattern?: Game['recurringPattern']
+  recurringPattern?: RecurringPatternInput
   tags?: string[]
   difficulty?: 1 | 2 | 3 | 4 | 5
-}
-
-export interface UpdateHostProfileInput {
-  name: string
-  bio: string
-  avatar?: string
-  website?: string
-  instagram?: string
-  facebook?: string
-}
-
-export interface CreateVenueInput {
-  name: string
-  type: 'gym' | 'outdoor' | 'studio' | 'private' | 'park' | 'court'
-  description: string
-  location: {
-    lat: number
-    lng: number
-    address: string
-    city: string
-    state: string
-    postalCode: string
-  }
-  amenities: string[]
-  sports: string[]
-  capacity: number
-  phone?: string
-  email?: string
-  website?: string
-  basePrice?: number
-  priceModel: 'per_game' | 'per_hour' | 'per_month' | 'free'
-  images?: string[]
 }

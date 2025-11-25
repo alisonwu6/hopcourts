@@ -88,12 +88,9 @@ export function HomePage() {
   }, [games])
 
   const filteredGames = useMemo(() => {
-    const todayStart = startOfDay(new Date())
-    const upcomingGames = games.filter((game) => new Date(game.startTime) >= todayStart)
-
     const dateFiltered = selectedDate
-      ? upcomingGames.filter((game) => isSameDay(new Date(game.startTime), selectedDate))
-      : upcomingGames
+      ? games.filter((game) => isSameDay(new Date(game.startTime), selectedDate))
+      : games.filter((game) => new Date(game.startTime) >= today)
 
     const sportFiltered = selectedSports.includes('All')
       ? dateFiltered
