@@ -3,7 +3,7 @@ const router = express.Router()
 const verifyToken = require('../middleware/verifyToken')
 const gameController = require('../controllers/gameController')
 
-router.get('/discover/games', gameController.discoverGames)
+router.get('/games', gameController.discoverGames)
 router.get('/games/mine', verifyToken, gameController.getMyGames)
 router.get('/games/:id', gameController.getGame)
 router.post('/games', verifyToken, gameController.createGame)

@@ -10,27 +10,28 @@ function toDbFields(data, { partial = false } = {}) {
   }
 
   return {
-    creator_id: partial ? pick('creatorId') : data.creatorId,
+    host_user_id: partial ? pick('creatorId') : data.creatorId,
     venue_id: pick('venueId', null),
     title: pick('title'),
     sport: pick('sport'),
     description: pick('description', null),
     skill_level: pick('skillLevel', 'mixed'),
-    energy: pick('energy', 60),
     location_name: pick('locationName', null),
-    location_address: pick('locationAddress', null),
+    address_line: pick('locationAddress', null),
     area: pick('area', null),
     city: pick('city', null),
+    country_code: pick('countryCode', null),
     latitude: pick('latitude', null),
     longitude: pick('longitude', null),
-    start_time: pick('startTime'),
-    end_time: pick('endTime'),
-    max_players: pick('maxPlayers'),
-    price: pick('price', 0),
-    currency: pick('currency', 'AUD'),
-    requires_approval: pick('requiresApproval', false),
+    start_datetime: pick('startTime'),
+    end_datetime: pick('endTime'),
+    capacity: pick('maxPlayers'),
+    price_type: pick('priceType', pick('price', 0) ? 'fixed' : 'free'),
+    price_amount: pick('price', null),
+    currency: pick('currency', null),
+    notes_for_attendees: pick('notesForAttendees', null),
+    cover_photo_url: pick('coverPhotoUrl', null),
     status: pick('status', 'scheduled'),
-    cancel_reason: pick('cancelReason', null),
   }
 }
 
@@ -70,7 +71,7 @@ async function deleteGame(id) {
 
 async function cancelGame(id, reason) {
   const db = await waitForDB()
-  await db.query('UPDATE games SET status = $1, cancel_reason = $2 WHERE id = $3', [
+  await db.query('UPDATE games SET status = $1, notes_for_attendees = $2 WHERE id = $3', [
     'cancelled',
     reason ?? null,
     id,
@@ -95,22 +96,22 @@ async function listGames(filters = {}) {
 
   if (filters.startDate) {
     params.push(filters.startDate)
-    whereClauses.push(`s.start_time >= $${params.length}`)
+    whereClauses.push(`s.start_datetime >= $${params.length}`)
   }
 
   if (filters.endDate) {
     params.push(filters.endDate)
-    whereClauses.push(`s.start_time <= $${params.length}`)
+    whereClauses.push(`s.start_datetime <= $${params.length}`)
   }
 
   if (filters.joinedUserId) {
     params.push(filters.joinedUserId)
     const idx = params.length
     whereClauses.push(`EXISTS (
-      SELECT 1 FROM player_game_joins ps
-      WHERE ps.game_id = s.id
-        AND ps.player_id = $${idx}
-        AND ps.status = 'joined'
+      SELECT 1 FROM game_members gm
+      WHERE gm.game_id = s.id
+        AND gm.user_id = $${idx}
+        AND gm.status = 'joined'
     )`)
   }
 
@@ -118,22 +119,44 @@ async function listGames(filters = {}) {
 
   const sql = `
     SELECT
-      s.*,
-      u.full_name AS host_name,
-      u.avatar_url AS host_avatar,
-      v.name AS venue_name,
+      s.id,
+      s.host_user_id AS creator_id,
+      NULL::uuid AS venue_id,
+      s.title,
+      s.sport,
+      s.description,
+      s.skill_level,
+      s.location_name,
+      s.address_line AS location_address,
+      s.area,
+      s.city,
+      s.country_code,
+      s.latitude,
+      s.longitude,
+      s.start_datetime AS start_time,
+      s.end_datetime AS end_time,
+      s.capacity AS max_players,
+      s.price_amount AS price,
+      s.price_type,
+      s.currency,
+      s.status,
+      s.notes_for_attendees AS cancel_reason,
+      s.cover_photo_url AS hero_image_url,
+      NULL::text AS host_name,
+      NULL::text AS host_avatar,
+      NULL::text AS venue_name,
+      NULL::text AS venue_address,
+      NULL::text AS venue_city,
       COALESCE(j.joined_count, 0) AS attendee_count
     FROM games s
-    JOIN users u ON u.id = s.creator_id
-    LEFT JOIN venues v ON v.id = s.venue_id
     LEFT JOIN (
       SELECT game_id, COUNT(*) AS joined_count
-      FROM player_game_joins
+      FROM game_members
       WHERE status = 'joined'
       GROUP BY game_id
     ) j ON j.game_id = s.id
     ${where}
-    ORDER BY s.start_time ASC
+    ORDER BY s.start_datetime ASC
   `
 
   const res = await db.query(sql, params)
@@ -144,35 +167,47 @@ async function getGameById(id) {
   const db = await waitForDB()
   const sql = `
     SELECT
-      s.*,
-      u.full_name AS host_name,
-      u.avatar_url AS host_avatar,
-      v.name AS venue_name,
-      v.address AS venue_address,
-      v.city AS venue_city
+      s.id,
+      s.host_user_id AS creator_id,
+      s.title,
+      s.sport,
+      s.description,
+      s.skill_level,
+      s.location_name,
+      s.address_line AS location_address,
+      s.area,
+      s.city,
+      s.country_code,
+      s.latitude,
+      s.longitude,
+      s.start_datetime AS start_time,
+      s.end_datetime AS end_time,
+      s.capacity AS max_players,
+      s.price_amount AS price,
+      s.price_type,
+      s.currency,
+      s.status,
+      s.notes_for_attendees AS cancel_reason,
+      s.cover_photo_url AS hero_image_url,
+      NULL::text AS host_name,
+      NULL::text AS host_avatar,
+      NULL::text AS venue_name,
+      NULL::text AS venue_address,
+      NULL::text AS venue_city
     FROM games s
-    JOIN users u ON u.id = s.creator_id
-    LEFT JOIN venues v ON v.id = s.venue_id
     WHERE s.id = $1
   `
   const res = await db.query(sql, [id])
   if (!res.rows[0]) return null
 
   const attendeesRes = await db.query(
-    `SELECT psj.player_id, psj.status, users.full_name, users.avatar_url
-     FROM player_game_joins psj
-     JOIN users ON users.id = psj.player_id
-     WHERE psj.game_id = $1 AND psj.status = 'joined'
-     ORDER BY psj.created_at ASC`,
-    [id]
-  )
-
-  const messagesRes = await db.query(
-    `SELECT m.*, u.full_name AS sender_name, u.avatar_url AS sender_avatar
-     FROM messages m
-     JOIN users u ON u.id = m.sender_id
-     WHERE m.game_id = $1
-     ORDER BY m.created_at ASC`,
+    `SELECT
+        gm.user_id AS player_id,
+        gm.status,
+        gm.joined_at
+     FROM game_members gm
+     WHERE gm.game_id = $1 AND gm.status = 'joined'
+     ORDER BY gm.joined_at ASC`,
     [id]
   )
 
@@ -180,7 +215,7 @@ async function getGameById(id) {
     ...res.rows[0],
     attendee_count: attendeesRes.rows.length,
     attendees: attendeesRes.rows,
-    messages: messagesRes.rows,
+    messages: [],
   }
 }
 

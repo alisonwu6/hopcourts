@@ -1,15 +1,20 @@
+const loadEnv = require('./config/loadEnv')
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
-const dotenv = require('dotenv')
 const waitForDB = require('./utils/db')
 const swaggerUi = require('swagger-ui-express')
 const swaggerSpec = require('./config/swagger')
-
-dotenv.config()
-
 const app = express()
 const PORT = process.env.PORT || 3000
+
+loadEnv()
+console.log('[PG CONFIG]', {
+  host: process.env.PGHOST,
+  port: process.env.PGPORT,
+  user: process.env.PGUSER,
+  sslmode: process.env.PGSSLMODE,
+})
 
 const videoRoutes = require('./routes/videoRoutes')
 const cpuRoutes = require('./routes/cpuRoutes')

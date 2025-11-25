@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const yaml = require('yaml')
 
-const SPEC_PATH = path.join(__dirname, '../../api/openapi.yaml')
+const SPEC_PATH = path.join(__dirname, '../../docs/manual/openapi.yaml')
 
 function loadSpec() {
   try {
@@ -15,7 +15,7 @@ function loadSpec() {
       info: {
         title: 'SportsMatch API',
         version: '1.0.0',
-        description: 'Fallback spec because api/openapi.yaml was unavailable.',
+        description: 'Fallback spec because docs/manual/openapi.yaml was unavailable.',
       },
     }
   }
