@@ -14,6 +14,7 @@ async function notifyParticipants(gameId, senderId, body) {
 }
 
 async function discoverGames(req, res) {
+  console.log('GET /api/discover/games hit')
   try {
     const filters = {
       sport: req.query.sport,
