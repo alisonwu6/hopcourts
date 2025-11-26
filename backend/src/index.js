@@ -1,4 +1,5 @@
 const loadEnv = require('./config/loadEnv')
+loadEnv()
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
@@ -7,8 +8,6 @@ const swaggerUi = require('swagger-ui-express')
 const swaggerSpec = require('./config/swagger')
 const app = express()
 const PORT = process.env.PORT || 3000
-
-loadEnv()
 console.log('[PG CONFIG]', {
   host: process.env.PGHOST,
   port: process.env.PGPORT,
@@ -16,16 +15,12 @@ console.log('[PG CONFIG]', {
   sslmode: process.env.PGSSLMODE,
 })
 
-const videoRoutes = require('./routes/videoRoutes')
-const cpuRoutes = require('./routes/cpuRoutes')
-const authRoutes = require('./routes/authRoutes')
 const userRoutes = require('./routes/userRoutes')
 const gameRoutes = require('./routes/gameRoutes')
 const gameJoinRoutes = require('./routes/gameJoinRoutes')
 const messageRoutes = require('./routes/messageRoutes')
 const onboardingRoutes = require('./routes/onboardingRoutes')
 const venueRoutes = require('./routes/venueRoutes')
-const adminRoutes = require('./routes/adminRoutes')
 const storageRoutes = require('./routes/storageRoutes')
 const sportsRoutes = require('./routes/sportsRoutes')
 // Middleware
@@ -36,11 +31,7 @@ app.use(express.json())
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 app.use('/api/storage', storageRoutes)
 app.use('/api/s3', storageRoutes)
-app.use('/api/video', videoRoutes)
-app.use('/api', cpuRoutes)
 app.use('/uploads', express.static('src/uploads')) // serve 圖片
-app.use('/api/admin', adminRoutes)
-app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api', gameRoutes)
 app.use('/api', gameJoinRoutes)
@@ -48,43 +39,6 @@ app.use('/api', messageRoutes)
 app.use('/api/onboarding', onboardingRoutes)
 app.use('/api/venues', venueRoutes)
 app.use('/api', sportsRoutes)
-
-function burn(ms) {
-  const end = Date.now() + ms
-  while (Date.now() < end) {
-    Math.sqrt(Math.random() * 1234567)
-  }
-}
-
-app.get('/api/burn', (req, res) => {
-  const ms = Number(req.query.ms || 200)
-  const loops = Number(req.query.loops || 10)
-  for (let i = 0; i < loops; i++) burn(ms)
-  res.json({ ok: true, ms, loops })
-})
-
-// Test route
-app.get('/api/health', (req, res) => {
-  res.json({ message: 'health is good' })
-})
-
-// ALB health check endpoint (no dependencies)
-app.get('/healthz', (req, res) => {
-  res.sendStatus(200)
-})
-
-// Debug-only: quick ping to verify Redis is alive (disabled in production)
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/debug/redis-ping', async (req, res) => {
-    try {
-      const { redis } = require('./cache')
-      const pong = await redis.ping()
-      res.json({ pong })
-    } catch (e) {
-      res.status(500).json({ error: e.message })
-    }
-  })
-}
 
 // Try to connect to the DB in the background so the container can pass ALB health checks
 async function connectDBWithRetry(maxRetry = 30, interval = 2000) {
