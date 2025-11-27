@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import type { ChangeEvent, FormEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
 import { useMemo, useState, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components'
 import { SKILL_LEVEL_LABELS } from '@/data/mock/events'
 import { useGamesStore, useAuthStore } from '@/hooks'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -282,11 +282,11 @@ function ActionBar({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitti
     <div className="fixed inset-x-0 bottom-0 z-30 bg-blue-50/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(30,64,175,0.12)] backdrop-blur">
       <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 sm:px-6">
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           type="button"
           disabled
-          className="flex-1 rounded-full border-blue-200 text-blue-500"
+          className="flex-1 rounded-full border-blue-200 text-blue-500 hover:bg-blue-50"
         >
           Draft
         </Button>

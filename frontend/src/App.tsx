@@ -47,10 +47,31 @@ export default function App() {
           </AppChrome>
         }
       />
-      <Route path="/signup" element={<SignupPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route
+        path="/signup"
+        element={
+          <AppChrome showHeader={false} showActions={false} showNav={false}>
+            <SignupPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <AppChrome showHeader={false} showActions={false} showNav={false}>
+            <ForgotPasswordPage />
+          </AppChrome>
+        }
+      />
       <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/auth/reset" element={<ResetPasswordPage />} />
+      <Route
+        path="/auth/reset"
+        element={
+          <AppChrome showHeader={false} showActions={false} showNav={false}>
+            <ResetPasswordPage />
+          </AppChrome>
+        }
+      />
       <Route path="/home" element={<Navigate to="/" replace />} />
       <Route
         path="/onboarding"

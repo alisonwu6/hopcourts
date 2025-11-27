@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components'
 
 export default function GoogleLoginButton({
   loginGoogle,
@@ -8,14 +8,14 @@ export default function GoogleLoginButton({
   return (
     <Button
       onClick={loginGoogle}
-      variant="outline"
-      className="flex items-center justify-center gap-2 border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+      className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-900 bg-white text-slate-900 hover:bg-slate-50"
+      textClassName="text-slate-900"
     >
       {/* Google "G" logo SVG */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 533.5 544.3"
-        className="w-5 h-5"
+        className="h-5 w-5"
       >
         <path
           d="M533.5 278.4c0-17.4-1.5-34.1-4.3-50.4H272.1v95.3h147c-6.4 34.4-25.6 63.6-54.4 83.2v68h87.8c51.5-47.4 81-117.3 81-196.1z"
@@ -34,7 +34,9 @@ export default function GoogleLoginButton({
           fill="#EA4335"
         />
       </svg>
-      <span className="text-sm font-medium">Continue with Google</span>
+      <span className="text-sm font-medium text-slate-900">
+        Continue with Google
+      </span>
     </Button>
   )
 }

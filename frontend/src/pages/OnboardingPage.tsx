@@ -616,7 +616,6 @@ export function OnboardingPage() {
       <div className="pt-6 text-right">
         <Button
           type="button"
-          storyLine="player"
           className="inline-flex items-center justify-center px-8"
           onClick={confirmRoleSelection}
           disabled={!selectedRole}
@@ -699,7 +698,7 @@ export function OnboardingPage() {
           </select>
         </div>
         <div className="pt-6 text-right">
-          <Button type="submit" storyLine="player" className="inline-flex items-center justify-center px-8">
+          <Button type="submit" className="inline-flex items-center justify-center px-8">
             Next
           </Button>
         </div>
@@ -734,7 +733,6 @@ export function OnboardingPage() {
       <div className="pt-6 text-right">
         <Button
           type="submit"
-          storyLine="player"
           className="inline-flex items-center justify-center px-8"
           disabled={usernameStatus === 'checking'}
         >
@@ -766,7 +764,6 @@ export function OnboardingPage() {
       <div className="pt-6 text-right">
         <Button
           type="button"
-          storyLine="player"
           className="inline-flex items-center justify-center px-8"
           onClick={() => {
             if (selectedSports.length === 0) {
@@ -831,7 +828,7 @@ export function OnboardingPage() {
         })}
       </div>
       <div className="pt-6 text-right">
-        <Button type="button" storyLine="player" className="inline-flex items-center justify-center px-8" onClick={handleSkillNext}>
+        <Button type="button" className="inline-flex items-center justify-center px-8" onClick={handleSkillNext}>
           Next
         </Button>
       </div>
@@ -873,7 +870,7 @@ export function OnboardingPage() {
         })}
       </div>
       <div className="pt-6 text-right">
-        <Button type="button" storyLine="player" className="inline-flex items-center justify-center px-8" onClick={handlePlayingStyleNext}>
+        <Button type="button" className="inline-flex items-center justify-center px-8" onClick={handlePlayingStyleNext}>
           Next
         </Button>
       </div>
@@ -916,7 +913,7 @@ export function OnboardingPage() {
         })}
       </div>
       <div className="pt-6 text-right">
-        <Button type="button" storyLine="player" className="inline-flex items-center justify-center px-8" onClick={handleFrequencySubmit}>
+        <Button type="button" className="inline-flex items-center justify-center px-8" onClick={handleFrequencySubmit}>
           Next
         </Button>
       </div>
@@ -982,7 +979,6 @@ export function OnboardingPage() {
       <div className="flex flex-col gap-3 pt-6 sm:flex-row sm:justify-between">
         <Button
           type="button"
-          storyLine="player"
           variant="secondary"
           className="inline-flex items-center justify-center px-8"
           onClick={handleProfilePhotoNext}
@@ -992,7 +988,6 @@ export function OnboardingPage() {
         </Button>
         <Button
           type="button"
-          storyLine="player"
           className="inline-flex items-center justify-center px-8"
           onClick={handleProfilePhotoNext}
           disabled={isLoading}
@@ -1024,7 +1019,6 @@ export function OnboardingPage() {
       <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-between">
         <Button
           type="button"
-          storyLine="player"
           variant="secondary"
           className="inline-flex items-center justify-center px-8"
           onClick={() => {
@@ -1037,7 +1031,6 @@ export function OnboardingPage() {
         </Button>
         <Button
           type="button"
-          storyLine="player"
           className="inline-flex items-center justify-center px-8"
           onClick={handleMotivationSubmit}
           disabled={submitting || isLoading}
@@ -1107,7 +1100,7 @@ export function OnboardingPage() {
         />
       </div>
       <div className="pt-6 text-right">
-        <Button type="submit" storyLine="venue" className="inline-flex items-center justify-center px-8">
+        <Button type="submit" className="inline-flex items-center justify-center px-8">
           Next
         </Button>
       </div>
@@ -1144,7 +1137,7 @@ export function OnboardingPage() {
         })}
       </div>
       <div className="pt-6 text-right">
-        <Button type="button" storyLine="venue" className="inline-flex items-center justify-center px-8" onClick={handleVenueSportsSubmit}>
+        <Button type="button" className="inline-flex items-center justify-center px-8" onClick={handleVenueSportsSubmit}>
           Next
         </Button>
       </div>
@@ -1179,7 +1172,7 @@ export function OnboardingPage() {
         />
       </div>
       <div className="pt-6 text-right">
-        <Button type="submit" storyLine="venue" className="inline-flex items-center justify-center px-8">
+        <Button type="submit" className="inline-flex items-center justify-center px-8">
           Next
         </Button>
       </div>
@@ -1224,7 +1217,6 @@ export function OnboardingPage() {
       <div className="flex flex-col gap-3 pt-6 sm:flex-row sm:justify-between">
         <Button
           type="button"
-          storyLine="venue"
           variant="secondary"
           className="inline-flex items-center justify-center px-8"
           onClick={handleVenuePhotoNext}
@@ -1233,7 +1225,6 @@ export function OnboardingPage() {
         </Button>
         <Button
           type="button"
-          storyLine="venue"
           className="inline-flex items-center justify-center px-8"
           onClick={handleVenuePhotoNext}
         >
@@ -1270,7 +1261,6 @@ export function OnboardingPage() {
       <div className="pt-6 text-right">
         <Button
           type="button"
-          storyLine="venue"
           className="inline-flex items-center justify-center px-8"
           onClick={handleVenueVerificationSubmit}
           disabled={submitting || isLoading}

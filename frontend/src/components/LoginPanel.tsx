@@ -86,6 +86,12 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
         <Button type="submit" className="w-full rounded-2xl text-base" disabled={isLoading}>
           {isLoading ? 'Logging in…' : 'Continue with email'}
         </Button>
+
+        <div className="text-center text-sm">
+          <Link to="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700">
+            Forgot password?
+          </Link>
+        </div>
       </form>
 
       <div className="my-6 flex items-center">
