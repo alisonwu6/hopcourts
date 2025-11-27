@@ -118,9 +118,15 @@ export function HomePage() {
             onClick={() => setIsFilterOpen(true)}
             className="flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
           >
-            <Search className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
+            <Search
+              className="h-4 w-4 text-slate-400"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
             <span className="flex-1 truncate">
-              {selectedSports.includes('All') ? 'Start your search' : selectedSports.join(', ')}
+              {selectedSports.includes('All')
+                ? 'Start your search'
+                : selectedSports.join(', ')}
             </span>
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
               sport
@@ -129,31 +135,47 @@ export function HomePage() {
 
           <div className="flex w-full gap-3">
             <button
-            type="button"
-            onClick={() => {
-              const baseDate = selectedDate ?? today
-              setPendingDate(selectedDate)
-              setCalendarMonth(startOfMonth(baseDate))
-              setIsCalendarOpen(true)
-            }}
-            className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
-          >
-            <CalendarIcon className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
-            <div className="flex flex-col text-left">
-              <span className="text-sm font-semibold text-slate-700">{dateLabel}</span>
-              {showTodayLabel && <span className="text-xs font-medium text-blue-500">Today</span>}
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsSkillFilterOpen(true)}
-            className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
-          >
-            <BarChart3 className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
-            <span className="flex-1 truncate">{skillLabel}</span>
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">skill</span>
-          </button>
-        </div>
+              type="button"
+              onClick={() => {
+                const baseDate = selectedDate ?? today
+                setPendingDate(selectedDate)
+                setCalendarMonth(startOfMonth(baseDate))
+                setIsCalendarOpen(true)
+              }}
+              className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
+            >
+              <CalendarIcon
+                className="h-4 w-4 text-slate-400"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+              <div className="flex flex-col text-left">
+                <span className="text-sm font-semibold text-slate-700">
+                  {dateLabel}
+                </span>
+                {showTodayLabel && (
+                  <span className="text-xs font-medium text-blue-500">
+                    Today
+                  </span>
+                )}
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSkillFilterOpen(true)}
+              className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
+            >
+              <BarChart3
+                className="h-4 w-4 text-slate-400"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+              <span className="flex-1 truncate">{skillLabel}</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                skill
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -164,7 +186,9 @@ export function HomePage() {
           </div>
         )}
         {isLoading ? (
-          <div className="flex justify-center py-10 text-slate-500">Loading games…</div>
+          <div className="flex justify-center py-10 text-slate-500">
+            Loading games…
+          </div>
         ) : filteredGames.length === 0 ? (
           <div className="py-10 text-center text-slate-500">No games found</div>
         ) : (
@@ -243,7 +267,9 @@ export function HomePage() {
       <IntroSheet
         open={showIntroSheet}
         onClose={handleIntroClose}
-        description={'Looking for people\nwho love the same stuff you do?\nBuild your crew here.'}
+        description={
+          'SportsMatch helps you find people who play like you — not just events.'
+        }
         dismissLabel={null}
       />
       <LoginPromptSheet

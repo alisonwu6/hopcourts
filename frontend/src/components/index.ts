@@ -1,7 +1,5 @@
 export { Button } from './Button'
-export { Card } from './Card'
 export { GameCard } from './GameCard'
-export { VenueCard } from './VenueCard'
 export { BottomNav } from './BottomNav'
 export { BottomSheet } from './BottomSheet'
 export { IntroSheet } from './IntroSheet'
