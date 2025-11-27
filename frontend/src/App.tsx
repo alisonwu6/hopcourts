@@ -10,14 +10,12 @@ import { AuthCallback } from '@/pages/AuthCallback'
 import { ResetPasswordPage } from '@/pages/ResetPassword'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
-import { VenuesPage } from '@/pages/VenuesPage'
-import { MatesPage } from '@/pages/MatesPage'
 import { GameDetailPage } from '@/pages/GameDetailPage'
 import { MyGamesPage } from '@/pages/MyGamesPage'
-import { VenueDetailPage } from '@/pages/VenueDetailPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import CreateGamePage from '@/pages/CreateGamePage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
+import { MatesPage } from '@/pages/MatesPage'
 
 export default function App() {
   const { isAuthenticated, onboardingStatus } = useAuthStore()
@@ -98,13 +96,11 @@ function AuthenticatedApp() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/venues" element={<VenuesPage />} />
-        <Route path="/mates" element={<MatesPage />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
         <Route path="/my-games" element={<MyGamesPage />} />
         <Route path="/create-game" element={<CreateGamePage />} />
-        <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/mates" element={<MatesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppChrome>
@@ -117,12 +113,10 @@ function GuestApp() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/venues" element={<VenuesPage />} />
-        <Route path="/mates" element={<MatesPage />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
         <Route path="/create-game" element={<CreateGamePage />} />
-        <Route path="/venue/:id" element={<VenueDetailPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/mates" element={<MatesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppChrome>
