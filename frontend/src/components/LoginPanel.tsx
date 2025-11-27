@@ -5,7 +5,7 @@ import { Button, InputField } from '@/components'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
 import AppleLoginButton from '@/components/button/AppleLoginButton'
 import { useAuthStore } from '@/hooks'
-import { signInWithGoogle, signInWithApple } from '@/services/auth'
+import { signInWithGoogle, signInWithApple } from '@/services/authService'
 
 type Props = {
   className?: string

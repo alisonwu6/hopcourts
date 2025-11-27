@@ -1,3 +1,2 @@
-export * from './auth'
+export * from './authService'
 export * from './sessionService'
-export * from './sports.service'

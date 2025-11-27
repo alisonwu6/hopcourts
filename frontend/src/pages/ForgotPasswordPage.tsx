@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { resetPassword } from '@/services/auth'
+import { resetPassword } from '@/services/authService'
 import { Button, InputField } from '@/components'
 import logoUrl from '@/assets/sportsmatch.png'
 

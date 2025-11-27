@@ -3,7 +3,12 @@ import type { ChangeEvent, FormEvent, InputHTMLAttributes, ReactNode, TextareaHT
 import { useMemo, useState, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
-import { SKILL_LEVEL_LABELS } from '@/data/mock/events'
+const SKILL_LEVEL_LABELS = {
+  mixed: 'All levels',
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+} as const
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'

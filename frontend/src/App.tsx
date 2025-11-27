@@ -8,14 +8,14 @@ import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { AuthCallback } from '@/pages/AuthCallback'
 import { ResetPasswordPage } from '@/pages/ResetPassword'
-import { OnboardingPage } from '@/pages/OnboardingPage'
+import { OnboardingPage } from '@/features/onboarding/pages/OnboardingPage'
 import { EventsPage } from '@/features/events/pages/EventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
-import { ProfilePage } from '@/pages/ProfilePage'
+import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
-import { MatesPage } from '@/pages/MatesPage'
+import { MatesPage } from '@/features/mates/pages/MatesPage'
 
 export default function App() {
   const { isAuthenticated, onboardingStatus } = useAuthStore()

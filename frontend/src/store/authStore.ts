@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { User } from '@/types'
-import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/services/auth'
+import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/services/authService'
 import { sessionService } from '@/services/sessionService'
 import {
   OnboardingStatus,
