@@ -5,7 +5,7 @@ import { Button, InputField } from '@/components'
 import { SportCard } from '@/components/onboarding/SportCard'
 import Header from '@/components/navigation/Header'
 import { sessionService } from '@/services/sessionService'
-import { useAuthStore } from '@/store/authStore'
+import { useAuthStore } from '@/hooks'
 import {
   useOnboardingStore,
   ROLE_STEP,

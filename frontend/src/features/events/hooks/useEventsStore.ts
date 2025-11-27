@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { CreateEventInput, EventFilter, PlayerEvent } from '@/types'
-import { eventsService } from '@/features/events/services/events.service'
+import { eventsService } from '@/features/events/services/eventsService'
 
 interface EventsStore {
   events: PlayerEvent[]

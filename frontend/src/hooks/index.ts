@@ -1,2 +1,2 @@
-export { useAuthStore } from './useAuthStore'
-export { useOnboardingStore } from './useOnboardingStore'
+export { useAuthStore } from '@/features/auth/hooks/useAuthStore'
+export { useOnboardingStore } from '@/features/onboarding/hooks/useOnboardingStore'

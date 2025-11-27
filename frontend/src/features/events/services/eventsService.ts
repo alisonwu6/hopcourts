@@ -11,7 +11,7 @@ import {
   SaveEventPayload,
 } from '@/types'
 import { format } from 'date-fns'
-import { useAuthStore } from '@/store/authStore'
+import { useAuthStore } from '@/hooks'
 
 const SPORT_ICONS: Record<string, string> = {
   basketball: '🏀',

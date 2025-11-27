@@ -1,8 +1,8 @@
 import { ReactNode, useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/authStore'
+import { useAuthStore } from '@/hooks'
 import { sessionService } from '@/services/sessionService'
-import { useOnboardingStore } from '@/store/onboardingStore'
+import { useOnboardingStore } from '@/hooks'
 
 interface OnboardingRouteProps {
   children: ReactNode
