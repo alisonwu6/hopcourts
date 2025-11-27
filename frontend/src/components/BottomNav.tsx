@@ -24,16 +24,16 @@ export function BottomNav() {
 
   const navItems: NavItem[] = [
     {
-      label: 'Home',
-      icon: Compass,
-      path: '/',
-      matchPaths: ['/', '/game', '/my-games'],
-    },
-    {
       label: 'Mates',
       icon: Users,
       path: '/mates',
-      matchPaths: ['/mates'],
+      matchPaths: ['/', '/mates'],
+    },
+    {
+      label: 'Events',
+      icon: Compass,
+      path: '/events',
+      matchPaths: ['/events', '/game', '/my-games'],
     },
     isAuthenticated
       ? {

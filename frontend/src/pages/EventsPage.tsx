@@ -17,7 +17,7 @@ const skillOptions = [
 
 const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
 
-export function HomePage() {
+export function EventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
   const [selectedSports, setSelectedSports] = useState<string[]>(['All'])

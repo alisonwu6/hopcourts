@@ -9,7 +9,7 @@ import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { AuthCallback } from '@/pages/AuthCallback'
 import { ResetPasswordPage } from '@/pages/ResetPassword'
 import { OnboardingPage } from '@/pages/OnboardingPage'
-import { HomePage } from '@/pages/HomePage'
+import { EventsPage } from '@/pages/EventsPage'
 import { GameDetailPage } from '@/pages/GameDetailPage'
 import { MyGamesPage } from '@/pages/MyGamesPage'
 import { ProfilePage } from '@/pages/ProfilePage'
@@ -27,7 +27,15 @@ export default function App() {
         path="/"
         element={
           <AppChrome showActions={isAuthenticated}>
-            <HomePage />
+            <MatesPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/events"
+        element={
+          <AppChrome showActions={isAuthenticated}>
+            <EventsPage />
           </AppChrome>
         }
       />
@@ -66,26 +74,27 @@ export default function App() {
   )
 }
 
-function useDetailLayout() {
-  const { pathname } = useLocation()
-  return pathname.startsWith('/game/') || pathname.startsWith('/create-game')
-}
-
 function AppChrome({
   children,
   showActions = true,
   showHeader = true,
+  showNav = true,
 }: {
   children: ReactNode
   showActions?: boolean
   showHeader?: boolean
+  showNav?: boolean
 }) {
-  const isDetail = useDetailLayout()
+  const { pathname } = useLocation()
+  const isDetail = pathname.startsWith('/game/') || pathname.startsWith('/create-game')
+  const headerVisible = showHeader && !isDetail
+  const navVisible = showNav && !isDetail
+
   return (
-    <div className={isDetail ? '' : 'pb-20'}>
-      {!isDetail && showHeader && <Header showActions={showActions} />}
+    <div style={{ paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0 }}>
+      {headerVisible && <Header showActions={showActions} />}
       {children}
-      {!isDetail && <BottomNav />}
+      {navVisible && <BottomNav />}
     </div>
   )
 }
@@ -94,7 +103,8 @@ function AuthenticatedApp() {
   return (
     <AppChrome>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<MatesPage />} />
+        <Route path="/events" element={<EventsPage />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
         <Route path="/my-games" element={<MyGamesPage />} />
@@ -111,7 +121,8 @@ function GuestApp() {
   return (
     <AppChrome showActions={false}>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<MatesPage />} />
+        <Route path="/events" element={<EventsPage />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/game/:id" element={<GameDetailPage />} />
         <Route path="/create-game" element={<CreateGamePage />} />
