@@ -4,7 +4,8 @@ import { useMemo, useState, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
 import { SKILL_LEVEL_LABELS } from '@/data/mock/events'
-import { useGamesStore, useAuthStore } from '@/hooks'
+import { useEventsStore } from '@/features/events/hooks/useEventsStore'
+import { useAuthStore } from '@/hooks'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
@@ -43,9 +44,9 @@ const initialState: FormState = {
   notes: '',
 }
 
-export default function CreateGame() {
+export default function CreateEventPage() {
   const navigate = useNavigate()
-  const createGame = useGamesStore((state) => state.createGame)
+  const createEvent = useEventsStore((state) => state.createEvent)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
@@ -132,7 +133,7 @@ export default function CreateGame() {
     setError(null)
     setIsSubmitting(true)
     try {
-      const game = await createGame({
+      const event = await createEvent({
         title: form.title.trim(),
         sport: form.sport.trim(),
         description: form.description.trim() || undefined,
@@ -151,9 +152,9 @@ export default function CreateGame() {
         difficulty: SKILL_LEVEL_ORDER[form.skillLevel] ?? 2,
       })
 
-      navigate(`/game/${game.id}`)
+      navigate(`/event/${event.id}`)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create game.'
+      const message = err instanceof Error ? err.message : 'Failed to create event.'
       setError(message)
     } finally {
       setIsSubmitting(false)
@@ -173,7 +174,7 @@ export default function CreateGame() {
         contentClassName="w-full max-w-3xl px-4 sm:px-6"
       />
       <form
-        id="game-form"
+        id="event-form"
         className="mx-auto mt-6 w-full max-w-3xl space-y-4 px-4 pb-8 sm:px-6"
         onSubmit={handleSubmit}
       >
@@ -293,7 +294,7 @@ function ActionBar({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitti
         <Button
           size="sm"
           type="submit"
-          form="game-form"
+          form="event-form"
           disabled={!canSubmit || isSubmitting}
           className="flex-1 rounded-full px-6"
         >

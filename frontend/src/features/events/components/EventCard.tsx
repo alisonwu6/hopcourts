@@ -2,7 +2,7 @@ import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
 import { Calendar, CircleDollarSign, Earth, MapPin, MapPinPlusInside, UserRoundPlus } from 'lucide-react'
-import { PlayerGame } from '@/types'
+import { PlayerEvent } from '@/types'
 
 const ACCENT = {
   primary: '#2563EB',
@@ -11,29 +11,29 @@ const ACCENT = {
   gradient: 'linear-gradient(135deg, #DBEAFE, #2563EB)',
 }
 
-type GameCardProps = {
-  game: PlayerGame
-  onViewDetails?: (gameId: string) => void
+type EventCardProps = {
+  event: PlayerEvent
+  onViewDetails?: (eventId: string) => void
 }
 
-export function GameCard({
-  game,
+export function EventCard({
+  event,
   onViewDetails,
-}: GameCardProps) {
-  const sportLabel = formatSportName(game.sport)
-  const skillLabel = friendlySkill(game.skillLevel)
-  const locationCity = game.location?.city
-  const locationLabel = game.location?.address ?? game.location?.name ?? 'Venue to be confirmed'
-  const scheduleLabel = formatSchedule(game.startTime, game.endTime)
-  const priceLabel = game.priceRange ?? (game.isFree ? 'Free to join' : 'Paid event')
+}: EventCardProps) {
+  const sportLabel = formatSportName(event.sport)
+  const skillLabel = friendlySkill(event.skillLevel)
+  const locationCity = event.location?.city
+  const locationLabel = event.location?.address ?? event.location?.name ?? 'Venue to be confirmed'
+  const scheduleLabel = formatSchedule(event.startTime, event.endTime)
+  const priceLabel = event.priceRange ?? (event.isFree ? 'Free to join' : 'Paid event')
   const cityLabel = locationCity ?? 'City to be confirmed'
 
-  const attendeeCount = game.attendeeCount
-  const participantPreview = game.participants.slice(0, 4)
+  const attendeeCount = event.attendeeCount
+  const participantPreview = event.participants.slice(0, 4)
   const remaining = Math.max(attendeeCount - participantPreview.length, 0)
   const isClickable = Boolean(onViewDetails)
   const heroImage =
-    (game as PlayerGame & { heroImageUrl?: string }).heroImageUrl ?? game.detail?.heroImageUrl
+    (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
   const heroStyle = heroImage
     ? {
         backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.15), rgba(2,6,23,0.55)), url(${heroImage})`,
@@ -44,11 +44,11 @@ export function GameCard({
         backgroundImage: ACCENT.gradient,
       }
 
-  const handleCardClick = () => onViewDetails?.(game.id)
+  const handleCardClick = () => onViewDetails?.(event.id)
   const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      onViewDetails?.(game.id)
+      onViewDetails?.(event.id)
     }
   }
 
@@ -58,7 +58,7 @@ export function GameCard({
         tabIndex: 0,
         onClick: handleCardClick,
         onKeyDown: handleCardKeyDown,
-        'aria-label': `View details for ${game.title}`,
+        'aria-label': `View details for ${event.title}`,
       }
     : {}
 
@@ -85,12 +85,12 @@ export function GameCard({
         <header className="flex flex-wrap items-start justify-between">
           <div className="flex items-start gap-3">
             <AvatarCircle
-              name={game.host.name}
-              src={game.host.avatarUrl}
+              name={event.host.name}
+              src={event.host.avatarUrl}
             />
             <div>
               <p className="text-base font-semibold text-slate-900">
-                {game.host.name}
+                {event.host.name}
               </p>
               <div className="flex items-center gap-1.5 text-sm text-slate-500">
                 <Earth
@@ -112,7 +112,7 @@ export function GameCard({
           >
             {!heroImage && (
               <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-30">
-                {game.vibeIcon}
+                {event.vibeIcon}
               </div>
             )}
           </div>
@@ -131,7 +131,7 @@ export function GameCard({
 
         <div className="space-y-1">
           <h3 className="text-xl font-semibold leading-snug text-slate-900">
-            {game.title}
+            {event.title}
           </h3>
 
           <div className="flex flex-col text-sm text-slate-600">
@@ -157,7 +157,7 @@ export function GameCard({
                 ))}
               </div>
               <span className="text-sm text-slate-600">
-                {summaryText(attendeeCount, game.maxAttendees, remaining)}
+                {summaryText(attendeeCount, event.maxAttendees, remaining)}
               </span>
             </div>
             <InfoRow
@@ -259,7 +259,7 @@ function summaryText(attending: number, max: number, remaining: number) {
   return `${base} · +${remaining} more`
 }
 
-function friendlySkill(level: PlayerGame['skillLevel']) {
+function friendlySkill(level: PlayerEvent['skillLevel']) {
   switch (level) {
     case 'beginner':
       return 'Beginner friendly'

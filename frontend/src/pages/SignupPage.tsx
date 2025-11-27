@@ -50,7 +50,7 @@ export function SignupPage() {
             {/* <h1 className="text-2xl font-semibold text-player-900">Join the movement.</h1> */}
             <p className="text-sm text-player-900/70">
               SportsMatch is built to inspire players everywhere—match up with locals, commit to play,
-              and stay motivated through every game and pick-up game.
+              and stay motivated through every event and pick-up event.
             </p>
           </div>
 

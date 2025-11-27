@@ -1,52 +1,46 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { PlayerGame } from '@/types'
-import { useGamesStore } from '@/hooks'
+import type { PlayerEvent } from '@/types'
+import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 
 type TabKey = 'upcoming' | 'completed'
 
-function isCompleted(game: PlayerGame) {
-  if (game.completedDate) {
-    return new Date(game.completedDate) < new Date()
+function isCompleted(event: PlayerEvent) {
+  if (event.completedDate) {
+    return new Date(event.completedDate) < new Date()
   }
   return false
 }
 
-function groupByDate(games: PlayerGame[]) {
+function groupByDate(events: PlayerEvent[]) {
   const formatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' })
-  const map = new Map<string, PlayerGame[]>()
-  games.forEach((game) => {
-    const label = formatter.format(game.startTime)
-    map.set(label, [...(map.get(label) ?? []), game])
+  const map = new Map<string, PlayerEvent[]>()
+  events.forEach((event) => {
+    const label = formatter.format(event.startTime)
+    map.set(label, [...(map.get(label) ?? []), event])
   })
   return Array.from(map.entries())
 }
 
-export function MyGamesPage() {
+export function MyEventsPage() {
   const navigate = useNavigate()
   const [tab, setTab] = useState<TabKey>('upcoming')
-  const games = useGamesStore((state) => state.games)
-  const fetchMyGames = useGamesStore((state) => state.fetchMyGames)
-  const isLoading = useGamesStore((state) => state.isLoading)
-  const error = useGamesStore((state) => state.error)
+  const events = useEventsStore((state) => state.events)
+  const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
+  const isLoading = useEventsStore((state) => state.isLoading)
+  const error = useEventsStore((state) => state.error)
 
   useEffect(() => {
-    void fetchMyGames()
-  }, [fetchMyGames])
+    void fetchMyEvents()
+  }, [fetchMyEvents])
 
-  const upcomingGames = useMemo(
-    () => games.filter((game) => !isCompleted(game)),
-    [games]
-  )
-  const completedGames = useMemo(
-    () => games.filter((game) => isCompleted(game)),
-    [games]
-  )
+  const upcomingEvents = useMemo(() => events.filter((event) => !isCompleted(event)), [events])
+  const completedEvents = useMemo(() => events.filter((event) => isCompleted(event)), [events])
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">
       <div className="sticky top-0 z-10 border-b border-blue-200 bg-blue-50 px-4 py-3">
-        <h1 className="text-lg font-bold text-blue-900">My Games</h1>
+        <h1 className="text-lg font-bold text-blue-900">My Events</h1>
       </div>
 
       <div className="sticky top-14 z-10 flex border-b border-blue-200 bg-blue-50">
@@ -61,20 +55,16 @@ export function MyGamesPage() {
           </div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">Loading your games…</div>
+          <div className="py-10 text-center text-slate-500">Loading your events…</div>
         ) : tab === 'upcoming' ? (
-          <GameGroupList
-            groups={groupByDate(upcomingGames)}
-            emptyState={
-              <EmptyState icon="📭" title="No games yet" description="Browse games to join your first one" />
-            }
+          <EventGroupList
+            groups={groupByDate(upcomingEvents)}
+            emptyState={<EmptyState icon="📭" title="No events yet" description="Browse events to join your first one" />}
           />
         ) : (
-          <GameGroupList
-            groups={groupByDate(completedGames)}
-            emptyState={
-              <EmptyState icon="✓" title="No completed games" description="Completed games will appear here" />
-            }
+          <EventGroupList
+            groups={groupByDate(completedEvents)}
+            emptyState={<EmptyState icon="✓" title="No completed events" description="Completed events will appear here" />}
           />
         )}
       </div>
@@ -85,7 +75,7 @@ export function MyGamesPage() {
           onClick={() => navigate('/')}
           className="w-full py-2 text-sm font-semibold text-blue-600 hover:underline"
         >
-          Browse more games
+          Browse more events
         </button>
       </div>
     </div>
@@ -106,11 +96,11 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
   )
 }
 
-function GameGroupList({
+function EventGroupList({
   groups,
   emptyState,
 }: {
-  groups: Array<[string, PlayerGame[]]>
+  groups: Array<[string, PlayerEvent[]]>
   emptyState: JSX.Element
 }) {
   const navigate = useNavigate()
@@ -121,33 +111,33 @@ function GameGroupList({
 
   return (
     <div className="space-y-6">
-      {groups.map(([dateLabel, games]) => (
+      {groups.map(([dateLabel, groupedEvents]) => (
         <div key={dateLabel}>
           <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
           <div className="space-y-3">
-            {games.map((game) => (
+            {groupedEvents.map((event) => (
               <button
-                key={game.id}
+                key={event.id}
                 type="button"
-                onClick={() => navigate(`/game/${game.id}`)}
+                onClick={() => navigate(`/event/${event.id}`)}
                 className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-slate-900">{game.title}</h4>
+                    <h4 className="font-semibold text-slate-900">{event.title}</h4>
                     <p className="mt-2 text-xs text-gray-600">
-                      {new Date(game.startTime).toLocaleDateString()} ·{' '}
-                      {new Date(game.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(event.startTime).toLocaleDateString()} ·{' '}
+                      {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
-                    <p className="mt-1 text-xs text-gray-600">📍 {game.location.name}</p>
+                    <p className="mt-1 text-xs text-gray-600">📍 {event.location.name}</p>
                     <p className="mt-2 text-xs font-semibold text-blue-600">
-                      {isCompleted(game)
+                      {isCompleted(event)
                         ? '⭐⭐⭐⭐⭐ Leave review →'
-                        : `✓ Joined (${game.attendeeCount}/${game.maxAttendees})`}
+                        : `✓ Joined (${event.attendeeCount}/${event.maxAttendees})`}
                     </p>
                   </div>
                   <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xl text-white">
-                    {resolveSportIcon(game.sport)}
+                    {resolveSportIcon(event.sport)}
                   </div>
                 </div>
               </button>

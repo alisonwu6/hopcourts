@@ -25,8 +25,8 @@ const adaptUser = (payload: RawUser): User => ({
   followers: [],
   hostProfile: undefined,
   managedVenues: [],
-  gamesAttended: payload.gamesAttended ?? 0,
-  gamesHosted: payload.gamesHosted ?? 0,
+  eventsAttended: payload.eventsAttended ?? payload.gamesAttended ?? 0,
+  eventsHosted: payload.eventsHosted ?? payload.gamesHosted ?? 0,
   createdAt: payload.created_at ? new Date(payload.created_at) : new Date(),
   updatedAt: payload.updated_at ? new Date(payload.updated_at) : new Date(),
 })

@@ -16,8 +16,8 @@ export interface User {
   following: string[]
   followers: string[]
   managedVenues: string[]
-  gamesAttended: number
-  gamesHosted: number
+  eventsAttended: number
+  eventsHosted: number
   createdAt: Date
   updatedAt: Date
 }
@@ -59,7 +59,7 @@ export interface Venue {
   verificationDate?: Date
   rating: number
   ratingCount: number
-  gamesHosted: number
+  eventsHosted: number
   operatingHours?: {
     monday: { open: string; close: string }
     tuesday: { open: string; close: string }
@@ -100,8 +100,8 @@ export interface PaginatedResponse<T> {
 // FILTER & SEARCH TYPES
 // ============================================================================
 
-// ACTIVE: consumed by games.service.ts and useGamesStore filters.
-export interface GameFilter {
+// ACTIVE: consumed by events.service.ts and useEventsStore filters.
+export interface EventFilter {
   sport?: string
   skillLevel?: 'beginner' | 'intermediate' | 'advanced'
   minPrice?: number
@@ -138,7 +138,7 @@ export interface VenueFilter {
 
 type SkillLevelDTO = 'all' | 'beginner' | 'intermediate' | 'advanced'
 type PriceTypeDTO = 'free' | 'pay_on_site' | 'fixed'
-type GameStatusDTO = 'draft' | 'published' | 'cancelled' | 'completed'
+type EventStatusDTO = 'draft' | 'published' | 'cancelled' | 'completed'
 
 export interface HostSummaryDTO {
   id: string
@@ -156,7 +156,7 @@ export interface AttendeeSummaryDTO {
   isHost: boolean
 }
 
-export interface GameCardDTO {
+export interface EventCardDTO {
   id: string
   title: string
   sport: string
@@ -180,12 +180,12 @@ export interface GameCardDTO {
   isFree: boolean
 }
 
-export interface GameDetailDTO {
+export interface EventDetailDTO {
   id: string
   title: string
   sport: string
   skillLevel: SkillLevelDTO
-  status: GameStatusDTO
+  status: EventStatusDTO
   coverPhotoUrl?: string | null
   host: HostSummaryDTO
   startDateTime: string
@@ -213,7 +213,7 @@ export interface GameDetailDTO {
   isUserWaitlisted: boolean
 }
 
-export interface SaveGamePayload {
+export interface SaveEventPayload {
   id?: string
   title: string
   sport: string
@@ -234,11 +234,11 @@ export interface SaveGamePayload {
   description: string
   notesForAttendees?: string | null
   coverPhotoUrl?: string | null
-  status: GameStatusDTO
+  status: EventStatusDTO
 }
 
-// ACTIVE: canonical UI game model used across the app.
-export interface PlayerGame {
+// ACTIVE: canonical UI event model used across the app.
+export interface PlayerEvent {
   id: string
   title: string
   sport: string
@@ -302,11 +302,11 @@ export interface PlayerVenue {
   rating: number
   reviewCount: number
   memberCount: number
-  gamesThisMonth: number
+  eventsThisMonth: number
   amenities: string[]
 }
 
-export interface GameApi {
+export interface EventApi {
   id: string
   creator_id: string
   venue_id?: string | null
@@ -355,8 +355,8 @@ type RecurringPatternInput = {
   maxOccurrences?: number
 }
 
-// ACTIVE: create-game flow + SaveGamePayload mapping rely on this shape.
-export interface CreateGameInput {
+// ACTIVE: create-event flow + SaveEventPayload mapping rely on this shape.
+export interface CreateEventInput {
   title: string
   description?: string
   sport: string

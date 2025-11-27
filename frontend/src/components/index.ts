@@ -1,5 +1,4 @@
 export { Button } from './Button'
-export { GameCard } from './GameCard'
 export { BottomNav } from './BottomNav'
 export { BottomSheet } from './BottomSheet'
 export { IntroSheet } from './IntroSheet'

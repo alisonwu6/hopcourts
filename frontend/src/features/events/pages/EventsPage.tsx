@@ -3,10 +3,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MapPinPlus, Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react'
 import { addDays, format, isSameDay, isToday, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
-import { Button, GameCard } from '@/components'
+import { Button } from '@/components'
 import { IntroSheet } from '@/components/IntroSheet'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
-import { useAuthStore, useGamesStore } from '@/hooks'
+import { EventCard } from '@/features/events/components/EventCard'
+import { useEventsStore } from '@/features/events/hooks/useEventsStore'
+import { useAuthStore } from '@/hooks'
 
 const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
 const skillOptions = [
@@ -29,18 +31,18 @@ export function EventsPage() {
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(today))
   const [selectedSkill, setSelectedSkill] = useState('all')
   const [isSkillFilterOpen, setIsSkillFilterOpen] = useState(false)
-  const games = useGamesStore((state) => state.games)
-  const isLoading = useGamesStore((state) => state.isLoading)
-  const error = useGamesStore((state) => state.error)
-  const fetchGames = useGamesStore((state) => state.fetchGames)
+  const events = useEventsStore((state) => state.events)
+  const isLoading = useEventsStore((state) => state.isLoading)
+  const error = useEventsStore((state) => state.error)
+  const fetchEvents = useEventsStore((state) => state.fetchEvents)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [hasSeenIntro, setHasSeenIntro] = useState(false)
 
   useEffect(() => {
-    void fetchGames()
-  }, [fetchGames])
+    void fetchEvents()
+  }, [fetchEvents])
 
   useEffect(() => {
     if (!isCalendarOpen && selectedDate) {
@@ -69,7 +71,7 @@ export function EventsPage() {
 
   const handleCreateClick = () => {
     if (isAuthenticated) {
-      navigate('/create-game')
+      navigate('/create-event')
       return
     }
     if (!hasSeenIntro) {
@@ -79,28 +81,28 @@ export function EventsPage() {
     }
   }
 
-  const gamesByDay = useMemo(() => {
-    return games.reduce<Record<string, number>>((acc, game) => {
-      const key = startOfDay(new Date(game.startTime)).toISOString()
+  const eventsByDay = useMemo(() => {
+    return events.reduce<Record<string, number>>((acc, event) => {
+      const key = startOfDay(new Date(event.startTime)).toISOString()
       acc[key] = (acc[key] ?? 0) + 1
       return acc
     }, {})
-  }, [games])
+  }, [events])
 
-  const filteredGames = useMemo(() => {
+  const filteredEvents = useMemo(() => {
     const dateFiltered = selectedDate
-      ? games.filter((game) => isSameDay(new Date(game.startTime), selectedDate))
-      : games.filter((game) => new Date(game.startTime) >= today)
+      ? events.filter((event) => isSameDay(new Date(event.startTime), selectedDate))
+      : events.filter((event) => new Date(event.startTime) >= today)
 
     const sportFiltered = selectedSports.includes('All')
       ? dateFiltered
-      : dateFiltered.filter((game) =>
-          selectedSports.some((sport) => game.sport.toLowerCase() === sport.toLowerCase())
+      : dateFiltered.filter((event) =>
+          selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
         )
 
     if (selectedSkill === 'all') return sportFiltered
-    return sportFiltered.filter((game) => game.skillLevel === selectedSkill)
-  }, [games, selectedSports, selectedSkill, selectedDate])
+    return sportFiltered.filter((event) => event.skillLevel === selectedSkill)
+  }, [events, selectedSports, selectedSkill, selectedDate])
 
   const dateLabel = selectedDate ? format(selectedDate, 'EEE, dd MMM') : 'Select a date'
   const showTodayLabel = Boolean(selectedDate && isSameDay(selectedDate, today))
@@ -187,18 +189,18 @@ export function EventsPage() {
         )}
         {isLoading ? (
           <div className="flex justify-center py-10 text-slate-500">
-            Loading games…
+            Loading events…
           </div>
-        ) : filteredGames.length === 0 ? (
-          <div className="py-10 text-center text-slate-500">No games found</div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="py-10 text-center text-slate-500">No events found</div>
         ) : (
-          filteredGames.map((game) => (
-            <GameCard
-              key={game.id}
-              game={game}
+          filteredEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
               onViewDetails={() => {
                 if (isAuthenticated) {
-                  navigate(`/game/${game.id}`)
+                  navigate(`/event/${event.id}`)
                 } else {
                   setShowLoginPrompt(true)
                 }
@@ -209,10 +211,10 @@ export function EventsPage() {
       </div>
 
       {/* <Button
-        className="fixed bottom-10 left-1/2 z-50 flex h-14 w-14 -translate-x-1/2 transform items-center justify-center rounded-full bg-player-600 text-white"
-        onClick={handleCreateClick}
-        aria-label="Create game"
-      >
+      className="fixed bottom-10 left-1/2 z-50 flex h-14 w-14 -translate-x-1/2 transform items-center justify-center rounded-full bg-player-600 text-white"
+      onClick={handleCreateClick}
+      aria-label="Create event"
+    >
         <span className="relative flex h-6 w-6 items-center justify-center">
           <MapPinPlus className="h-6 w-6" aria-hidden="true" />
         </span>
@@ -252,7 +254,7 @@ export function EventsPage() {
           setSelectedDate(pendingDate)
           setIsCalendarOpen(false)
         }}
-        counts={gamesByDay}
+        counts={eventsByDay}
       />
       <SkillFilterSheet
         open={isSkillFilterOpen}

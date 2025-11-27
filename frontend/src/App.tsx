@@ -9,11 +9,11 @@ import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
 import { AuthCallback } from '@/pages/AuthCallback'
 import { ResetPasswordPage } from '@/pages/ResetPassword'
 import { OnboardingPage } from '@/pages/OnboardingPage'
-import { EventsPage } from '@/pages/EventsPage'
-import { GameDetailPage } from '@/pages/GameDetailPage'
-import { MyGamesPage } from '@/pages/MyGamesPage'
+import { EventsPage } from '@/features/events/pages/EventsPage'
+import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
+import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
 import { ProfilePage } from '@/pages/ProfilePage'
-import CreateGamePage from '@/pages/CreateGamePage'
+import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { MatesPage } from '@/pages/MatesPage'
 
@@ -107,7 +107,7 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
-  const isDetail = pathname.startsWith('/game/') || pathname.startsWith('/create-game')
+  const isDetail = pathname.startsWith('/event/') || pathname.startsWith('/create-event')
   const headerVisible = showHeader && !isDetail
   const navVisible = showNav && !isDetail
 
@@ -127,9 +127,9 @@ function AuthenticatedApp() {
         <Route path="/" element={<MatesPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/game/:id" element={<GameDetailPage />} />
-        <Route path="/my-games" element={<MyGamesPage />} />
-        <Route path="/create-game" element={<CreateGamePage />} />
+        <Route path="/event/:id" element={<EventDetailPage />} />
+        <Route path="/my-events" element={<MyEventsPage />} />
+        <Route path="/create-event" element={<CreateEventPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/mates" element={<MatesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -145,8 +145,8 @@ function GuestApp() {
         <Route path="/" element={<MatesPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/game/:id" element={<GameDetailPage />} />
-        <Route path="/create-game" element={<CreateGamePage />} />
+        <Route path="/event/:id" element={<EventDetailPage />} />
+        <Route path="/create-event" element={<CreateEventPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/mates" element={<MatesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

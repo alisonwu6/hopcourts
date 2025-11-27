@@ -32,7 +32,7 @@ export function LoginPage() {
         <section className="rounded-[32px] border border-slate-100 bg-white p-6 text-center shadow-[0_20px_60px_rgba(15,41,77,0.08)] sm:p-8">
           <p className="text-base font-semibold text-slate-900">New to SportsMatch?</p>
           <p className="mt-1 text-sm text-slate-600">
-            Create an account to host games, save favourites, and track your streak.
+            Create an account to host events, save favourites, and track your streak.
           </p>
           <Button
             variant="secondary"

@@ -33,7 +33,7 @@ export function BottomNav() {
       label: 'Events',
       icon: Compass,
       path: '/events',
-      matchPaths: ['/events', '/game', '/my-games'],
+      matchPaths: ['/events', '/event', '/my-events', '/create-event'],
     },
     isAuthenticated
       ? {

@@ -579,11 +579,11 @@ export function OnboardingPage() {
             <span className="text-4xl">🏃</span>
             <div>
               <h2 className="text-lg font-semibold text-player-900">Player</h2>
-              <p className="text-sm text-player-900/70">Find teammates & pick-up games.</p>
+              <p className="text-sm text-player-900/70">Find teammates & pick-up events.</p>
             </div>
           </div>
           <p className="mt-4 text-sm text-player-900/70">
-            Join games, meet new athletes, and stay motivated with curated matches.
+            Join events, meet new athletes, and stay motivated with curated matches.
           </p>
           <SelectionBadge active={selectedRole === 'player'} />
         </button>
@@ -679,7 +679,7 @@ export function OnboardingPage() {
           <label className="mb-2 block text-sm font-semibold text-player-900">
             Gender (optional)
           </label>
-          <p className="mb-2 text-xs text-player-500">Only used when a specific game requires it.</p>
+          <p className="mb-2 text-xs text-player-500">Only used when a specific event requires it.</p>
           <select
             value={basicInfo.gender}
             onChange={(event) =>
@@ -748,7 +748,7 @@ export function OnboardingPage() {
         step={currentIndex + 1}
         total={totalSteps}
         title="Which sports fire you up?"
-        description={`Pick up to ${MAX_SPORTS}. We'll use this to match you with games and teammates.`}
+        description={`Pick up to ${MAX_SPORTS}. We'll use this to match you with events and teammates.`}
       />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {SPORTS.map((sport) => (
@@ -786,7 +786,7 @@ export function OnboardingPage() {
       <StepHeader
         step={currentIndex + 1}
         total={totalSteps}
-        title="How do you rate your game?"
+        title="How do you rate your play?"
         description="Choose the level that best describes your vibe for each sport."
       />
       <div className="space-y-4">

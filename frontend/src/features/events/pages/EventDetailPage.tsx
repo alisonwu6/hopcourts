@@ -9,7 +9,7 @@ import type { LucideIcon } from 'lucide-react'
 import heroPlaceholder from '@/assets/placeholders/game-placeholder.JPEG'
 import { useAuthStore } from '@/hooks'
 
-const mockGame = {
+const mockEvent = {
   title: 'Bouldering Session',
   description:
     'Come hang, climb, and chill with a small friendly crew. This session is super relaxed — perfect if you’re getting back into climbing or just want people to climb with. I’ll warm up with you and we can work a few problems together.',
@@ -35,7 +35,7 @@ const mockGame = {
   heroImage: heroPlaceholder,
 }
 
-export function GameDetailPage() {
+export function EventDetailPage() {
   const navigate = useNavigate()
   const [isFavorite, setIsFavorite] = useState(false)
   const [isJoined, setIsJoined] = useState(false)
@@ -68,7 +68,7 @@ export function GameDetailPage() {
       <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
         <div className="relative overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)] mb-0">
           <img
-            src={mockGame.heroImage}
+            src={mockEvent.heroImage}
             alt="Bouldering wall"
             className="h-[230px] w-full object-cover"
           />
@@ -78,10 +78,10 @@ export function GameDetailPage() {
           <div className="px-5 pb-6 pt-6">
             
             <div className="flex items-center gap-3">
-              <AvatarCircle name={mockGame.host.name} src={mockGame.host.avatar} />
+              <AvatarCircle name={mockEvent.host.name} src={mockEvent.host.avatar} />
               <div>
-                <p className="text-sm font-semibold text-slate-900">Hosted by {mockGame.host.name}</p>
-                <p className="text-xs text-slate-500">{mockGame.host.subtitle}</p>
+                <p className="text-sm font-semibold text-slate-900">Hosted by {mockEvent.host.name}</p>
+                <p className="text-xs text-slate-500">{mockEvent.host.subtitle}</p>
               </div>
             </div>
 
@@ -89,21 +89,21 @@ export function GameDetailPage() {
 
             <div className="mt-6 flex justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide">
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-                {mockGame.sport}
+                {mockEvent.sport}
               </span>
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
-                {mockGame.skillLabel}
+                {mockEvent.skillLabel}
               </span>
             </div>
 
             <div className="mt-4">
-              <h1 className="text-[28px] font-semibold text-slate-900">{mockGame.title}</h1>
+              <h1 className="text-[28px] font-semibold text-slate-900">{mockEvent.title}</h1>
             </div>
 
             <div className="mt-6 space-y-3">
-              <InfoRow icon={Calendar} label={mockGame.dateTime} />
-              <InfoRow icon={MapPin} label={mockGame.location} />
-              <InfoRow icon={CircleDollarSign} label={mockGame.price} />
+              <InfoRow icon={Calendar} label={mockEvent.dateTime} />
+              <InfoRow icon={MapPin} label={mockEvent.location} />
+              <InfoRow icon={CircleDollarSign} label={mockEvent.price} />
             </div>
 
             <hr className="my-6 border-slate-200" />
@@ -114,14 +114,14 @@ export function GameDetailPage() {
                   <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
                 <span>
-                  Who&apos;s joining ({mockGame.spotsRemaining} spots remaining)
+                  Who&apos;s joining ({mockEvent.spotsRemaining} spots remaining)
                 </span>
               </div>
               <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-                <AvatarCircle name={mockGame.participants[0].name} src={mockGame.participants[0].avatar} />
+                <AvatarCircle name={mockEvent.participants[0].name} src={mockEvent.participants[0].avatar} />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{mockGame.participants[0].name}</p>
-                  <p className="text-xs text-slate-500">{mockGame.participants[0].subtitle}</p>
+                  <p className="text-sm font-semibold text-slate-900">{mockEvent.participants[0].name}</p>
+                  <p className="text-xs text-slate-500">{mockEvent.participants[0].subtitle}</p>
                 </div>
               </div>
             </div>
@@ -135,7 +135,7 @@ export function GameDetailPage() {
                 </span>
                 <span>Hey there,</span>
               </div>
-              <p className="text-sm leading-relaxed text-slate-700">{mockGame.description}</p>
+              <p className="text-sm leading-relaxed text-slate-700">{mockEvent.description}</p>
             </div>
           </div>
         </div>

@@ -14,7 +14,7 @@ export function ProfilePage() {
           </div>
           <h1 className="text-2xl font-semibold text-slate-900">Your SportsMatch profile</h1>
           <p className="mt-3 max-w-md text-sm text-slate-600">
-            Save favourite games, build your crew, and track your streak once you create an account.
+            Save favourite events, build your crew, and track your streak once you create an account.
           </p>
           <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
             <button
@@ -44,20 +44,20 @@ export function ProfilePage() {
     )
   }
 
-  const gamesAttended = user.gamesAttended ?? 0
-  const isNewUser = gamesAttended <= 1
+  const eventsAttended = user.eventsAttended ?? 0
+  const isNewUser = eventsAttended <= 1
   const sportLine =
     user.sports && user.sports.length > 0
       ? user.sports.join(' · ')
       : 'Ready to explore new sports'
 
   const displayStats = {
-    totalGames: Math.max(1, gamesAttended),
-    streakDays: Math.max(1, gamesAttended > 0 ? 1 : 0),
+    totalEvents: Math.max(1, eventsAttended),
+    streakDays: Math.max(1, eventsAttended > 0 ? 1 : 0),
     energyLevel: 85,
-    badges: Math.max(1, gamesAttended > 0 ? 1 : 0),
-    rank: gamesAttended > 1 ? 320 : 9999,
-    points: gamesAttended > 0 ? 5 : 0,
+    badges: Math.max(1, eventsAttended > 0 ? 1 : 0),
+    rank: eventsAttended > 1 ? 320 : 9999,
+    points: eventsAttended > 0 ? 5 : 0,
   }
 
   return (
@@ -72,7 +72,7 @@ export function ProfilePage() {
             <p className="text-blue-100">📍 {user.location}</p>
             {!isNewUser && (
               <p className="text-sm text-blue-100">
-                Games attended · {gamesAttended}
+                Events attended · {eventsAttended}
               </p>
             )}
           </div>
@@ -95,17 +95,17 @@ export function ProfilePage() {
               <div>
                 <p className="font-semibold text-slate-900">Great start!</p>
                 <p className="mt-1 text-sm text-slate-700">
-                  You&apos;ve joined your first game. This is just the
+                  You&apos;ve joined your first event. This is just the
                   beginning of an amazing fitness journey.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+         <div className="grid grid-cols-2 gap-3">
             <StatCard
-              label="Game"
-              value={displayStats.totalGames.toString()}
+              label="Events"
+              value={displayStats.totalEvents.toString()}
               accent="text-blue-600"
             />
             <StatCard
@@ -127,7 +127,7 @@ export function ProfilePage() {
               <div>
                 <p className="font-semibold text-slate-900">First Step Badge</p>
                 <p className="text-xs text-slate-600">
-                  Join your first game
+                  Join your first event
                 </p>
               </div>
             </div>
@@ -143,7 +143,7 @@ export function ProfilePage() {
             </h3>
             <Milestone
               step="2"
-              title="Join one more game"
+              title="Join one more event"
               description='Unlock the "Week Warrior" badge 🏆'
             />
             <Milestone
@@ -153,7 +153,7 @@ export function ProfilePage() {
             />
             <Milestone
               step="4"
-              title="Complete 4 games this month"
+              title="Complete 4 events this month"
               description="Hit your monthly goal 🎯"
             />
           </div>
@@ -163,7 +163,7 @@ export function ProfilePage() {
             onClick={() => navigate('/')}
             className="w-full rounded-xl bg-blue-600 py-4 text-lg font-semibold text-white transition hover:bg-blue-700"
           >
-            🏃 Join another game
+            🏃 Join another event
           </button>
         </section>
       ) : (
@@ -175,9 +175,9 @@ export function ProfilePage() {
       )}
 
       <div className="mx-auto w-full max-w-4xl space-y-2 border-t border-player-200 px-4 pt-6">
-        <ActionButton icon="📆" label="My games" onClick={() => navigate('/my-games')} />
+        <ActionButton icon="📆" label="My events" onClick={() => navigate('/my-events')} />
         <ActionButton icon="📊" label="Detailed stats" />
-        <ActionButton icon="❤️" label="Saved games" />
+        <ActionButton icon="❤️" label="Saved events" />
         <ActionButton icon="⭐" label="My reviews" />
         <ActionButton icon="👥" label="Following" />
         <ActionButton
