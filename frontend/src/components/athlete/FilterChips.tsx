@@ -1,43 +1,32 @@
 import clsx from 'clsx'
 
-interface Props {
+type FilterChipsProps = {
   filters: string[]
-  selected?: string
-  onSelect?: (value: string) => void
-  className?: string
+  selected: string
+  onSelect: (value: string) => void
 }
 
-const baseButton =
-  'whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-300'
-
-export function FilterChips({ filters, selected = 'All', onSelect, className }: Props) {
+export function FilterChips({ filters, selected, onSelect }: FilterChipsProps) {
   return (
-    <div className={clsx('', className)}>
-      <div
-        className="w-full overflow-x-auto overflow-y-hidden py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden touch-pan-x overscroll-x-contain [-webkit-overflow-scrolling:touch]"
-      >
-        <div className="flex w-max items-center gap-2">
-          {filters.map((filter) => {
-            const isActive = filter === selected
-
-            return (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => onSelect?.(filter)}
-                className={clsx(
-                  baseButton,
-                  isActive
-                    ? 'border-transparent bg-blue-600 text-white shadow-sm'
-                    : 'border-transparent bg-blue-100 text-blue-700 hover:bg-blue-200'
-                )}
-              >
-                {filter}
-              </button>
-            )
-          })}
-        </div>
-      </div>
+    <div className="flex gap-2 overflow-x-auto py-3">
+      {filters.map((filter) => {
+        const isActive = filter === selected
+        return (
+          <button
+            key={filter}
+            type="button"
+            onClick={() => onSelect(filter)}
+            className={clsx(
+              'whitespace-nowrap rounded-full border px-4 py-2 text-sm transition-colors',
+              isActive
+                ? 'border-blue-600 bg-blue-50 text-blue-700'
+                : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200'
+            )}
+          >
+            {filter}
+          </button>
+        )
+      })}
     </div>
   )
 }
