@@ -2,6 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { MapPin, Sparkles } from 'lucide-react'
 import { IntroSheet } from '@/components/IntroSheet'
+import { BottomSheet } from '@/components/BottomSheet'
+import GoogleLoginButton from '@/components/button/GoogleLoginButton'
+import AppleLoginButton from '@/components/button/AppleLoginButton'
+import { useAuthStore } from '@/hooks'
+import { signInWithApple, signInWithGoogle } from '@/services/authService'
 import { MateCard, type MateCardProps } from '../components/MateCard'
 
 const mates: MateCardProps[] = [
@@ -144,12 +149,32 @@ export function MatesPage() {
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const listRef = useRef<HTMLDivElement | null>(null)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const seen = window.localStorage.getItem('sportsmatch_mates_intro_v1') === 'dismissed'
     if (!seen) setShowIntroSheet(true)
   }, [])
+
+  const loginGoogle = async () => {
+    const { data, error } = await signInWithGoogle()
+    if (error) {
+      alert(error.message)
+      return
+    }
+    if (data?.url) window.location.href = data.url
+  }
+
+  const loginApple = async () => {
+    const { data, error } = await signInWithApple()
+    if (error) {
+      alert(error.message)
+      return
+    }
+    if (data?.url) window.location.href = data.url
+  }
 
   const handleCloseIntro = () => {
     if (typeof window !== 'undefined') {
@@ -165,6 +190,14 @@ export function MatesPage() {
     if (!children[idx]) return
     container.scrollTo({ left: children[idx].offsetLeft, behavior: 'smooth' })
     setActiveIndex(idx)
+  }
+
+  const handleDraftClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
+    // TODO: route to mate card creation when ready
   }
 
   useEffect(() => {
@@ -265,6 +298,7 @@ export function MatesPage() {
           <button
             type="button"
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+            onClick={handleDraftClick}
           >
             Draft your mate card
           </button>
@@ -279,6 +313,47 @@ export function MatesPage() {
         }
         dismissLabel={null}
       />
+
+      <BottomSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        showHandle={false}
+        sheetClassName="rounded-t-[44px] border border-white/50 bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+        contentClassName="px-6 pb-8 pt-10 text-center text-slate-900"
+        maxWidthClassName="max-w-xl"
+      >
+        <div className="relative space-y-4">
+          <button
+            type="button"
+            onClick={() => setShowLoginPrompt(false)}
+            className="absolute right-0 top-0 -mr-1 -mt-6 flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:text-slate-700"
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-slate-900">Save your sport identity</h2>
+            <p className="text-sm text-slate-600">
+              We&apos;ll help you discover your vibe and find your crew — all in one place.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <AppleLoginButton loginApple={loginApple} />
+            <GoogleLoginButton loginGoogle={loginGoogle} />
+            <button
+              type="button"
+              className="w-full text-sm font-semibold text-blue-600 underline-offset-4 hover:underline"
+              onClick={() => {
+                setShowLoginPrompt(false)
+                window.location.href = '/login?email=alison.wu23@gmail.com'
+              }}
+            >
+              Use email instead
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   )
 }
