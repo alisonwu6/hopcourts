@@ -26,7 +26,7 @@ export default function App() {
       <Route
         path="/"
         element={
-          <AppChrome showActions={isAuthenticated}>
+          <AppChrome showActions={isAuthenticated} showHeader={false}>
             <MatesPage />
           </AppChrome>
         }
@@ -122,35 +122,122 @@ function AppChrome({
 
 function AuthenticatedApp() {
   return (
-    <AppChrome>
-      <Routes>
-        <Route path="/" element={<MatesPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/event/:id" element={<EventDetailPage />} />
-        <Route path="/my-events" element={<MyEventsPage />} />
-        <Route path="/create-event" element={<CreateEventPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/mates" element={<MatesPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AppChrome>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <AppChrome showHeader={false}>
+            <MatesPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/events"
+        element={
+          <AppChrome>
+            <EventsPage />
+          </AppChrome>
+        }
+      />
+      <Route path="/home" element={<Navigate to="/" replace />} />
+      <Route
+        path="/event/:id"
+        element={
+          <AppChrome>
+            <EventDetailPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/my-events"
+        element={
+          <AppChrome>
+            <MyEventsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/create-event"
+        element={
+          <AppChrome>
+            <CreateEventPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <AppChrome>
+            <ProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/mates"
+        element={
+          <AppChrome showHeader={false}>
+            <MatesPage />
+          </AppChrome>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
 function GuestApp() {
   return (
-    <AppChrome showActions={false}>
-      <Routes>
-        <Route path="/" element={<MatesPage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/home" element={<Navigate to="/" replace />} />
-        <Route path="/event/:id" element={<EventDetailPage />} />
-        <Route path="/create-event" element={<CreateEventPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/mates" element={<MatesPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AppChrome>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MatesPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/events"
+        element={
+          <AppChrome showActions={false}>
+            <EventsPage />
+          </AppChrome>
+        }
+      />
+      <Route path="/home" element={<Navigate to="/" replace />} />
+      <Route
+        path="/event/:id"
+        element={
+          <AppChrome showActions={false}>
+            <EventDetailPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/create-event"
+        element={
+          <AppChrome showActions={false}>
+            <CreateEventPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <AppChrome showActions={false}>
+            <ProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/mates"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MatesPage />
+          </AppChrome>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
