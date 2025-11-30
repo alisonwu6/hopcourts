@@ -107,12 +107,12 @@ export function MateCard({
 
       <div className="flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
-          <span className="text-slate-500">Sports I play:</span>
+          <span className="text-slate-500 tracking-wide uppercase">Sports I Play:</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {sports.map((sport) => (
               <span
                 key={sport}
-                className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-800 ring-1 ring-slate-200"
+                className="inline-flex items-center rounded-full bg-[#dce9ff] px-3 py-1 text-xs font-medium text-[#2c5fd3]"
               >
                 {sport}
               </span>
@@ -120,20 +120,25 @@ export function MateCard({
           </div>
         </div>
         <div>
-          <span className="text-slate-500">Trying out:</span>
+          <span className="text-slate-500 tracking-wide uppercase">Trying Out:</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {trying.map((item) => (
               <span
                 key={item}
-                className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200"
+                className="inline-flex items-center rounded-full bg-[#ffefc7] px-3 py-1 text-xs font-medium text-[#b5681e]"
               >
                 {item}
               </span>
             ))}
           </div>
         </div>
-        <div className="pt-1 text-[12px] italic text-slate-600">
-          “{blurb}”
+        <div className="pt-1 text-[12px] italic text-slate-600 flex gap-2 items-start">
+          <span
+            className="h-full w-1 rounded"
+            style={{ background: vibeColors.ring }}
+            aria-hidden="true"
+          />
+          <span>“{blurb}”</span>
         </div>
       </div>
     </article>
