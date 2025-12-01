@@ -20,10 +20,7 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
   } = useOnboardingStore()
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login', { replace: true })
-      return
-    }
+    if (!isAuthenticated) return
 
     const loadStatus = async () => {
       try {
@@ -46,17 +43,12 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
     }
   }, [isAuthenticated, user, status, onboardingStatus, onboardingLoading, navigate, setLoading, setError, initializeOnboarding])
 
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />
+  if (!isAuthenticated) {
+    return <>{children}</>
   }
 
   if (authLoading || onboardingLoading || !status) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-player-200 border-t-player-600" />
-        <p className="mt-4 text-sm text-player-900/70">Loading onboarding...</p>
-      </div>
-    )
+    return <>{children}</>
   }
 
   if (status.isComplete) {

@@ -1,33 +1,14 @@
 import clsx from 'clsx'
 import { MapPin } from 'lucide-react'
+import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
-type Vibe = 'Chill' | 'Social' | 'Competitive' | 'Flow'
-
-const vibeTokens: Record<Vibe, { bg: string; text: string; ring: string; card: string }> = {
-  Chill: {
-    bg: 'linear-gradient(135deg, #6FAED9 0%, #9dd9ff 100%)',
-    text: '#ffffff',
-    ring: '#6FAED9',
-    card: 'linear-gradient(145deg, rgba(111,174,217,0.16) 0%, rgba(111,174,217,0.06) 100%)',
-  },
-  Social: {
-    bg: 'linear-gradient(135deg, #ffe14c 0%,  #f2e7b5 100%)',
-    text: '#ffffff',
-    ring: '#ffe14c',
-    card: 'linear-gradient(145deg, rgba(255,225,76,0.16) 0%, rgba(255,225,76,0.06) 100%)',
-  },
-  Competitive: {
-    bg: 'linear-gradient(135deg, #D64545 0%,#ffb7b7 100%)',
-    text: '#ffffff',
-    ring: '#D64545',
-    card: 'linear-gradient(145deg, rgba(214,69,69,0.16) 0%, rgba(214,69,69,0.06) 100%)',
-  },
-  Flow: {
-    bg: 'linear-gradient(135deg, #8A7DFF 0%, #5FD6C9 100%)',
-    text: '#ffffff',
-    ring: '#8A7DFF',
-    card: 'linear-gradient(145deg, rgba(138,125,255,0.16) 0%, rgba(95,214,201,0.08) 100%)',
-  },
+const withAlpha = (hex: string, alpha: number) => {
+  const clean = hex.replace('#', '')
+  const bigint = parseInt(clean, 16)
+  const r = (bigint >> 16) & 255
+  const g = (bigint >> 8) & 255
+  const b = bigint & 255
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 export type MateCardProps = {
@@ -65,7 +46,7 @@ export function MateCard({
   return (
     <article
       className={clsx(
-        'flex w-full min-w-[calc(100vw-4.25rem)] max-w-[520px] snap-start flex-col gap-3 rounded-[24px] px-4 py-4 shadow-sm border border-amber-50 transition sm:min-w-[420px]',
+        'flex w-full min-w-[calc(100vw-4.25rem)] max-w-[520px] snap-start flex-col gap-3 rounded-[24px] px-4 py-4 transition sm:min-w-[420px]',
         accentClassName
       )}
       style={{ background: vibeColors.card }}
@@ -112,7 +93,12 @@ export function MateCard({
             {sports.map((sport) => (
               <span
                 key={sport}
-                className="inline-flex items-center rounded-full bg-[#dce9ff] px-3 py-1 text-xs font-medium text-[#2c5fd3]"
+                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                style={{
+                  background: withAlpha(vibeColors.ring, 0.7),
+                  color: vibeColors.text,
+                  boxShadow: `0 0 0 1px ${withAlpha(vibeColors.ring, 0.25)}`,
+                }}
               >
                 {sport}
               </span>
@@ -125,20 +111,29 @@ export function MateCard({
             {trying.map((item) => (
               <span
                 key={item}
-                className="inline-flex items-center rounded-full bg-[#ffefc7] px-3 py-1 text-xs font-medium text-[#b5681e]"
+                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                style={{
+                  background: withAlpha(vibeColors.ring, 0.5),
+                  color: vibeColors.text,
+                  boxShadow: `0 0 0 1px ${withAlpha(vibeColors.ring, 0.2)}`,
+                }}
               >
                 {item}
               </span>
             ))}
           </div>
         </div>
-        <div className="pt-1 text-[12px] italic text-slate-600 flex gap-2 items-start">
+        <div className="flex items-start gap-2 pt-1 text-[12px] text-slate-600">
           <span
-            className="h-full w-1 rounded"
+            className="block w-1 rounded self-stretch min-h-[32px]"
             style={{ background: vibeColors.ring }}
             aria-hidden="true"
           />
-          <span>“{blurb}”</span>
+          {blurb?.trim() ? (
+            <span className="italic">“{blurb}”</span>
+          ) : (
+            <span className="text-slate-400 not-italic">This mover hasn&apos;t added a line yet.</span>
+          )}
         </div>
       </div>
     </article>
