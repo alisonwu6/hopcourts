@@ -1,16 +1,20 @@
 import clsx from 'clsx'
+import { type ReactNode } from 'react'
 import { ArrowLeft, Heart, Share2 } from 'lucide-react'
 
 type ActionToolbarProps = {
-  onBack: () => void
+  onBack?: () => void
   onShare?: () => void
   onToggleFavorite?: () => void
   isFavorite?: boolean
   showShare?: boolean
   showFavorite?: boolean
-  backLabel?: string
+  title?: ReactNode
   className?: string
   contentClassName?: string
+  showBack?: boolean
+  rightContent?: ReactNode
+  borderBottom?: boolean
 }
 
 export function ActionToolbar({
@@ -20,24 +24,44 @@ export function ActionToolbar({
   isFavorite = false,
   showShare = false,
   showFavorite = false,
-  backLabel,
+  title,
   className,
   contentClassName,
+  showBack = true,
+  rightContent,
+  borderBottom = false,
 }: ActionToolbarProps) {
   return (
-    <div className={clsx('sticky top-0 z-30 bg-white/95 backdrop-blur', className)}>
-      <div className={clsx('mx-auto flex w-full items-center justify-between py-4', contentClassName)}>
-        <button
-          type="button"
-          onClick={onBack}
-          className={clsx(
-            'text-sm font-semibold text-slate-600 transition hover:text-slate-900',
-            backLabel ? 'px-2 py-1' : 'p-2'
-          )}
-          aria-label={backLabel ?? 'Go back'}
-        >
-          {backLabel ? backLabel : <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden="true" />}
-        </button>
+    <div
+      className={clsx(
+        'sticky top-0 z-30 bg-white/95 backdrop-blur',
+        borderBottom && 'border-b border-slate-200/80',
+        className
+      )}
+    >
+      <div
+        className={clsx(
+          'mx-auto flex h-14 w-full items-center justify-between px-3',
+          contentClassName
+        )}
+      >
+        {showBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-10 w-10 items-center justify-center text-slate-600 transition hover:text-slate-900"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+          </button>
+        ) : (
+          <span className="h-10 w-10" aria-hidden="true" />
+        )}
+
+        <div className="flex min-w-0 flex-1 items-center justify-center px-2">
+          {title && <div className="truncate text-sm font-semibold text-slate-800">{title}</div>}
+        </div>
+
         <div className="flex items-center gap-3">
           {showShare && onShare && (
             <button
@@ -59,6 +83,11 @@ export function ActionToolbar({
             >
               <Heart className={clsx('h-5 w-5', isFavorite && 'fill-current')} strokeWidth={2} aria-hidden="true" />
             </button>
+          )}
+          {rightContent ? (
+            rightContent
+          ) : (
+            <span className="h-10 w-10" aria-hidden="true" />
           )}
         </div>
       </div>

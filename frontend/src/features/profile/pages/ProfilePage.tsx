@@ -1,292 +1,177 @@
-import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/hooks'
+import { BarChart2, CalendarRange, Menu, UsersRound, Zap } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { MateCard } from '@/features/mates/components/MateCard'
+import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+
+const mockProfile = {
+  name: 'Jamie Thompson',
+  location: 'Brisbane CBD',
+  flag: '🇹🇼',
+  vibe: 'Chill',
+  sports: ['Basketball', 'Running', 'Gym'],
+  trying: ['Pickleball', 'Bouldering'],
+  blurb: 'Here for good banter, easy pace, and a crew to play with after work.',
+  avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
+}
 
 export function ProfilePage() {
+  const [activeTab, setActiveTab] = useState<'stats' | 'calendar' | 'mates' | 'energy'>('stats')
   const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-50 pb-24">
-        <div className="mx-auto flex w-full max-w-4xl flex-col items-center px-6 pt-16 text-center">
-          <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-blue-100 text-3xl">
-            👋
-          </div>
-          <h1 className="text-2xl font-semibold text-slate-900">Your SportsMatch profile</h1>
-          <p className="mt-3 max-w-md text-sm text-slate-600">
-            Save favourite events, build your crew, and track your streak once you create an account.
-          </p>
-          <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/signup')}
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Create an account
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className="inline-flex items-center justify-center rounded-xl border border-blue-200 px-4 py-3 text-sm font-semibold text-blue-600 transition hover:border-blue-300 hover:bg-blue-50"
-            >
-              I already have an account
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-100"
-            >
-              Keep exploring
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const eventsAttended = user.eventsAttended ?? 0
-  const isNewUser = eventsAttended <= 1
-  const sportLine =
-    user.sports && user.sports.length > 0
-      ? user.sports.join(' · ')
-      : 'Ready to explore new sports'
-
-  const displayStats = {
-    totalEvents: Math.max(1, eventsAttended),
-    streakDays: Math.max(1, eventsAttended > 0 ? 1 : 0),
-    energyLevel: 85,
-    badges: Math.max(1, eventsAttended > 0 ? 1 : 0),
-    rank: eventsAttended > 1 ? 320 : 9999,
-    points: eventsAttended > 0 ? 5 : 0,
-  }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
-      <section className="bg-gradient-to-br from-blue-600 to-blue-500">
-        <div className="mx-auto flex w-full max-w-4xl items-start gap-4 px-4 py-6 text-white">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 text-3xl font-bold backdrop-blur">
-            {user.avatar ?? user.name.charAt(0)}
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold">{user.name}</h1>
-            <p className="text-blue-100">📍 {user.location}</p>
-            {!isNewUser && (
-              <p className="text-sm text-blue-100">
-                Events attended · {eventsAttended}
-              </p>
-            )}
-          </div>
+    <div className="min-h-screen bg-[#f7f8fb] pb-[120px]">
+      <div className="mx-auto w-full max-w-4xl pb-6">
+        <ActionToolbar
+          showBack={false}
+          rightContent={
+            <Link
+              to="/profile/settings"
+              aria-label="Menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+            >
+              <Menu className="h-6 w-6" />
+            </Link>
+          }
+          contentClassName="px-3"
+          borderBottom
+        />
+        <HeroCard />
+        <TabsBar
+          active={activeTab}
+          onChange={setActiveTab}
+        />
+        <div className="mt-4 space-y-4">
+          {activeTab === 'stats' && (
+            <>
+              <div>stats</div>
+            </>
+          )}
+          {activeTab === 'calendar' && (
+            <>
+              <div>calendar</div>
+            </>
+          )}
+          {activeTab === 'mates' && (
+            <>
+              <div>mates</div>
+            </>
+          )}
+          {activeTab === 'energy' && (
+            <>
+              <div>energy</div>
+            </>
+          )}
         </div>
-        {isNewUser && (
-          <div className="mx-auto mt-4 w-full max-w-4xl px-4">
-            <div className="rounded-xl bg-white/10 p-3 text-sm text-white backdrop-blur">
-              <p className="font-medium text-white">🎯 Goals locked in</p>
-              <p className="text-blue-100">{sportLine}</p>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {isNewUser ? (
-        <section className="mx-auto w-full max-w-4xl space-y-4 px-4 py-6">
-          <div className="rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-100 to-blue-50 p-5">
-            <div className="flex gap-3">
-              <span className="text-3xl">🎬</span>
-              <div>
-                <p className="font-semibold text-slate-900">Great start!</p>
-                <p className="mt-1 text-sm text-slate-700">
-                  You&apos;ve joined your first event. This is just the
-                  beginning of an amazing fitness journey.
-                </p>
-              </div>
-            </div>
-          </div>
-
-         <div className="grid grid-cols-2 gap-3">
-            <StatCard
-              label="Events"
-              value={displayStats.totalEvents.toString()}
-              accent="text-blue-600"
-            />
-            <StatCard
-              label="Streak"
-              value={`${displayStats.streakDays} 🔥`}
-              accent="text-amber-600"
-            />
-            <EnergyCard energy={displayStats.energyLevel} />
-            <StatCard
-              label="Badges"
-              value={displayStats.badges.toString()}
-              accent="text-yellow-600"
-            />
-          </div>
-
-          <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-100 to-amber-50 p-5">
-            <div className="flex gap-3">
-              <span className="text-4xl">👣</span>
-              <div>
-                <p className="font-semibold text-slate-900">First Step Badge</p>
-                <p className="text-xs text-slate-600">
-                  Join your first event
-                </p>
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-slate-700">
-              You did it! You&apos;ve taken your first step into the SportsMatch
-              community.
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-white p-5 shadow-sm">
-            <h3 className="mb-4 text-lg font-semibold text-slate-900">
-              🎯 Your next milestones
-            </h3>
-            <Milestone
-              step="2"
-              title="Join one more event"
-              description='Unlock the "Week Warrior" badge 🏆'
-            />
-            <Milestone
-              step="7"
-              title="Keep a 7-day streak"
-              description='Unlock "Consistency King" 🔥'
-            />
-            <Milestone
-              step="4"
-              title="Complete 4 events this month"
-              description="Hit your monthly goal 🎯"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="w-full rounded-xl bg-blue-600 py-4 text-lg font-semibold text-white transition hover:bg-blue-700"
-          >
-            🏃 Join another event
-          </button>
-        </section>
-      ) : (
-        <section className="mx-auto w-full max-w-4xl px-4 py-6">
-          <div className="rounded-2xl bg-white p-6 text-center text-slate-500 shadow-sm">
-            Regular profile view coming soon…
-          </div>
-        </section>
-      )}
-
-      <div className="mx-auto w-full max-w-4xl space-y-2 border-t border-player-200 px-4 pt-6">
-        <ActionButton icon="📆" label="My events" onClick={() => navigate('/my-events')} />
-        <ActionButton icon="📊" label="Detailed stats" />
-        <ActionButton icon="❤️" label="Saved events" />
-        <ActionButton icon="⭐" label="My reviews" />
-        <ActionButton icon="👥" label="Following" />
-        <ActionButton
-          icon="⚙️"
-          label="Settings"
-          onClick={() => navigate('/settings')}
-        />
-        <ActionButton
-          icon="🚪"
-          label="Logout"
-          onClick={async () => {
-            await logout()
-            navigate('/', { replace: true })
-          }}
-        />
       </div>
+    </div>
+  )
+}
 
-      <div className="mx-auto w-full max-w-4xl px-4 pb-8">
+function HeroCard() {
+  return (
+     <div className="bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff]">
+      <MateCard
+        {...mockProfile}
+        accentClassName="w-full max-w-none min-w-0 shadow-none bg-transparent px-0 rounded-none"
+      />
+    </div>
+  )
+}
+
+function TopMenu({ onOpenMenu }: { onOpenMenu: () => void }) {
+  return (
+    <div className="flex justify-end bg-white pb-2 pt-2 pr-1">
+      <Link
+        to="/profile/settings"
+        aria-label="Menu"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+        onClick={onOpenMenu}
+      >
+        <Menu className="h-6 w-6" />
+      </Link>
+    </div>
+  )
+}
+
+function TabsBar({
+  active,
+  onChange,
+}: {
+  active: 'stats' | 'calendar' | 'mates' | 'energy'
+  onChange: (tab: 'stats' | 'calendar' | 'mates' | 'energy') => void
+}) {
+  const tabs = [
+    { icon: <BarChart2 className="h-6 w-6" />, key: 'stats' as const },
+    { icon: <CalendarRange className="h-6 w-6" />, key: 'calendar' as const },
+    { icon: <UsersRound className="h-6 w-6" />, key: 'mates' as const },
+    { icon: <Zap className="h-6 w-6" />, key: 'energy' as const },
+  ]
+  return (
+    <div className="flex justify-between border-b border-slate-200 bg-[#f7f8fb] px-6">
+      {tabs.map((tab, idx) => (
         <button
-          type="button"
-          onClick={async () => {
-            await logout()
-            navigate('/', { replace: true })
-          }}
-          className="w-full rounded-lg py-3 text-sm font-semibold text-red-600 hover:underline"
+          key={idx}
+          className="relative flex h-11 flex-1 items-center justify-center text-slate-600"
+          aria-pressed={active === tab.key}
+          onClick={() => onChange(tab.key)}
         >
-          Logout
+          {tab.icon}
+          {active === tab.key && (
+            <span className="absolute -bottom-[1px] left-0 right-0 mx-auto h-1 w-12 rounded-full bg-[#1e63f4]" />
+          )}
         </button>
-      </div>
+      ))}
     </div>
   )
 }
 
-function StatCard({
-  label,
-  value,
-  accent,
-}: {
-  label: string
-  value: string
-  accent: string
-}) {
-  return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-      <p className={`mt-2 text-3xl font-bold ${accent}`}>{value}</p>
-    </div>
+function MenuSheet({ onClose }: { onClose: () => void }) {
+  const items = useMemo(
+    () => [
+      { label: 'Account settings', icon: Settings },
+      { label: 'View profile', icon: UserRound },
+      { label: 'Privacy', icon: ShieldCheck },
+      { label: 'Get help', icon: HelpCircle },
+    ],
+    []
   )
-}
 
-function EnergyCard({ energy }: { energy: number }) {
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        Energy
-      </p>
-      <p className="mt-2 text-3xl font-bold text-blue-600">{energy}%</p>
-      <div className="mt-3 h-2 rounded-full bg-slate-200">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-blue-400 to-amber-400"
-          style={{ width: `${Math.min(100, Math.max(0, energy))}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-function Milestone({
-  step,
-  title,
-  description,
-}: {
-  step: string
-  title: string
-  description: string
-}) {
-  return (
-    <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-4">
-      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
-        {step}
-      </div>
-      <div>
-        <p className="font-semibold text-slate-900">{title}</p>
-        <p className="text-xs text-slate-600">{description}</p>
-      </div>
-    </div>
-  )
-}
-
-function ActionButton({
-  icon,
-  label,
-  onClick,
-}: {
-  icon: string
-  label: string
-  onClick?: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg bg-gray-100 px-4 py-3 text-left transition hover:bg-gray-200"
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 px-4 pt-10 backdrop-blur-sm"
+      onClick={onClose}
     >
-      <span className="text-xl">{icon}</span>
-      <span className="font-semibold text-gray-900">{label}</span>
-      <span className="ml-auto text-gray-400">→</span>
-    </button>
+      <div
+        className="w-full max-w-md rounded-2xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <span className="text-sm font-semibold text-slate-600">Menu</span>
+          <button
+            aria-label="Close menu"
+            className="text-sm font-semibold text-slate-600 hover:text-slate-800"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+        <div className="divide-y divide-slate-200">
+          {items.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+              onClick={onClose}
+            >
+              <div className="flex items-center gap-3">
+                <Icon className="h-5 w-5 text-slate-700" />
+                <span className="text-base text-slate-800">{label}</span>
+              </div>
+              <span className="text-slate-300">›</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }

@@ -13,6 +13,9 @@ import { EventsPage } from '@/features/events/pages/EventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
+import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
+import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
+import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { MatesPage } from '@/features/mates/pages/MatesPage'
@@ -107,7 +110,9 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
-  const isDetail = pathname.startsWith('/event/') || pathname.startsWith('/create-event')
+  const isDetail =
+    pathname.startsWith('/event/') ||
+    pathname.startsWith('/create-event')
   const headerVisible = showHeader && !isDetail
   const navVisible = showNav && !isDetail
 
@@ -167,8 +172,32 @@ function AuthenticatedApp() {
       <Route
         path="/profile"
         element={
-          <AppChrome>
+          <AppChrome showHeader={false}>
             <ProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/profile/settings"
+        element={
+          <AppChrome showHeader={false} showNav={false}>
+            <ProfileSettingsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/profile/settings/account"
+        element={
+          <AppChrome showHeader={false} showNav={false}>
+            <AccountSettingsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/profile/settings/privacy"
+        element={
+          <AppChrome showHeader={false} showNav={false}>
+            <PrivacySettingsPage />
           </AppChrome>
         }
       />
@@ -222,18 +251,42 @@ function GuestApp() {
         }
       />
       <Route
+        path="/mates"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MatesPage />
+          </AppChrome>
+        }
+      />
+      <Route
         path="/profile"
         element={
-          <AppChrome showActions={false}>
+          <AppChrome showActions={false} showHeader={false}>
             <ProfilePage />
           </AppChrome>
         }
       />
       <Route
-        path="/mates"
+        path="/profile/settings"
         element={
-          <AppChrome showActions={false} showHeader={false}>
-            <MatesPage />
+          <AppChrome showActions={false} showHeader={false} showNav={false}>
+            <ProfileSettingsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/profile/settings/account"
+        element={
+          <AppChrome showActions={false} showHeader={false} showNav={false}>
+            <AccountSettingsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/profile/settings/privacy"
+        element={
+          <AppChrome showActions={false} showHeader={false} showNav={false}>
+            <PrivacySettingsPage />
           </AppChrome>
         }
       />

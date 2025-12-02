@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MapPinPlus, Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react'
 import { addDays, format, isSameDay, isToday, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
-import { Button } from '@/components'
+import { Button, BottomSheet } from '@/components'
 import { IntroSheet } from '@/components/IntroSheet'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
@@ -420,105 +420,100 @@ function CalendarSheet({
   const years = Array.from({ length: 7 }, (_, index) => currentYear - 3 + index)
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/40 backdrop-blur-sm">
-      <div className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)] animate-[sheetIn_0.25s_ease-out]">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">full calendar</p>
-            <h2 className="text-xl font-semibold text-slate-900">{format(month, 'MMMM yyyy')}</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={currentYear}
-              onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
-              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => onMonthChange(addMonths(month, -1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-              aria-label="Previous month"
-            >
-              <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onMonthChange(addMonths(month, 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-              aria-label="Next month"
-            >
-              <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-              aria-label="Close calendar"
-            >
-              <X className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-            </button>
-          </div>
+    <BottomSheet open={open} onClose={onClose} showHandle={false} maxWidthClassName="max-w-[420px]" contentClassName="px-0 pb-0">
+      <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">full calendar</p>
+          <h2 className="text-xl font-semibold text-slate-900">{format(month, 'MMMM yyyy')}</h2>
         </div>
-
-        <div className="px-6 py-4">
-          <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => (
-              <span key={label}>{label}</span>
+        <div className="flex items-center gap-2">
+          <select
+            value={currentYear}
+            onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
+            className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
+          >
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
             ))}
-          </div>
-          <div className="mt-2 grid grid-cols-7 gap-2">
-            {days.map((day) => {
-              const inactive = !isSameMonth(day, month)
-              const active = pendingDate ? isSameDay(day, pendingDate) : false
-              const key = startOfDay(day).toISOString()
-              const hasEvents = Boolean(counts?.[key])
-              return (
-                <button
-                  key={day.toISOString()}
-                  type="button"
-                  onClick={() => onSelect(day)}
-                  className={clsx(
-                    'flex h-12 flex-col items-center justify-center rounded-full border text-sm font-semibold transition',
-                    inactive && 'text-slate-300 border-transparent',
-                    !inactive && 'border-transparent',
-                    active && '!border-blue-500 bg-blue-50 text-blue-700'
-                  )}
-                >
-                  <span>{format(day, 'd')}</span>
-                  {hasEvents && <span className="mt-1 h-1 w-1 rounded-full bg-blue-500" />}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
+          </select>
           <button
             type="button"
-            onClick={onClear}
-            className="text-sm font-semibold text-slate-500 hover:text-slate-800"
+            onClick={() => onMonthChange(addMonths(month, -1))}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+            aria-label="Previous month"
           >
-            Clear
+            <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           </button>
           <button
             type="button"
-            onClick={onApply}
-            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+            onClick={() => onMonthChange(addMonths(month, 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+            aria-label="Next month"
           >
-            Done
+            <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+            aria-label="Close calendar"
+          >
+            <X className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
       </div>
-      <style>
-        {`@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }`}
-      </style>
-    </div>
+
+      <div className="px-6 py-4">
+        <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => (
+            <span key={label}>{label}</span>
+          ))}
+        </div>
+        <div className="mt-2 grid grid-cols-7 gap-2">
+          {days.map((day) => {
+            const inactive = !isSameMonth(day, month)
+            const active = pendingDate ? isSameDay(day, pendingDate) : false
+            const key = startOfDay(day).toISOString()
+            const hasEvents = Boolean(counts?.[key])
+            return (
+              <button
+                key={day.toISOString()}
+                type="button"
+                onClick={() => onSelect(day)}
+                className={clsx(
+                  'flex h-12 flex-col items-center justify-center rounded-full border text-sm font-semibold transition',
+                  inactive && 'text-slate-300 border-transparent',
+                  !inactive && 'border-transparent',
+                  active && '!border-blue-500 bg-blue-50 text-blue-700'
+                )}
+              >
+                <span>{format(day, 'd')}</span>
+                {hasEvents && <span className="mt-1 h-1 w-1 rounded-full bg-blue-500" />}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-sm font-semibold text-slate-500 hover:text-slate-800"
+        >
+          Clear
+        </button>
+        <button
+          type="button"
+          onClick={onApply}
+          className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+        >
+          Done
+        </button>
+      </div>
+    </BottomSheet>
   )
 }
 
