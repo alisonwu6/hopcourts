@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { MapPin, Sparkles } from 'lucide-react'
 import { IntroSheet } from '@/components/IntroSheet'
@@ -151,6 +152,7 @@ export function MatesPage() {
   const listRef = useRef<HTMLDivElement | null>(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -192,13 +194,13 @@ export function MatesPage() {
     setActiveIndex(idx)
   }
 
-  const handleDraftClick = () => {
-    if (!isAuthenticated) {
-      setShowLoginPrompt(true)
-      return
-    }
-    // TODO: route to mate card creation when ready
-  }
+  // const handleDraftClick = () => {
+  //   if (!isAuthenticated) {
+  //     setShowLoginPrompt(true)
+  //     return
+  //   }
+  //   // TODO: route to mate card creation when ready
+  // }
 
   useEffect(() => {
     const container = listRef.current
@@ -242,14 +244,26 @@ export function MatesPage() {
             type="button"
             className="flex w-full max-w-2xl items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 text-left text-sm font-semibold text-slate-700 shadow-md shadow-blue-100/40 transition hover:shadow-lg"
           >
-            <MapPin className="h-5 w-5 text-blue-500" strokeWidth={2.2} aria-hidden="true" />
+            <MapPin
+              className="h-5 w-5 text-blue-500"
+              strokeWidth={2.2}
+              aria-hidden="true"
+            />
             <div className="flex flex-1 items-center justify-between gap-2">
               <div className="flex flex-col">
-                <span className="text-base font-semibold text-slate-900">{city}</span>
-                <span className="text-xs font-medium text-slate-500">Starting market</span>
+                <span className="text-base font-semibold text-slate-900">
+                  {city}
+                </span>
+                <span className="text-xs font-medium text-slate-500">
+                  Starting market
+                </span>
               </div>
               <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                <Sparkles className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                <Sparkles
+                  className="h-4 w-4"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
                 Coming soon
               </div>
             </div>
@@ -261,7 +275,8 @@ export function MatesPage() {
             Find Your Sport Identity
           </h1>
           <p className="text-sm text-slate-600">
-            Everyone starts somewhere. Explore the vibes and meet the people moving near you.
+            Everyone starts somewhere. Explore the vibes and meet the people
+            moving near you.
           </p>
         </header>
 
@@ -271,7 +286,10 @@ export function MatesPage() {
             className="flex gap-4 overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {mates.map((mate) => (
-              <MateCard key={mate.name} {...mate} />
+              <MateCard
+                key={mate.name}
+                {...mate}
+              />
             ))}
           </div>
           <div className="mt-3 flex justify-center gap-2">
@@ -291,16 +309,19 @@ export function MatesPage() {
         </section>
 
         <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
-          <h2 className="text-lg font-semibold text-slate-900">Start your own identity</h2>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Start your own identity
+          </h2>
           <p className="text-sm text-slate-600">
-            Share your vibe, list your go-to sports, and find people who match your pace.
+            Share your vibe, list your go-to sports, and find people who match
+            your pace.
           </p>
           <button
             type="button"
             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-            onClick={handleDraftClick}
+            onClick={() => navigate('/onboarding')}
           >
-            Draft your mate card
+            Create Your Sport Card
           </button>
         </section>
       </div>
@@ -332,9 +353,12 @@ export function MatesPage() {
             ×
           </button>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-slate-900">Save your sport identity</h2>
+            <h2 className="text-2xl font-bold text-slate-900">
+              Save your sport identity
+            </h2>
             <p className="text-sm text-slate-600">
-              We&apos;ll help you discover your vibe and find your crew — all in one place.
+              We&apos;ll help you discover your vibe and find your crew — all in
+              one place.
             </p>
           </div>
 

@@ -51,9 +51,10 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
     return <>{children}</>
   }
 
-  if (status.isComplete) {
-    return <Navigate to="/" replace />
-  }
+  // todo - temp comment for showing the onboarding page
+  // if (status.isComplete) {
+  //   return <Navigate to="/" replace />
+  // }
 
   return <>{children}</>
 }
