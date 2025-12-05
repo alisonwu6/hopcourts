@@ -13,6 +13,7 @@ import { EventsPage } from '@/features/events/pages/EventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
+import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
@@ -178,6 +179,22 @@ function AuthenticatedApp() {
         }
       />
       <Route
+        path="/profile/mate"
+        element={
+          <AppChrome showHeader={false}>
+            <MateProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/:username"
+        element={
+          <AppChrome showHeader={false}>
+            <MateProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
         path="/profile/settings"
         element={
           <AppChrome showHeader={false} showNav={false}>
@@ -263,6 +280,14 @@ function GuestApp() {
         element={
           <AppChrome showActions={false} showHeader={false}>
             <ProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/:username"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MateProfilePage />
           </AppChrome>
         }
       />

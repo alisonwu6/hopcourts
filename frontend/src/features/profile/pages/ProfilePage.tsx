@@ -1,30 +1,36 @@
 import clsx from 'clsx'
-import { Goal, CalendarRange, Menu, UsersRound } from 'lucide-react'
+import { Goal, Gamepad, Menu, PlusSquare, UsersRound, Lock } from 'lucide-react'
 import { forwardRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { BottomSheet } from '@/components/BottomSheet'
+import { useAuthStore } from '@/hooks'
 
 const mockProfile: MateCardProps = {
-  name: 'Jamie Thompson',
+  name: 'Alison Wu',
   location: 'Brisbane CBD',
   flag: '🇹🇼',
   vibe: 'Chill',
   sports: ['Basketball', 'Running', 'Gym'],
   trying: ['Pickleball', 'Bouldering'],
   blurb: 'Here for good banter, easy pace, and a crew to play with after work.',
-  avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80',
+  avatar: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=320&q=80',
 }
 
 export function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<'stats' | 'calendar' | 'mates' | 'energy'>('stats')
+  type TabKey = 'stats' | 'calendar' | 'mates'
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = (searchParams.get('tab') as TabKey) ?? 'stats'
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const [goal, setGoal] = useState({ sessionsPerWeek: '2', timeOfDay: 'Evenings', days: ['Mon', 'Wed'] })
   const [draftGoal, setDraftGoal] = useState(goal)
   const [profile, setProfile] = useState<MateCardProps>(mockProfile)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(mockProfile)
   const [showEditSheet, setShowEditSheet] = useState(false)
+  const { user } = useAuthStore()
+  const navigate = useNavigate()
+  const username = (user as any)?.username || 'wuchialin6'
 
   const handleOpenGoal = () => {
     setDraftGoal(goal)
@@ -62,27 +68,57 @@ export function ProfilePage() {
     })
   }
 
+  const handleTabChange = (tab: TabKey) => {
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev)
+      params.set('tab', tab)
+      return params
+    })
+  }
+
   return (
     <div className="min-h-screen bg-[#f7f8fb] pb-[120px]">
       <div className="mx-auto w-full max-w-4xl pb-6">
         <ActionToolbar
           showBack={false}
-          rightContent={
-            <Link
-              to="/profile/settings"
-              aria-label="Menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
-            >
-              <Menu className="h-6 w-6" />
-            </Link>
-          }
           contentClassName="px-3"
           borderBottom
+          leftContent={(
+            <div className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
+              <button
+                type="button"
+                className="flex items-center gap-1 text-xl font-bold text-slate-900"
+                aria-label="Profile username"
+              >
+                {username}
+              </button>
+            </div>
+          )}
+          rightContent={
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                aria-label="Add game"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+                onClick={() => navigate('/create-event')}
+              >
+                <PlusSquare className="h-6 w-6" />
+              </button>
+              <Link
+                to="/profile/settings"
+                aria-label="Menu"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+              >
+                <Menu className="h-6 w-6" />
+              </Link>
+            </div>
+          }
         />
         <HeroCard profile={profile} onEdit={() => setShowEditSheet(true)} />
         <TabsBar
           active={activeTab}
-          onChange={setActiveTab}
+          onChange={handleTabChange}
         />
         <div className="mt-4 space-y-4">
           {activeTab === 'stats' && (
@@ -373,13 +409,36 @@ function StatsContent({ goal, onOpenGoalSheet }: { goal: { sessionsPerWeek: stri
 
 function MatchesContent() {
   const upcoming = [
-    { emoji: '🏀', title: 'Basketball pickup', time: 'Thu 5:00 PM · West End', tag: 'Chill' },
+    {
+      emoji: '🏀',
+      title: 'Basketball pickup',
+      time: 'Thu 5:00 PM · West End',
+      tag: 'Chill',
+      checkIn: {
+        label: 'GPS check-in zone',
+        instructions: 'Tap check-in once you arrive to verify attendance.',
+        window: '4:45 – 5:15 PM',
+        radius: '100m',
+      },
+    },
     { emoji: '🏃‍♂️', title: 'Weeknight run', time: 'Mon 6:30 PM · South Bank', tag: 'Chill' },
   ]
 
   const completed = [
-    { emoji: '💪', title: 'Easy gym session', time: 'Sun · 45 min', tag: 'Flow', note: 'Logged · Great effort' },
-    { emoji: '🏐', title: 'Social volleyball', time: 'Sat · 1h', tag: 'Social', note: 'Matched your vibe' },
+    {
+      emoji: '💪',
+      title: 'Easy gym session',
+      time: 'Sun · 45 min',
+      tag: 'Flow',
+      checkIn: { time: 'Sun 5:05 PM', status: 'on-time', note: 'Nice work showing up on time!' },
+    },
+    {
+      emoji: '🏐',
+      title: 'Social volleyball',
+      time: 'Sat · 1h',
+      tag: 'Social',
+      checkIn: { time: 'Sat 6:12 PM', status: 'late', note: 'Checked in late. Thanks for joining!' },
+    },
   ]
   const [active, setActive] = useState<'upcoming' | 'completed'>('upcoming')
 
@@ -425,6 +484,31 @@ function MatchesContent() {
                   {item.tag}
                 </span>
                 <p className="text-sm text-slate-600">You&apos;re in. We&apos;ll remind you on the day.</p>
+                {item.checkIn && (
+                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                    <div className="flex items-center gap-2">
+                      {/* <span className="text-lg">📍</span> */}
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{item.checkIn.label}</p>
+                        <p className="text-xs text-slate-600">{item.checkIn.instructions}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-slate-700">
+                      <span>Check-in window:</span>
+                      <span className="font-semibold">{item.checkIn.window}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-slate-700">
+                      <span>Check-in radius:</span>
+                      <span className="font-semibold">{item.checkIn.radius}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-blue-500 hover:to-blue-500"
+                    >
+                      GPS check-in
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -446,7 +530,16 @@ function MatchesContent() {
                 <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                   {item.tag}
                 </span>
-                <p className="text-sm text-slate-600">{item.note}</p>
+                {item.checkIn && (
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-800">Check-in: {item.checkIn.time}</p>
+                    <p className="text-sm text-slate-600">
+                      {item.checkIn.status === 'on-time'
+                        ? item.checkIn.note ?? 'On time — nice consistency!'
+                        : item.checkIn.note ?? 'Checked in late.'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -457,6 +550,8 @@ function MatchesContent() {
 }
 
 function PeopleContent() {
+  const navigate = useNavigate()
+  const [subTab, setSubTab] = useState<'following' | 'played'>('following')
   const circle = [
     { name: 'Jamie', vibe: 'Chill' },
     { name: 'Alex', vibe: 'Social' },
@@ -470,20 +565,85 @@ function PeopleContent() {
     { text: 'Sam taking a break', color: 'bg-amber-400' },
     { text: 'Jordan quiet this week', color: 'bg-rose-500' },
   ]
+  const playedWith = [
+    { name: 'Jamie', sport: 'Basketball pickup', last: 'Yesterday', vibe: 'Chill' },
+    { name: 'Alex', sport: 'Gym session', last: '2h ago', vibe: 'Social' },
+    { name: 'Sam', sport: 'Easy run', last: 'Last week', vibe: 'Flow' },
+  ]
+  const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
+    const handle = mate.username || mate.name
+    navigate(`/${encodeURIComponent(handle)}`, { state: { mate } })
+  }
 
   return (
     <div className="space-y-5 px-3">
-      <div className="space-y-3 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-        <p className="px-5 pt-5 text-xs font-semibold uppercase tracking-wide text-slate-600">Your circle</p>
-        <div className="grid grid-cols-3 gap-y-6 px-5 pb-6">
-          {circle.map((person) => (
-            <div key={person.name} className="flex flex-col items-center gap-2">
-              <div className="h-24 w-24 rounded-full border-2 border-slate-200 bg-slate-50" />
-              <p className="text-base font-semibold text-slate-900">{person.name}</p>
-              <p className="text-sm text-slate-500">{person.vibe}</p>
-            </div>
+      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
+        <div className="flex border-b border-slate-200 px-5">
+          {[
+            { key: 'following', label: 'Following' },
+            { key: 'played', label: 'Played' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setSubTab(tab.key as typeof subTab)}
+              className={clsx(
+                'relative flex-1 py-3 text-center text-sm font-semibold',
+                subTab === tab.key ? 'text-blue-600' : 'text-slate-500'
+              )}
+            >
+              {tab.label}
+              {subTab === tab.key && (
+                <span className="absolute bottom-0 left-0 right-0 mx-auto block h-0.5 w-1/2 rounded-full bg-blue-600" />
+              )}
+            </button>
           ))}
         </div>
+
+        {subTab === 'following' && (
+          <div className="space-y-3">
+            <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-slate-600">Your circle</p>
+            <div className="grid grid-cols-3 gap-y-6 px-5 pb-6">
+              {circle.map((person) => (
+                <button
+                  key={person.name}
+                  type="button"
+                  onClick={() => goToMate(person)}
+                  className="flex flex-col items-center gap-2 focus:outline-none"
+                >
+                  <div className="h-24 w-24 rounded-full border-2 border-slate-200 bg-slate-50" />
+                  <p className="text-base font-semibold text-slate-900">{person.name}</p>
+                  <p className="text-sm text-slate-500">{person.vibe}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {subTab === 'played' && (
+          <div className="space-y-3 px-5 py-5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Recently played</p>
+            <div className="divide-y divide-slate-200 rounded-2xl border border-slate-200/70">
+              {playedWith.map((item) => (
+                <button
+                  key={item.name}
+                  type="button"
+                  onClick={() => goToMate(item)}
+                  className="flex items-center justify-between px-4 py-3 text-left w-full"
+                >
+                  <div className="space-y-0.5">
+                    <p className="text-base font-semibold text-slate-900">{item.name}</p>
+                    <p className="text-sm text-slate-600">{item.sport}</p>
+                    <p className="text-xs text-slate-500">Last played: {item.last}</p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                    {item.vibe}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
@@ -498,118 +658,6 @@ function PeopleContent() {
             ))}
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function CoachContent() {
-  const coachSessions = [
-    {
-      title: 'Evening pickup run',
-      time: 'Today · 6:30 PM',
-      note: 'Keeps you on your 2x/week goal',
-    },
-    {
-      title: 'Stretch + mobility',
-      time: 'Tomorrow · 7:00 AM',
-      note: 'Light option if you feel tired',
-    },
-  ]
-  const soloFallback = {
-    title: 'Solo jog + stretch',
-    time: 'Anytime · 20–30 min',
-    note: 'Do this if no sessions fit today',
-  }
-  const microHabits = [
-    '5 min warm-up before dinner',
-    'Drink water before/after sessions',
-    'Send a quick invite to your circle',
-  ]
-  const checkins = [
-    { label: 'Feeling good', color: 'bg-emerald-500' },
-    { label: 'A bit tired', color: 'bg-amber-400' },
-    { label: 'Need lighter today', color: 'bg-rose-500' },
-  ]
-
-  return (
-    <div className="space-y-5 px-3">
-      <SectionCard title="Coach's note">
-        <div className="space-y-3">
-          <div className="rounded-2xl bg-slate-100 px-4 py-3">
-            <p className="text-sm font-semibold text-slate-900">Today’s simple step</p>
-            <p className="text-sm text-slate-700">Pick one light session or a 20-min solo jog.</p>
-          </div>
-          <div className="rounded-2xl bg-slate-100 px-4 py-3">
-            <p className="text-sm font-semibold text-slate-900">Quick alternative</p>
-            <p className="text-sm text-slate-700">No session? Do 15-min mobility + 10-min walk.</p>
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Weekly focus">
-        <p className="text-base font-semibold text-slate-900">2 sessions / week · Evenings · Vibe: Chill</p>
-        <p className="text-sm text-slate-600">Staying consistent matters more than intensity.</p>
-      </SectionCard>
-
-      <SectionCard title="Suggestions for you">
-        <div className="space-y-3">
-          {coachSessions.map((session) => (
-            <div key={session.title} className="rounded-2xl border border-slate-200 px-4 py-3">
-              <p className="text-base font-semibold text-slate-900">{session.title}</p>
-              <p className="text-sm text-slate-600">{session.time}</p>
-              <p className="text-sm text-slate-600">{session.note}</p>
-            </div>
-          ))}
-          <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-3">
-            <p className="text-base font-semibold text-slate-900">{soloFallback.title}</p>
-            <p className="text-sm text-slate-600">{soloFallback.time}</p>
-            <p className="text-sm text-slate-600">{soloFallback.note}</p>
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Micro habits">
-        <ul className="space-y-2 text-sm text-slate-700">
-          {microHabits.map((item) => (
-            <li key={item} className="flex items-start gap-2">
-              <span className="mt-1 text-emerald-600">✔</span>
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-      </SectionCard>
-
-      <SectionCard title="Progress check-in">
-        <p className="text-sm text-slate-700">How are you feeling today?</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {checkins.map((c) => (
-            <button
-              key={c.label}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
-            >
-              <span className={`h-2.5 w-2.5 rounded-full ${c.color}`} />
-              {c.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-sm text-slate-600">Coach will adjust suggestions based on your check-in.</p>
-      </SectionCard>
-
-      <SectionCard title="Your streak / showing up">
-        <p className="text-base font-semibold text-slate-900">You’ve shown up 4 times this month.</p>
-        <p className="text-sm text-slate-600">Light, flexible guidance — no pressure, just direction.</p>
-      </SectionCard>
-    </div>
-  )
-}
-
-function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-      <div className="space-y-3 px-5 py-5">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">{title}</p>
-        {children}
       </div>
     </div>
   )
@@ -636,12 +684,12 @@ function HeroCard({ profile, onEdit }: { profile: MateCardProps; onEdit: () => v
 }
 
 const TabsBar = forwardRef<HTMLDivElement, {
-  active: 'stats' | 'calendar' | 'mates' | 'energy'
-  onChange: (tab: 'stats' | 'calendar' | 'mates' | 'energy') => void
+  active: 'stats' | 'calendar' | 'mates'
+  onChange: (tab: 'stats' | 'calendar' | 'mates') => void
 }>(({ active, onChange }, ref) => {
   const tabs = [
     { icon: <Goal className="h-6 w-6" />, key: 'stats' as const },
-    { icon: <CalendarRange className="h-6 w-6" />, key: 'calendar' as const },
+    { icon: <Gamepad className="h-6 w-6" />, key: 'calendar' as const },
     { icon: <UsersRound className="h-6 w-6" />, key: 'mates' as const },
     // { icon: <Zap className="h-6 w-6" />, key: 'energy' as const },
   ]

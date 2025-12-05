@@ -13,6 +13,7 @@ type ActionToolbarProps = {
   className?: string
   contentClassName?: string
   showBack?: boolean
+  leftContent?: ReactNode
   rightContent?: ReactNode
   borderBottom?: boolean
 }
@@ -28,6 +29,7 @@ export function ActionToolbar({
   className,
   contentClassName,
   showBack = true,
+  leftContent,
   rightContent,
   borderBottom = false,
 }: ActionToolbarProps) {
@@ -45,7 +47,9 @@ export function ActionToolbar({
           contentClassName
         )}
       >
-        {showBack ? (
+        {leftContent ? (
+          <div className="flex min-w-0 items-center gap-2">{leftContent}</div>
+        ) : showBack ? (
           <button
             type="button"
             onClick={onBack}
