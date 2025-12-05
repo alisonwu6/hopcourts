@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Goal, Gamepad, Menu, PlusSquare, UsersRound, Lock } from 'lucide-react'
+import { Goal, Gamepad, Menu, PlusSquare, UsersRound, Lock, Calendar, MapPin, Users, Wallet, MapPinIcon } from 'lucide-react'
 import { forwardRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
@@ -408,36 +408,59 @@ function StatsContent({ goal, onOpenGoalSheet }: { goal: { sessionsPerWeek: stri
 }
 
 function MatchesContent() {
+  const navigate = useNavigate()
   const upcoming = [
     {
-      emoji: '🏀',
-      title: 'Basketball pickup',
-      time: 'Thu 5:00 PM · West End',
-      tag: 'Chill',
+      id: 'city-basketball',
+      title: 'City basketball',
+      time: 'Today 18:00 – 19:30',
+      location: 'Central Park Court, 500m away',
+      tag: 'Basketball',
+      pace: 'Intermediate pace',
+      joined: '0/12 joined',
+      price: 'Free to join',
       checkIn: {
         label: 'GPS check-in zone',
         instructions: 'Tap check-in once you arrive to verify attendance.',
-        window: '4:45 – 5:15 PM',
+        window: '17:45 – 18:15',
         radius: '100m',
       },
     },
-    { emoji: '🏃‍♂️', title: 'Weeknight run', time: 'Mon 6:30 PM · South Bank', tag: 'Chill' },
   ]
 
   const completed = [
     {
-      emoji: '💪',
+      id: 'gym-session',
       title: 'Easy gym session',
       time: 'Sun · 45 min',
-      tag: 'Flow',
-      checkIn: { time: 'Sun 5:05 PM', status: 'on-time', note: 'Nice work showing up on time!' },
+      location: 'Community Gym · 2km away',
+      tag: 'Gym',
+      pace: 'Steady pace',
+      joined: '0/12 joined',
+      price: 'Free to join',
+      checkIn: { time: 'Sun 5:05 PM', status: 'on-time', note: 'On time' },
     },
     {
-      emoji: '🏐',
+      id: 'social-volleyball',
       title: 'Social volleyball',
       time: 'Sat · 1h',
-      tag: 'Social',
-      checkIn: { time: 'Sat 6:12 PM', status: 'late', note: 'Checked in late. Thanks for joining!' },
+      location: 'Beach Courts · 1.2km away',
+      tag: 'Volleyball',
+      pace: 'Social pace',
+      joined: '8/16 joined',
+      price: '$5 court split',
+      checkIn: { time: 'Sat 6:12 PM', status: 'late', note: 'Late at 6:12 PM' },
+    },
+    {
+      id: 'run-club',
+      title: 'Morning run club',
+      time: 'Fri · 30 min',
+      location: 'River Loop · 800m away',
+      tag: 'Running',
+      pace: 'Light pace',
+      joined: '12/25 joined',
+      price: 'Free to join',
+      checkIn: { status: 'no-show', note: 'No show' },
     },
   ]
   const [active, setActive] = useState<'upcoming' | 'completed'>('upcoming')
@@ -448,7 +471,7 @@ function MatchesContent() {
         <div className="flex border-b border-slate-200">
           {[
             { key: 'upcoming', label: `Upcoming (${upcoming.length})` },
-            { key: 'completed', label: `Completed (${completed.length})` },
+            { key: 'completed', label: `Check-ins (${completed.length})` },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -471,23 +494,50 @@ function MatchesContent() {
       {active === 'upcoming' && (
         <section className="space-y-3">
           {upcoming.map((item) => (
-            <div key={item.title} className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-              <div className="space-y-3 px-5 py-5">
-                <div className="space-y-1">
-                  <p className="text-xl font-semibold text-slate-900">
-                    <span className="mr-2">{item.emoji}</span>
-                    {item.title}
+            <div
+              key={item.title}
+              className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)]"
+            >
+              <button
+                type="button"
+                onClick={() => navigate(`/event/${item.id}`)}
+                className="w-full text-left"
+              >
+                <div className="space-y-3 px-5 pt-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {item.pace}
+                    </span>
+                    <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                      {item.tag}
+                    </span>
+                  </div>
+                  <p className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+                    <span>{item.title}</span>
                   </p>
-                  <p className="text-sm text-slate-600">{item.time}</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <Calendar className="h-4 w-4 text-slate-500" />
+                    {item.time}
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-slate-600">
+                    <MapPin className="h-4 w-4 text-slate-500" />
+                    {item.location}
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-slate-600">
+                    <Users className="h-4 w-4 text-slate-500" />
+                    {item.joined}
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-slate-600">
+                    <Wallet className="h-4 w-4 text-slate-500" />
+                    {item.price}
+                  </p>
                 </div>
-                <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                  {item.tag}
-                </span>
-                <p className="text-sm text-slate-600">You&apos;re in. We&apos;ll remind you on the day.</p>
-                {item.checkIn && (
+              </button>
+
+              {item.checkIn && !item.checkIn.status && (
+                <div className="space-y-3 px-5 pb-5">
                   <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                    <div className="flex items-center gap-2">
-                      {/* <span className="text-lg">📍</span> */}
+                    <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-semibold text-slate-800">{item.checkIn.label}</p>
                         <p className="text-xs text-slate-600">{item.checkIn.instructions}</p>
@@ -501,15 +551,15 @@ function MatchesContent() {
                       <span>Check-in radius:</span>
                       <span className="font-semibold">{item.checkIn.radius}</span>
                     </div>
-                    <button
-                      type="button"
-                      className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-blue-500 hover:to-blue-500"
-                    >
-                      GPS check-in
-                    </button>
                   </div>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-blue-500 hover:to-blue-500"
+                  >
+                    📍 Start GPS check-in
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </section>
@@ -518,28 +568,80 @@ function MatchesContent() {
       {active === 'completed' && (
         <section className="space-y-3">
           {completed.map((item) => (
-            <div key={item.title} className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-              <div className="space-y-3 px-5 py-5">
-                <div className="space-y-1">
-                  <p className="text-xl font-semibold text-slate-900">
-                    <span className="mr-2">{item.emoji}</span>
-                    {item.title}
-                  </p>
-                  <p className="text-sm text-slate-600">{item.time}</p>
-                </div>
-                <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                  {item.tag}
-                </span>
-                {item.checkIn && (
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-slate-800">Check-in: {item.checkIn.time}</p>
-                    <p className="text-sm text-slate-600">
-                      {item.checkIn.status === 'on-time'
-                        ? item.checkIn.note ?? 'On time — nice consistency!'
-                        : item.checkIn.note ?? 'Checked in late.'}
-                    </p>
+            <div
+              key={item.title}
+              className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,41,77,0.06)]"
+              role="button"
+              tabIndex={0}
+              onClick={() => navigate(`/event/${item.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  navigate(`/event/${item.id}`)
+                }
+              }}
+            >
+              <div className="flex items-start justify-between px-5 pt-5">
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {item.pace && (
+                      <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                        {item.pace}
+                      </span>
+                    )}
+                    <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                      {item.tag}
+                    </span>
                   </div>
-                )}
+                  <p className="text-xl font-semibold text-slate-900">{item.title}</p>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <Calendar className="h-4 w-4 text-slate-500" />
+                    {item.time}
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-slate-600">
+                    <MapPin className="h-4 w-4 text-slate-500" />
+                    {item.location}
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-slate-600">
+                    <Users className="h-4 w-4 text-slate-500" />
+                    {item.joined}
+                  </p>
+                  <p className="flex items-center gap-2 text-sm text-slate-600">
+                    <Wallet className="h-4 w-4 text-slate-500" />
+                    {item.price}
+                  </p>
+                </div>
+              </div>
+              <div className="">
+                <div className="space-y-2 bg-slate-300 px-5 py-3 text-sm text-slate-700">
+                  <div className="flex items-center justify-between">
+                    <p className="font-semibold">Check-in</p>
+                    {item.checkIn && (
+                      <span
+                        className={clsx(
+                          'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
+                          item.checkIn.status === 'on-time'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : item.checkIn.status === 'late'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-rose-100 text-rose-700'
+                        )}
+                      >
+                        {item.checkIn.status === 'on-time'
+                          ? 'On time'
+                          : item.checkIn.status === 'late'
+                            ? item.checkIn.note ?? 'Late'
+                            : 'No show'}
+                      </span>
+                    )}
+                  </div>
+                  {item.checkIn?.time && (
+                    <div className="flex items-center justify-between">
+                      <span>Time</span>
+                      <span className="font-semibold">{item.checkIn.time}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -647,7 +749,7 @@ function PeopleContent() {
       </div>
 
       <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-        <div className="space-y-3 px-5 py-5">
+        <div className="space-y-3 px-5 pt-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">What they&apos;re doing now</p>
           <div className="divide-y divide-slate-200 rounded-2xl border border-slate-200/70">
             {recent.map((item) => (
