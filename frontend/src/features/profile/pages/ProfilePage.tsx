@@ -19,12 +19,21 @@ const mockProfile: MateCardProps = {
 }
 
 export function ProfilePage() {
-  type TabKey = 'stats' | 'calendar' | 'mates'
+  type TabKey = 'activity' | 'sessions' | 'circle'
+  const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const createDaySlots = () =>
+    daysList.reduce<Record<string, string[]>>((acc, day) => {
+      acc[day] = []
+      return acc
+    }, {})
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = (searchParams.get('tab') as TabKey) ?? 'stats'
+  const activeTab = (searchParams.get('tab') as TabKey) ?? 'activity'
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const [goal, setGoal] = useState({ sessionsPerWeek: '2', timeOfDay: 'Evenings', days: ['Mon', 'Wed'] })
   const [draftGoal, setDraftGoal] = useState(goal)
+  const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
+  const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
+  const [draftPreferredTime, setDraftPreferredTime] = useState(goal.timeOfDay || 'Mornings')
   const [profile, setProfile] = useState<MateCardProps>(mockProfile)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(mockProfile)
   const [showEditSheet, setShowEditSheet] = useState(false)
@@ -34,11 +43,14 @@ export function ProfilePage() {
 
   const handleOpenGoal = () => {
     setDraftGoal(goal)
+    setDraftDaySlots(goalDaySlots)
+    setDraftPreferredTime(goal.timeOfDay || 'Mornings')
     setShowGoalSheet(true)
   }
 
   const handleSaveGoal = () => {
-    setGoal(draftGoal)
+    setGoal({ ...draftGoal, timeOfDay: draftPreferredTime })
+    setGoalDaySlots(draftDaySlots)
     setShowGoalSheet(false)
   }
 
@@ -121,13 +133,13 @@ export function ProfilePage() {
           onChange={handleTabChange}
         />
         <div className="mt-4 space-y-4">
-          {activeTab === 'stats' && (
-            <StatsContent goal={goal} onOpenGoalSheet={handleOpenGoal} />
+          {activeTab === 'activity' && (
+            <StatsContent goal={goal} goalDaySlots={goalDaySlots} onOpenGoalSheet={handleOpenGoal} />
           )}
-          {activeTab === 'calendar' && (
+          {activeTab === 'sessions' && (
             <MatchesContent />
           )}
-          {activeTab === 'mates' && (
+          {activeTab === 'circle' && (
             <PeopleContent />
           )}
           {/* {activeTab === 'energy' && (
@@ -267,7 +279,7 @@ export function ProfilePage() {
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-500">Set your weekly goal</p>
+              <p className="text-sm font-semibold text-slate-500">Set your weekly rhythm</p>
               <p className="text-xl font-bold text-slate-900">We’ll tailor matches to this</p>
             </div>
             <button
@@ -292,40 +304,25 @@ export function ProfilePage() {
             />
           </div>
 
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-slate-700">Days you usually play</p>
-            <div className="grid grid-cols-4 gap-2">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => {
-                const active = draftGoal.days.includes(day)
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => toggleDay(day)}
-                    className={clsx(
-                      'rounded-lg border px-3 py-2 text-sm font-semibold',
-                      active
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                    )}
-                  >
-                    {day}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-slate-700">Preferred time of day</p>
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-slate-700">When do you usually prefer to exercise?</p>
             <div className="flex flex-wrap gap-2">
-              {['Mornings', 'Afternoons', 'Evenings', 'Flexible'].map((slot) => {
-                const active = draftGoal.timeOfDay === slot
+              {['Morning', 'Afternoon', 'Evening'].map((slot) => {
+                const active = draftPreferredTime === slot
                 return (
                   <button
                     key={slot}
                     type="button"
-                    onClick={() => setDraftGoal((prev) => ({ ...prev, timeOfDay: slot }))}
+                    onClick={() => {
+                      setDraftPreferredTime(slot)
+                      setDraftDaySlots((prev) => {
+                        const next: Record<string, string[]> = {}
+                        Object.keys(prev).forEach((day) => {
+                          next[day] = [slot]
+                        })
+                        return next
+                      })
+                    }}
                     className={clsx(
                       'rounded-full border px-4 py-2 text-sm font-semibold',
                       active
@@ -338,10 +335,53 @@ export function ProfilePage() {
                 )
               })}
             </div>
+
+            <details className="space-y-2 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+              <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                Fine-tune by day (optional)
+              </summary>
+              <div className="space-y-3 pt-2">
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                  <div key={day} className="space-y-2">
+                    <p className="text-base font-semibold text-slate-800">{day}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['Morning', 'Afternoon', 'Evening'].map((slot) => {
+                        const active = draftDaySlots[day]?.includes(slot)
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            onClick={() =>
+                              setDraftDaySlots((prev) => {
+                                const next = { ...prev, [day]: [...(prev[day] ?? [])] }
+                                if (next[day].includes(slot)) {
+                                  next[day] = next[day].filter((s) => s !== slot)
+                                } else {
+                                  next[day].push(slot)
+                                }
+                                return next
+                              })
+                            }
+                            className={clsx(
+                              'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
+                              active
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                            )}
+                          >
+                            {slot}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            We’ll start suggesting sessions and mates that match your cadence.
+            We’ll help you find sessions and people that fit your rhythm.
           </div>
 
           <div className="flex gap-3">
@@ -357,7 +397,7 @@ export function ProfilePage() {
               onClick={handleSaveGoal}
               className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
             >
-              Save goal
+              Save
             </button>
           </div>
         </div>
@@ -366,40 +406,63 @@ export function ProfilePage() {
   )
 }
 
-function StatsContent({ goal, onOpenGoalSheet }: { goal: { sessionsPerWeek: string; timeOfDay: string; days: string[] }; onOpenGoalSheet: () => void }) {
-  const dayLabel = goal.days.length ? goal.days.join(', ') : 'Any day'
+function StatsContent({
+  goal,
+  goalDaySlots,
+  onOpenGoalSheet,
+}: {
+  goal: { sessionsPerWeek: string; timeOfDay: string; days: string[] }
+  goalDaySlots: Record<string, string[]>
+  onOpenGoalSheet: () => void
+}) {
+  const preferredTimes = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
+    (day) => ({
+      day,
+      slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : 'Not set',
+    })
+  )
 
   return (
-    <div className="space-y-4 px-3">
-      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-        <div className="space-y-3 px-5 py-5">
-          <p className="text-xl font-semibold text-slate-900">What are you aiming for next?</p>
+    <div className="px-3">
+      <div className="space-y-4 overflow-hidden rounded-3xl border border-blue-100 bg-blue-50 shadow-sm">
+        <div className="flex items-start justify-between px-5 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+            My Weekly Rhythm
+          </p>
           <button
-            className="w-full rounded-2xl bg-[#e9f1ff] px-4 py-3 text-base font-semibold text-blue-600 shadow-sm transition hover:bg-[#dce8ff]"
+            type="button"
             onClick={onOpenGoalSheet}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Set a goal →
+            Edit
           </button>
         </div>
-      </div>
-
-      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-        <div className="space-y-2 px-5 py-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current Availabity</p>
-          <p className="text-2xl font-semibold text-slate-900">
-            {goal.sessionsPerWeek} sessions / week · {goal.timeOfDay} · Vibe: Chill
+        <div className="space-y-3 px-5">
+          <p className="text-xl font-bold text-slate-900">
+            Your rhythm this week: {goal.sessionsPerWeek} moves
           </p>
-          <p className="text-sm font-semibold text-slate-700">Days: {dayLabel}</p>
-          <p className="text-base text-slate-600">We&apos;ll help you find sessions &amp; people that fit this.</p>
+          <p className="text-sm font-semibold text-slate-700">This week you&apos;re 20% in — nice and steady.</p>
+          <div className="h-3 overflow-hidden rounded-full bg-blue-100">
+            <div className="h-full w-1/2 rounded-full bg-emerald-500" />
+          </div>
+          <p className="text-base font-semibold text-emerald-600">
+            You showed up once — legend.
+          </p>
         </div>
-      </div>
-
-      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-        <div className="space-y-3 px-5 py-5">
-          <p className="text-xl font-semibold text-slate-900">1 of 2 sessions done this week</p>
-          <p className="text-base font-semibold text-emerald-600">You&apos;re on track. 💪</p>
-          <div className="h-3 rounded-full bg-slate-200">
-            <div className="h-3 w-1/2 rounded-full bg-emerald-500" />
+        <div className="space-y-2 border-t border-blue-100 bg-white/60 px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+            Your preferred times
+          </p>
+          <div className="space-y-1">
+            {preferredTimes.map(({ day, slots }) => (
+              <div
+                key={day}
+                className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800"
+              >
+                <span>{day}</span>
+                <span className="text-slate-500 font-medium">{slots}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -786,25 +849,25 @@ function HeroCard({ profile, onEdit }: { profile: MateCardProps; onEdit: () => v
 }
 
 const TabsBar = forwardRef<HTMLDivElement, {
-  active: 'stats' | 'calendar' | 'mates'
-  onChange: (tab: 'stats' | 'calendar' | 'mates') => void
+  active: 'activity' | 'sessions' | 'circle'
+  onChange: (tab: 'activity' | 'sessions' | 'circle') => void
 }>(({ active, onChange }, ref) => {
   const tabs = [
-    { icon: <Goal className="h-6 w-6" />, key: 'stats' as const },
-    { icon: <Gamepad className="h-6 w-6" />, key: 'calendar' as const },
-    { icon: <UsersRound className="h-6 w-6" />, key: 'mates' as const },
-    // { icon: <Zap className="h-6 w-6" />, key: 'energy' as const },
+    { icon: <Goal className="h-6 w-6" />, key: 'activity' as const, label: 'Activity' },
+    { icon: <Gamepad className="h-6 w-6" />, key: 'sessions' as const, label: 'Sessions' },
+    { icon: <UsersRound className="h-6 w-6" />, key: 'circle' as const, label: 'Circle' },
   ]
   return (
     <div ref={ref} className="flex justify-between border-b border-slate-200 bg-[#f7f8fb] px-6">
       {tabs.map((tab, idx) => (
         <button
           key={idx}
-          className="relative flex h-11 flex-1 items-center justify-center text-slate-600"
+          className="relative flex h-12 flex-1 flex-col items-center justify-center text-slate-600"
           aria-pressed={active === tab.key}
           onClick={() => onChange(tab.key)}
         >
           {tab.icon}
+          <span className="text-[11px] font-semibold">{tab.label}</span>
           {active === tab.key && (
             <span className="absolute -bottom-[1px] left-0 right-0 mx-auto h-1 w-12 rounded-full bg-[#1e63f4]" />
           )}
