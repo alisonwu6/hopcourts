@@ -145,13 +145,34 @@ const mates: MateCardProps[] = [
   },
 ]
 
+const recommendedMate = {
+  name: 'Alex Liu',
+  flag: '🇹🇼',
+  location: 'South Brisbane · 3.5 km',
+  vibe: 'Chill',
+  sports: ['Running', 'Gym'],
+  trying: ['Pilates'],
+  blurb: 'You both enjoy running and strength sessions — mostly evenings.',
+  match: '87%',
+  schedule: 'Tue, Thu · 5:30 – 8:00 PM',
+  alignment: [
+    'Shared sports preference: 100%',
+    'Schedule compatibility: 85%',
+    'Distance fit: Great',
+  ],
+}
+
 export function MatesPage() {
   const city = 'Brisbane'
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const listRef = useRef<HTMLDivElement | null>(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isAuthenticated, onboardingStatus } = useAuthStore((state) => ({
+    isAuthenticated: state.isAuthenticated,
+    onboardingStatus: state.onboardingStatus,
+  }))
+  const showRecommendations = isAuthenticated && (onboardingStatus?.isComplete ?? false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -270,60 +291,148 @@ export function MatesPage() {
           </button>
         </div>
 
-        <header className="flex flex-col gap-1.5 text-center">
-          <h1 className="text-[26px] font-bold leading-tight tracking-tight text-slate-900">
-            Find Your Sport Identity
-          </h1>
-          <p className="text-sm text-slate-600">
-            Everyone starts somewhere. Explore the vibes and meet the people
-            moving near you.
-          </p>
-        </header>
+        {showRecommendations ? (
+          <>
+            <header className="flex flex-col gap-1.5 text-center">
+              <h1 className="text-[26px] font-bold leading-tight tracking-tight text-slate-900">
+                Find your sports mates
+              </h1>
+              <p className="text-sm text-slate-600">
+                Based on your vibe, sports, and time, here’s a match for you.
+              </p>
+            </header>
+            <section className="space-y-4 rounded-[28px] border border-slate-100 bg-white shadow-[0_18px_50px_rgba(15,41,77,0.12)]">
+              <div className="relative overflow-hidden rounded-t-[28px] bg-gradient-to-br from-pink-400 via-fuchsia-500 to-blue-500 p-5 text-white">
+                <div className="flex items-start justify-between">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 text-2xl font-bold">
+                    AL
+                  </div>
+                  <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-slate-800 shadow-sm">
+                    ⭐ {recommendedMate.match}
+                  </div>
+                </div>
+                <div className="absolute bottom-5 left-5 rounded-full bg-white/20 px-3 py-1 text-sm font-semibold">
+                  📍 {recommendedMate.location}
+                </div>
+              </div>
+              <div className="space-y-3 px-5 pb-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xl font-bold text-slate-900">{recommendedMate.name}</span>
+                  <span className="text-sm rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-700">
+                    {recommendedMate.vibe}
+                  </span>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                  <p className="text-sm font-semibold text-slate-800">Why this match</p>
+                  <p className="text-sm text-slate-700">{recommendedMate.blurb}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-slate-800">Shared interests</p>
+                  <div className="flex flex-wrap gap-2">
+                    {recommendedMate.sports.map((sport) => (
+                      <span
+                        key={sport}
+                        className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"
+                      >
+                        {sport}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-semibold text-slate-800">Also exploring</p>
+                  <div className="flex flex-wrap gap-2">
+                    {recommendedMate.trying.map((sport) => (
+                      <span
+                        key={sport}
+                        className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
+                      >
+                        {sport}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-800">
+                  <p className="font-semibold">Schedule fit</p>
+                  <p>{recommendedMate.schedule}</p>
+                </div>
+                <div className="rounded-2xl bg-blue-50 px-4 py-3 text-sm text-slate-800">
+                  <ul className="space-y-1">
+                    {recommendedMate.alignment.map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <span className="text-blue-600">✓</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="flex gap-3">
+                  <button className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                    Not interested
+                  </button>
+                  <button className="flex-1 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500">
+                    Connect now
+                  </button>
+                </div>
+              </div>
+            </section>
+          </>
+        ) : (
+          <>
+            <header className="flex flex-col gap-1.5 text-center">
+              <h1 className="text-[26px] font-bold leading-tight tracking-tight text-slate-900">
+                Find Your Sport Identity
+              </h1>
+              <p className="text-sm text-slate-600">
+                Everyone starts somewhere. Explore the vibes and meet the people moving near you.
+              </p>
+            </header>
 
-        <section className="pb-4">
-          <div
-            ref={listRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {mates.map((mate) => (
-              <MateCard
-                key={mate.name}
-                {...mate}
-              />
-            ))}
-          </div>
-          <div className="mt-3 flex justify-center gap-2">
-            {mates.map((mate, idx) => (
+            <section className="pb-4">
+              <div
+                ref={listRef}
+                className="flex gap-4 overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {mates.map((mate) => (
+                  <MateCard
+                    key={mate.name}
+                    {...mate}
+                  />
+                ))}
+              </div>
+              <div className="mt-3 flex justify-center gap-2">
+                {mates.map((mate, idx) => (
+                  <button
+                    key={mate.name}
+                    type="button"
+                    onClick={() => scrollToIndex(idx)}
+                    className={clsx(
+                      'h-2 w-2 rounded-full transition',
+                      activeIndex === idx ? 'bg-blue-600' : 'bg-slate-300'
+                    )}
+                    aria-label={`Go to card ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
+              <h2 className="text-lg font-semibold text-slate-900">
+                Start your own identity
+              </h2>
+              <p className="text-sm text-slate-600">
+                Share your vibe, list your go-to sports, and find people who match your pace.
+              </p>
               <button
-                key={mate.name}
                 type="button"
-                onClick={() => scrollToIndex(idx)}
-                className={clsx(
-                  'h-2 w-2 rounded-full transition',
-                  activeIndex === idx ? 'bg-blue-600' : 'bg-slate-300'
-                )}
-                aria-label={`Go to card ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Start your own identity
-          </h2>
-          <p className="text-sm text-slate-600">
-            Share your vibe, list your go-to sports, and find people who match
-            your pace.
-          </p>
-          <button
-            type="button"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-            onClick={() => navigate('/onboarding')}
-          >
-            Create Your Sport Card
-          </button>
-        </section>
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                onClick={() => navigate('/onboarding')}
+              >
+                Create Your Sport Card
+              </button>
+            </section>
+          </>
+        )}
       </div>
 
       <IntroSheet

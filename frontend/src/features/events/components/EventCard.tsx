@@ -98,7 +98,7 @@ export function EventCard({
                   strokeWidth={2}
                   aria-hidden="true"
                 />
-                {/* <span>{cityLabel}</span> */}
+                <span>{cityLabel}</span>
                 <span>Holland Park West, Brisbane</span>
               </div>
             </div>

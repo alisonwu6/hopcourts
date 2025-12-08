@@ -1,5 +1,5 @@
 import { ComponentType } from 'react'
-import { Compass, DoorClosed, PersonStanding, Users } from 'lucide-react'
+import { Compass, DoorClosed, PersonStanding, SunMoon, Search } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { useAuthStore } from '@/hooks'
@@ -25,15 +25,21 @@ export function BottomNav() {
   const navItems: NavItem[] = [
     {
       label: 'Mates',
-      icon: Users,
+      icon: Compass,
       path: '/mates',
       matchPaths: ['/', '/mates'],
     },
     {
       label: 'Events',
-      icon: Compass,
+      icon: Search,
       path: '/events',
       matchPaths: ['/events', '/event', '/my-events', '/create-event'],
+    },
+    {
+      label: 'Circle',
+      icon: SunMoon,
+      path: '/circle',
+      matchPaths: ['/circle'],
     },
     isAuthenticated
       ? {

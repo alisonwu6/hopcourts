@@ -1,9 +1,9 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { MapPinPlus, Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react'
+import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, BarChart3 } from 'lucide-react'
 import { addDays, format, isSameDay, isToday, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
-import { Button, BottomSheet } from '@/components'
+import { BottomSheet } from '@/components'
 import { IntroSheet } from '@/components/IntroSheet'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
@@ -19,7 +19,7 @@ const skillOptions = [
 
 const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
 
-export function EventsPage() {
+export function DiscoverEventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
   const [selectedSports, setSelectedSports] = useState<string[]>(['All'])
@@ -39,6 +39,7 @@ export function EventsPage() {
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [hasSeenIntro, setHasSeenIntro] = useState(false)
+  const goToMySessions = () => navigate('/my-events')
 
   useEffect(() => {
     void fetchEvents()
@@ -109,12 +110,31 @@ export function EventsPage() {
   const skillLabel = skillOptions.find((option) => option.value === selectedSkill)?.label ?? 'All Levels'
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-24">
+    <div className="min-h-screen bg-[#f4f6fb] pb-24">
       <div
-        className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur shadow-sm"
-        style={{ top: '80px' }}
+        className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-[#f4f6fb]/95 backdrop-blur shadow-sm"
+        style={{ top: '0px' }}
       >
         <div className="mx-auto w-full max-w-4xl space-y-3 px-4 py-3">
+          <div className="flex justify-center">
+            <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
+              <button
+                type="button"
+                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm bg-white"
+                aria-current="page"
+              >
+                Discover
+              </button>
+              <button
+                type="button"
+                onClick={goToMySessions}
+                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
+              >
+                My Sessions
+              </button>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
@@ -181,7 +201,7 @@ export function EventsPage() {
         </div>
       </div>
 
-      <div className="mx-auto mt-30 w-full max-w-4xl px-4 py-6">
+      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[200px]">
         {error && (
           <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}

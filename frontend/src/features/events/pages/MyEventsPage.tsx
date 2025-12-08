@@ -38,14 +38,30 @@ export function MyEventsPage() {
   const completedEvents = useMemo(() => events.filter((event) => isCompleted(event)), [events])
 
   return (
-    <div className="min-h-screen bg-blue-50 pb-24">
-      <div className="sticky top-0 z-10 border-b border-blue-200 bg-blue-50 px-4 py-3">
-        <h1 className="text-lg font-bold text-blue-900">My Events</h1>
-      </div>
-
-      <div className="sticky top-14 z-10 flex border-b border-blue-200 bg-blue-50">
-        <TabButton label={`Upcoming (${upcomingGames.length})`} active={tab === 'upcoming'} onClick={() => setTab('upcoming')} />
-        <TabButton label={`Completed (${completedGames.length})`} active={tab === 'completed'} onClick={() => setTab('completed')} />
+    <div className="min-h-screen bg-[#f4f6fb] pb-24">
+      <div className="sticky top-0 z-20 border-b border-blue-200 bg-[#f4f6fb]/95 backdrop-blur shadow-sm px-4 py-3">
+        <div className="flex justify-center">
+          <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => navigate('/events')}
+              className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
+            >
+              Discover
+            </button>
+            <button
+              type="button"
+              className="flex-1 rounded-full bg-white px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm"
+              aria-current="page"
+            >
+              My Sessions
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 flex justify-center gap-3">
+          <TagPill label={`Upcoming (${upcomingEvents.length})`} active={tab === 'upcoming'} onClick={() => setTab('upcoming')} />
+          <TagPill label={`Completed (${completedEvents.length})`} active={tab === 'completed'} onClick={() => setTab('completed')} />
+        </div>
       </div>
 
       <div className="px-4 py-6">
@@ -69,15 +85,6 @@ export function MyEventsPage() {
         )}
       </div>
 
-      <div className="px-4 py-4">
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="w-full py-2 text-sm font-semibold text-blue-600 hover:underline"
-        >
-          Browse more events
-        </button>
-      </div>
     </div>
   )
 }
@@ -87,8 +94,22 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 py-3 text-center text-sm font-semibold transition ${
-        active ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'
+      className={`rounded-full px-4 py-2 text-sm font-semibold shadow-sm ${
+        active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
+
+function TagPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full px-4 py-2 text-sm font-semibold ${
+        active ? 'bg-[#0B7CFA] text-white shadow-sm' : 'bg-slate-200 text-slate-700'
       }`}
     >
       {label}

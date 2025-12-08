@@ -1,9 +1,8 @@
 import clsx from 'clsx'
-import { Goal, Gamepad, Menu, PlusSquare, UsersRound, Lock, Calendar, MapPin, Users, Wallet, MapPinIcon } from 'lucide-react'
+import { Goal, Menu, PlusSquare, Lock, Calendar, MapPin, Users, Wallet } from 'lucide-react'
 import { forwardRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
-import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { BottomSheet } from '@/components/BottomSheet'
 import { useAuthStore } from '@/hooks'
 
@@ -19,15 +18,12 @@ const mockProfile: MateCardProps = {
 }
 
 export function ProfilePage() {
-  type TabKey = 'activity' | 'sessions' | 'circle'
   const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const createDaySlots = () =>
     daysList.reduce<Record<string, string[]>>((acc, day) => {
       acc[day] = []
       return acc
     }, {})
-  const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = (searchParams.get('tab') as TabKey) ?? 'activity'
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const [goal, setGoal] = useState({ sessionsPerWeek: '2', timeOfDay: 'Evenings', days: ['Mon', 'Wed'] })
   const [draftGoal, setDraftGoal] = useState(goal)
@@ -80,71 +76,35 @@ export function ProfilePage() {
     })
   }
 
-  const handleTabChange = (tab: TabKey) => {
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev)
-      params.set('tab', tab)
-      return params
-    })
-  }
-
   return (
     <div className="min-h-screen bg-[#f7f8fb] pb-[120px]">
       <div className="mx-auto w-full max-w-4xl pb-6">
-        <ActionToolbar
-          showBack={false}
-          contentClassName="px-3"
-          borderBottom
-          leftContent={(
-            <div className="flex items-center gap-2">
-              <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
-              <button
-                type="button"
-                className="flex items-center gap-1 text-xl font-bold text-slate-900"
-                aria-label="Profile username"
-              >
-                {username}
-              </button>
-            </div>
-          )}
-          rightContent={
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                aria-label="Add game"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-                onClick={() => navigate('/create-event')}
-              >
-                <PlusSquare className="h-6 w-6" />
-              </button>
-              <Link
-                to="/profile/settings"
-                aria-label="Menu"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
-              >
-                <Menu className="h-6 w-6" />
-              </Link>
-            </div>
-          }
-        />
+        <div className="flex items-center justify-between px-4 py-4 bg-white">
+          <div className="flex items-center gap-2">
+            <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
+            <span className="text-2xl font-bold text-slate-900">{username}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="Add game"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+              onClick={() => navigate('/create-event')}
+            >
+              <PlusSquare className="h-6 w-6" />
+            </button>
+            <Link
+              to="/profile/settings"
+              aria-label="Menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+            >
+              <Menu className="h-6 w-6" />
+            </Link>
+          </div>
+        </div>
         <HeroCard profile={profile} onEdit={() => setShowEditSheet(true)} />
-        <TabsBar
-          active={activeTab}
-          onChange={handleTabChange}
-        />
         <div className="mt-4 space-y-4">
-          {activeTab === 'activity' && (
-            <StatsContent goal={goal} goalDaySlots={goalDaySlots} onOpenGoalSheet={handleOpenGoal} />
-          )}
-          {activeTab === 'sessions' && (
-            <MatchesContent />
-          )}
-          {activeTab === 'circle' && (
-            <PeopleContent />
-          )}
-          {/* {activeTab === 'energy' && (
-            <CoachContent />
-          )} */}
+          <StatsContent goal={goal} goalDaySlots={goalDaySlots} onOpenGoalSheet={handleOpenGoal} />
         </div>
       </div>
       <BottomSheet
@@ -406,14 +366,16 @@ export function ProfilePage() {
   )
 }
 
-function StatsContent({
+export function StatsContent({
   goal,
   goalDaySlots,
   onOpenGoalSheet,
+  showEdit = true,
 }: {
   goal: { sessionsPerWeek: string; timeOfDay: string; days: string[] }
   goalDaySlots: Record<string, string[]>
   onOpenGoalSheet: () => void
+  showEdit?: boolean
 }) {
   const preferredTimes = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
     (day) => ({
@@ -429,13 +391,15 @@ function StatsContent({
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             My Weekly Rhythm
           </p>
-          <button
-            type="button"
-            onClick={onOpenGoalSheet}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Edit
-          </button>
+          {showEdit && (
+            <button
+              type="button"
+              onClick={onOpenGoalSheet}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Edit
+            </button>
+          )}
         </div>
         <div className="space-y-3 px-5">
           <p className="text-xl font-bold text-slate-900">
@@ -484,7 +448,7 @@ function MatchesContent() {
       price: 'Free to join',
       checkIn: {
         label: 'GPS check-in zone',
-        instructions: 'Tap check-in once you arrive to verify attendance.',
+        instructions: 'Check in when you arrive — we’ll mark you as here',
         window: '17:45 – 18:15',
         radius: '100m',
       },
@@ -534,7 +498,7 @@ function MatchesContent() {
         <div className="flex border-b border-slate-200">
           {[
             { key: 'upcoming', label: `Upcoming (${upcoming.length})` },
-            { key: 'completed', label: `Check-ins (${completed.length})` },
+            { key: 'completed', label: 'History' },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -602,24 +566,32 @@ function MatchesContent() {
                   <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold text-slate-800">{item.checkIn.label}</p>
-                        <p className="text-xs text-slate-600">{item.checkIn.instructions}</p>
+                        <p className="text-sm font-semibold text-slate-800">
+                          {item.checkIn.label}
+                        </p>
+                        <p className="text-xs text-slate-600">
+                          {item.checkIn.instructions}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-sm text-slate-700">
-                      <span>Check-in window:</span>
-                      <span className="font-semibold">{item.checkIn.window}</span>
+                      <span>Check-in available:</span>
+                      <span className="font-semibold">
+                        {item.checkIn.window}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-sm text-slate-700">
-                      <span>Check-in radius:</span>
-                      <span className="font-semibold">{item.checkIn.radius}</span>
+                      <span>You’re good as long as you’re within:</span>
+                      <span className="font-semibold">
+                        {item.checkIn.radius}
+                      </span>
                     </div>
                   </div>
                   <button
                     type="button"
                     className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-blue-500 hover:to-blue-500"
                   >
-                    📍 Start GPS check-in
+                    📍 I’m here — check me in
                   </button>
                 </div>
               )}
@@ -656,7 +628,9 @@ function MatchesContent() {
                       {item.tag}
                     </span>
                   </div>
-                  <p className="text-xl font-semibold text-slate-900">{item.title}</p>
+                  <p className="text-xl font-semibold text-slate-900">
+                    {item.title}
+                  </p>
                   <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                     <Calendar className="h-4 w-4 text-slate-500" />
                     {item.time}
@@ -676,7 +650,13 @@ function MatchesContent() {
                 </div>
               </div>
               <div className="">
-                <div className="space-y-2 bg-slate-300 px-5 py-3 text-sm text-slate-700">
+                <div className="space-y-2 bg-slate-200 px-5 py-3 text-sm text-slate-700">
+                  {item.checkIn?.time && (
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Time</span>
+                      <span className="font-semibold">{item.checkIn.time}</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">Check-in</p>
                     {item.checkIn && (
@@ -686,24 +666,18 @@ function MatchesContent() {
                           item.checkIn.status === 'on-time'
                             ? 'bg-emerald-100 text-emerald-700'
                             : item.checkIn.status === 'late'
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'bg-rose-100 text-rose-700'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-rose-100 text-rose-700'
                         )}
                       >
                         {item.checkIn.status === 'on-time'
                           ? 'On time'
                           : item.checkIn.status === 'late'
-                            ? item.checkIn.note ?? 'Late'
-                            : 'No show'}
+                          ? 'Good on ya, you made it'
+                          : 'No show'}
                       </span>
                     )}
                   </div>
-                  {item.checkIn?.time && (
-                    <div className="flex items-center justify-between">
-                      <span>Time</span>
-                      <span className="font-semibold">{item.checkIn.time}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -714,26 +688,19 @@ function MatchesContent() {
   )
 }
 
-function PeopleContent() {
+export function PeopleContent() {
   const navigate = useNavigate()
-  const [subTab, setSubTab] = useState<'following' | 'played'>('following')
-  const circle = [
-    { name: 'Jamie', vibe: 'Chill' },
-    { name: 'Alex', vibe: 'Social' },
-    { name: 'Sam', vibe: 'Flow' },
-    { name: 'Jordan', vibe: 'Competitive' },
-    { name: 'Casey', vibe: 'Chill' },
+  const [subTab, setSubTab] = useState<'connected' | 'playmates'>('connected')
+  const connected = [
+    { name: 'Jamie', detail: 'Moves Tue/Thu eve', meta: 'High fives: 12', colors: 'from-indigo-500 to-purple-500' },
+    { name: 'Alex', detail: 'Runs mornings', meta: 'Inspired you 3 times', colors: 'from-pink-400 to-orange-400' },
+    { name: 'Sam', detail: 'Gym weekends', meta: 'High fives: 8', colors: 'from-sky-400 to-blue-500' },
   ]
-  const recent = [
-    { text: 'Jamie played pickup yesterday', color: 'bg-emerald-500' },
-    { text: 'Alex at gym 2 hours ago', color: 'bg-emerald-500' },
-    { text: 'Sam taking a break', color: 'bg-amber-400' },
-    { text: 'Jordan quiet this week', color: 'bg-rose-500' },
-  ]
-  const playedWith = [
-    { name: 'Jamie', sport: 'Basketball pickup', last: 'Yesterday', vibe: 'Chill' },
-    { name: 'Alex', sport: 'Gym session', last: '2h ago', vibe: 'Social' },
-    { name: 'Sam', sport: 'Easy run', last: 'Last week', vibe: 'Flow' },
+  const playmates = [
+    { name: 'Jordan', meta: '2 sessions together', status: 'Add', colors: 'from-emerald-400 to-teal-400' },
+    { name: 'Casey', meta: 'Last week', status: 'Add', colors: 'from-pink-400 to-orange-300' },
+    { name: 'Morgan', meta: '3 sessions together', status: 'Add', colors: 'from-indigo-500 to-purple-500' },
+    { name: 'Taylor', meta: 'Last month', status: 'Added', colors: 'from-pink-400 to-fuchsia-500' },
   ]
   const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
     const handle = mate.username || mate.name
@@ -741,89 +708,124 @@ function PeopleContent() {
   }
 
   return (
-    <div className="space-y-5 px-3">
-      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-        <div className="flex border-b border-slate-200 px-5">
+    <div className="space-y-3 ">
+      <div className="sticky top-0 z-10 flex justify-center bg-[#f7f8fb] px-3 pb-2 pt-3">
+        <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
           {[
-            { key: 'following', label: 'Following' },
-            { key: 'played', label: 'Played' },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setSubTab(tab.key as typeof subTab)}
-              className={clsx(
-                'relative flex-1 py-3 text-center text-sm font-semibold',
-                subTab === tab.key ? 'text-blue-600' : 'text-slate-500'
-              )}
-            >
-              {tab.label}
-              {subTab === tab.key && (
-                <span className="absolute bottom-0 left-0 right-0 mx-auto block h-0.5 w-1/2 rounded-full bg-blue-600" />
-              )}
-            </button>
-          ))}
+            { key: 'connected', label: 'Connected' },
+            { key: 'playmates', label: 'Playmates' },
+          ].map((tab) => {
+            const active = subTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setSubTab(tab.key as typeof subTab)}
+                className={clsx(
+                  'flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold transition',
+                  active
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-800'
+                )}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
         </div>
-
-        {subTab === 'following' && (
-          <div className="space-y-3">
-            <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-slate-600">Your circle</p>
-            <div className="grid grid-cols-3 gap-y-6 px-5 pb-6">
-              {circle.map((person) => (
-                <button
-                  key={person.name}
-                  type="button"
-                  onClick={() => goToMate(person)}
-                  className="flex flex-col items-center gap-2 focus:outline-none"
-                >
-                  <div className="h-24 w-24 rounded-full border-2 border-slate-200 bg-slate-50" />
-                  <p className="text-base font-semibold text-slate-900">{person.name}</p>
-                  <p className="text-sm text-slate-500">{person.vibe}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {subTab === 'played' && (
-          <div className="space-y-3 px-5 py-5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Recently played</p>
-            <div className="divide-y divide-slate-200 rounded-2xl border border-slate-200/70">
-              {playedWith.map((item) => (
-                <button
-                  key={item.name}
-                  type="button"
-                  onClick={() => goToMate(item)}
-                  className="flex items-center justify-between px-4 py-3 text-left w-full"
-                >
-                  <div className="space-y-0.5">
-                    <p className="text-base font-semibold text-slate-900">{item.name}</p>
-                    <p className="text-sm text-slate-600">{item.sport}</p>
-                    <p className="text-xs text-slate-500">Last played: {item.last}</p>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                    {item.vibe}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/60">
-        <div className="space-y-3 px-5 pt-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">What they&apos;re doing now</p>
-          <div className="divide-y divide-slate-200 rounded-2xl border border-slate-200/70">
-            {recent.map((item) => (
-              <div key={item.text} className="flex items-center gap-3 px-4 py-3">
-                <span className={`h-2.5 w-2.5 rounded-full ${item.color}`} />
-                <span className="text-base font-semibold text-slate-900">{item.text}</span>
-              </div>
+      {subTab === 'connected' && (
+        <div className="space-y-4 px-3 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+            Your circle
+          </p>
+          <div className="space-y-3">
+            {connected.map((person) => (
+              <button
+                key={person.name}
+                type="button"
+                onClick={() => goToMate({ name: person.name, vibe: 'Chill' })}
+                className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 text-left shadow-sm transition hover:shadow-md focus:outline-none"
+              >
+                <div
+                  className={clsx(
+                    'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
+                    person.colors
+                  )}
+                >
+                  {person.name.charAt(0)}
+                </div>
+                <div className="flex-1 space-y-0.5">
+                  <p className="text-base font-semibold text-slate-900">
+                    {person.name}
+                  </p>
+                  <p className="text-sm text-slate-600">{person.detail}</p>
+                  <p className="text-sm text-slate-500">{person.meta}</p>
+                </div>
+              </button>
             ))}
           </div>
         </div>
-      </div>
+      )}
+
+      {subTab === 'playmates' && (
+        <div className="space-y-4 px-3 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+            Play together
+          </p>
+          <div className="space-y-3">
+            {playmates.map((mate) => {
+              const isAdded = mate.status === 'Added'
+              return (
+                <div
+                  key={mate.name}
+                  className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 shadow-sm"
+                >
+                  <button
+                    type="button"
+                    onClick={() => goToMate({ name: mate.name, vibe: 'Chill' })}
+                    className="flex items-center gap-4 text-left focus:outline-none"
+                  >
+                    <div
+                      className={clsx(
+                        'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
+                        mate.colors
+                      )}
+                    >
+                      {mate.name.charAt(0)}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-base font-semibold text-slate-900">
+                          {mate.name}
+                        </p>
+                        <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
+                          PLAYMATE
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-600">{mate.meta}</p>
+                    </div>
+                  </button>
+                  <div className="ml-auto">
+                    <button
+                      type="button"
+                      className={clsx(
+                        'min-w-[64px] rounded-xl px-4 py-2 text-sm font-semibold shadow-sm',
+                        isAdded
+                          ? 'bg-slate-100 text-slate-500'
+                          : 'border border-slate-300 text-slate-900 hover:bg-slate-50'
+                      )}
+                    >
+                      {mate.status}
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -848,31 +850,12 @@ function HeroCard({ profile, onEdit }: { profile: MateCardProps; onEdit: () => v
   )
 }
 
-const TabsBar = forwardRef<HTMLDivElement, {
-  active: 'activity' | 'sessions' | 'circle'
-  onChange: (tab: 'activity' | 'sessions' | 'circle') => void
-}>(({ active, onChange }, ref) => {
-  const tabs = [
-    { icon: <Goal className="h-6 w-6" />, key: 'activity' as const, label: 'Activity' },
-    { icon: <Gamepad className="h-6 w-6" />, key: 'sessions' as const, label: 'Sessions' },
-    { icon: <UsersRound className="h-6 w-6" />, key: 'circle' as const, label: 'Circle' },
-  ]
-  return (
-    <div ref={ref} className="flex justify-between border-b border-slate-200 bg-[#f7f8fb] px-6">
-      {tabs.map((tab, idx) => (
-        <button
-          key={idx}
-          className="relative flex h-12 flex-1 flex-col items-center justify-center text-slate-600"
-          aria-pressed={active === tab.key}
-          onClick={() => onChange(tab.key)}
-        >
-          {tab.icon}
-          <span className="text-[11px] font-semibold">{tab.label}</span>
-          {active === tab.key && (
-            <span className="absolute -bottom-[1px] left-0 right-0 mx-auto h-1 w-12 rounded-full bg-[#1e63f4]" />
-          )}
-        </button>
-      ))}
+const TabsBar = forwardRef<HTMLDivElement>((_, ref) => (
+  <div ref={ref} className="flex justify-between border-b border-slate-200 bg-[#f7f8fb] px-6">
+    <div className="relative flex h-12 flex-1 flex-col items-center justify-center text-slate-600">
+      <Goal className="h-6 w-6" />
+      <span className="text-[11px] font-semibold">Activity</span>
+      <span className="absolute -bottom-[1px] left-0 right-0 mx-auto h-1 w-12 rounded-full bg-[#1e63f4]" />
     </div>
-  )
-})
+  </div>
+))
