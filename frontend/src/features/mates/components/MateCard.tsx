@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { MapPin } from 'lucide-react'
-import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
+import { vibeTokens, vibeList, type Vibe } from '@/constants/vibeTokens'
 
 const withAlpha = (hex: string, alpha: number) => {
   const clean = hex.replace('#', '')
@@ -81,14 +81,14 @@ export function MateCard({
               boxShadow: `0 6px 14px ${vibeColors.ring}33, inset 0 1px 0 rgba(255,255,255,0.8)`,
             }}
           >
-            {vibe}
+            {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
           </span>
         </div>
       </div>
 
       <div className="flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
-          <span className="text-slate-500 tracking-wide uppercase">Sports I Play:</span>
+          <span className="text-slate-500 tracking-wide uppercase">常打的運動：</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {sports.map((sport) => (
               <span
@@ -106,7 +106,7 @@ export function MateCard({
           </div>
         </div>
         <div>
-          <span className="text-slate-500 tracking-wide uppercase">Trying Out:</span>
+          <span className="text-slate-500 tracking-wide uppercase">想嘗試：</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {trying.map((item) => (
               <span
@@ -132,7 +132,7 @@ export function MateCard({
           {blurb?.trim() ? (
             <span className="italic">“{blurb}”</span>
           ) : (
-            <span className="text-slate-400 not-italic">This mover hasn&apos;t added a line yet.</span>
+            <span className="text-slate-400 not-italic">這位夥伴還沒寫一句話。</span>
           )}
         </div>
       </div>

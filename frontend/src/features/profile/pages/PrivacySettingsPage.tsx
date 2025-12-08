@@ -11,18 +11,18 @@ export function PrivacySettingsPage() {
         onBack={() => navigate(-1)}
         showShare={false}
         showFavorite={false}
-        title={<span className="text-lg font-semibold text-slate-900">Privacy</span>}
+        title={<span className="text-lg font-semibold text-slate-900">隱私與安全</span>}
         contentClassName="max-w-3xl px-4"
         borderBottom
       />
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-8 pt-4 space-y-6">
-        <Section title="Data & visibility" icon={<ShieldCheck className="h-5 w-5 text-slate-500" />}>
-          <Row label="Profile visibility" value="Only mates" />
+        <Section title="資料與可見性" icon={<ShieldCheck className="h-5 w-5 text-slate-500" />}>
+          <Row label="個人檔案可見度" value="僅限夥伴" />
         </Section>
 
-        <Section title="Security" icon={<ShieldCheck className="h-5 w-5 text-slate-500" />}>
-          <Row label="Sessions" value="Log out other devices" />
+        <Section title="安全性" icon={<ShieldCheck className="h-5 w-5 text-slate-500" />}>
+          <Row label="登入工作階段" value="登出其他裝置" />
         </Section>
       </div>
     </div>

@@ -10,24 +10,24 @@ import heroPlaceholder from '@/assets/placeholders/game-placeholder.JPEG'
 import { useAuthStore } from '@/hooks'
 
 const mockEvent = {
-  title: 'Bouldering Session',
+  title: '抱石交流場',
   description:
-    'Come hang, climb, and chill with a small friendly crew. This session is super relaxed — perfect if you’re getting back into climbing or just want people to climb with. I’ll warm up with you and we can work a few problems together.',
-  sport: 'Bouldering',
-  skillLabel: 'Intermediate',
-  dateTime: 'Mon, 17 Nov 05:00 - 06:30',
-  location: 'Sunnybank KFC',
-  price: 'Pay on site',
+    '一起輕鬆攀、互相加油！節奏很放鬆，適合剛回鍋或想找夥伴練習的人。先一起熱身，再挑幾條路線討論、突破。',
+  sport: '抱石',
+  skillLabel: '中階',
+  dateTime: '11 月 17 日（一）05:00 - 06:30',
+  location: '陽光城抱石館',
+  price: '現場付款',
   host: {
     name: 'Alison Wu',
-    subtitle: 'Basketball • Running • Gym-goer',
+    subtitle: '籃球 • 跑步 • 健身',
     avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
   },
   participants: [
     {
       id: '1',
       name: 'Alison Wu',
-      subtitle: 'Basketball • Running • Gym-goer',
+      subtitle: '籃球 • 跑步 • 健身',
       avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
     },
   ],
@@ -43,7 +43,7 @@ export function EventDetailPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   const handleShare = () => {
-    window.alert('Share coming soon')
+    window.alert('分享功能即將推出')
   }
 
   const handleJoinClick = () => {
@@ -80,7 +80,7 @@ export function EventDetailPage() {
             <div className="flex items-center gap-3">
               <AvatarCircle name={mockEvent.host.name} src={mockEvent.host.avatar} />
               <div>
-                <p className="text-sm font-semibold text-slate-900">Hosted by {mockEvent.host.name}</p>
+                <p className="text-sm font-semibold text-slate-900">由 {mockEvent.host.name} 主辦</p>
                 <p className="text-xs text-slate-500">{mockEvent.host.subtitle}</p>
               </div>
             </div>
@@ -114,7 +114,7 @@ export function EventDetailPage() {
                   <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
                 <span>
-                  Who&apos;s joining ({mockEvent.spotsRemaining} spots remaining)
+                  目前報名（剩 {mockEvent.spotsRemaining} 位）
                 </span>
               </div>
               <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
@@ -133,7 +133,7 @@ export function EventDetailPage() {
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
                   <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
-                <span>Hey there,</span>
+                <span>主辦想說</span>
               </div>
               <p className="text-sm leading-relaxed text-slate-700">{mockEvent.description}</p>
             </div>
@@ -193,7 +193,7 @@ function JoinBar({ isJoined, onClick }: { isJoined: boolean; onClick: () => void
             isJoined ? 'bg-player-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
           )}
         >
-          {isJoined ? 'Joined' : 'Join'}
+          {isJoined ? '已加入' : '加入活動'}
         </Button>
       </div>
     </div>

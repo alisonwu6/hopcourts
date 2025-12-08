@@ -23,10 +23,10 @@ export function EventCard({
   const sportLabel = formatSportName(event.sport)
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
-  const locationLabel = event.location?.address ?? event.location?.name ?? 'Venue to be confirmed'
+  const locationLabel = event.location?.address ?? event.location?.name ?? '地點待確認'
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
-  const priceLabel = event.priceRange ?? (event.isFree ? 'Free to join' : 'Paid event')
-  const cityLabel = locationCity ?? 'City to be confirmed'
+  const priceLabel = event.priceRange ?? (event.isFree ? '免費參加' : '付費活動')
+  const cityLabel = locationCity ?? '城市待確認'
 
   const attendeeCount = event.attendeeCount
   const participantPreview = event.participants.slice(0, 4)
@@ -58,7 +58,7 @@ export function EventCard({
         tabIndex: 0,
         onClick: handleCardClick,
         onKeyDown: handleCardKeyDown,
-        'aria-label': `View details for ${event.title}`,
+        'aria-label': `查看 ${event.title} 詳細資訊`,
       }
     : {}
 
@@ -99,7 +99,6 @@ export function EventCard({
                   aria-hidden="true"
                 />
                 <span>{cityLabel}</span>
-                <span>Holland Park West, Brisbane</span>
               </div>
             </div>
           </div>
@@ -254,26 +253,26 @@ function formatSchedule(start: Date | string, end: Date | string) {
 }
 
 function summaryText(attending: number, max: number, remaining: number) {
-  const base = `${attending}/${max} joined`
+  const base = `${attending}/${max} 已報名`
   if (remaining <= 0) return base
-  return `${base} · +${remaining} more`
+  return `${base} · 還有${remaining}位`
 }
 
 function friendlySkill(level: PlayerEvent['skillLevel']) {
   switch (level) {
     case 'beginner':
-      return 'Beginner friendly'
+      return '新手友善'
     case 'intermediate':
-      return 'Intermediate pace'
+      return '中階步調'
     case 'advanced':
-      return 'Advanced crew'
+      return '進階高手'
     case 'mixed':
     default:
-      return 'All levels welcome'
+      return '不限程度'
   }
 }
 
 function formatSportName(value: string) {
-  if (!value) return 'Sport'
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+  if (!value) return '運動'
+  return value
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { MapPin, Sparkles } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { IntroSheet } from '@/components/IntroSheet'
 import { BottomSheet } from '@/components/BottomSheet'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
@@ -12,136 +12,100 @@ import { MateCard, type MateCardProps } from '../components/MateCard'
 
 const mates: MateCardProps[] = [
   {
-    name: 'Jamie Thompson',
-    flag: '🇦🇺',
-    vibe: 'Social',
-    sports: ['Basketball', 'Touch footy', 'Running'],
-    trying: ['Pickleball', 'Bouldering'],
-    location: 'Brisbane',
-    blurb: 'Here for good banter, easy pace, and a crew to play with after work.',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-amber-50 via-white to-white',
-  },
-  {
-    name: 'Maia Rangi',
-    flag: '🇳🇿',
+    name: '楊子禎',
+    flag: '🇹🇼',
     vibe: 'Chill',
-    sports: ['Basketball', 'Rugby touch', 'Hiking'],
-    trying: ['Indoor climbing', 'Social running'],
-    location: 'Brisbane',
-    blurb: 'I’m happiest when it’s friendly, outdoors, and with easygoing people.',
-    avatar: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=320&q=80',
+    sports: ['慢跑', '瑜珈', '伸展'],
+    trying: ['太極', '徒步登山'],
+    location: '台北 · 松山',
+    blurb: '運動不是拼命，是讓心跟身體慢慢對齊。🧘‍♂️',
+    avatar:
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-sky-50 via-white to-white',
   },
   {
-    name: 'Oliver Shaw',
-    flag: '🇬🇧',
-    vibe: 'Social',
-    sports: ['Cricket nets', '5k runs', 'Gym'],
-    trying: ['Tennis', 'Pilates'],
-    location: 'Brisbane',
-    blurb: 'A good chat and a steady run are all I need to feel settled.',
-    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-slate-100 via-white to-white',
-  },
-  {
-    name: 'Riya Nair',
-    flag: '🇮🇳',
-    vibe: 'Competitive',
-    sports: ['Badminton', 'Cricket', '5k runs'],
-    trying: ['Ultimate frisbee', 'Strength training'],
-    location: 'Brisbane',
-    blurb: 'I love tight rallies, tough games, and meeting anyone who hustles hard.',
-    avatar: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-rose-50 via-white to-white',
-  },
-  {
-    name: 'Chen Li',
-    flag: '🇨🇳',
-    vibe: 'Chill',
-    sports: ['Badminton', 'Table tennis', 'Yoga'],
-    trying: ['Bouldering', 'Light running'],
-    location: 'Brisbane',
-    blurb: 'I like calm sessions that leave me feeling balanced and clear.',
-    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-lime-50 via-white to-white',
-  },
-  {
-    name: 'Jana Cruz',
-    flag: '🇵🇭',
-    vibe: 'Social',
-    sports: ['Volleyball', 'Badminton', 'Dance fitness'],
-    trying: ['Pickleball', 'Gym'],
-    location: 'Brisbane',
-    blurb: 'I show up for the laughs, the energy, and the people.',
-    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-orange-50 via-white to-white',
-  },
-  {
-    name: 'Thabo Mbeki',
-    flag: '🇿🇦',
-    vibe: 'Competitive',
-    sports: ['Rugby touch', 'Cricket', 'Trail running'],
-    trying: ['Cross-training', 'Indoor climbing'],
-    location: 'Brisbane',
-    blurb: 'Give me a fast game, good intensity, and players who push me.',
-    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-emerald-50 via-white to-white',
-  },
-  {
-    name: 'Linh Do',
-    flag: '🇻🇳',
-    vibe: 'Chill',
-    sports: ['Badminton', 'Walking', 'Yoga'],
-    trying: ['Light running', 'Pilates'],
-    location: 'Brisbane',
-    blurb: 'I enjoy slow, steady sessions that help me unwind.',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-purple-50 via-white to-white',
-  },
-  {
-    name: 'Emily Chen',
+    name: '林語庭',
     flag: '🇹🇼',
     vibe: 'Social',
-    sports: ['Basketball', 'Gym', 'Hiking'],
-    trying: ['Pickleball', 'Bouldering'],
-    location: 'Brisbane',
-    blurb: 'Just looking for people who move at a similar pace.',
-    avatar: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=320&q=80',
+    sports: ['羽球', '瑜珈', '健身房團課'],
+    trying: ['皮拉提斯', '攀岩'],
+    location: '台北 · 中山',
+    blurb: '我運動是為了遇到夥伴，累了也有人一起笑。🤝',
+    avatar:
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=320&q=80',
+    accentClassName: 'bg-gradient-to-br from-amber-50 via-white to-white',
+  },
+  {
+    name: '蘇靖安',
+    flag: '🇹🇼',
+    vibe: 'Flow',
+    sports: ['健身房', '跑步機', '瑜珈'],
+    trying: ['皮拉提斯', '間歇跑'],
+    location: '台北 · 南港',
+    blurb: '每天動一點，不知不覺就變成自己的節奏。👣',
+    avatar:
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
+    accentClassName: 'bg-gradient-to-br from-pink-50 via-white to-white',
+  },
+  {
+    name: '廖若儀',
+    flag: '🇹🇼',
+    vibe: 'Explorer',
+    sports: ['登山', '騎車', '路跑'],
+    trying: ['溯溪', '攀岩', 'SUP'],
+    location: '台北 · 士林',
+    blurb: '我就是喜歡說走就走的那種快感。✨',
+    avatar:
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-cyan-50 via-white to-white',
   },
   {
-    name: 'Adrian Law',
-    flag: '🇭🇰',
-    vibe: 'Social',
-    sports: ['Running', 'Hiking', 'Badminton'],
-    trying: ['Pickleball', 'Gym'],
-    location: 'Brisbane',
-    blurb: 'I like active days with good views, good sweat, and good company.',
-    avatar: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-blue-50 via-white to-white',
+    name: '吳柏恩',
+    flag: '🇹🇼',
+    vibe: 'Growth',
+    sports: ['羽球', '網球', '核心訓練'],
+    trying: ['鐵人三項', '壁球'],
+    location: '台北 · 文山',
+    blurb: '我喜歡學新動作的瞬間——那是我真的在進步。⚙️',
+    avatar:
+      'https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?auto=format&fit=crop&w=320&q=80',
+    accentClassName: 'bg-gradient-to-br from-purple-50 via-white to-white',
   },
   {
-    name: 'Minseo Park',
-    flag: '🇰🇷',
-    vibe: 'Flow',
-    sports: ['Pilates', 'Gym', 'Badminton'],
-    trying: ['Yoga', 'Social running'],
-    location: 'Brisbane',
-    blurb: 'I love moving in ways that feel light, focused, and steady.',
-    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-indigo-50 via-white to-white',
-  },
-  {
-    name: 'Arjun KC',
-    flag: '🇳🇵',
+    name: '陳威翔',
+    flag: '🇹🇼',
     vibe: 'Competitive',
-    sports: ['Cricket', 'Running', 'Hiking'],
-    trying: ['Gym', 'Badminton'],
-    location: 'Brisbane',
-    blurb: 'I’m driven by effort — I like teammates who don’t quit early.',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-amber-100 via-white to-white',
+    sports: ['籃球', '重量訓練', '壺鈴'],
+    trying: ['拳擊', '路跑比賽'],
+    location: '台北 · 大安',
+    blurb: '我喜歡那種明明累到不行，卻還能再推一點點的感覺。🔥',
+    avatar:
+      'https://images.unsplash.com/photo-1590086782792-42dd2350140d?auto=format&fit=crop&w=320&q=80',
+    accentClassName: 'bg-gradient-to-br from-rose-50 via-white to-white',
+  },
+  {
+    name: '張恩均',
+    flag: '🇹🇼',
+    vibe: 'Supportive',
+    sports: ['慢跑', '健走', '輕鬆羽球'],
+    trying: ['游泳', '攀岩'],
+    location: '台北 · 內湖',
+    blurb: '我喜歡陪朋友一起動，就算慢一點也沒關係。💛',
+    avatar:
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
+    accentClassName: 'bg-gradient-to-br from-lime-50 via-white to-white',
+  },
+  {
+    name: '蘇靖安',
+    flag: '🇹🇼',
+    vibe: 'Flow',
+    sports: ['健身房', '跑步機', '瑜珈'],
+    trying: ['皮拉提斯', '間歇跑'],
+    location: '台北 · 南港',
+    blurb: '每天動一點，不知不覺就變成自己的節奏。👣',
+    avatar:
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
+    accentClassName: 'bg-gradient-to-br from-pink-50 via-white to-white',
   },
 ]
 
@@ -163,7 +127,7 @@ const recommendedMate = {
 }
 
 export function MatesPage() {
-  const city = 'Brisbane'
+  const city = '台北'
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -215,13 +179,13 @@ export function MatesPage() {
     setActiveIndex(idx)
   }
 
-  // const handleDraftClick = () => {
-  //   if (!isAuthenticated) {
-  //     setShowLoginPrompt(true)
-  //     return
-  //   }
-  //   // TODO: route to mate card creation when ready
-  // }
+  const handleDraftClick = () => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
+    navigate('/onboarding')
+  }
 
   useEffect(() => {
     const container = listRef.current
@@ -276,16 +240,8 @@ export function MatesPage() {
                   {city}
                 </span>
                 <span className="text-xs font-medium text-slate-500">
-                  Starting market
+                  目前所在城市
                 </span>
-              </div>
-              <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-                <Sparkles
-                  className="h-4 w-4"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
-                Coming soon
               </div>
             </div>
           </button>
@@ -381,10 +337,10 @@ export function MatesPage() {
           <>
             <header className="flex flex-col gap-1.5 text-center">
               <h1 className="text-[26px] font-bold leading-tight tracking-tight text-slate-900">
-                Find Your Sport Identity
+                找到你的運動樣子
               </h1>
               <p className="text-sm text-slate-600">
-                Everyone starts somewhere. Explore the vibes and meet the people moving near you.
+                從這裡開始，看看附近的氛圍與夥伴。
               </p>
             </header>
 
@@ -418,17 +374,17 @@ export function MatesPage() {
 
             <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
               <h2 className="text-lg font-semibold text-slate-900">
-                Start your own identity
+                建立你的運動身份
               </h2>
               <p className="text-sm text-slate-600">
-                Share your vibe, list your go-to sports, and find people who match your pace.
+                分享你的氛圍與慣打運動，找到步調相近的夥伴。
               </p>
               <button
                 type="button"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-                onClick={() => navigate('/onboarding')}
+                onClick={handleDraftClick}
               >
-                Create Your Sport Card
+                建立你的運動卡
               </button>
             </section>
           </>
@@ -439,7 +395,7 @@ export function MatesPage() {
         open={showIntroSheet}
         onClose={handleCloseIntro}
         description={
-          'SportsMatch helps you find people who play like you — not just events.'
+          'SportsMatch 幫你找到步調相近的夥伴，不只是活動。'
         }
         dismissLabel={null}
       />
@@ -463,11 +419,10 @@ export function MatesPage() {
           </button>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900">
-              Save your sport identity
+              儲存你的運動身份
             </h2>
             <p className="text-sm text-slate-600">
-              We&apos;ll help you discover your vibe and find your crew — all in
-              one place.
+              我們會幫你探索自己的氛圍，找到步調相近的夥伴。
             </p>
           </div>
 
@@ -482,7 +437,7 @@ export function MatesPage() {
                 window.location.href = '/login?email=alison.wu23@gmail.com'
               }}
             >
-              Use email instead
+              改用 Email 登入
             </button>
           </div>
         </div>

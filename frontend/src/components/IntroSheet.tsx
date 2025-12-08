@@ -15,7 +15,7 @@ export function IntroSheet({
   onClose,
   title,
   description,
-  dismissLabel = 'Keep exploring',
+  dismissLabel = '繼續逛逛',
   showLogo = true,
 }: IntroSheetProps) {
   return (

@@ -49,15 +49,16 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
   return (
     <section className={containerClass}>
       <div className="text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">Welcome to SportsMatch</h1>
+        <h1 className="text-2xl font-semibold text-slate-900">歡迎加入 SportsMatch</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Discover local events, meet new mates, <br/>and build your crew.
+          探索在地活動、認識新夥伴，
+          <br />一起組成你的運動夥伴圈。
         </p>
       </div>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <InputField
-          label="Email"
+          label="Email（電子郵件）"
           type="email"
           placeholder="you@example.com"
           value={email}
@@ -71,7 +72,7 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
         />
 
         <InputField
-          label="Password"
+          label="密碼"
           type="password"
           placeholder="••••••••"
           value={password}
@@ -84,19 +85,19 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
         />
 
         <Button type="submit" className="w-full rounded-2xl text-base" disabled={isLoading}>
-          {isLoading ? 'Logging in…' : 'Continue with email'}
+          {isLoading ? '登入中…' : '用 Email 繼續'}
         </Button>
 
         <div className="text-center text-sm">
           <Link to="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700">
-            Forgot password?
+            忘記密碼？
           </Link>
         </div>
       </form>
 
       <div className="my-6 flex items-center">
         <div className="flex-1 border-t border-slate-200" />
-        <span className="px-3 text-xs uppercase tracking-wide text-slate-400">or</span>
+        <span className="px-3 text-xs uppercase tracking-wide text-slate-400">或</span>
         <div className="flex-1 border-t border-slate-200" />
       </div>
 
@@ -111,7 +112,7 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
           onClick={() => window.alert('Need help? Email support@sportsmatch.com.')}
           className="font-semibold text-blue-600 transition hover:text-blue-700"
         >
-          Need help?
+          需要協助？
         </button>
       </div>
     </section>

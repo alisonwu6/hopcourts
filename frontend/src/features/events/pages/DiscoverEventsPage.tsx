@@ -10,11 +10,11 @@ import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
 
-const sports = ['All', 'Basketball', 'Badminton', 'Pickleball', 'Climbing', 'Running', 'Hiking']
+const sports = ['全部', '籃球', '羽球', '匹克球', '攀岩', '跑步', '健行']
 const skillOptions = [
-  { value: 'all', label: 'All Levels' },
-  { value: 'intermediate', label: 'Intermediate' },
-  { value: 'advanced', label: 'Advanced' },
+  { value: 'all', label: '不限程度' },
+  { value: 'intermediate', label: '中階' },
+  { value: 'advanced', label: '進階' },
 ]
 
 const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
@@ -22,8 +22,8 @@ const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
 export function DiscoverEventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
-  const [selectedSports, setSelectedSports] = useState<string[]>(['All'])
-  const [pendingSports, setPendingSports] = useState<string[]>(['All'])
+  const [selectedSports, setSelectedSports] = useState<string[]>(['全部'])
+  const [pendingSports, setPendingSports] = useState<string[]>(['全部'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [pendingDate, setPendingDate] = useState<Date | null>(null)
@@ -95,7 +95,7 @@ export function DiscoverEventsPage() {
       ? events.filter((event) => isSameDay(new Date(event.startTime), selectedDate))
       : events.filter((event) => new Date(event.startTime) >= today)
 
-    const sportFiltered = selectedSports.includes('All')
+    const sportFiltered = selectedSports.includes('全部')
       ? dateFiltered
       : dateFiltered.filter((event) =>
           selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
@@ -105,9 +105,9 @@ export function DiscoverEventsPage() {
     return sportFiltered.filter((event) => event.skillLevel === selectedSkill)
   }, [events, selectedSports, selectedSkill, selectedDate])
 
-  const dateLabel = selectedDate ? format(selectedDate, 'EEE, dd MMM') : 'Select a date'
+  const dateLabel = selectedDate ? format(selectedDate, 'EEE, dd MMM') : '選擇日期'
   const showTodayLabel = Boolean(selectedDate && isSameDay(selectedDate, today))
-  const skillLabel = skillOptions.find((option) => option.value === selectedSkill)?.label ?? 'All Levels'
+  const skillLabel = skillOptions.find((option) => option.value === selectedSkill)?.label ?? '不限程度'
 
   return (
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
@@ -123,14 +123,14 @@ export function DiscoverEventsPage() {
                 className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm bg-white"
                 aria-current="page"
               >
-                Discover
+                探索場次
               </button>
               <button
                 type="button"
                 onClick={goToMySessions}
                 className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
               >
-                My Sessions
+                我的場次
               </button>
             </div>
           </div>
@@ -146,12 +146,12 @@ export function DiscoverEventsPage() {
               aria-hidden="true"
             />
             <span className="flex-1 truncate">
-              {selectedSports.includes('All')
-                ? 'Start your search'
+              {selectedSports.includes('全部')
+                ? '搜尋想玩的運動'
                 : selectedSports.join(', ')}
             </span>
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              sport
+              運動
             </span>
           </button>
 
@@ -194,7 +194,7 @@ export function DiscoverEventsPage() {
               />
               <span className="flex-1 truncate">{skillLabel}</span>
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                skill
+                程度
               </span>
             </button>
           </div>
@@ -209,10 +209,10 @@ export function DiscoverEventsPage() {
         )}
         {isLoading ? (
           <div className="flex justify-center py-10 text-slate-500">
-            Loading events…
+            載入活動中…
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="py-10 text-center text-slate-500">No events found</div>
+          <div className="py-10 text-center text-slate-500">沒有找到活動</div>
         ) : (
           filteredEvents.map((event) => (
             <EventCard
@@ -244,17 +244,17 @@ export function DiscoverEventsPage() {
         open={isFilterOpen}
         selected={pendingSports}
         onClose={() => setIsFilterOpen(false)}
-        onReset={() => setPendingSports(['All'])}
+        onReset={() => setPendingSports(['全部'])}
         onToggle={(value) => {
           setPendingSports((prev) => {
-            if (value === 'All') return ['All']
-            const next = prev.filter((item) => item !== value && item !== 'All')
+            if (value === '全部') return ['全部']
+            const next = prev.filter((item) => item !== value && item !== '全部')
             const exists = prev.includes(value)
             return exists ? next : [...next, value]
           })
         }}
         onApply={() => {
-          setSelectedSports(pendingSports.length ? pendingSports : ['All'])
+          setSelectedSports(pendingSports.length ? pendingSports : ['全部'])
           setIsFilterOpen(false)
         }}
       />
@@ -290,7 +290,7 @@ export function DiscoverEventsPage() {
         open={showIntroSheet}
         onClose={handleIntroClose}
         description={
-          'SportsMatch helps you find people who play like you — not just events.'
+          'SportsMatch 幫你找到步調相近的夥伴，不只是活動。'
         }
         dismissLabel={null}
       />
@@ -328,9 +328,9 @@ function SportFilterSheet({
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              sport filter
+              運動篩選
             </p>
-            <h2 className="text-xl font-semibold text-slate-900">What do you want to play?</h2>
+            <h2 className="text-xl font-semibold text-slate-900">想找什麼運動？</h2>
           </div>
           <button
             type="button"
@@ -345,7 +345,7 @@ function SportFilterSheet({
         <div className="max-h-[60vh] space-y-6 overflow-y-auto px-6 py-6">
           <div className="flex flex-col gap-3">
             {sports.map((sport) => {
-              const isActive = selected.includes(sport) || (sport === 'All' && selected.includes('All'))
+              const isActive = selected.includes(sport) || (sport === '全部' && selected.includes('全部'))
               return (
                 <button
                   key={sport}
@@ -364,7 +364,7 @@ function SportFilterSheet({
                   <div className="flex flex-col">
                     <span>{sport}</span>
                     <span className="text-xs font-normal text-slate-500">
-                      {sport === 'All' ? 'Show everything' : 'Tap to filter'}
+                      {sport === '全部' ? '顯示全部' : '點擊套用篩選'}
                     </span>
                   </div>
                 </button>
@@ -379,14 +379,14 @@ function SportFilterSheet({
             onClick={onReset}
             className="text-sm font-semibold text-slate-500 hover:text-slate-800"
           >
-            Clear all
+            全部清除
           </button>
           <button
             type="button"
             onClick={onApply}
             className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
           >
-            Apply
+            套用
           </button>
         </div>
       </div>
@@ -443,8 +443,7 @@ function CalendarSheet({
     <BottomSheet open={open} onClose={onClose} showHandle={false} maxWidthClassName="max-w-[420px]" contentClassName="px-0 pb-0">
       <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">full calendar</p>
-          <h2 className="text-xl font-semibold text-slate-900">{format(month, 'MMMM yyyy')}</h2>
+          <h2 className="text-xl font-semibold text-slate-900">{format(month, 'yyyy 年 MM 月')}</h2>
         </div>
         <div className="flex items-center gap-2">
           <select
@@ -462,7 +461,7 @@ function CalendarSheet({
             type="button"
             onClick={() => onMonthChange(addMonths(month, -1))}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-            aria-label="Previous month"
+            aria-label="上一個月"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           </button>
@@ -470,7 +469,7 @@ function CalendarSheet({
             type="button"
             onClick={() => onMonthChange(addMonths(month, 1))}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-            aria-label="Next month"
+            aria-label="下一個月"
           >
             <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           </button>
@@ -478,7 +477,7 @@ function CalendarSheet({
             type="button"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-            aria-label="Close calendar"
+            aria-label="關閉月曆"
           >
             <X className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
           </button>
@@ -487,8 +486,8 @@ function CalendarSheet({
 
       <div className="px-6 py-4">
         <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => (
-            <span key={label}>{label}</span>
+          {['一', '二', '三', '四', '五', '六', '日'].map((label) => (
+            <span key={label}>週{label}</span>
           ))}
         </div>
         <div className="mt-2 grid grid-cols-7 gap-2">
@@ -523,14 +522,14 @@ function CalendarSheet({
           onClick={onClear}
           className="text-sm font-semibold text-slate-500 hover:text-slate-800"
         >
-          Clear
+          清除
         </button>
         <button
           type="button"
           onClick={onApply}
           className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
         >
-          Done
+          完成
         </button>
       </div>
     </BottomSheet>
@@ -552,8 +551,8 @@ function SkillFilterSheet({ open, selected, onSelect, onClose }: SkillSheetProps
       <div className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)] animate-[sheetIn_0.25s_ease-out]">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">skill filter</p>
-            <h2 className="text-xl font-semibold text-slate-900">Pick your pace</h2>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">程度篩選</p>
+            <h2 className="text-xl font-semibold text-slate-900">選擇合適的節奏</h2>
           </div>
           <button
             type="button"
@@ -582,7 +581,7 @@ function SkillFilterSheet({ open, selected, onSelect, onClose }: SkillSheetProps
                   )}
                 >
                   <span>{option.label}</span>
-                  {active && <span className="text-xs text-blue-500">Selected</span>}
+                  {active && <span className="text-xs text-blue-500">已選</span>}
                 </button>
               )
             })}

@@ -108,7 +108,7 @@ interface OnboardingState {
 const INITIAL_DATA: OnboardingData = {
   role: null,
   fullName: '',
-  city: 'Brisbane',
+  city: '台北',
   postalCode: '',
   postalArea: '',
   gender: 'prefer_not_to_say',

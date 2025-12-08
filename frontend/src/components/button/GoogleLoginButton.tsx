@@ -35,7 +35,7 @@ export default function GoogleLoginButton({
         />
       </svg>
       <span className="text-sm font-medium text-slate-900">
-        Continue with Google
+        使用 Google 繼續
       </span>
     </Button>
   )

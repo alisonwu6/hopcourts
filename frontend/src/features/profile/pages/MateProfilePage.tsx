@@ -20,7 +20,7 @@ export function MateProfilePage() {
     vibe: (mate?.vibe as MateCardProps['vibe']) ?? 'Chill',
     sports: mate?.sports ?? ['Basketball', 'Gym'],
     trying: mate?.trying ?? ['Pickleball'],
-    location: mate?.location ?? 'Brisbane',
+    location: mate?.location ?? '台北',
     blurb: mate?.blurb ?? 'Let’s play soon!',
     avatar:
       mate?.avatar ??

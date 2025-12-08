@@ -49,16 +49,15 @@ export function SignupPage() {
           <div className="mt-3 space-y-2">
             {/* <h1 className="text-2xl font-semibold text-player-900">Join the movement.</h1> */}
             <p className="text-sm text-player-900/70">
-              SportsMatch is built to inspire players everywhere—match up with locals, commit to play,
-              and stay motivated through every event and pick-up event.
+              SportsMatch 想讓大家都更愛動起來——和在地夥伴配對、說好就玩，幫你一路維持動力。
             </p>
           </div>
 
           <form className="mt-4 space-y-4 text-left" onSubmit={handleSubmit}>
             <InputField
-              label="Full Name"
+              label="姓名"
               type="text"
-              placeholder="John Smith"
+              placeholder="王小明"
               value={name}
               onChange={(event) => {
                 if (error) clearError()
@@ -68,7 +67,7 @@ export function SignupPage() {
               autoComplete="name"
             />
             <InputField
-              label="Email Address"
+              label="Email"
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -80,10 +79,10 @@ export function SignupPage() {
               autoComplete="email"
             />
             <InputField
-              label="Password"
+              label="密碼"
               type="password"
-              placeholder="At least 8 characters"
-              hint="Must contain uppercase, lowercase, and number"
+              placeholder="至少 8 碼"
+              hint="需包含大小寫英文字母與數字"
               value={password}
               onChange={(event) => {
                 if (error) clearError()
@@ -93,9 +92,9 @@ export function SignupPage() {
               autoComplete="new-password"
             />
             <InputField
-              label="Confirm Password"
+              label="再次輸入密碼"
               type="password"
-              placeholder="Confirm your password"
+              placeholder="請再輸入一次密碼"
               value={confirmPassword}
               onChange={(event) => {
                 if (error) clearError()
@@ -114,13 +113,13 @@ export function SignupPage() {
                 className="mt-1 h-4 w-4 rounded border-player-200 text-player-600 focus:ring-player-600"
               />
               <label htmlFor="terms">
-                I agree to the{' '}
+                我同意
                 <a href="#" className="font-semibold text-player-600 hover:text-player-700">
-                  Terms of Service
+                  服務條款
                 </a>{' '}
-                and{' '}
+                與{' '}
                 <a href="#" className="font-semibold text-player-600 hover:text-player-700">
-                  Privacy Policy
+                  隱私權政策
                 </a>
               </label>
             </div>
@@ -128,14 +127,14 @@ export function SignupPage() {
             {effectiveError && <p className="text-sm text-red-500">{effectiveError}</p>}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating account…' : 'Create Account'}
+              {isLoading ? '建立帳號中…' : '建立帳號'}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-player-900/70">
-            Already have an account?{' '}
+            已經有帳號了？{' '}
             <Link to="/login" className="font-semibold text-player-600 hover:text-player-700">
-              Login
+              立即登入
             </Link>
           </p>
         </main>

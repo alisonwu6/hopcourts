@@ -47,20 +47,20 @@ export function MyEventsPage() {
               onClick={() => navigate('/events')}
               className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
             >
-              Discover
+              探索
             </button>
             <button
               type="button"
               className="flex-1 rounded-full bg-white px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm"
               aria-current="page"
             >
-              My Sessions
+              我的場次
             </button>
           </div>
         </div>
         <div className="mt-4 flex justify-center gap-3">
-          <TagPill label={`Upcoming (${upcomingEvents.length})`} active={tab === 'upcoming'} onClick={() => setTab('upcoming')} />
-          <TagPill label={`Completed (${completedEvents.length})`} active={tab === 'completed'} onClick={() => setTab('completed')} />
+          <TagPill label={`即將到來 (${upcomingEvents.length})`} active={tab === 'upcoming'} onClick={() => setTab('upcoming')} />
+          <TagPill label={`已完成 (${completedEvents.length})`} active={tab === 'completed'} onClick={() => setTab('completed')} />
         </div>
       </div>
 
@@ -71,16 +71,16 @@ export function MyEventsPage() {
           </div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">Loading your events…</div>
+          <div className="py-10 text-center text-slate-500">載入你的場次中…</div>
         ) : tab === 'upcoming' ? (
           <EventGroupList
             groups={groupByDate(upcomingEvents)}
-            emptyState={<EmptyState icon="📭" title="No events yet" description="Browse events to join your first one" />}
+            emptyState={<EmptyState icon="📭" title="目前沒有場次" description="去看看其他活動並加入吧" />}
           />
         ) : (
           <EventGroupList
             groups={groupByDate(completedEvents)}
-            emptyState={<EmptyState icon="✓" title="No completed events" description="Completed events will appear here" />}
+            emptyState={<EmptyState icon="✓" title="尚無已完成的場次" description="完成的場次會顯示在這裡" />}
           />
         )}
       </div>
@@ -154,7 +154,7 @@ function EventGroupList({
                     <p className="mt-2 text-xs font-semibold text-blue-600">
                       {isCompleted(event)
                         ? '⭐⭐⭐⭐⭐ Leave review →'
-                        : `✓ Joined (${event.attendeeCount}/${event.maxAttendees})`}
+                        : `✓ 已加入 (${event.attendeeCount}/${event.maxAttendees})`}
                     </p>
                   </div>
                   <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xl text-white">

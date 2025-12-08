@@ -8,28 +8,37 @@ import { useAuthStore } from '@/hooks'
 
 const mockProfile: MateCardProps = {
   name: 'Alison Wu',
-  location: 'Brisbane CBD',
+  location: '台北',
   flag: '🇹🇼',
   vibe: 'Chill',
-  sports: ['Basketball', 'Running', 'Gym'],
-  trying: ['Pickleball', 'Bouldering'],
-  blurb: 'Here for good banter, easy pace, and a crew to play with after work.',
+  sports: ['籃球', '慢跑', '健身房'],
+  trying: ['匹克球', '抱石'],
+  blurb: '「找同頻的夥伴，輕鬆聊、輕鬆動，下班也能一起放鬆。」',
   avatar: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=320&q=80',
 }
 
 export function ProfilePage() {
   const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const dayLabels: Record<string, string> = {
+    Monday: '週一',
+    Tuesday: '週二',
+    Wednesday: '週三',
+    Thursday: '週四',
+    Friday: '週五',
+    Saturday: '週六',
+    Sunday: '週日',
+  }
   const createDaySlots = () =>
     daysList.reduce<Record<string, string[]>>((acc, day) => {
       acc[day] = []
       return acc
     }, {})
   const [showGoalSheet, setShowGoalSheet] = useState(false)
-  const [goal, setGoal] = useState({ sessionsPerWeek: '2', timeOfDay: 'Evenings', days: ['Mon', 'Wed'] })
+  const [goal, setGoal] = useState({ sessionsPerWeek: '2', timeOfDay: '晚上', days: ['Mon', 'Wed'] })
   const [draftGoal, setDraftGoal] = useState(goal)
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftPreferredTime, setDraftPreferredTime] = useState(goal.timeOfDay || 'Mornings')
+  const [draftPreferredTime, setDraftPreferredTime] = useState(goal.timeOfDay || '早上')
   const [profile, setProfile] = useState<MateCardProps>(mockProfile)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(mockProfile)
   const [showEditSheet, setShowEditSheet] = useState(false)
@@ -217,14 +226,14 @@ export function ProfilePage() {
               onClick={() => setShowEditSheet(false)}
               className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300"
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"
               onClick={handleSaveProfile}
               className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
             >
-              Save card
+              儲存卡片
             </button>
           </div>
         </div>
@@ -239,8 +248,8 @@ export function ProfilePage() {
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-500">Set your weekly rhythm</p>
-              <p className="text-xl font-bold text-slate-900">We’ll tailor matches to this</p>
+              <p className="text-sm font-semibold text-slate-500">設定你的每週節奏</p>
+              <p className="text-xl font-bold text-slate-900">我們會依此幫你推薦夥伴與活動</p>
             </div>
             <button
               type="button"
@@ -253,7 +262,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700">Sessions per week</label>
+            <label className="text-sm font-semibold text-slate-700">每週目標次數</label>
             <input
               type="number"
               min={1}
@@ -265,9 +274,9 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-slate-700">When do you usually prefer to exercise?</p>
+            <p className="text-sm font-semibold text-slate-700">通常想在什麼時段運動？</p>
             <div className="flex flex-wrap gap-2">
-              {['Morning', 'Afternoon', 'Evening'].map((slot) => {
+              {['早上', '下午', '晚上'].map((slot) => {
                 const active = draftPreferredTime === slot
                 return (
                   <button
@@ -298,14 +307,14 @@ export function ProfilePage() {
 
             <details className="space-y-2 rounded-2xl border border-slate-200 bg-white px-4 py-3">
               <summary className="cursor-pointer text-sm font-semibold text-slate-700">
-                Fine-tune by day (optional)
+                按天微調（可選）
               </summary>
               <div className="space-y-3 pt-2">
                 {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
                   <div key={day} className="space-y-2">
-                    <p className="text-base font-semibold text-slate-800">{day}</p>
+                    <p className="text-base font-semibold text-slate-800">{dayLabels[day] ?? day}</p>
                     <div className="flex flex-wrap gap-2">
-                      {['Morning', 'Afternoon', 'Evening'].map((slot) => {
+                      {['早上', '下午', '晚上'].map((slot) => {
                         const active = draftDaySlots[day]?.includes(slot)
                         return (
                           <button
@@ -341,7 +350,7 @@ export function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            We’ll help you find sessions and people that fit your rhythm.
+            我們會幫你找到符合節奏的活動與夥伴。
           </div>
 
           <div className="flex gap-3">
@@ -357,7 +366,7 @@ export function ProfilePage() {
               onClick={handleSaveGoal}
               className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
             >
-              Save
+              儲存
             </button>
           </div>
         </div>
@@ -377,19 +386,26 @@ export function StatsContent({
   onOpenGoalSheet: () => void
   showEdit?: boolean
 }) {
-  const preferredTimes = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
-    (day) => ({
-      day,
-      slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : 'Not set',
-    })
-  )
+  const dayLabels: Record<string, string> = {
+    Monday: '週一',
+    Tuesday: '週二',
+    Wednesday: '週三',
+    Thursday: '週四',
+    Friday: '週五',
+    Saturday: '週六',
+    Sunday: '週日',
+  }
+  const preferredTimes = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => ({
+    dayLabel: dayLabels[day] ?? day,
+    slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
+  }))
 
   return (
     <div className="px-3">
       <div className="space-y-4 overflow-hidden rounded-3xl border border-blue-100 bg-blue-50 shadow-sm">
         <div className="flex items-start justify-between px-5 pt-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            My Weekly Rhythm
+            我的每週節奏
           </p>
           {showEdit && (
             <button
@@ -397,33 +413,33 @@ export function StatsContent({
               onClick={onOpenGoalSheet}
               className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
             >
-              Edit
+              編輯
             </button>
           )}
         </div>
         <div className="space-y-3 px-5">
           <p className="text-xl font-bold text-slate-900">
-            Your rhythm this week: {goal.sessionsPerWeek} moves
+            本週節奏：{goal.sessionsPerWeek} 次
           </p>
-          <p className="text-sm font-semibold text-slate-700">This week you&apos;re 20% in — nice and steady.</p>
+          <p className="text-sm font-semibold text-slate-700">本週完成度 20% — 穩穩前進。</p>
           <div className="h-3 overflow-hidden rounded-full bg-blue-100">
             <div className="h-full w-1/2 rounded-full bg-emerald-500" />
           </div>
           <p className="text-base font-semibold text-emerald-600">
-            You showed up once — legend.
+            你出現過一次 — 傳奇。
           </p>
         </div>
         <div className="space-y-2 border-t border-blue-100 bg-white/60 px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            Your preferred times
+            你的偏好時段
           </p>
           <div className="space-y-1">
-            {preferredTimes.map(({ day, slots }) => (
+            {preferredTimes.map(({ dayLabel, slots }) => (
               <div
-                key={day}
+                key={dayLabel}
                 className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800"
               >
-                <span>{day}</span>
+                <span>{dayLabel}</span>
                 <span className="text-slate-500 font-medium">{slots}</span>
               </div>
             ))}
@@ -712,8 +728,8 @@ export function PeopleContent() {
       <div className="sticky top-0 z-10 flex justify-center bg-[#f7f8fb] px-3 pb-2 pt-3">
         <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
           {[
-            { key: 'connected', label: 'Connected' },
-            { key: 'playmates', label: 'Playmates' },
+            { key: 'connected', label: '你的運動圈' },
+            { key: 'playmates', label: '交手夥伴' },
           ].map((tab) => {
             const active = subTab === tab.key
             return (
@@ -738,7 +754,7 @@ export function PeopleContent() {
       {subTab === 'connected' && (
         <div className="space-y-4 px-3 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            Your circle
+            你的運動圈
           </p>
           <div className="space-y-3">
             {connected.map((person) => (
@@ -772,7 +788,7 @@ export function PeopleContent() {
       {subTab === 'playmates' && (
         <div className="space-y-4 px-3 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            Play together
+            交手夥伴
           </p>
           <div className="space-y-3">
             {playmates.map((mate) => {
@@ -801,7 +817,7 @@ export function PeopleContent() {
                           {mate.name}
                         </p>
                         <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
-                          PLAYMATE
+                          交手夥伴
                         </span>
                       </div>
                       <p className="text-sm text-slate-600">{mate.meta}</p>

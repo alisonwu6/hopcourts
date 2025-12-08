@@ -13,31 +13,31 @@ export function AccountSettingsPage() {
         onBack={() => navigate(-1)}
         showShare={false}
         showFavorite={false}
-        title={<span className="text-lg font-semibold text-slate-900">My account</span>}
+        title={<span className="text-lg font-semibold text-slate-900">帳號設定</span>}
         contentClassName="max-w-3xl px-4"
         borderBottom
       />
 
       <div className="mx-auto w-full max-w-3xl px-4 pb-8 pt-4 space-y-6">
-        <Section title="Account information" icon={<UserRound className="h-5 w-5 text-slate-500" />}>
+        <Section title="帳號資訊" icon={<UserRound className="h-5 w-5 text-slate-500" />}>
           <Row label="Email" value={email} />
-          <Row label="Sign in with" value="Apple / Google / Email" />
+          <Row label="登入方式" value="Apple / Google / Email" />
         </Section>
 
-        <Section title="Password" icon={<Lock className="h-5 w-5 text-slate-500" />}>
+        <Section title="密碼" icon={<Lock className="h-5 w-5 text-slate-500" />}>
           {method === 'email' ? (
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Reset password</button>
+            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">重設密碼</button>
           ) : (
-            <p className="text-sm text-slate-500">Password reset available for email sign-in.</p>
+            <p className="text-sm text-slate-500">僅支援 Email 登入時重設密碼。</p>
           )}
         </Section>
 
-        <Section title="Danger zone" icon={<Shield className="h-5 w-5 text-rose-400" />}>
+        <Section title="危險區域" icon={<Shield className="h-5 w-5 text-rose-400" />}>
           <button
             className="w-full rounded-lg bg-slate-100 px-4 py-3 text-left text-sm font-semibold text-slate-500"
             disabled
           >
-            Delete my account (coming soon)
+            刪除帳號（即將推出）
           </button>
         </Section>
       </div>

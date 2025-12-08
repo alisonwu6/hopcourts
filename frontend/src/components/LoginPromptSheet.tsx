@@ -19,18 +19,18 @@ export function LoginPromptSheet({ open, onClose, onSignup }: LoginPromptSheetPr
     >
       <div className="text-center">
         <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Log in or sign up
+          登入或註冊
         </p>
       </div>
       <div className="mt-4">
         <LoginPanel variant="sheet" />
         <p className="text-center text-sm text-slate-500">
-          Don&apos;t have an account?{' '}
+          還沒有帳號嗎？{' '}
           <Link
             to="/signup"
             className="font-semibold text-blue-600 hover:text-blue-700"
           >
-            Join SportsMatch
+            加入 SportsMatch
           </Link>
         </p>
       </div>
@@ -40,7 +40,7 @@ export function LoginPromptSheet({ open, onClose, onSignup }: LoginPromptSheetPr
           onClick={onClose}
           className="underline inline-flex w-full items-center justify-center text-sm font-semibold text-slate-500 transition hover:text-slate-800"
         >
-          Keep exploring
+          繼續逛逛
         </button>
       </div>
     </BottomSheet>

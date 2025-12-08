@@ -49,10 +49,10 @@ export default function Header({
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1 text-sm font-medium text-[#051333]">
               <MapPin className="h-4 w-4 text-blue-600" aria-hidden="true" />
-              Brisbane
+              台北
             </div>
             <div className="text-xs text-slate-500" style={{ whiteSpace: 'pre-line' }}>
-              {'Play together.\nBuild your squad.'}
+              {'一起運動。\n找到你的夥伴。'}
             </div>
           </div>
         </div>

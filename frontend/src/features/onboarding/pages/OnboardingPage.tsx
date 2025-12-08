@@ -11,71 +11,72 @@ type Step = 'Vibe' | 'Sports' | 'Trying' | 'Country' | 'Bio' | 'Preview'
 const steps: Step[] = ['Vibe', 'Sports', 'Trying', 'Country', 'Bio', 'Preview']
 
 const sportOptions = [
-  'Basketball',
-  'Running',
-  'Gym',
-  'Badminton',
-  'Pickleball',
-  'Soccer',
-  'Pilates',
-  'Yoga',
-  'Tennis',
-  'Swimming',
-  'Cycling',
-  'Boxing',
-  'Climbing',
-  'Bouldering',
+  '籃球',
+  '跑步',
+  '健身',
+  '羽球',
+  '匹克球',
+  '足球',
+  '皮拉提斯',
+  '瑜伽',
+  '網球',
+  '游泳',
+  '單車',
+  '拳擊',
+  '攀岩',
+  '抱石',
   'HIIT',
   'CrossFit',
-  'Table tennis',
-  'Volleyball',
-  'Beach volleyball',
-  'Hiking',
-  'Trail running',
-  'Rowing',
-  'Surfing',
-  'Skate',
-  'Padel',
-  'Rugby',
-  'Cricket',
-  'Ultimate frisbee',
-  'Dodgeball',
-  'I am just getting started',
+  '桌球',
+  '排球',
+  '沙灘排球',
+  '健行',
+  '越野跑',
+  '划船',
+  '衝浪',
+  '滑板',
+  '板網球',
+  '橄欖球',
+  '板球',
+  '極限飛盤',
+  '躲避球',
+  '我剛開始接觸運動',
 ] as const
 
-const tryingOptions = ['Not sure yet', ...sportOptions]
+const tryingOptions = ['暫時不確定', ...sportOptions]
 
 const countryOptions = [
-  { name: 'Australia', flag: '🇦🇺' },
-  { name: 'New Zealand', flag: '🇳🇿' },
-  { name: 'United States', flag: '🇺🇸' },
-  { name: 'Canada', flag: '🇨🇦' },
-  { name: 'United Kingdom', flag: '🇬🇧' },
-  { name: 'Ireland', flag: '🇮🇪' },
-  { name: 'Germany', flag: '🇩🇪' },
-  { name: 'France', flag: '🇫🇷' },
-  { name: 'Spain', flag: '🇪🇸' },
-  { name: 'Italy', flag: '🇮🇹' },
-  { name: 'Netherlands', flag: '🇳🇱' },
-  { name: 'Sweden', flag: '🇸🇪' },
-  { name: 'Norway', flag: '🇳🇴' },
-  { name: 'Finland', flag: '🇫🇮' },
-  { name: 'Denmark', flag: '🇩🇰' },
-  { name: 'Japan', flag: '🇯🇵' },
-  { name: 'South Korea', flag: '🇰🇷' },
-  { name: 'China', flag: '🇨🇳' },
-  { name: 'Taiwan', flag: '🇹🇼' },
-  { name: 'India', flag: '🇮🇳' },
-  { name: 'Singapore', flag: '🇸🇬' },
-  { name: 'Hong Kong', flag: '🇭🇰' },
-  { name: 'Philippines', flag: '🇵🇭' },
-  { name: 'Malaysia', flag: '🇲🇾' },
-  { name: 'Vietnam', flag: '🇻🇳' },
-  { name: 'Thailand', flag: '🇹🇭' },
-  { name: 'Indonesia', flag: '🇮🇩' },
-  { name: 'South Africa', flag: '🇿🇦' },
-  { name: 'Brazil', flag: '🇧🇷' },
-  { name: 'Argentina', flag: '🇦🇷' },
+  { name: '台灣', flag: '🇹🇼' },
+  { name: '日本', flag: '🇯🇵' },
+  { name: '韓國', flag: '🇰🇷' },
+  { name: '中國', flag: '🇨🇳' },
+  { name: '香港', flag: '🇭🇰' },
+  { name: '澳門', flag: '🇲🇴' },
+  { name: '新加坡', flag: '🇸🇬' },
+  { name: '馬來西亞', flag: '🇲🇾' },
+  { name: '越南', flag: '🇻🇳' },
+  { name: '泰國', flag: '🇹🇭' },
+  { name: '印尼', flag: '🇮🇩' },
+  { name: '菲律賓', flag: '🇵🇭' },
+  { name: '印度', flag: '🇮🇳' },
+  { name: '澳洲', flag: '🇦🇺' },
+  { name: '紐西蘭', flag: '🇳🇿' },
+  { name: '美國', flag: '🇺🇸' },
+  { name: '加拿大', flag: '🇨🇦' },
+  { name: '英國', flag: '🇬🇧' },
+  { name: '愛爾蘭', flag: '🇮🇪' },
+  { name: '德國', flag: '🇩🇪' },
+  { name: '法國', flag: '🇫🇷' },
+  { name: '西班牙', flag: '🇪🇸' },
+  { name: '義大利', flag: '🇮🇹' },
+  { name: '荷蘭', flag: '🇳🇱' },
+  { name: '瑞典', flag: '🇸🇪' },
+  { name: '挪威', flag: '🇳🇴' },
+  { name: '芬蘭', flag: '🇫🇮' },
+  { name: '丹麥', flag: '🇩🇰' },
+  { name: '巴西', flag: '🇧🇷' },
+  { name: '阿根廷', flag: '🇦🇷' },
+  { name: '南非', flag: '🇿🇦' },
 ] as const
 
 const withAlpha = (hex: string, alpha: number) => {
@@ -100,10 +101,12 @@ export function OnboardingPage() {
   const [countrySearch, setCountrySearch] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const sportsDisplayCount = sports.includes('I am just getting started')
+  const starterLabel = '我剛開始接觸運動'
+  const unsureLabel = '暫時不確定'
+  const sportsDisplayCount = sports.includes(starterLabel)
     ? 0
     : sports.length
-  const tryingDisplayCount = trying.includes('Not sure yet') ? 0 : trying.length
+  const tryingDisplayCount = trying.includes(unsureLabel) ? 0 : trying.length
 
   const currentStep = steps[stepIndex]
   const neutralAccent = {
@@ -121,10 +124,10 @@ export function OnboardingPage() {
 
   const toggleSport = (item: string) => {
     setSports((prev) => {
-      if (item === 'I am just getting started') {
-        return ['I am just getting started']
+      if (item === starterLabel) {
+        return [starterLabel]
       }
-      const cleaned = prev.filter((s) => s !== 'I am just getting started')
+      const cleaned = prev.filter((s) => s !== starterLabel)
       if (cleaned.includes(item)) return cleaned.filter((s) => s !== item)
       if (cleaned.length >= 3) return cleaned
       return [...cleaned, item]
@@ -134,10 +137,10 @@ export function OnboardingPage() {
   const toggleTrying = (item: string) => {
     setTrying((prev) => {
       if (prev.includes(item)) return prev.filter((s) => s !== item)
-      if (item === 'Not sure yet') {
-        return prev.includes(item) ? [] : ['Not sure yet']
+      if (item === unsureLabel) {
+        return prev.includes(item) ? [] : [unsureLabel]
       }
-      const cleaned = prev.filter((s) => s !== 'Not sure yet')
+      const cleaned = prev.filter((s) => s !== unsureLabel)
       if (cleaned.includes(item)) return cleaned.filter((s) => s !== item)
       if (cleaned.length >= 2) return cleaned
       return [...cleaned, item]
@@ -174,12 +177,21 @@ export function OnboardingPage() {
     name: 'Jamie Thompson',
     flag: country?.flag ?? '🇦🇺',
     vibe: (vibe ?? 'Social') as Vibe,
-    sports: sports.length ? sports : ['Pilates', 'Gym', 'Badminton'],
-    trying: trying.length ? trying : ['Yoga', 'Social running'],
-    location: 'Brisbane',
+    sports: sports.length ? sports : ['皮拉提斯', '健身', '羽球'],
+    trying: trying.length ? trying : ['瑜伽', '社交慢跑'],
+    location: '台北',
     blurb: bio,
     avatar:
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
+  }
+
+  const stepLabels: Record<Step, string> = {
+    Vibe: '氛圍',
+    Sports: '常打運動',
+    Trying: '想嘗試',
+    Country: '來自哪裡',
+    Bio: '一句話介紹',
+    Preview: '預覽',
   }
 
   const filteredCountries = useMemo(() => {
@@ -191,8 +203,8 @@ export function OnboardingPage() {
   const filteredSports = useMemo(() => {
     const term = sportsSearch.trim().toLowerCase()
     const ordered = [...sportOptions].sort((a, b) => {
-      if (a === 'I am just getting started') return -1
-      if (b === 'I am just getting started') return 1
+      if (a === starterLabel) return -1
+      if (b === starterLabel) return 1
       return 0
     })
     if (!term) return ordered
@@ -231,30 +243,30 @@ export function OnboardingPage() {
               />
             </div>
             <div className="text-sm font-semibold text-slate-500">
-              {currentStep}
+              {stepLabels[currentStep]}
             </div>
             <div className="space-y-2">
               <h1 className="text-3xl font-bold leading-tight text-slate-900">
-                {currentStep === 'Vibe' && "What's your main vibe right now?"}
-                {currentStep === 'Sports' && 'Sports you actually play'}
-                {currentStep === 'Trying' && 'What do you want to try next?'}
-                {currentStep === 'Country' && 'Where do you call home?'}
-                {currentStep === 'Bio' && 'One line about why you move'}
-                {currentStep === 'Preview' && 'Your mate card preview'}
+                {currentStep === 'Vibe' && '你現在的運動氛圍是什麼？'}
+                {currentStep === 'Sports' && '你真的會去的運動'}
+                {currentStep === 'Trying' && '接下來想嘗試什麼？'}
+                {currentStep === 'Country' && '你來自哪裡？'}
+                {currentStep === 'Bio' && '一句話，為什麼想動？'}
+                {currentStep === 'Preview' && '你的夥伴卡預覽'}
               </h1>
               <p className="text-base text-slate-600">
                 {currentStep === 'Vibe' &&
-                  "Just how you'd describe yourself this month — you can always change it."}
+                  '用最貼近你這個月的感覺來形容，之後都可以再改。'}
                 {currentStep === 'Sports' &&
-                  'Pick up to 3 — the ones you say yes to most weeks.'}
+                  '選最多 3 項，每週最常說「好，走！」的那些。'}
                 {currentStep === 'Trying' &&
-                  'Pick up to 2 — it helps people invite you to the right sessions.'}
+                  '選最多 2 項，讓大家邀你去更合適的場次。'}
                 {currentStep === 'Country' &&
-                  'We use your flag to help you feel at home while you settle into Brisbane’s sport communities.'}
+                  '我們會顯示你的旗幟，讓你在這裡也有家的感覺。'}
                 {currentStep === 'Bio' &&
-                  'This shows on your mate card. Keep it honest, keep it short.'}
+                  '會顯示在你的夥伴卡上，真誠、簡短就好。'}
                 {currentStep === 'Preview' &&
-                  'This is how others will see you on SportsMatch.'}
+                  '這是別人看到的你的樣子。'}
               </p>
             </div>
           </div>
@@ -295,7 +307,7 @@ export function OnboardingPage() {
           {currentStep === 'Sports' && (
             <div className="space-y-3">
               <div className="text-sm font-semibold text-slate-500">
-                {sportsDisplayCount}/3 selected
+                已選 {sportsDisplayCount}/3
               </div>
               {sports.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -323,7 +335,7 @@ export function OnboardingPage() {
                   value={sportsSearch}
                   onChange={(e) => setSportsSearch(e.target.value)}
                   className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                  placeholder="Search sports..."
+                  placeholder="搜尋運動..."
                 />
               </div>
               <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
@@ -367,7 +379,7 @@ export function OnboardingPage() {
           {currentStep === 'Trying' && (
             <div className="space-y-3">
               <div className="text-sm font-semibold text-slate-500">
-                {tryingDisplayCount}/2 selected
+                已選 {tryingDisplayCount}/2
               </div>
               {trying.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -395,16 +407,16 @@ export function OnboardingPage() {
                   value={tryingSearch}
                   onChange={(e) => setTryingSearch(e.target.value)}
                   className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                  placeholder="Search things to try..."
+                  placeholder="搜尋想嘗試的運動..."
                 />
               </div>
               <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
                 {filteredTrying.map((item) => {
                   const selected = trying.includes(item)
-                  const isNotSure = item === 'Not sure yet'
+                  const isNotSure = item === '暫時不確定'
                   return (
-                    <button
-                      key={item}
+                      <button
+                        key={item}
                       type="button"
                       onClick={() => toggleTrying(item)}
                       className={clsx(
@@ -443,11 +455,11 @@ export function OnboardingPage() {
                 <input
                   type="text"
                   value={countrySearch}
-                  onChange={(e) => setCountrySearch(e.target.value)}
-                  className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                  placeholder="Search your country..."
-                />
-              </div>
+                onChange={(e) => setCountrySearch(e.target.value)}
+                className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                placeholder="搜尋你的國家/地區..."
+              />
+            </div>
               <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
                 {filteredCountries.map((item) => {
                   const selected = country?.name === item.name
@@ -540,7 +552,7 @@ export function OnboardingPage() {
                 className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
-                Back
+                上一步
               </button>
             ) : null}
             <button
@@ -554,7 +566,7 @@ export function OnboardingPage() {
               )}
               style={nextDisabled ? undefined : { background: accent.ring }}
             >
-              {currentStep === 'Preview' ? 'Save my mate card' : 'Next'}
+              {currentStep === 'Preview' ? '儲存我的運動卡' : '下一步'}
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>

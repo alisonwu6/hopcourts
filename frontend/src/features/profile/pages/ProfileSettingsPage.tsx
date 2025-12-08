@@ -5,8 +5,8 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 type SettingKey = 'account' | 'privacy'
 
 const items: { key: SettingKey; label: string; icon: React.ElementType }[] = [
-  { key: 'account', label: 'My account', icon: UserRound },
-  { key: 'privacy', label: 'Privacy', icon: ShieldCheck },
+  { key: 'account', label: '帳號設定', icon: UserRound },
+  { key: 'privacy', label: '隱私與安全', icon: ShieldCheck },
 ]
 
 export function ProfileSettingsPage() {
@@ -20,7 +20,7 @@ export function ProfileSettingsPage() {
         showFavorite={false}
         contentClassName="max-w-3xl px-4"
         showBack
-        title={<span className="text-lg font-semibold text-slate-900">Settings</span>}
+        title={<span className="text-lg font-semibold text-slate-900">設定</span>}
         rightContent={<span className="h-10 w-10" aria-hidden="true" />}
         borderBottom
       />
@@ -50,7 +50,7 @@ export function ProfileSettingsPage() {
           <button className="flex w-full items-center justify-between px-4 py-4 text-left text-slate-500 hover:text-slate-700">
             <div className="flex items-center gap-3">
               <LogOut className="h-5 w-5 text-slate-500" />
-              <span className="text-base font-medium">Logout</span>
+              <span className="text-base font-medium">登出</span>
             </div>
           </button>
         </div>
