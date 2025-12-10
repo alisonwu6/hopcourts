@@ -126,8 +126,8 @@ export function ProfilePage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-500">Edit mate card</p>
-              <p className="text-xl font-bold text-slate-900">Keep your vibe accurate</p>
+              <p className="text-sm font-semibold text-slate-500">編輯運動卡</p>
+              <p className="text-xl font-bold text-slate-900">保持你的氛圍最新</p>
             </div>
             <button
               type="button"
@@ -140,7 +140,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Name</label>
+            <label className="text-sm font-semibold text-slate-700">名稱</label>
             <input
               value={draftProfile.name}
               onChange={(e) => updateDraftProfile('name', e.target.value)}
@@ -149,7 +149,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Location</label>
+            <label className="text-sm font-semibold text-slate-700">地點</label>
             <input
               value={draftProfile.location}
               onChange={(e) => updateDraftProfile('location', e.target.value)}
@@ -161,27 +161,27 @@ export function ProfilePage() {
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700">Flag</label>
               <input
-                value={draftProfile.flag}
-                onChange={(e) => updateDraftProfile('flag', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Vibe</label>
-              <select
-                value={draftProfile.vibe}
-                onChange={(e) => updateDraftProfile('vibe', e.target.value as MateCardProps['vibe'])}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-              >
-                {['Chill', 'Social', 'Flow', 'Competitive'].map((v) => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
-            </div>
+              value={draftProfile.flag}
+              onChange={(e) => updateDraftProfile('flag', e.target.value)}
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">Vibe</label>
+            <select
+              value={draftProfile.vibe}
+              onChange={(e) => updateDraftProfile('vibe', e.target.value as MateCardProps['vibe'])}
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+            >
+              {['Chill', 'Social', 'Flow', 'Competitive'].map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+          </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Sports</label>
+            <label className="text-sm font-semibold text-slate-700">常打的運動</label>
             <input
               value={draftProfile.sports.join(', ')}
               onChange={(e) => updateDraftProfile('sports', e.target.value.split(',').map((s) => s.trim()))}
@@ -191,7 +191,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Trying out</label>
+            <label className="text-sm font-semibold text-slate-700">想嘗試</label>
             <input
               value={draftProfile.trying.join(', ')}
               onChange={(e) => updateDraftProfile('trying', e.target.value.split(',').map((s) => s.trim()))}
@@ -201,7 +201,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">About you</label>
+            <label className="text-sm font-semibold text-slate-700">關於你</label>
             <textarea
               value={draftProfile.blurb}
               onChange={(e) => updateDraftProfile('blurb', e.target.value)}
@@ -211,7 +211,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Avatar URL</label>
+            <label className="text-sm font-semibold text-slate-700">大頭貼網址</label>
             <input
               value={draftProfile.avatar}
               onChange={(e) => updateDraftProfile('avatar', e.target.value)}
@@ -359,7 +359,7 @@ export function ProfilePage() {
               onClick={() => setShowGoalSheet(false)}
               className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300"
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"
@@ -859,7 +859,7 @@ function HeroCard({ profile, onEdit }: { profile: MateCardProps; onEdit: () => v
           onClick={onEdit}
           className="w-100 max-w-xs rounded-lg bg-slate-100 px-4 py-1 text-slate-400 text-sm"
         >
-          Edit Sport Card
+          編輯運動卡
         </button>
       </div>
     </div>

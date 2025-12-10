@@ -1,5 +1,5 @@
 import { BottomSheet } from './BottomSheet'
-import logoUrl from '@/assets/main-logo.png'
+import logoUrl from '@/assets/logo.png'
 
 type IntroSheetProps = {
   open: boolean

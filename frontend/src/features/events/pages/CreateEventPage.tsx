@@ -4,10 +4,10 @@ import { useMemo, useState, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
 const SKILL_LEVEL_LABELS = {
-  mixed: 'All levels',
-  beginner: 'Beginner',
-  intermediate: 'Intermediate',
-  advanced: 'Advanced',
+  mixed: '不限程度',
+  beginner: '初階',
+  intermediate: '中階',
+  advanced: '進階',
 } as const
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
@@ -43,7 +43,7 @@ const initialState: FormState = {
   endTime: '',
   location: '',
   capacity: '3',
-  priceNote: 'Pay on site',
+  priceNote: '現場收費',
   skillLevel: 'mixed',
   description: '',
   notes: '',
@@ -114,24 +114,24 @@ export default function CreateEventPage() {
     const endDate = new Date(form.endTime)
 
     if (Number.isNaN(startDate.getTime())) {
-      setError('Please choose a valid start date and time.')
+      setError('請選擇有效的開始日期與時間。')
       return
     }
     if (Number.isNaN(endDate.getTime())) {
-      setError('Please choose a valid end date and time.')
+      setError('請選擇有效的結束日期與時間。')
       return
     }
     if (endDate <= startDate) {
-      setError('End time must be after the start time.')
+      setError('結束時間需晚於開始時間。')
       return
     }
     const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000)
     if (Number.isNaN(durationMinutes) || durationMinutes <= 0) {
-      setError('Unable to calculate duration — please adjust your times.')
+      setError('無法計算活動時長，請調整時間。')
       return
     }
     if (Number.isNaN(capacity) || capacity <= 0) {
-      setError('Capacity must be a positive number.')
+      setError('人數上限必須大於 0。')
       return
     }
 
@@ -159,7 +159,7 @@ export default function CreateEventPage() {
 
       navigate(`/event/${event.id}`)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create event.'
+      const message = err instanceof Error ? err.message : '建立活動失敗。'
       setError(message)
     } finally {
       setIsSubmitting(false)
@@ -175,7 +175,7 @@ export default function CreateEventPage() {
         isFavorite={isFavorite}
         showFavorite={false}
         showShare={false}
-        backLabel="Cancel"
+        backLabel="取消"
         contentClassName="w-full max-w-3xl px-4 sm:px-6"
       />
       <form
@@ -192,16 +192,16 @@ export default function CreateEventPage() {
         <section className="space-y-8 rounded-[32px] border border-slate-100 bg-white shadow-[0_24px_60px_rgba(15,41,77,0.12)] px-6 py-8 sm:px-8">
           <CoverUploader previewUrl={heroPreview} onChange={handleImageChange} />
 
-          <FieldSection title="Game basics" description="Start with the essentials players see first.">
+          <FieldSection title="活動基本資料" description="先填最重要的資訊，讓大家一眼看懂。">
             <FloatingField
-              label="Title"
+              label="標題"
               name="title"
               value={form.title}
               onChange={handleInputChange}
               required
             />
             <FloatingField
-              label="Sport"
+              label="運動項目"
               name="sport"
               value={form.sport}
               onChange={handleInputChange}
@@ -210,10 +210,10 @@ export default function CreateEventPage() {
             <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
           </FieldSection>
 
-          <FieldSection title="Schedule & logistics" description="Set when and where your group will meet.">
+          <FieldSection title="時間與地點" description="設定集合時間與地點。">
             <div className="grid gap-4 sm:grid-cols-2">
               <FloatingField
-                label="Start date & time"
+                label="開始時間"
                 name="startTime"
                 type="datetime-local"
                 value={form.startTime}
@@ -221,7 +221,7 @@ export default function CreateEventPage() {
                 required
               />
               <FloatingField
-                label="End date & time"
+                label="結束時間"
                 name="endTime"
                 type="datetime-local"
                 value={form.endTime}
@@ -230,7 +230,7 @@ export default function CreateEventPage() {
               />
             </div>
             <FloatingField
-              label="Location"
+              label="地點"
               name="location"
               value={form.location}
               onChange={handleInputChange}
@@ -249,24 +249,24 @@ export default function CreateEventPage() {
             </div>
           </FieldSection>
 
-          <FieldSection title="Tell players what to expect" description="Describe the vibe, goals, and any special notes.">
+          <FieldSection title="告訴大家期待什麼" description="描述氛圍、目標，或注意事項。">
             <FloatingField
               as="textarea"
-              label="Description"
+              label="描述"
               name="description"
               rows={4}
               value={form.description}
               onChange={handleInputChange}
-              supportingText="Describe what this session is about — the vibe, the pace, and what people can expect."
+              supportingText="說明活動的氛圍、步調，讓參加者知道會遇到什麼。"
             />
             <FloatingField
               as="textarea"
-              label="Notes for attendees"
+              label="給參加者的小提醒"
               name="notes"
               rows={3}
               value={form.notes}
               onChange={handleInputChange}
-              supportingText="Updates and important details for attendees only."
+              supportingText="只給已報名者的最新通知或重要細節。"
             />
           </FieldSection>
         </section>
@@ -294,7 +294,7 @@ function ActionBar({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitti
           disabled
           className="flex-1 rounded-full border-blue-200 text-blue-500 hover:bg-blue-50"
         >
-          Draft
+          草稿
         </Button>
         <Button
           size="sm"
@@ -303,7 +303,7 @@ function ActionBar({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitti
           disabled={!canSubmit || isSubmitting}
           className="flex-1 rounded-full px-6"
         >
-          {isSubmitting ? 'Publishing…' : 'Publish'}
+          {isSubmitting ? '發布中…' : '發佈'}
         </Button>
       </div>
     </div>

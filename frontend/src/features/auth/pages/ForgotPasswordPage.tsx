@@ -2,7 +2,7 @@ import { FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { resetPassword } from '@/services/authService'
 import { Button, InputField } from '@/components'
-import logoUrl from '@/assets/sportsmatch.png'
+import logoUrl from '@/assets/logo.png'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')

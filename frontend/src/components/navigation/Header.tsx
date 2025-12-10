@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { Bell, MapPin, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
-import logoUrl from '@/assets/sportsmatch.png'
 
 type Props = {
   sticky?: boolean

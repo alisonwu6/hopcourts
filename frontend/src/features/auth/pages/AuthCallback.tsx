@@ -36,7 +36,7 @@ export function AuthCallback() {
       try {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token, context.onboardingStatus)
-        setOk('Signed in! Redirecting…')
+        setOk('登入成功！為你導向中…')
         setTimeout(() => navigate('/', { replace: true }), 900)
       } catch (bootstrapError: any) {
         setErr(bootstrapError?.message ?? 'Unable to finish sign in.')
@@ -71,7 +71,7 @@ export function AuthCallback() {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token, context.onboardingStatus)
       }
-      setOk('Password updated. Redirecting…')
+      setOk('密碼已更新，為你導向中…')
       setTimeout(() => navigate('/', { replace: true }), 1200)
     } catch (bootstrapError: any) {
       setErr(bootstrapError?.message ?? 'Password updated but failed to refresh session.')
@@ -87,12 +87,12 @@ export function AuthCallback() {
           onSubmit={handleSubmit}
           className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg"
         >
-          <h1 className="text-2xl font-semibold text-player-900">Set a new password</h1>
-          <p className="mt-2 text-sm text-player-900/70">Choose a new password to continue.</p>
+          <h1 className="text-2xl font-semibold text-player-900">設定新密碼</h1>
+          <p className="mt-2 text-sm text-player-900/70">請輸入新密碼以繼續。</p>
           <input
             name="password"
             type="password"
-            placeholder="New password"
+            placeholder="新密碼"
             minLength={10}
             required
             className="mt-6 w-full rounded-xl border border-player-100 px-4 py-3 focus:border-player-500 focus:outline-none"
@@ -102,7 +102,7 @@ export function AuthCallback() {
             className="mt-4 w-full rounded-xl bg-player-600 py-3 text-white transition hover:bg-player-700 disabled:opacity-60"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Updating…' : 'Update password'}
+            {isSubmitting ? '更新中…' : '更新密碼'}
           </button>
           {ok && <p className="mt-3 text-sm text-green-600">{ok}</p>}
           {err && <p className="mt-3 text-sm text-red-500">{err}</p>}
@@ -116,7 +116,7 @@ export function AuthCallback() {
       <div className="w-full max-w-sm rounded-2xl border border-player-100 bg-white p-8 text-center shadow-sm">
         <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-player-100 border-t-player-600" />
         <p className="mt-4 text-sm text-player-900/70">
-          {err ?? ok ?? 'Finishing sign in…'}
+          {err ?? ok ?? '完成登入中…'}
         </p>
       </div>
     </div>

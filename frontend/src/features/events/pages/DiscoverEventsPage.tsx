@@ -285,15 +285,6 @@ export function DiscoverEventsPage() {
         }}
         onClose={() => setIsSkillFilterOpen(false)}
       />
-
-      <IntroSheet
-        open={showIntroSheet}
-        onClose={handleIntroClose}
-        description={
-          'SportsMatch 幫你找到步調相近的夥伴，不只是活動。'
-        }
-        dismissLabel={null}
-      />
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}

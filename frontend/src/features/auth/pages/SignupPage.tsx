@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button, InputField } from '@/components'
 import { useAuthStore } from '@/hooks'
-import logoUrl from '@/assets/sportsmatch.png'
+import logoUrl from '@/assets/logo.png'
 
 export function SignupPage() {
   const navigate = useNavigate()
