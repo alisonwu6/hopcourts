@@ -257,9 +257,9 @@ export function MatesPage() {
               ref={listRef}
               className="flex gap-4 overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              {mates.map((mate) => (
+              {mates.map((mate, idx) => (
                 <MateCard
-                  key={mate.name}
+                  key={`${mate.name}-${idx}`}
                   {...mate}
                 />
               ))}
@@ -267,7 +267,7 @@ export function MatesPage() {
             <div className="mt-3 flex justify-center gap-2">
               {mates.map((mate, idx) => (
                 <button
-                  key={mate.name}
+                  key={`${mate.name}-${idx}`}
                   type="button"
                   onClick={() => scrollToIndex(idx)}
                   className={clsx(

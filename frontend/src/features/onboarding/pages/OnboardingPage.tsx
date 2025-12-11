@@ -1,49 +1,64 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Lock } from 'lucide-react'
 import { MateCard } from '@/features/mates/components/MateCard'
 import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
+import { sportOptions } from '@/constants/sportOptions'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 
-type Step = 'Vibe' | 'Sports' | 'Trying' | 'Country' | 'Bio' | 'Preview'
+type Step =
+  | 'Vibe'
+  | 'Sports'
+  | 'Trying'
+  | 'Country'
+  | 'City'
+  | 'Bio'
+  | 'Info'
+  | 'Preview'
+type TimeSlot = '早上' | '下午' | '晚上'
+type CityOption = { id: string; label: string }
 
-const steps: Step[] = ['Vibe', 'Sports', 'Trying', 'Country', 'Bio', 'Preview']
+const steps: Step[] = [
+  'Vibe',
+  'Sports',
+  'Trying',
+  'Country',
+  'City',
+  'Bio',
+  'Info',
+  'Preview',
+]
 
-const sportOptions = [
-  '籃球',
-  '跑步',
-  '健身',
-  '羽球',
-  '匹克球',
-  '足球',
-  '皮拉提斯',
-  '瑜伽',
-  '網球',
-  '游泳',
-  '單車',
-  '拳擊',
-  '攀岩',
-  '抱石',
-  'HIIT',
-  'CrossFit',
-  '桌球',
-  '排球',
-  '沙灘排球',
-  '健行',
-  '越野跑',
-  '划船',
-  '衝浪',
-  '滑板',
-  '板網球',
-  '橄欖球',
-  '板球',
-  '極限飛盤',
-  '躲避球',
-  '我剛開始接觸運動',
-] as const
+const dayLabels: Record<string, string> = {
+  Monday: '週一',
+  Tuesday: '週二',
+  Wednesday: '週三',
+  Thursday: '週四',
+  Friday: '週五',
+  Saturday: '週六',
+  Sunday: '週日',
+}
+const daysList = Object.keys(dayLabels)
+const createDaySlots = () =>
+  daysList.reduce<Record<string, TimeSlot[]>>((acc, day) => {
+    acc[day] = []
+    return acc
+  }, {})
 
-const tryingOptions = ['暫時不確定', ...sportOptions]
+const sportChoiceOptions = sportOptions.map(({ id, label }) => ({ id, label }))
+export const favOptions = [
+  { id: 'just-started', label: '我剛開始運動' },
+  ...sportChoiceOptions,
+]
+export const tryingOptions = [
+  { id: 'no-idea', label: '尋找中' },
+  ...sportChoiceOptions,
+]
+const cityOptions: CityOption[] = [
+  { id: 'taipei', label: '台北' },
+  { id: 'new-taipei', label: '新北' },
+]
 
 const countryOptions = [
   { name: '台灣', flag: '🇹🇼' },
@@ -97,16 +112,40 @@ export function OnboardingPage() {
   const [country, setCountry] = useState<{ name: string; flag: string } | null>(
     null
   )
+  const [city, setCity] = useState('')
   const [bio, setBio] = useState('')
   const [countrySearch, setCountrySearch] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const starterLabel = '我剛開始接觸運動'
-  const unsureLabel = '暫時不確定'
-  const sportsDisplayCount = sports.includes(starterLabel)
+  const [username, setUsername] = useState('')
+  const [realName, setRealName] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [preferredTime, setPreferredTime] = useState<TimeSlot>('晚上')
+  const [daySlots, setDaySlots] =
+    useState<Record<string, TimeSlot[]>>(createDaySlots())
+  const starterOption =
+    favOptions.find((item) => item.label === '我剛開始運動') ??
+    sportOptions.find((item) => item.isStarter)
+  const starterId = starterOption?.id ?? 'starter'
+  const starterLabel = starterOption?.label ?? '我剛開始運動'
+  const unsureId = 'unsure'
+  const noIdeaId = 'no-idea'
+  const uniqueSports = useMemo(
+    () => Array.from(new Set(sports)),
+    [sports]
+  )
+  const uniqueTrying = useMemo(
+    () => Array.from(new Set(trying)),
+    [trying]
+  )
+  const sportsDisplayCount = uniqueSports.includes(starterId)
     ? 0
-    : sports.length
-  const tryingDisplayCount = trying.includes(unsureLabel) ? 0 : trying.length
+    : uniqueSports.length
+  const tryingDisplayCount = uniqueTrying.some(
+    (id) => id === unsureId || id === noIdeaId
+  )
+    ? 0
+    : uniqueTrying.length
 
   const currentStep = steps[stepIndex]
   const neutralAccent = {
@@ -117,33 +156,51 @@ export function OnboardingPage() {
   }
   const accent = vibe ? vibeTokens[vibe] : neutralAccent
 
+  const sportOptionMap = useMemo(
+    () => new Map(favOptions.map((item) => [item.id, item])),
+    []
+  )
+  const tryingOptionMap = useMemo(
+    () => new Map(tryingOptions.map((item) => [item.id, item])),
+    []
+  )
+  const selectedSportsLabels = uniqueSports
+    .map((id) => sportOptionMap.get(id)?.label)
+    .filter(Boolean) as string[]
+  const selectedTryingLabels = uniqueTrying
+    .map((id) => tryingOptionMap.get(id)?.label)
+    .filter(Boolean) as string[]
+
   const progress = useMemo(
     () => ((stepIndex + 1) / steps.length) * 100,
     [stepIndex]
   )
 
-  const toggleSport = (item: string) => {
+  const toggleSport = (itemId: string) => {
     setSports((prev) => {
-      if (item === starterLabel) {
-        return [starterLabel]
+      if (itemId === starterId) {
+        return [starterId]
       }
-      const cleaned = prev.filter((s) => s !== starterLabel)
-      if (cleaned.includes(item)) return cleaned.filter((s) => s !== item)
+      const cleaned = prev.filter((s) => s !== starterId)
+      if (cleaned.includes(itemId))
+        return cleaned.filter((s) => s !== itemId)
       if (cleaned.length >= 3) return cleaned
-      return [...cleaned, item]
+      return [...cleaned, itemId]
     })
   }
 
-  const toggleTrying = (item: string) => {
+  const toggleTrying = (itemId: string) => {
     setTrying((prev) => {
-      if (prev.includes(item)) return prev.filter((s) => s !== item)
-      if (item === unsureLabel) {
-        return prev.includes(item) ? [] : [unsureLabel]
+      const isPlaceholder = itemId === unsureId || itemId === noIdeaId
+      if (prev.includes(itemId)) return prev.filter((s) => s !== itemId)
+      if (isPlaceholder) {
+        return [itemId]
       }
-      const cleaned = prev.filter((s) => s !== unsureLabel)
-      if (cleaned.includes(item)) return cleaned.filter((s) => s !== item)
+      const cleaned = prev.filter((s) => s !== unsureId && s !== noIdeaId)
+      if (cleaned.includes(itemId))
+        return cleaned.filter((s) => s !== itemId)
       if (cleaned.length >= 2) return cleaned
-      return [...cleaned, item]
+      return [...cleaned, itemId]
     })
   }
 
@@ -157,8 +214,16 @@ export function OnboardingPage() {
         return false
       case 'Country':
         return !country
+      case 'City':
+        return city.trim().length === 0
       case 'Bio':
         return bio.trim().length === 0
+      case 'Info':
+        return (
+          displayName.trim().length === 0 ||
+          username.trim().length === 0 ||
+          realName.trim().length === 0
+        )
       default:
         return false
     }
@@ -174,23 +239,28 @@ export function OnboardingPage() {
   }
 
   const previewCard = {
-    name: 'Jamie Thompson',
-    flag: country?.flag ?? '🇦🇺',
+    name: displayName,
+    flag: country?.flag ?? '',
     vibe: (vibe ?? 'Social') as Vibe,
-    sports: sports.length ? sports : ['皮拉提斯', '健身', '羽球'],
-    trying: trying.length ? trying : ['瑜伽', '社交慢跑'],
-    location: '台北',
+    sports: selectedSportsLabels,
+    trying: selectedTryingLabels,
+    location:
+      cityOptions.find((c) => c.id === city)?.label ??
+      country?.name ??
+      '',
     blurb: bio,
     avatar:
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
   }
 
   const stepLabels: Record<Step, string> = {
-    Vibe: '氛圍',
-    Sports: '常打運動',
-    Trying: '想嘗試',
-    Country: '來自哪裡',
-    Bio: '一句話介紹',
+    Vibe: '運動氛圍',
+    Sports: '我的運動日常',
+    Trying: '我想嘗試',
+    Country: '我來自',
+    City: '現居城市',
+    Bio: '我的運動狀態與動機',
+    Info: '關於你',
     Preview: '預覽',
   }
 
@@ -202,19 +272,21 @@ export function OnboardingPage() {
 
   const filteredSports = useMemo(() => {
     const term = sportsSearch.trim().toLowerCase()
-    const ordered = [...sportOptions].sort((a, b) => {
-      if (a === starterLabel) return -1
-      if (b === starterLabel) return 1
+    const ordered = [...favOptions].sort((a, b) => {
+      if (a.label === starterLabel) return -1
+      if (b.label === starterLabel) return 1
       return 0
     })
     if (!term) return ordered
-    return ordered.filter((s) => s.toLowerCase().startsWith(term))
-  }, [sportsSearch])
+    return ordered.filter((s) => s.label.toLowerCase().startsWith(term))
+  }, [sportsSearch, starterLabel])
 
   const filteredTrying = useMemo(() => {
     const term = tryingSearch.trim().toLowerCase()
     if (!term) return tryingOptions
-    return tryingOptions.filter((s) => s.toLowerCase().startsWith(term))
+    return tryingOptions.filter((s) =>
+      s.label.toLowerCase().startsWith(term)
+    )
   }, [tryingSearch])
 
   return (
@@ -251,7 +323,9 @@ export function OnboardingPage() {
                 {currentStep === 'Sports' && '你真的會去的運動'}
                 {currentStep === 'Trying' && '接下來想嘗試什麼？'}
                 {currentStep === 'Country' && '你來自哪裡？'}
+                {currentStep === 'City' && '你現居在哪個城市？'}
                 {currentStep === 'Bio' && '一句話，為什麼想動？'}
+                {currentStep === 'Info' && '關於我：安全與習慣'}
                 {currentStep === 'Preview' && '你的夥伴卡預覽'}
               </h1>
               <p className="text-base text-slate-600">
@@ -263,10 +337,13 @@ export function OnboardingPage() {
                   '選最多 2 項，讓大家邀你去更合適的場次。'}
                 {currentStep === 'Country' &&
                   '我們會顯示你的旗幟，讓你在這裡也有家的感覺。'}
+                {currentStep === 'City' &&
+                  '目前只支援台北與新北，之後會開放更多城市。'}
                 {currentStep === 'Bio' &&
                   '會顯示在你的夥伴卡上，真誠、簡短就好。'}
-                {currentStep === 'Preview' &&
-                  '這是別人看到的你的樣子。'}
+                {currentStep === 'Info' &&
+                  '用安全的方式告訴我們夥伴怎麼稱呼你，以及你的真實姓名，並選擇常運動的時段。'}
+                {currentStep === 'Preview' && '這是別人看到的你的樣子。'}
               </p>
             </div>
           </div>
@@ -309,24 +386,27 @@ export function OnboardingPage() {
               <div className="text-sm font-semibold text-slate-500">
                 已選 {sportsDisplayCount}/3
               </div>
-              {sports.length > 0 && (
+              {uniqueSports.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {sports.map((sport) => (
-                    <span
-                      key={sport}
-                      className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
-                    >
-                      {sport}
-                      <button
-                        type="button"
-                        className="text-slate-500 hover:text-slate-700"
-                        onClick={() => toggleSport(sport)}
-                        aria-label={`Remove ${sport}`}
+                  {uniqueSports.map((sportId) => {
+                    const label = sportOptionMap.get(sportId)?.label ?? sportId
+                    return (
+                      <span
+                        key={sportId}
+                        className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
                       >
-                        ✕
-                      </button>
-                    </span>
-                  ))}
+                        {label}
+                        <button
+                          type="button"
+                          className="text-slate-500 hover:text-slate-700"
+                          onClick={() => toggleSport(sportId)}
+                          aria-label={`Remove ${label}`}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    )
+                  })}
                 </div>
               )}
               <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
@@ -340,12 +420,12 @@ export function OnboardingPage() {
               </div>
               <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
                 {filteredSports.map((sport) => {
-                  const selected = sports.includes(sport)
+                  const selected = uniqueSports.includes(sport.id)
                   return (
                     <button
-                      key={sport}
+                      key={sport.id}
                       type="button"
-                      onClick={() => toggleSport(sport)}
+                      onClick={() => toggleSport(sport.id)}
                       className={clsx(
                         'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                         selected
@@ -362,7 +442,7 @@ export function OnboardingPage() {
                       }
                     >
                       <span className="text-sm font-semibold text-slate-900">
-                        {sport}
+                        {sport.label}
                       </span>
                       {selected && (
                         <span className="text-xs font-semibold text-slate-600">
@@ -381,24 +461,27 @@ export function OnboardingPage() {
               <div className="text-sm font-semibold text-slate-500">
                 已選 {tryingDisplayCount}/2
               </div>
-              {trying.length > 0 && (
+              {uniqueTrying.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {trying.map((item) => (
-                    <span
-                      key={item}
-                      className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
-                    >
-                      {item}
-                      <button
-                        type="button"
-                        className="text-slate-500 hover:text-slate-700"
-                        onClick={() => toggleTrying(item)}
-                        aria-label={`Remove ${item}`}
+                  {uniqueTrying.map((itemId) => {
+                    const label = tryingOptionMap.get(itemId)?.label ?? itemId
+                    return (
+                      <span
+                        key={itemId}
+                        className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
                       >
-                        ✕
-                      </button>
-                    </span>
-                  ))}
+                        {label}
+                        <button
+                          type="button"
+                          className="text-slate-500 hover:text-slate-700"
+                          onClick={() => toggleTrying(itemId)}
+                          aria-label={`Remove ${label}`}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    )
+                  })}
                 </div>
               )}
               <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
@@ -412,13 +495,12 @@ export function OnboardingPage() {
               </div>
               <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
                 {filteredTrying.map((item) => {
-                  const selected = trying.includes(item)
-                  const isNotSure = item === '暫時不確定'
+                  const selected = uniqueTrying.includes(item.id)
                   return (
-                      <button
-                        key={item}
+                    <button
+                      key={item.id}
                       type="button"
-                      onClick={() => toggleTrying(item)}
+                      onClick={() => toggleTrying(item.id)}
                       className={clsx(
                         'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                         selected
@@ -435,7 +517,7 @@ export function OnboardingPage() {
                       }
                     >
                       <span className="text-sm font-semibold text-slate-900">
-                        {item}
+                        {item.label}
                       </span>
                       {selected && (
                         <span className="text-xs font-semibold text-slate-600">
@@ -455,11 +537,11 @@ export function OnboardingPage() {
                 <input
                   type="text"
                   value={countrySearch}
-                onChange={(e) => setCountrySearch(e.target.value)}
-                className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                placeholder="搜尋你的國家/地區..."
-              />
-            </div>
+                  onChange={(e) => setCountrySearch(e.target.value)}
+                  className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                  placeholder="搜尋你的國家/地區..."
+                />
+              </div>
               <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
                 {filteredCountries.map((item) => {
                   const selected = country?.name === item.name
@@ -500,6 +582,224 @@ export function OnboardingPage() {
                     No matches found
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'City' && (
+            <div className="space-y-4">
+              <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+                <p className="text-sm font-semibold text-slate-700">
+                  現居城市（僅台北/新北）
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {cityOptions.map((option) => {
+                  const active = city === option.id
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setCity(option.id)}
+                      className={clsx(
+                        'rounded-full border px-4 py-2 text-sm font-semibold transition',
+                        active
+                          ? 'border-transparent'
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                      )}
+                      style={
+                        active
+                          ? {
+                              background: withAlpha(accent.ring, 0.18),
+                              color: '#0f172a',
+                              boxShadow: `0 12px 28px -18px ${accent.ring}`,
+                            }
+                          : undefined
+                      }
+                    >
+                      {option.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'Info' && (
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 rounded-full bg-blue-50 p-2 text-blue-700">
+                    <Lock
+                      className="h-5 w-5"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-800">
+                      你的名字，我們會好好保護
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      夥伴在社群裡只會看到你想被怎麼稱呼。真實姓名只會在真的需要安全驗證時才會使用。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    夥伴怎麼稱呼你？（顯示名稱）
+                  </label>
+                  <input
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="例如：小吳、Alison"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    SportsMatch ID（帳號用，不會被大聲喊出來）
+                  </label>
+                  <input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="例如：sporty_lin（可英文＋數字）"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    真實姓名（不公開）
+                  </label>
+                  <input
+                    value={realName}
+                    onChange={(e) => setRealName(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="請填寫證件上的姓名（不會公開）"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-slate-700">
+                    通常想在什麼時段運動？
+                  </p>
+                  <span className="text-xs font-semibold text-slate-500">
+                    選 1 個主要時段
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(['早上', '下午', '晚上'] as TimeSlot[]).map((slot) => {
+                    const active = preferredTime === slot
+                    return (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => {
+                          setPreferredTime(slot)
+                          setDaySlots(() => {
+                            const next: Record<string, TimeSlot[]> = {}
+                            daysList.forEach((day) => {
+                              next[day] = [slot]
+                            })
+                            return next
+                          })
+                        }}
+                        className={clsx(
+                          'rounded-full border px-4 py-2 text-sm font-semibold transition',
+                          active
+                            ? 'border-transparent'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        )}
+                        style={
+                          active
+                            ? {
+                                background: withAlpha(accent.ring, 0.18),
+                                color: '#0f172a',
+                                boxShadow: `0 12px 28px -18px ${accent.ring}`,
+                              }
+                            : undefined
+                        }
+                      >
+                        {slot}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <details className="space-y-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                  <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                    按天微調（可選）
+                  </summary>
+                  <div className="space-y-3 pt-1">
+                    {daysList.map((day) => (
+                      <div
+                        key={day}
+                        className="space-y-2"
+                      >
+                        <p className="text-base font-semibold text-slate-800">
+                          {dayLabels[day]}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {(['早上', '下午', '晚上'] as TimeSlot[]).map(
+                            (slot) => {
+                              const active = daySlots[day]?.includes(slot)
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() =>
+                                    setDaySlots((prev) => {
+                                      const next = {
+                                        ...prev,
+                                        [day]: [...(prev[day] ?? [])],
+                                      }
+                                      if (next[day].includes(slot)) {
+                                        next[day] = next[day].filter(
+                                          (s) => s !== slot
+                                        )
+                                      } else {
+                                        next[day].push(slot)
+                                      }
+                                      return next
+                                    })
+                                  }
+                                  className={clsx(
+                                    'min-w-[60px] rounded-full border px-4 py-2 text-sm font-semibold transition',
+                                    active
+                                      ? 'border-transparent'
+                                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                  )}
+                                  style={
+                                    active
+                                      ? {
+                                          background: withAlpha(
+                                            accent.ring,
+                                            0.18
+                                          ),
+                                          color: '#0f172a',
+                                          boxShadow: `0 12px 28px -18px ${accent.ring}`,
+                                        }
+                                      : undefined
+                                  }
+                                >
+                                  {slot}
+                                </button>
+                              )
+                            }
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+
+                <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                  我們會幫你找到符合節奏的活動與夥伴。
+                </div>
               </div>
             </div>
           )}
@@ -566,7 +866,11 @@ export function OnboardingPage() {
               )}
               style={nextDisabled ? undefined : { background: accent.ring }}
             >
-              {currentStep === 'Preview' ? '儲存我的運動卡' : '下一步'}
+              {currentStep === 'Preview'
+                ? '儲存我的運動卡'
+                : currentStep === 'Info'
+                ? '我的運動卡預覽'
+                : '下一步'}
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
