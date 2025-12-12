@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { PlayerEvent } from '@/types'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
+import { useAuthStore } from '@/hooks'
+import { BottomSheet } from '@/components/BottomSheet'
+import { LoginPanel } from '@/components/LoginPanel'
 
 type TabKey = 'upcoming' | 'completed'
 
@@ -29,25 +32,87 @@ export function MyEventsPage() {
   const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
+  const { isAuthenticated } = useAuthStore((state) => ({
+    isAuthenticated: state.isAuthenticated,
+  }))
+  const [showLoginSheet, setShowLoginSheet] = useState(false)
 
   useEffect(() => {
-    void fetchMyEvents()
-  }, [fetchMyEvents])
+    if (isAuthenticated) {
+      void fetchMyEvents()
+    }
+  }, [fetchMyEvents, isAuthenticated])
 
   const upcomingEvents = useMemo(() => events.filter((event) => !isCompleted(event)), [events])
   const completedEvents = useMemo(() => events.filter((event) => isCompleted(event)), [events])
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#f4f6fb] pb-24 px-4 pt-4">
+        <div className="mx-auto w-full max-w-4xl space-y-4">
+          <div className="flex justify-center">
+            <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100">
+              <button
+                type="button"
+                onClick={() => navigate('/events')}
+                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
+              >
+                即將到來的活動
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-full bg-white px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm"
+                aria-current="page"
+              >
+                我的場次
+              </button>
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-4xl pt-4 px-4 space-y-4">
+            <h1 className="text-[22px] font-bold leading-tight text-slate-900">
+              我的場次
+            </h1>
+            <p className="text-base text-slate-700">
+              登入後就能看到你已加入、即將到來的場次，以及過去的紀錄。
+            </p>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLoginSheet(true)}
+                className="inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition"
+                style={{ background: 'var(--gradient-secondary)' }}
+              >
+                登入
+              </button>
+            </div>
+          </div>
+        </div>
+        <BottomSheet
+          open={showLoginSheet}
+          onClose={() => setShowLoginSheet(false)}
+          showHandle
+          sheetClassName="rounded-t-[32px] border border-white/40 bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.35)]"
+          contentClassName="px-4 pb-8 pt-4"
+          maxWidthClassName="max-w-lg"
+        >
+          <LoginPanel variant="sheet" />
+        </BottomSheet>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
       <div className="sticky top-0 z-20 border-b border-blue-200 bg-[#f4f6fb]/95 backdrop-blur shadow-sm px-4 py-3">
         <div className="flex justify-center">
-          <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
+          <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100">
             <button
               type="button"
               onClick={() => navigate('/events')}
               className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
             >
-              探索
+              即將到來的活動
             </button>
             <button
               type="button"
@@ -59,8 +124,16 @@ export function MyEventsPage() {
           </div>
         </div>
         <div className="mt-4 flex justify-center gap-3">
-          <TagPill label={`即將到來 (${upcomingEvents.length})`} active={tab === 'upcoming'} onClick={() => setTab('upcoming')} />
-          <TagPill label={`已完成 (${completedEvents.length})`} active={tab === 'completed'} onClick={() => setTab('completed')} />
+          <TagPill
+            label={`即將到來 (${upcomingEvents.length})`}
+            active={tab === 'upcoming'}
+            onClick={() => setTab('upcoming')}
+          />
+          <TagPill
+            label={`已完成 (${completedEvents.length})`}
+            active={tab === 'completed'}
+            onClick={() => setTab('completed')}
+          />
         </div>
       </div>
 
@@ -71,20 +144,33 @@ export function MyEventsPage() {
           </div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">載入你的場次中…</div>
+          <div className="py-10 text-center text-slate-500">
+            載入你的場次中…
+          </div>
         ) : tab === 'upcoming' ? (
           <EventGroupList
             groups={groupByDate(upcomingEvents)}
-            emptyState={<EmptyState icon="📭" title="目前沒有場次" description="去看看其他活動並加入吧" />}
+            emptyState={
+              <EmptyState
+                icon="📭"
+                title="目前沒有場次"
+                description="去看看其他活動並加入吧"
+              />
+            }
           />
         ) : (
           <EventGroupList
             groups={groupByDate(completedEvents)}
-            emptyState={<EmptyState icon="✓" title="尚無已完成的場次" description="完成的場次會顯示在這裡" />}
+            emptyState={
+              <EmptyState
+                icon="✓"
+                title="尚無已完成的場次"
+                description="完成的場次會顯示在這裡"
+              />
+            }
           />
         )}
       </div>
-
     </div>
   )
 }

@@ -708,9 +708,9 @@ export function PeopleContent() {
   const navigate = useNavigate()
   const [subTab, setSubTab] = useState<'connected' | 'playmates'>('connected')
   const connected = [
-    { name: 'Jamie', detail: 'Moves Tue/Thu eve', meta: 'High fives: 12', colors: 'from-indigo-500 to-purple-500' },
-    { name: 'Alex', detail: 'Runs mornings', meta: 'Inspired you 3 times', colors: 'from-pink-400 to-orange-400' },
-    { name: 'Sam', detail: 'Gym weekends', meta: 'High fives: 8', colors: 'from-sky-400 to-blue-500' },
+    { name: 'Jamie', detail: '每週二、四晚上動起來', meta: 'High five：12 次', colors: 'from-indigo-500 to-purple-500' },
+    { name: 'Alex', detail: '早上去跑步', meta: '激勵你 3 次', colors: 'from-pink-400 to-orange-400' },
+    { name: 'Sam', detail: '週末健身房', meta: 'High five：8 次', colors: 'from-sky-400 to-blue-500' },
   ]
   const playmates = [
     { name: 'Jordan', meta: '一起參加過 2 次', status: '圈夥伴', colors: 'from-emerald-400 to-teal-400' },
@@ -816,9 +816,6 @@ export function PeopleContent() {
                         <p className="text-base font-semibold text-slate-900">
                           {mate.name}
                         </p>
-                        <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
-                          交手夥伴
-                        </span>
                       </div>
                       <p className="text-sm text-slate-600">{mate.meta}</p>
                     </div>

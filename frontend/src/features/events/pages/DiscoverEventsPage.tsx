@@ -123,7 +123,7 @@ export function DiscoverEventsPage() {
                 className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm bg-white"
                 aria-current="page"
               >
-                探索場次
+                即將到來的活動
               </button>
               <button
                 type="button"
@@ -248,7 +248,9 @@ export function DiscoverEventsPage() {
         onToggle={(value) => {
           setPendingSports((prev) => {
             if (value === '全部') return ['全部']
-            const next = prev.filter((item) => item !== value && item !== '全部')
+            const next = prev.filter(
+              (item) => item !== value && item !== '全部'
+            )
             const exists = prev.includes(value)
             return exists ? next : [...next, value]
           })
