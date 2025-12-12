@@ -8,7 +8,7 @@ import GoogleLoginButton from '@/components/button/GoogleLoginButton'
 import AppleLoginButton from '@/components/button/AppleLoginButton'
 import { useAuthStore } from '@/hooks'
 import { signInWithApple, signInWithGoogle } from '@/services/authService'
-import { MateCard, type MateCardProps } from '../components/MateCard'
+import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
 
 const mates: MateCardProps[] = [
   {
@@ -72,18 +72,6 @@ const mates: MateCardProps[] = [
     accentClassName: 'bg-gradient-to-br from-purple-50 via-white to-white',
   },
   {
-    name: '陳威翔',
-    flag: '🇹🇼',
-    vibe: 'Competitive',
-    sports: ['籃球', '重量訓練', '壺鈴'],
-    trying: ['拳擊', '路跑比賽'],
-    location: '台北 · 大安',
-    blurb: '我喜歡那種明明累到不行，卻還能再推一點點的感覺。🔥',
-    avatar:
-      'https://images.unsplash.com/photo-1590086782792-42dd2350140d?auto=format&fit=crop&w=320&q=80',
-    accentClassName: 'bg-gradient-to-br from-rose-50 via-white to-white',
-  },
-  {
     name: '張恩均',
     flag: '🇹🇼',
     vibe: 'Supportive',
@@ -109,7 +97,7 @@ const mates: MateCardProps[] = [
   },
 ]
 
-export function MatesPage() {
+export function HomePage() {
   const city = '台北'
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)

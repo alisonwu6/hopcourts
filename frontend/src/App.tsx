@@ -20,7 +20,7 @@ import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPag
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
-import { MatesPage } from '@/features/mates/pages/MatesPage'
+import { HomePage } from '@/features/home/pages/HomePage'
 
 export default function App() {
   const { isAuthenticated, onboardingStatus } = useAuthStore()
@@ -32,7 +32,7 @@ export default function App() {
         path="/"
         element={
           <AppChrome showActions={isAuthenticated} showHeader={false}>
-            <MatesPage />
+            <HomePage />
           </AppChrome>
         }
       />
@@ -135,7 +135,7 @@ function AuthenticatedApp() {
         path="/"
         element={
           <AppChrome showHeader={false}>
-            <MatesPage />
+            <HomePage />
           </AppChrome>
         }
       />
@@ -228,14 +228,7 @@ function AuthenticatedApp() {
           </AppChrome>
         }
       />
-      <Route
-        path="/mates"
-        element={
-          <AppChrome showHeader={false}>
-            <MatesPage />
-          </AppChrome>
-        }
-      />
+      <Route path="/mates" element={<Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
@@ -248,7 +241,7 @@ function GuestApp() {
         path="/"
         element={
           <AppChrome showActions={false} showHeader={false}>
-            <MatesPage />
+            <HomePage />
           </AppChrome>
         }
       />
@@ -293,14 +286,7 @@ function GuestApp() {
           </AppChrome>
         }
       />
-      <Route
-        path="/mates"
-        element={
-          <AppChrome showActions={false} showHeader={false}>
-            <MatesPage />
-          </AppChrome>
-        }
-      />
+      <Route path="/mates" element={<Navigate to="/" replace />} />
       <Route
         path="/profile"
         element={
