@@ -19,6 +19,58 @@ type Step =
 type TimeSlot = '早上' | '下午' | '晚上'
 type CityOption = { id: string; label: string }
 
+const bioExamples = {
+  chill: [
+    '想動一下讓身體鬆一點，順便找人陪跑陪練。',
+    '最近想把運動變成生活的一部分，慢慢來就好。',
+    '平常步調快，用運動把自己放慢一下。',
+    '想找節奏合得來的人簡單動一動。',
+    '想讓生活規律一點，運動是第一步。',
+  ],
+  crew: [
+    '剛到這城市，想找固定一起動的人。',
+    '想找願意一起進步的夥伴，不用強，只要穩。',
+    '想找跟我步調差不多的人，一起流點汗。',
+    '一個人懶得動，有人一起就會出門。',
+    '想找 crew，把運動變成好玩的事。',
+  ],
+  growth: [
+    '想讓自己規律起來，從每週一次開始。',
+    '想把運動當成穩定自己的方式。',
+    '想變健康也想變穩定，一起動比較不會放棄。',
+    '正在建立自己的節奏，找夥伴一起比較有動力。',
+    '想照顧身體，也想照顧心。',
+  ],
+  explore: [
+    '想試試新運動，找人帶我入門。',
+    '剛開始嘗試，不懂沒關係，有耐心的夥伴最棒。',
+    '想試試看不同的活動，看哪個最適合現在的我。',
+    '最近很想探索新節奏，有人一起會更好玩。',
+    '初學者來著，願意一起慢慢來。',
+  ],
+  routine: [
+    '平日下班後想動一下，找固定的夥伴。',
+    '一週至少動一次，有人一起最剛好。',
+    '想建立小習慣，找穩定的人一起互相提醒。',
+    '工作忙，但想留一點時間給身體。',
+    '規律不需要很重，只要有人一起就能做到。',
+  ],
+  social: [
+    '喜歡一起流汗的感覺，想認識新朋友。',
+    '運動對我來說是社交，也是放鬆。',
+    '想邊動邊聊天，找到同頻的人。',
+    '喜歡團體能量，找一起玩的人。',
+    '享受運動，也享受新連結。',
+  ],
+  emotional: [
+    '運動讓我穩定，也讓我喘口氣。',
+    '想把情緒疏壓變得更健康一點。',
+    '用運動把生活的雜音放掉一些。',
+    '運動是我整理自己的方式。',
+    '想找到和我一樣，用運動照顧心理的人。',
+  ],
+}
+
 const steps: Step[] = [
   'Vibe',
   'Sports',
@@ -171,6 +223,18 @@ export function OnboardingPage() {
     .map((id) => tryingOptionMap.get(id)?.label)
     .filter(Boolean) as string[]
 
+  const bioPool = useMemo(() => {
+    const map: Record<Vibe, keyof typeof bioExamples> = {
+      Chill: 'chill',
+      Social: 'social',
+      Flow: 'explore',
+      Competitive: 'growth',
+    }
+    const key = vibe ? map[vibe] : null
+    if (key && bioExamples[key]) return bioExamples[key]
+    return Object.values(bioExamples).flat()
+  }, [vibe])
+
   const progress = useMemo(
     () => ((stepIndex + 1) / steps.length) * 100,
     [stepIndex]
@@ -259,8 +323,8 @@ export function OnboardingPage() {
     Trying: '我想嘗試',
     Country: '我來自',
     City: '現居城市',
-    Bio: '我的運動狀態與動機',
-    Info: '關於你',
+    Bio: '聽我說',
+    Info: '關於我',
     Preview: '預覽',
   }
 
@@ -319,31 +383,32 @@ export function OnboardingPage() {
             </div>
             <div className="space-y-2">
               <h1 className="text-3xl font-bold leading-tight text-slate-900">
-                {currentStep === 'Vibe' && '你現在的運動氛圍是什麼？'}
-                {currentStep === 'Sports' && '你真的會去的運動'}
-                {currentStep === 'Trying' && '接下來想嘗試什麼？'}
+                {currentStep === 'Vibe' && '最近最需要什麼運動節奏？'}
+                {currentStep === 'Sports' && '最常說「好，走！」的運動'}
+                {currentStep === 'Trying' && '接下來想一起試試什麼？'}
                 {currentStep === 'Country' && '你來自哪裡？'}
-                {currentStep === 'City' && '你現居在哪個城市？'}
-                {currentStep === 'Bio' && '一句話，為什麼想動？'}
-                {currentStep === 'Info' && '關於我：安全與習慣'}
-                {currentStep === 'Preview' && '你的夥伴卡預覽'}
+                {currentStep === 'City' && '你現在住在哪個城市？'}
+                {currentStep === 'Bio' &&
+                  '一句話，讓大家能知道你目前運動的狀態'}
+                {currentStep === 'Info' && '讓夥伴更好地認識你'}
+                {currentStep === 'Preview' && '專屬你的運動身份卡'}
               </h1>
               <p className="text-base text-slate-600">
                 {currentStep === 'Vibe' &&
-                  '用最貼近你這個月的感覺來形容，之後都可以再改。'}
+                  '選一個最貼近你最近的感覺。我們知道身心節奏會影響我們需要的運動模式，後續調整也沒問題。'}
                 {currentStep === 'Sports' &&
-                  '選最多 3 項，每週最常說「好，走！」的那些。'}
+                  '選最多 3 項，平常最容易讓你動起來的那些。我們會依照你的習慣，幫你找到步調相近的夥伴。'}
                 {currentStep === 'Trying' &&
-                  '選最多 2 項，讓大家邀你去更合適的場次。'}
+                  '最多 2 項就好，這能讓夥伴更容易揪你去適合的活動。不用很會，願意開始就很棒。'}
                 {currentStep === 'Country' &&
-                  '我們會顯示你的旗幟，讓你在這裡也有家的感覺。'}
+                  '我們會在你的卡片上放小旗幟，讓你感受就算不同文化背景也可以有相同的運動語言。'}
                 {currentStep === 'City' &&
-                  '目前只支援台北與新北，之後會開放更多城市。'}
+                  '目前開放台北與新北，我們會持續新增更多地區。'}
                 {currentStep === 'Bio' &&
-                  '會顯示在你的夥伴卡上，真誠、簡短就好。'}
-                {currentStep === 'Info' &&
-                  '用安全的方式告訴我們夥伴怎麼稱呼你，以及你的真實姓名，並選擇常運動的時段。'}
-                {currentStep === 'Preview' && '這是別人看到的你的樣子。'}
+                  '就像跟一個和你一起動的人分享運動態度或是近況。'}
+                {currentStep === 'Info' && ''}
+                {currentStep === 'Preview' &&
+                  '準備展開新節奏的起點。每一次出門、每一次流汗、每一次遇到新夥伴，都會把這張卡更新成更有故事的版本。你不是一個人開始。在這裡，有和你同樣節奏的人正在等你一起。'}
               </p>
             </div>
           </div>
@@ -815,18 +880,19 @@ export function OnboardingPage() {
                 placeholder="I move to feel grounded and find my crew wherever I land."
               />
               <div className="text-right text-xs text-slate-500">
-                {bio.length}/120
+                {bio.length}/40
               </div>
               <button
                 type="button"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline"
-                onClick={() =>
-                  setBio(
-                    'I move to feel grounded and find my crew wherever I land.'
-                  )
-                }
+                onClick={() => {
+                  const random =
+                    bioPool[Math.floor(Math.random() * bioPool.length)] ??
+                    '我想透過運動找到步調合得來的人。'
+                  setBio(random)
+                }}
               >
-                Generate for me
+                想不到？根據你選的節奏氛圍，我來給你靈感吧。
               </button>
             </div>
           )}

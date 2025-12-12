@@ -212,7 +212,16 @@ export function DiscoverEventsPage() {
             載入活動中…
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="py-10 text-center text-slate-500">沒有找到活動</div>
+          <div className="flex flex-col items-center gap-4 py-10 text-center text-slate-500">
+            <div>沒有找到活動</div>
+            <button
+              type="button"
+              onClick={handleCreateClick}
+              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+            >
+              新增活動
+            </button>
+          </div>
         ) : (
           filteredEvents.map((event) => (
             <EventCard
