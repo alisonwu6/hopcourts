@@ -86,7 +86,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f8fb] pb-[120px]">
+    <div className="min-h-screen pb-[120px]">
       <div className="mx-auto w-full max-w-4xl pb-6">
         <div className="flex items-center justify-between px-4 py-4 bg-white">
           <div className="flex items-center gap-2">
@@ -713,10 +713,10 @@ export function PeopleContent() {
     { name: 'Sam', detail: 'Gym weekends', meta: 'High fives: 8', colors: 'from-sky-400 to-blue-500' },
   ]
   const playmates = [
-    { name: 'Jordan', meta: '2 sessions together', status: 'Add', colors: 'from-emerald-400 to-teal-400' },
-    { name: 'Casey', meta: 'Last week', status: 'Add', colors: 'from-pink-400 to-orange-300' },
-    { name: 'Morgan', meta: '3 sessions together', status: 'Add', colors: 'from-indigo-500 to-purple-500' },
-    { name: 'Taylor', meta: 'Last month', status: 'Added', colors: 'from-pink-400 to-fuchsia-500' },
+    { name: 'Jordan', meta: '一起參加過 2 次', status: '圈夥伴', colors: 'from-emerald-400 to-teal-400' },
+    { name: 'Casey', meta: '上週見面', status: '圈夥伴', colors: 'from-pink-400 to-orange-300' },
+    { name: 'Morgan', meta: '一起參加過 3 次', status: '圈夥伴', colors: 'from-indigo-500 to-purple-500' },
+    { name: 'Taylor', meta: '上個月見面', status: '已圈', colors: 'from-pink-400 to-fuchsia-500' },
   ]
   const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
     const handle = mate.username || mate.name
@@ -725,10 +725,10 @@ export function PeopleContent() {
 
   return (
     <div className="space-y-3 ">
-      <div className="sticky top-0 z-10 flex justify-center bg-[#f7f8fb] px-3 pb-2 pt-3">
+      <div className="sticky top-0 z-10 flex justify-center">
         <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
           {[
-            { key: 'connected', label: '你的運動圈' },
+            { key: 'connected', label: '夥伴圈' },
             { key: 'playmates', label: '交手夥伴' },
           ].map((tab) => {
             const active = subTab === tab.key
@@ -754,7 +754,7 @@ export function PeopleContent() {
       {subTab === 'connected' && (
         <div className="space-y-4 px-3 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            你的運動圈
+            我的夥伴
           </p>
           <div className="space-y-3">
             {connected.map((person) => (
@@ -867,7 +867,7 @@ function HeroCard({ profile, onEdit }: { profile: MateCardProps; onEdit: () => v
 }
 
 const TabsBar = forwardRef<HTMLDivElement>((_, ref) => (
-  <div ref={ref} className="flex justify-between border-b border-slate-200 bg-[#f7f8fb] px-6">
+  <div ref={ref} className="flex justify-between border-b border-slate-200 px-6">
     <div className="relative flex h-12 flex-1 flex-col items-center justify-center text-slate-600">
       <Goal className="h-6 w-6" />
       <span className="text-[11px] font-semibold">Activity</span>

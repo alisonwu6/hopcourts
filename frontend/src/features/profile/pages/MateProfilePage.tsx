@@ -28,7 +28,7 @@ export function MateProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f8fb]">
+    <div className="min-h-screen">
       <div className="mx-auto w-full max-w-4xl pb-6">
         <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
           <button
