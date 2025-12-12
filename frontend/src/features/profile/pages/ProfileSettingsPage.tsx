@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { ChevronRight, ShieldCheck, UserRound, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { useAuthStore } from '@/hooks'
 
 type SettingKey = 'account' | 'privacy'
 
@@ -11,6 +13,18 @@ const items: { key: SettingKey; label: string; icon: React.ElementType }[] = [
 
 export function ProfileSettingsPage() {
   const navigate = useNavigate()
+  const { logout } = useAuthStore((state) => ({
+    logout: state.logout,
+  }))
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    await logout()
+    setIsLoggingOut(false)
+    navigate('/')
+  }
 
   return (
     <div className="min-h-screen bg-white pb-[120px] text-slate-900">
@@ -47,10 +61,16 @@ export function ProfileSettingsPage() {
           ))}
         </div>
         <div className="mt-3 rounded-2xl bg-slate-50 shadow-sm ring-1 ring-slate-200/60">
-          <button className="flex w-full items-center justify-between px-4 py-4 text-left text-slate-500 hover:text-slate-700">
+          <button
+            className="flex w-full items-center justify-between px-4 py-4 text-left text-slate-500 transition hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+          >
             <div className="flex items-center gap-3">
               <LogOut className="h-5 w-5 text-slate-500" />
-              <span className="text-base font-medium">登出</span>
+              <span className="text-base font-medium">
+                {isLoggingOut ? '登出中…' : '登出'}
+              </span>
             </div>
           </button>
         </div>
