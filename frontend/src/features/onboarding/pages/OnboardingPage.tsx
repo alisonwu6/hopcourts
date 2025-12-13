@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { ChevronLeft, ChevronRight, Lock } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Lock, Smile } from 'lucide-react'
 import { MateCard } from '@/features/mates/components/MateCard'
 import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { sportOptions } from '@/constants/sportOptions'
@@ -111,6 +111,16 @@ const cityOptions: CityOption[] = [
   { id: 'taipei', label: '台北' },
   { id: 'new-taipei', label: '新北' },
 ]
+const stepColors = [
+  '#ef4444',
+  '#f97316',
+  '#facc15',
+  '#22c55e',
+  '#3b82f6',
+  '#6366f1',
+  '#8b5cf6',
+  '#8b5cf6',
+]
 
 const countryOptions = [
   { name: '台灣', flag: '🇹🇼' },
@@ -175,6 +185,7 @@ export function OnboardingPage() {
   const [preferredTime, setPreferredTime] = useState<TimeSlot>('晚上')
   const [daySlots, setDaySlots] =
     useState<Record<string, TimeSlot[]>>(createDaySlots())
+  const [furthestStep, setFurthestStep] = useState(0)
   const starterOption =
     favOptions.find((item) => item.label === '我剛開始運動') ??
     sportOptions.find((item) => item.isStarter)
@@ -236,9 +247,12 @@ export function OnboardingPage() {
   }, [vibe])
 
   const progress = useMemo(
-    () => ((stepIndex + 1) / steps.length) * 100,
-    [stepIndex]
+    () => (furthestStep === 0 ? 0 : ((stepIndex + 1) / steps.length) * 100),
+    [stepIndex, furthestStep]
   )
+  useEffect(() => {
+    setFurthestStep((prev) => Math.max(prev, stepIndex))
+  }, [stepIndex])
 
   const toggleSport = (itemId: string) => {
     setSports((prev) => {
@@ -372,13 +386,44 @@ export function OnboardingPage() {
       >
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
           <div className="flex flex-col gap-3">
-            <div className="h-1.5 w-full rounded-full bg-slate-200">
+            <div className="relative h-1.5 w-full rounded-full bg-slate-200">
               <div
                 className="h-1.5 rounded-full"
                 style={{ width: `${progress}%`, background: accent.ring }}
               />
+              <div className="absolute inset-0 flex items-center justify-between px-2">
+                {steps.map((_, idx) => {
+                  const isCompleted = idx <= furthestStep && furthestStep > 0
+                  const color = isCompleted ? stepColors[idx] ?? '#e2e8f0' : '#cbd5e1'
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        if (idx <= furthestStep) setStepIndex(idx)
+                      }}
+                      className={clsx(
+                        'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition shadow-sm ring-2 ring-white/50',
+                        isCompleted ? 'opacity-100' : 'opacity-60 cursor-not-allowed'
+                      )}
+                      aria-label={`前往步驟 ${idx + 1}`}
+                      style={{
+                        background: idx === steps.length - 1 && isCompleted ? '#fff' : color,
+                        color: '#fff',
+                      }}
+                      disabled={!isCompleted}
+                    >
+                      {idx === steps.length - 1 ? (
+                        <Smile className="h-6 w-6 text-black" strokeWidth={2.5} />
+                      ) : (
+                        idx + 1
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-            <div className="text-sm font-semibold text-slate-500">
+            <div className="text-sm font-semibold text-slate-500 mt-4">
               {stepLabels[currentStep]}
             </div>
             <div className="space-y-2">
