@@ -6,6 +6,7 @@ import { MateCard } from '@/features/mates/components/MateCard'
 import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { sportOptions } from '@/constants/sportOptions'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { useAuthStore } from '@/hooks'
 
 type Step =
   | 'Vibe'
@@ -167,6 +168,7 @@ const withAlpha = (hex: string, alpha: number) => {
 
 export function OnboardingPage() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [stepIndex, setStepIndex] = useState(0)
   const [vibe, setVibe] = useState<Vibe | null>(null)
   const [sports, setSports] = useState<string[]>([])
@@ -328,6 +330,8 @@ export function OnboardingPage() {
       '',
     blurb: bio,
     avatar:
+      user?.avatar ||
+      (user as any)?.user_metadata?.picture ||
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
   }
 
