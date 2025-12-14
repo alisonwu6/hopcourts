@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { ChevronLeft, ChevronRight, Lock, Smile } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Lock, IdCard } from 'lucide-react'
 import { MateCard } from '@/features/mates/components/MateCard'
 import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { sportOptions } from '@/constants/sportOptions'
@@ -19,6 +19,7 @@ type Step =
   | 'Preview'
 type TimeSlot = '早上' | '下午' | '晚上'
 type CityOption = { id: string; label: string }
+type AgeRangeOption = { id: string; label: string }
 
 const bioExamples = {
   chill: [
@@ -122,6 +123,13 @@ const stepColors = [
   '#8b5cf6',
   '#8b5cf6',
 ]
+const ageRangeOptions: AgeRangeOption[] = [
+  { id: '18-24', label: '18–24' },
+  { id: '25-34', label: '25–34' },
+  { id: '35-44', label: '35–44' },
+  { id: '45-54', label: '45–54' },
+  { id: '55+', label: '55+' },
+]
 
 const countryOptions = [
   { name: '台灣', flag: '🇹🇼' },
@@ -184,10 +192,12 @@ export function OnboardingPage() {
   const [username, setUsername] = useState('')
   const [realName, setRealName] = useState('')
   const [displayName, setDisplayName] = useState('')
-  const [preferredTime, setPreferredTime] = useState<TimeSlot>('晚上')
-  const [daySlots, setDaySlots] =
-    useState<Record<string, TimeSlot[]>>(createDaySlots())
+  const [preferredTime, setPreferredTime] = useState<TimeSlot | null>(null)
+  const [daySlots, setDaySlots] = useState<Record<string, TimeSlot[]>>(
+    createDaySlots()
+  )
   const [furthestStep, setFurthestStep] = useState(0)
+  const [ageRange, setAgeRange] = useState<string>('')
   const starterOption =
     favOptions.find((item) => item.label === '我剛開始運動') ??
     sportOptions.find((item) => item.isStarter)
@@ -195,14 +205,8 @@ export function OnboardingPage() {
   const starterLabel = starterOption?.label ?? '我剛開始運動'
   const unsureId = 'unsure'
   const noIdeaId = 'no-idea'
-  const uniqueSports = useMemo(
-    () => Array.from(new Set(sports)),
-    [sports]
-  )
-  const uniqueTrying = useMemo(
-    () => Array.from(new Set(trying)),
-    [trying]
-  )
+  const uniqueSports = useMemo(() => Array.from(new Set(sports)), [sports])
+  const uniqueTrying = useMemo(() => Array.from(new Set(trying)), [trying])
   const sportsDisplayCount = uniqueSports.includes(starterId)
     ? 0
     : uniqueSports.length
@@ -256,15 +260,25 @@ export function OnboardingPage() {
     setFurthestStep((prev) => Math.max(prev, stepIndex))
   }, [stepIndex])
 
+  useEffect(() => {
+    // Scroll back to top when step changes to keep context clear on mobile
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+    })
+  }, [stepIndex])
+
   const toggleSport = (itemId: string) => {
     setSports((prev) => {
       if (itemId === starterId) {
         return [starterId]
       }
       const cleaned = prev.filter((s) => s !== starterId)
-      if (cleaned.includes(itemId))
+      const isSelected = cleaned.includes(itemId)
+      if (isSelected) {
         return cleaned.filter((s) => s !== itemId)
+      }
       if (cleaned.length >= 3) return cleaned
+      setTrying((prevTrying) => prevTrying.filter((id) => id !== itemId))
       return [...cleaned, itemId]
     })
   }
@@ -272,14 +286,15 @@ export function OnboardingPage() {
   const toggleTrying = (itemId: string) => {
     setTrying((prev) => {
       const isPlaceholder = itemId === unsureId || itemId === noIdeaId
-      if (prev.includes(itemId)) return prev.filter((s) => s !== itemId)
+      const isSelected = prev.includes(itemId)
+      if (isSelected) return prev.filter((s) => s !== itemId)
       if (isPlaceholder) {
         return [itemId]
       }
       const cleaned = prev.filter((s) => s !== unsureId && s !== noIdeaId)
-      if (cleaned.includes(itemId))
-        return cleaned.filter((s) => s !== itemId)
+      if (cleaned.includes(itemId)) return cleaned.filter((s) => s !== itemId)
       if (cleaned.length >= 2) return cleaned
+      setSports((prevSports) => prevSports.filter((id) => id !== itemId))
       return [...cleaned, itemId]
     })
   }
@@ -291,7 +306,7 @@ export function OnboardingPage() {
       case 'Sports':
         return sports.length === 0
       case 'Trying':
-        return false
+        return trying.length === 0
       case 'Country':
         return !country
       case 'City':
@@ -302,7 +317,9 @@ export function OnboardingPage() {
         return (
           displayName.trim().length === 0 ||
           username.trim().length === 0 ||
-          realName.trim().length === 0
+          realName.trim().length === 0 ||
+          preferredTime === null ||
+          ageRange.trim().length === 0
         )
       default:
         return false
@@ -325,9 +342,7 @@ export function OnboardingPage() {
     sports: selectedSportsLabels,
     trying: selectedTryingLabels,
     location:
-      cityOptions.find((c) => c.id === city)?.label ??
-      country?.name ??
-      '',
+      cityOptions.find((c) => c.id === city)?.label ?? country?.name ?? '',
     blurb: bio,
     avatar:
       user?.avatar ||
@@ -359,17 +374,21 @@ export function OnboardingPage() {
       if (b.label === starterLabel) return 1
       return 0
     })
-    if (!term) return ordered
-    return ordered.filter((s) => s.label.toLowerCase().startsWith(term))
-  }, [sportsSearch, starterLabel])
+    const filteredByTrying = ordered.filter((s) => !trying.includes(s.id))
+    if (!term) return filteredByTrying
+    return filteredByTrying.filter((s) =>
+      s.label.toLowerCase().startsWith(term)
+    )
+  }, [sportsSearch, starterLabel, trying])
 
   const filteredTrying = useMemo(() => {
     const term = tryingSearch.trim().toLowerCase()
-    if (!term) return tryingOptions
-    return tryingOptions.filter((s) =>
+    const filteredBySports = tryingOptions.filter((s) => !sports.includes(s.id))
+    if (!term) return filteredBySports
+    return filteredBySports.filter((s) =>
       s.label.toLowerCase().startsWith(term)
     )
-  }, [tryingSearch])
+  }, [tryingSearch, sports])
 
   return (
     <div>
@@ -383,7 +402,7 @@ export function OnboardingPage() {
       />
 
       <div
-        className="min-h-screen px-4 pb-12 pt-6"
+        className="px-4 pb-12 pt-6"
         style={{
           background: 'linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%)',
         }}
@@ -397,28 +416,39 @@ export function OnboardingPage() {
               />
               <div className="absolute inset-0 flex items-center justify-between px-2">
                 {steps.map((_, idx) => {
-                  const isCompleted = idx <= furthestStep && furthestStep > 0
-                  const color = isCompleted ? stepColors[idx] ?? '#e2e8f0' : '#cbd5e1'
+                  const isCompleted =
+                    idx === 0 || (idx <= furthestStep && furthestStep > 0)
+                  const color = isCompleted
+                    ? stepColors[idx] ?? '#e2e8f0'
+                    : '#cbd5e1'
                   return (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => {
-                        if (idx <= furthestStep) setStepIndex(idx)
+                        if (idx === 0 || idx <= furthestStep) setStepIndex(idx)
                       }}
                       className={clsx(
                         'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition shadow-sm ring-2 ring-white/50',
-                        isCompleted ? 'opacity-100' : 'opacity-60 cursor-not-allowed'
+                        isCompleted
+                          ? 'opacity-100'
+                          : 'opacity-60 cursor-not-allowed'
                       )}
                       aria-label={`前往步驟 ${idx + 1}`}
                       style={{
-                        background: idx === steps.length - 1 && isCompleted ? '#fff' : color,
+                        background:
+                          idx === steps.length - 1 && isCompleted
+                            ? '#fff'
+                            : color,
                         color: '#fff',
                       }}
                       disabled={!isCompleted}
                     >
                       {idx === steps.length - 1 ? (
-                        <Smile className="h-6 w-6 text-black" strokeWidth={2.5} />
+                        <IdCard
+                          className="h-6 w-6 text-black"
+                          strokeWidth={2.5}
+                        />
                       ) : (
                         idx + 1
                       )}
@@ -769,18 +799,18 @@ export function OnboardingPage() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="例如：小吳、Alison"
+                    placeholder="例如: 跳跳虎"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">
-                    SportsMatch ID（帳號用，不會被大聲喊出來）
+                    Username
                   </label>
                   <input
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="例如：sporty_lin（可英文＋數字）"
+                    placeholder="例如: tiger20260101"
                   />
                 </div>
                 <div className="space-y-2">
@@ -793,6 +823,33 @@ export function OnboardingPage() {
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
                     placeholder="請填寫證件上的姓名（不會公開）"
                   />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">
+                    年齡區間
+                  </label>
+                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                    <select
+                      value={ageRange}
+                      onChange={(e) => setAgeRange(e.target.value)}
+                      className="w-full bg-transparent text-sm font-semibold text-slate-900 outline-none"
+                    >
+                      <option
+                        value=""
+                        disabled
+                      >
+                        請選擇
+                      </option>
+                      {ageRangeOptions.map((option) => (
+                        <option
+                          key={option.id}
+                          value={option.id}
+                        >
+                          {`${option.label}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -959,35 +1016,39 @@ export function OnboardingPage() {
             />
           )}
 
-          <div className="mt-2 flex items-center justify-between gap-3">
-            {stepIndex > 0 ? (
+          <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#f9fbff] via-[#f9fbff]/95 to-transparent pb-6 pt-8">
+            <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4">
+              {stepIndex > 0 ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  上一步
+                </button>
+              ) : (
+                <div className="flex-1" />
+              )}
               <button
                 type="button"
-                onClick={goBack}
-                className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+                onClick={goNext}
+                disabled={nextDisabled}
+                className={clsx(
+                  'pointer-events-auto flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60',
+                  stepIndex === 0 ? 'w-full' : 'flex-1',
+                  nextDisabled ? 'bg-slate-200 text-slate-500' : undefined
+                )}
+                style={nextDisabled ? undefined : { background: accent.ring }}
               >
-                <ChevronLeft className="h-4 w-4" />
-                上一步
+                {currentStep === 'Preview'
+                  ? '儲存我的運動卡'
+                  : currentStep === 'Info'
+                  ? '我的運動卡預覽'
+                  : '下一步'}
+                <ChevronRight className="h-4 w-4" />
               </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={goNext}
-              disabled={nextDisabled}
-              className={clsx(
-                'flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60',
-                stepIndex === 0 ? 'w-full' : 'flex-1',
-                nextDisabled ? 'bg-slate-200 text-slate-500' : undefined
-              )}
-              style={nextDisabled ? undefined : { background: accent.ring }}
-            >
-              {currentStep === 'Preview'
-                ? '儲存我的運動卡'
-                : currentStep === 'Info'
-                ? '我的運動卡預覽'
-                : '下一步'}
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            </div>
           </div>
         </div>
       </div>
