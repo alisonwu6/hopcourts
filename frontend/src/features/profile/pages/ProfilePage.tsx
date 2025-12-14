@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Goal, Menu, PlusSquare, Lock, Calendar, MapPin, Users, Wallet } from 'lucide-react'
-import { forwardRef, useState } from 'react'
+import { forwardRef, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
 import { BottomSheet } from '@/components/BottomSheet'
@@ -15,6 +15,36 @@ const mockProfile: MateCardProps = {
   trying: ['匹克球', '抱石'],
   blurb: '「找同頻的夥伴，輕鬆聊、輕鬆動，下班也能一起放鬆。」',
   avatar: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=320&q=80',
+}
+
+type GoalState = { sessionsPerWeek: string; timeOfDay: string; days: string[] }
+
+function EmptyBlock({
+  title,
+  description,
+  actionLabel,
+  onAction,
+}: {
+  title: string
+  description: string
+  actionLabel?: string
+  onAction?: () => void
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200/80 bg-white/80 px-5 py-8 text-center shadow-sm">
+      <p className="text-lg font-extrabold text-slate-900">{title}</p>
+      <p className="mt-2 text-sm font-medium text-slate-600">{description}</p>
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="mt-5 w-full max-w-[220px] rounded-full bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  )
 }
 
 export function ProfilePage() {
@@ -34,22 +64,31 @@ export function ProfilePage() {
       return acc
     }, {})
   const [showGoalSheet, setShowGoalSheet] = useState(false)
-  const [goal, setGoal] = useState({ sessionsPerWeek: '2', timeOfDay: '晚上', days: ['Mon', 'Wed'] })
-  const [draftGoal, setDraftGoal] = useState(goal)
+  const defaultGoal: GoalState = { sessionsPerWeek: '2', timeOfDay: '晚上', days: ['Mon', 'Wed'] }
+  const [goal, setGoal] = useState<GoalState | null>(defaultGoal)
+  const [draftGoal, setDraftGoal] = useState<GoalState>(defaultGoal)
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftPreferredTime, setDraftPreferredTime] = useState(goal.timeOfDay || '早上')
-  const [profile, setProfile] = useState<MateCardProps>(mockProfile)
+  const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
+  const [profile, setProfile] = useState<MateCardProps | null>(mockProfile)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(mockProfile)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const { user } = useAuthStore()
+  const { user, onboardingStatus, isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
-  const username = (user as any)?.username || 'wuchialin6'
+  const username = (user as any)?.username || 'undefined'
+  const hasCompletedCard = onboardingStatus?.isComplete ?? false
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const handleOpenGoal = () => {
-    setDraftGoal(goal)
+    const baseGoal = goal ?? { sessionsPerWeek: '', timeOfDay: draftPreferredTime || '早上', days: [] }
+    setDraftGoal(baseGoal)
     setDraftDaySlots(goalDaySlots)
-    setDraftPreferredTime(goal.timeOfDay || 'Mornings')
+    setDraftPreferredTime(baseGoal.timeOfDay || '早上')
     setShowGoalSheet(true)
   }
 
@@ -60,7 +99,7 @@ export function ProfilePage() {
   }
 
   const handleOpenProfileEdit = () => {
-    setDraftProfile(profile)
+    setDraftProfile(profile ?? mockProfile)
     setShowEditSheet(true)
   }
 
@@ -85,13 +124,55 @@ export function ProfilePage() {
     })
   }
 
+  if (!isAuthenticated) {
+    return null
+  }
+
+  if (isAuthenticated && !hasCompletedCard) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="mx-auto flex h-full w-full max-w-2xl flex-col px-6 pb-10 pt-6">
+          <div className="flex items-center justify-end gap-2 py-2">
+            <button
+              type="button"
+              aria-label="Add game"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+              onClick={() => navigate('/create-event')}
+            >
+              <PlusSquare className="h-6 w-6" />
+            </button>
+            <Link
+              to="/profile/settings"
+              aria-label="Menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+            >
+              <Menu className="h-6 w-6" />
+            </Link>
+          </div>
+
+          <div className="flex flex-1 items-start justify-center">
+            <div className="w-full max-w-xl">
+              <EmptyBlock
+                title="建立你的運動身份"
+                description="分享你的氛圍與慣打運動，找到步調相近的夥伴。"
+                actionLabel="建立你的運動卡"
+                onAction={() => navigate('/onboarding')}
+                className="mt-6"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen pb-[120px]">
-      <div className="mx-auto w-full max-w-4xl pb-6">
+        <div className="mx-auto w-full max-w-4xl pb-6">
         <div className="flex items-center justify-between px-4 py-4 bg-white">
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
-            <span className="text-2xl font-bold text-slate-900">{username}</span>
+            {username && <span className="text-2xl font-bold text-slate-900">{username}</span>}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -381,7 +462,7 @@ export function StatsContent({
   onOpenGoalSheet,
   showEdit = true,
 }: {
-  goal: { sessionsPerWeek: string; timeOfDay: string; days: string[] }
+  goal: GoalState | null
   goalDaySlots: Record<string, string[]>
   onOpenGoalSheet: () => void
   showEdit?: boolean
@@ -399,6 +480,19 @@ export function StatsContent({
     dayLabel: dayLabels[day] ?? day,
     slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
   }))
+
+  if (!goal || !goal.sessionsPerWeek) {
+    return (
+      <div className="px-3">
+        <EmptyBlock
+          title="尚未設定每週節奏"
+          description="設定你的每週目標次數與時段，幫你配對到適合的活動與夥伴。"
+          actionLabel={showEdit ? '設定每週節奏' : undefined}
+          onAction={showEdit ? onOpenGoalSheet : undefined}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="px-3">
@@ -452,60 +546,9 @@ export function StatsContent({
 
 function MatchesContent() {
   const navigate = useNavigate()
-  const upcoming = [
-    {
-      id: 'city-basketball',
-      title: 'City basketball',
-      time: 'Today 18:00 – 19:30',
-      location: 'Central Park Court, 500m away',
-      tag: 'Basketball',
-      pace: 'Intermediate pace',
-      joined: '0/12 joined',
-      price: 'Free to join',
-      checkIn: {
-        label: 'GPS check-in zone',
-        instructions: 'Check in when you arrive — we’ll mark you as here',
-        window: '17:45 – 18:15',
-        radius: '100m',
-      },
-    },
-  ]
+  const upcoming: Array<any> = []
 
-  const completed = [
-    {
-      id: 'gym-session',
-      title: 'Easy gym session',
-      time: 'Sun · 45 min',
-      location: 'Community Gym · 2km away',
-      tag: 'Gym',
-      pace: 'Steady pace',
-      joined: '0/12 joined',
-      price: 'Free to join',
-      checkIn: { time: 'Sun 5:05 PM', status: 'on-time', note: 'On time' },
-    },
-    {
-      id: 'social-volleyball',
-      title: 'Social volleyball',
-      time: 'Sat · 1h',
-      location: 'Beach Courts · 1.2km away',
-      tag: 'Volleyball',
-      pace: 'Social pace',
-      joined: '8/16 joined',
-      price: '$5 court split',
-      checkIn: { time: 'Sat 6:12 PM', status: 'late', note: 'Late at 6:12 PM' },
-    },
-    {
-      id: 'run-club',
-      title: 'Morning run club',
-      time: 'Fri · 30 min',
-      location: 'River Loop · 800m away',
-      tag: 'Running',
-      pace: 'Light pace',
-      joined: '12/25 joined',
-      price: 'Free to join',
-      checkIn: { status: 'no-show', note: 'No show' },
-    },
-  ]
+  const completed: Array<any> = []
   const [active, setActive] = useState<'upcoming' | 'completed'>('upcoming')
 
   return (
@@ -536,168 +579,186 @@ function MatchesContent() {
 
       {active === 'upcoming' && (
         <section className="space-y-3">
-          {upcoming.map((item) => (
-            <div
-              key={item.title}
-              className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)]"
-            >
-              <button
-                type="button"
-                onClick={() => navigate(`/event/${item.id}`)}
-                className="w-full text-left"
+          {upcoming.length === 0 ? (
+            <EmptyBlock
+              title="還沒有即將到來的活動"
+              description="建立或報名一場活動，就能在這裡看到行程。"
+              actionLabel="去逛活動"
+              onAction={() => navigate('/events')}
+            />
+          ) : (
+            upcoming.map((item) => (
+              <div
+                key={item.title}
+                className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)]"
               >
-                <div className="space-y-3 px-5 pt-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                      {item.pace}
-                    </span>
-                    <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                      {item.tag}
-                    </span>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/event/${item.id}`)}
+                  className="w-full text-left"
+                >
+                  <div className="space-y-3 px-5 pt-5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                        {item.pace}
+                      </span>
+                      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                        {item.tag}
+                      </span>
+                    </div>
+                    <p className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+                      <span>{item.title}</span>
+                    </p>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <Calendar className="h-4 w-4 text-slate-500" />
+                      {item.time}
+                    </p>
+                    <p className="flex items-center gap-2 text-sm text-slate-600">
+                      <MapPin className="h-4 w-4 text-slate-500" />
+                      {item.location}
+                    </p>
+                    <p className="flex items-center gap-2 text-sm text-slate-600">
+                      <Users className="h-4 w-4 text-slate-500" />
+                      {item.joined}
+                    </p>
+                    <p className="flex items-center gap-2 text-sm text-slate-600">
+                      <Wallet className="h-4 w-4 text-slate-500" />
+                      {item.price}
+                    </p>
                   </div>
-                  <p className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                    <span>{item.title}</span>
-                  </p>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                    <Calendar className="h-4 w-4 text-slate-500" />
-                    {item.time}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm text-slate-600">
-                    <MapPin className="h-4 w-4 text-slate-500" />
-                    {item.location}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm text-slate-600">
-                    <Users className="h-4 w-4 text-slate-500" />
-                    {item.joined}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm text-slate-600">
-                    <Wallet className="h-4 w-4 text-slate-500" />
-                    {item.price}
-                  </p>
-                </div>
-              </button>
+                </button>
 
-              {item.checkIn && !item.checkIn.status && (
-                <div className="space-y-3 px-5 pb-5">
-                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800">
-                          {item.checkIn.label}
-                        </p>
-                        <p className="text-xs text-slate-600">
-                          {item.checkIn.instructions}
-                        </p>
+                {item.checkIn && !item.checkIn.status && (
+                  <div className="space-y-3 px-5 pb-5">
+                    <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">
+                            {item.checkIn.label}
+                          </p>
+                          <p className="text-xs text-slate-600">
+                            {item.checkIn.instructions}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-slate-700">
+                        <span>Check-in available:</span>
+                        <span className="font-semibold">
+                          {item.checkIn.window}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-slate-700">
+                        <span>You’re good as long as you’re within:</span>
+                        <span className="font-semibold">
+                          {item.checkIn.radius}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-slate-700">
-                      <span>Check-in available:</span>
-                      <span className="font-semibold">
-                        {item.checkIn.window}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-slate-700">
-                      <span>You’re good as long as you’re within:</span>
-                      <span className="font-semibold">
-                        {item.checkIn.radius}
-                      </span>
-                    </div>
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-blue-500 hover:to-blue-500"
+                    >
+                      📍 I’m here — check me in
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-blue-500 hover:to-blue-500"
-                  >
-                    📍 I’m here — check me in
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))
+          )}
         </section>
       )}
 
       {active === 'completed' && (
         <section className="space-y-3">
-          {completed.map((item) => (
-            <div
-              key={item.title}
-              className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,41,77,0.06)]"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate(`/event/${item.id}`)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  navigate(`/event/${item.id}`)
-                }
-              }}
-            >
-              <div className="flex items-start justify-between px-5 pt-5">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {item.pace && (
-                      <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                        {item.pace}
+          {completed.length === 0 ? (
+            <EmptyBlock
+              title="還沒有歷史紀錄"
+              description="完成一場活動後，會在這裡看到你的紀錄。"
+              actionLabel="去逛活動"
+              onAction={() => navigate('/events')}
+            />
+          ) : (
+            completed.map((item) => (
+              <div
+                key={item.title}
+                className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,41,77,0.06)]"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/event/${item.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    navigate(`/event/${item.id}`)
+                  }
+                }}
+              >
+                <div className="flex items-start justify-between px-5 pt-5">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {item.pace && (
+                        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                          {item.pace}
+                        </span>
+                      )}
+                      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                        {item.tag}
                       </span>
-                    )}
-                    <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                      {item.tag}
-                    </span>
-                  </div>
-                  <p className="text-xl font-semibold text-slate-900">
-                    {item.title}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                    <Calendar className="h-4 w-4 text-slate-500" />
-                    {item.time}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm text-slate-600">
-                    <MapPin className="h-4 w-4 text-slate-500" />
-                    {item.location}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm text-slate-600">
-                    <Users className="h-4 w-4 text-slate-500" />
-                    {item.joined}
-                  </p>
-                  <p className="flex items-center gap-2 text-sm text-slate-600">
-                    <Wallet className="h-4 w-4 text-slate-500" />
-                    {item.price}
-                  </p>
-                </div>
-              </div>
-              <div className="">
-                <div className="space-y-2 bg-slate-200 px-5 py-3 text-sm text-slate-700">
-                  {item.checkIn?.time && (
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold">Time</span>
-                      <span className="font-semibold">{item.checkIn.time}</span>
                     </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold">Check-in</p>
-                    {item.checkIn && (
-                      <span
-                        className={clsx(
-                          'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                          item.checkIn.status === 'on-time'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : item.checkIn.status === 'late'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-rose-100 text-rose-700'
-                        )}
-                      >
-                        {item.checkIn.status === 'on-time'
-                          ? 'On time'
-                          : item.checkIn.status === 'late'
-                          ? 'Good on ya, you made it'
-                          : 'No show'}
-                      </span>
+                    <p className="text-xl font-semibold text-slate-900">
+                      {item.title}
+                    </p>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <Calendar className="h-4 w-4 text-slate-500" />
+                      {item.time}
+                    </p>
+                    <p className="flex items-center gap-2 text-sm text-slate-600">
+                      <MapPin className="h-4 w-4 text-slate-500" />
+                      {item.location}
+                    </p>
+                    <p className="flex items-center gap-2 text-sm text-slate-600">
+                      <Users className="h-4 w-4 text-slate-500" />
+                      {item.joined}
+                    </p>
+                    <p className="flex items-center gap-2 text-sm text-slate-600">
+                      <Wallet className="h-4 w-4 text-slate-500" />
+                      {item.price}
+                    </p>
+                  </div>
+                </div>
+                <div className="">
+                  <div className="space-y-2 bg-slate-200 px-5 py-3 text-sm text-slate-700">
+                    {item.checkIn?.time && (
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">Time</span>
+                        <span className="font-semibold">{item.checkIn.time}</span>
+                      </div>
                     )}
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold">Check-in</p>
+                      {item.checkIn && (
+                        <span
+                          className={clsx(
+                            'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
+                            item.checkIn.status === 'on-time'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : item.checkIn.status === 'late'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-rose-100 text-rose-700'
+                          )}
+                        >
+                          {item.checkIn.status === 'on-time'
+                            ? 'On time'
+                            : item.checkIn.status === 'late'
+                            ? 'Good on ya, you made it'
+                            : 'No show'}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </section>
       )}
     </div>
@@ -707,17 +768,8 @@ function MatchesContent() {
 export function PeopleContent() {
   const navigate = useNavigate()
   const [subTab, setSubTab] = useState<'connected' | 'playmates'>('connected')
-  const connected = [
-    { name: 'Jamie', detail: '每週二、四晚上動起來', meta: 'High five：12 次', colors: 'from-indigo-500 to-purple-500' },
-    { name: 'Alex', detail: '早上去跑步', meta: '激勵你 3 次', colors: 'from-pink-400 to-orange-400' },
-    { name: 'Sam', detail: '週末健身房', meta: 'High five：8 次', colors: 'from-sky-400 to-blue-500' },
-  ]
-  const playmates = [
-    { name: 'Jordan', meta: '一起參加過 2 次', status: '圈夥伴', colors: 'from-emerald-400 to-teal-400' },
-    { name: 'Casey', meta: '上週見面', status: '圈夥伴', colors: 'from-pink-400 to-orange-300' },
-    { name: 'Morgan', meta: '一起參加過 3 次', status: '圈夥伴', colors: 'from-indigo-500 to-purple-500' },
-    { name: 'Taylor', meta: '上個月見面', status: '已圈', colors: 'from-pink-400 to-fuchsia-500' },
-  ]
+  const connected: Array<any> = []
+  const playmates: Array<any> = []
   const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
     const handle = mate.username || mate.name
     navigate(`/${encodeURIComponent(handle)}`, { state: { mate } })
@@ -756,32 +808,41 @@ export function PeopleContent() {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             我的夥伴
           </p>
-          <div className="space-y-3">
-            {connected.map((person) => (
-              <button
-                key={person.name}
-                type="button"
-                onClick={() => goToMate({ name: person.name, vibe: 'Chill' })}
-                className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 text-left shadow-sm transition hover:shadow-md focus:outline-none"
-              >
-                <div
-                  className={clsx(
-                    'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
-                    person.colors
-                  )}
+          {connected.length === 0 ? (
+            <EmptyBlock
+              title="還沒有夥伴"
+              description="加入或建立活動，累積互動後會顯示你的夥伴圈。"
+              actionLabel="去逛活動"
+              onAction={() => navigate('/events')}
+            />
+          ) : (
+            <div className="space-y-3">
+              {connected.map((person) => (
+                <button
+                  key={person.name}
+                  type="button"
+                  onClick={() => goToMate({ name: person.name, vibe: 'Chill' })}
+                  className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 text-left shadow-sm transition hover:shadow-md focus:outline-none"
                 >
-                  {person.name.charAt(0)}
-                </div>
-                <div className="flex-1 space-y-0.5">
-                  <p className="text-base font-semibold text-slate-900">
-                    {person.name}
-                  </p>
-                  <p className="text-sm text-slate-600">{person.detail}</p>
-                  <p className="text-sm text-slate-500">{person.meta}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+                  <div
+                    className={clsx(
+                      'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
+                      person.colors
+                    )}
+                  >
+                    {person.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-base font-semibold text-slate-900">
+                      {person.name}
+                    </p>
+                    <p className="text-sm text-slate-600">{person.detail}</p>
+                    <p className="text-sm text-slate-500">{person.meta}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -790,60 +851,82 @@ export function PeopleContent() {
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             交手夥伴
           </p>
-          <div className="space-y-3">
-            {playmates.map((mate) => {
-              const isAdded = mate.status === 'Added'
-              return (
-                <div
-                  key={mate.name}
-                  className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 shadow-sm"
-                >
-                  <button
-                    type="button"
-                    onClick={() => goToMate({ name: mate.name, vibe: 'Chill' })}
-                    className="flex items-center gap-4 text-left focus:outline-none"
+          {playmates.length === 0 ? (
+            <EmptyBlock
+              title="還沒有交手夥伴"
+              description="完成活動或互動後，這裡會顯示你圈選的交手夥伴。"
+              actionLabel="去逛活動"
+              onAction={() => navigate('/events')}
+            />
+          ) : (
+            <div className="space-y-3">
+              {playmates.map((mate) => {
+                const isAdded = mate.status === 'Added'
+                return (
+                  <div
+                    key={mate.name}
+                    className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 shadow-sm"
                   >
-                    <div
-                      className={clsx(
-                        'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
-                        mate.colors
-                      )}
-                    >
-                      {mate.name.charAt(0)}
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-base font-semibold text-slate-900">
-                          {mate.name}
-                        </p>
-                      </div>
-                      <p className="text-sm text-slate-600">{mate.meta}</p>
-                    </div>
-                  </button>
-                  <div className="ml-auto">
                     <button
                       type="button"
-                      className={clsx(
-                        'min-w-[64px] rounded-xl px-4 py-2 text-sm font-semibold shadow-sm',
-                        isAdded
-                          ? 'bg-slate-100 text-slate-500'
-                          : 'border border-slate-300 text-slate-900 hover:bg-slate-50'
-                      )}
+                      onClick={() => goToMate({ name: mate.name, vibe: 'Chill' })}
+                      className="flex items-center gap-4 text-left focus:outline-none"
                     >
-                      {mate.status}
+                      <div
+                        className={clsx(
+                          'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
+                          mate.colors
+                        )}
+                      >
+                        {mate.name.charAt(0)}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-base font-semibold text-slate-900">
+                            {mate.name}
+                          </p>
+                        </div>
+                        <p className="text-sm text-slate-600">{mate.meta}</p>
+                      </div>
                     </button>
+                    <div className="ml-auto">
+                      <button
+                        type="button"
+                        className={clsx(
+                          'min-w-[64px] rounded-xl px-4 py-2 text-sm font-semibold shadow-sm',
+                          isAdded
+                            ? 'bg-slate-100 text-slate-500'
+                            : 'border border-slate-300 text-slate-900 hover:bg-slate-50'
+                        )}
+                      >
+                        {mate.status}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
   )
 }
 
-function HeroCard({ profile, onEdit }: { profile: MateCardProps; onEdit: () => void }) {
+function HeroCard({ profile, onEdit }: { profile: MateCardProps | null; onEdit: () => void }) {
+  if (!profile) {
+    return (
+      <div className="bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff] px-4 py-8">
+        <EmptyBlock
+          title="還沒有運動卡資料"
+          description="建立或編輯你的運動卡，讓夥伴更快找到你。"
+          actionLabel="建立運動卡"
+          onAction={onEdit}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff]">
       <MateCard

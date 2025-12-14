@@ -313,16 +313,16 @@ export function HomePage() {
           </button>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900">
-              儲存你的運動身份
+              登入建立你的運動身份
             </h2>
             <p className="text-sm text-slate-600">
-              我們會幫你探索自己的氛圍，找到步調相近的夥伴。
+              一起會探索城市裡的運動氛圍，找到步調相近的夥伴
             </p>
           </div>
 
           <div className="space-y-3">
-            <AppleLoginButton loginApple={loginApple} />
             <GoogleLoginButton loginGoogle={loginGoogle} />
+            <AppleLoginButton loginApple={loginApple} />
             <button
               type="button"
               className="w-full text-sm font-semibold text-blue-600 underline-offset-4 hover:underline"
