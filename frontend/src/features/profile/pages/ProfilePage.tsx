@@ -142,7 +142,7 @@ export function ProfilePage() {
               <PlusSquare className="h-6 w-6" />
             </button>
             <Link
-              to="/profile/settings"
+              to="/settings"
               aria-label="Menu"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
             >
@@ -184,7 +184,7 @@ export function ProfilePage() {
               <PlusSquare className="h-6 w-6" />
             </button>
             <Link
-              to="/profile/settings"
+              to="/settings"
               aria-label="Menu"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
             >

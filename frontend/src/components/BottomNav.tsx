@@ -46,7 +46,7 @@ export function BottomNav() {
           label: '我',
           icon: PersonStanding,
           path: '/profile',
-          matchPaths: ['/profile', '/profile/settings'],
+          matchPaths: ['/profile', '/settings'],
         }
       : {
           label: '登入',

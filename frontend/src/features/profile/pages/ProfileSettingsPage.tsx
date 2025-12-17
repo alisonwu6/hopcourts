@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { ChevronRight, ShieldCheck, UserRound, LogOut } from 'lucide-react'
+import { ChevronRight, ShieldCheck, UserRound, LogOut, Info } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 
-type SettingKey = 'account' | 'privacy'
+type SettingKey = 'about' | 'account' | 'privacy'
 
 const items: { key: SettingKey; label: string; icon: React.ElementType }[] = [
+  { key: 'about', label: '關於我們', icon: Info },
   { key: 'account', label: '帳號設定', icon: UserRound },
   { key: 'privacy', label: '隱私與安全', icon: ShieldCheck },
 ]
@@ -45,10 +46,12 @@ export function ProfileSettingsPage() {
               key={key}
               className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
               onClick={() => {
-                if (key === 'account') {
-                  navigate('/profile/settings/account')
+                if (key === 'about') {
+                  navigate('/about')
+                } else if (key === 'account') {
+                  navigate('/settings/account')
                 } else if (key === 'privacy') {
-                  navigate('/profile/settings/privacy')
+                  navigate('/settings/privacy')
                 }
               }}
             >

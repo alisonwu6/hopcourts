@@ -18,6 +18,7 @@ import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
+import { AboutPage } from '@/features/profile/pages/AboutPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { HomePage } from '@/features/home/pages/HomePage'
@@ -78,6 +79,14 @@ export default function App() {
         }
       />
       <Route path="/home" element={<Navigate to="/" replace />} />
+      <Route
+        path="/about"
+        element={
+          <AppChrome showActions={false} showHeader={false} showNav={false}>
+            <AboutPage />
+          </AppChrome>
+        }
+      />
       <Route
         path="/onboarding"
         element={
@@ -205,7 +214,7 @@ function AuthenticatedApp() {
         }
       />
       <Route
-        path="/profile/settings"
+        path="/settings"
         element={
           <AppChrome showHeader={false} showNav={false}>
             <ProfileSettingsPage />
@@ -213,7 +222,7 @@ function AuthenticatedApp() {
         }
       />
       <Route
-        path="/profile/settings/account"
+        path="/settings/account"
         element={
           <AppChrome showHeader={false} showNav={false}>
             <AccountSettingsPage />
@@ -221,7 +230,7 @@ function AuthenticatedApp() {
         }
       />
       <Route
-        path="/profile/settings/privacy"
+        path="/settings/privacy"
         element={
           <AppChrome showHeader={false} showNav={false}>
             <PrivacySettingsPage />
@@ -304,7 +313,7 @@ function GuestApp() {
         }
       />
       <Route
-        path="/profile/settings"
+        path="/settings"
         element={
           <AppChrome showActions={false} showHeader={false} showNav={false}>
             <ProfileSettingsPage />
@@ -312,7 +321,7 @@ function GuestApp() {
         }
       />
       <Route
-        path="/profile/settings/account"
+        path="/settings/account"
         element={
           <AppChrome showActions={false} showHeader={false} showNav={false}>
             <AccountSettingsPage />
@@ -320,7 +329,7 @@ function GuestApp() {
         }
       />
       <Route
-        path="/profile/settings/privacy"
+        path="/settings/privacy"
         element={
           <AppChrome showActions={false} showHeader={false} showNav={false}>
             <PrivacySettingsPage />
