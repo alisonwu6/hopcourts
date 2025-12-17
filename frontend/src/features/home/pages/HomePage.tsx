@@ -273,7 +273,7 @@ export function HomePage() {
               建立你的運動身份
             </h2>
             <p className="text-sm text-slate-600">
-              分享你的氛圍與慣打運動，找到步調相近的夥伴。
+              分享你的氛圍與喜好的運動，找到步調相近的夥伴。
             </p>
             <button
               type="button"
