@@ -11,7 +11,7 @@ import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { useAuthStore } from '@/hooks'
 
-type SportFilterOption = { key: string; label: string }
+type SportFilterOption = { key: string; label: string; icon?: string | null }
 const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
 
 export function DiscoverEventsPage() {
@@ -28,7 +28,11 @@ export function DiscoverEventsPage() {
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
-  const { sports: sportsCatalog } = useSports('zh')
+  const {
+    sports: sportsCatalog,
+    isLoading: isSportsLoading,
+    error: sportsError,
+  } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
@@ -36,8 +40,12 @@ export function DiscoverEventsPage() {
   const goToMySessions = () => navigate('/my-events')
   const sports = useMemo<SportFilterOption[]>(
     () => [
-      { key: 'all', label: '全部' },
-      ...sportsCatalog.map((sport) => ({ key: sport.key, label: sport.label })),
+      { key: 'all', label: '全部', icon: '全' },
+      ...sportsCatalog.map((sport) => ({
+        key: sport.key,
+        label: sport.label,
+        icon: sport.icon,
+      })),
     ],
     [sportsCatalog]
   )
@@ -178,7 +186,9 @@ export function DiscoverEventsPage() {
                 aria-hidden="true"
               />
               <span className="flex-1 truncate">
-                {selectedSports.includes('all')
+                {isSportsLoading
+                  ? '載入運動中…'
+                  : selectedSports.includes('all')
                   ? '選擇運動'
                   : selectedSportLabels.join(', ')}
               </span>
@@ -229,14 +239,14 @@ export function DiscoverEventsPage() {
         open={isFilterOpen}
         selected={pendingSports}
         options={sports}
+        loading={isSportsLoading}
+        errorText={sportsError ? '運動清單載入失敗，請稍後再試。' : undefined}
         onClose={() => setIsFilterOpen(false)}
         onReset={() => setPendingSports(['all'])}
         onToggle={(value) => {
           setPendingSports((prev) => {
             if (value === 'all') return ['all']
-            const next = prev.filter(
-              (item) => item !== value && item !== 'all'
-            )
+            const next = prev.filter((item) => item !== value && item !== 'all')
             const exists = prev.includes(value)
             return exists ? next : [...next, value]
           })
@@ -277,6 +287,8 @@ type SportFilterSheetProps = {
   open: boolean
   selected: string[]
   options: SportFilterOption[]
+  loading?: boolean
+  errorText?: string
   onToggle: (sport: string) => void
   onReset: () => void
   onApply: () => void
@@ -287,6 +299,8 @@ function SportFilterSheet({
   open,
   selected,
   options,
+  loading,
+  errorText,
   onToggle,
   onReset,
   onApply,
@@ -303,6 +317,12 @@ function SportFilterSheet({
               運動篩選
             </p>
             <h2 className="text-xl font-semibold text-slate-900">想找什麼運動？</h2>
+            {loading && (
+              <p className="text-xs font-medium text-blue-500">運動清單載入中…</p>
+            )}
+            {errorText && !loading && (
+              <p className="text-xs font-medium text-rose-500">{errorText}</p>
+            )}
           </div>
           <button
             type="button"
@@ -330,14 +350,11 @@ function SportFilterSheet({
                       : 'border-slate-200 text-slate-700 hover:border-blue-200'
                   )}
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-lg font-bold">
-                    {sport.key === 'all' ? '全' : sport.label.charAt(0)}
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-lg font-bold">
+                    {sport.key === 'all' ? '全' : sport.icon || sport.label.charAt(0)}
                   </span>
                   <div className="flex flex-col">
                     <span>{sport.label}</span>
-                    <span className="text-xs font-normal text-slate-500">
-                      {sport.key === 'all' ? '顯示全部' : '點擊套用篩選'}
-                    </span>
                   </div>
                 </button>
               )
@@ -356,7 +373,8 @@ function SportFilterSheet({
           <button
             type="button"
             onClick={onApply}
-            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+            disabled={loading}
           >
             套用
           </button>
