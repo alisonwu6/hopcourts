@@ -75,14 +75,6 @@ export function DiscoverEventsPage() {
     setShowIntroSheet(!seen)
   }, [isAuthenticated])
 
-  const handleIntroClose = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(INTRO_SHEET_STORAGE_KEY, 'dismissed')
-    }
-    setHasSeenIntro(true)
-    setShowIntroSheet(false)
-  }
-
   const handleCreateClick = () => {
     if (isAuthenticated) {
       navigate('/create-event')
