@@ -1,24 +1,59 @@
 const fs = require('fs')
 const path = require('path')
-const yaml = require('yaml')
 
-const SPEC_PATH = path.join(__dirname, '../../docs/manual/openapi.yaml')
+const yaml = `openapi: 3.0.3
+info:
+  title: SportsMatch API
+  version: 1.0.0
+servers:
+  - url: /api/v1
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        \"200\":
+          description: ok
+  /sports:
+    get:
+      summary: List sports
+      parameters:
+        - in: query
+          name: lang
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        \"200\":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            label:
+                              type: string
+                            category:
+                              type: string
+                            icon:
+                              type: string
+                            order:
+                              type: integer
+                            is_active:
+                              type: boolean
+`
 
-function loadSpec() {
-  try {
-    const file = fs.readFileSync(SPEC_PATH, 'utf8')
-    return yaml.parse(file)
-  } catch (error) {
-    console.error('[swagger] Failed to load OpenAPI spec:', error.message)
-    return {
-      openapi: '3.0.0',
-      info: {
-        title: 'SportsMatch API',
-        version: '1.0.0',
-        description: 'Fallback spec because docs/manual/openapi.yaml was unavailable.',
-      },
-    }
-  }
-}
-
-module.exports = loadSpec()
+const outPath = path.join(process.cwd(), 'docs/manual/openapi.yaml')
+fs.mkdirSync(path.dirname(outPath), { recursive: true })
+fs.writeFileSync(outPath, yaml, 'utf8')
+console.log('openapi.yaml written:', outPath)

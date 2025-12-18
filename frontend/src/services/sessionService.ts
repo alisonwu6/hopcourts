@@ -1,7 +1,7 @@
-import { apiRequest } from './apiClient'
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
-import { User } from '@/types'
-import { OnboardingStatus } from '@/store/onboardingStore'
+import type { User } from '@/types'
+import type { OnboardingStatus } from '@/store/onboardingStore'
+import { supabase } from '@/lib/supabase'
 
 export interface SessionContext {
   token: string
@@ -9,70 +9,101 @@ export interface SessionContext {
   onboardingStatus: OnboardingStatus
 }
 
-type RawUser = Record<string, any>
+type SupabaseUser = {
+  id?: string
+  email?: string
+  created_at?: string
+  user_metadata?: Record<string, any>
+}
 
-const adaptUser = (payload: RawUser): User => ({
-  id: String(payload.id),
-  email: payload.email,
-  name: payload.full_name ?? payload.name ?? '',
-  avatar: payload.avatar_url ?? undefined,
-  phone: payload.phone ?? undefined,
-  bio: payload.bio ?? '',
-  location: payload.city ?? '',
-  sports: (payload.sports ?? []).map((sport: any) => sport.sport || sport),
-  skillLevel: 'beginner',
-  following: [],
-  followers: [],
-  hostProfile: undefined,
-  managedVenues: [],
-  eventsAttended: payload.eventsAttended ?? payload.gamesAttended ?? 0,
-  eventsHosted: payload.eventsHosted ?? payload.gamesHosted ?? 0,
-  createdAt: payload.created_at ? new Date(payload.created_at) : new Date(),
-  updatedAt: payload.updated_at ? new Date(payload.updated_at) : new Date(),
-})
+const STATUS_STORAGE_KEY = 'sportsmatch_onboarding_status_v1'
 
-async function fetchAuthenticatedContext(token: string) {
-  const [profile, onboardingStatus] = await Promise.all([
-    apiRequest<any>('GET', '/users/me', {
-      authTokenOverride: token,
-    }),
-    apiRequest<OnboardingStatus>('GET', '/onboarding/player/progress', {
-      authTokenOverride: token,
-    }),
-  ])
+const DEFAULT_STATUS: OnboardingStatus = {
+  hasRole: false,
+  hasBasicInfo: false,
+  hasUsername: false,
+  hasSports: false,
+  hasSkillLevels: false,
+  hasPlayingStyle: false,
+  hasPlayFrequency: false,
+  hasAvatar: false,
+  hasMotivation: false,
+  hasVenueDetails: false,
+  hasVenueSports: false,
+  hasVenueCourts: false,
+  hasVenuePhoto: false,
+  hasVenueVerification: false,
+  isComplete: false,
+  signUpSource: 'unknown',
+}
 
-  return {
-    user: adaptUser(profile),
-    onboardingStatus,
+const readStoredStatus = (): OnboardingStatus => {
+  if (typeof window === 'undefined') return DEFAULT_STATUS
+  const raw = window.localStorage.getItem(STATUS_STORAGE_KEY)
+  if (!raw) return DEFAULT_STATUS
+  try {
+    return { ...DEFAULT_STATUS, ...JSON.parse(raw) }
+  } catch {
+    return DEFAULT_STATUS
   }
+}
+
+const persistStatus = (status: OnboardingStatus) => {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify(status))
+}
+
+const buildUser = (payload: SupabaseUser | null): User => {
+  const now = new Date()
+  const metadata = payload?.user_metadata ?? {}
+  return {
+    id: String(payload?.id ?? ''),
+    email: payload?.email ?? '',
+    name: metadata.full_name ?? metadata.name ?? '',
+    avatar: metadata.avatar_url ?? metadata.picture ?? undefined,
+    phone: metadata.phone ?? undefined,
+    bio: metadata.bio ?? '',
+    location: metadata.city ?? '',
+    sports: [],
+    skillLevel: 'beginner',
+    following: [],
+    followers: [],
+    managedVenues: [],
+    eventsAttended: 0,
+    eventsHosted: 0,
+    createdAt: payload?.created_at ? new Date(payload.created_at) : now,
+    updatedAt: now,
+  }
+}
+
+const fetchSupabaseUser = async (token: string) => {
+  if (!supabase || !token) return null
+  const { data, error } = await supabase.auth.getUser(token)
+  if (error) return null
+  return data.user as SupabaseUser
 }
 
 export const sessionService = {
   async bootstrap(token: string): Promise<SessionContext> {
-    const context = await fetchAuthenticatedContext(token)
+    const supabaseUser = await fetchSupabaseUser(token)
+    const onboardingStatus = readStoredStatus()
     return {
       token,
-      ...context,
+      user: buildUser(supabaseUser),
+      onboardingStatus,
     }
   },
 
   async logoutBackend(): Promise<void> {
-    try {
-      await apiRequest('POST', '/auth/logout', {})
-    } catch {
-      // ignore network failures on logout
-    }
+    return
   },
 
-  async checkUsername(username: string): Promise<{ available: boolean }> {
-    return apiRequest<{ available: boolean }>('GET', '/users/check/username', {
-      auth: false,
-      params: { value: username },
-    })
+  async checkUsername(): Promise<{ available: boolean }> {
+    return { available: true }
   },
 
   async getOnboardingStatus(): Promise<OnboardingStatus> {
-    return apiRequest<OnboardingStatus>('GET', '/onboarding/player/progress', {})
+    return readStoredStatus()
   },
 
   async completeOnboarding(payload: {
@@ -84,36 +115,28 @@ export const sessionService = {
     areas?: Array<{ areaName: string; postalCode?: string }>
     motivation?: string
   }): Promise<SessionContext> {
-    await apiRequest('POST', '/onboarding/player/complete', {
-      body: {
-        fullName: payload.fullName,
-        city: payload.city,
-        gender: payload.gender,
-        username: payload.username,
-        sports: payload.sports?.map((sport) => ({
-          sport: sport.sport,
-          skill_level: sport.skillLevel,
-          playing_style: sport.playingStyle,
-        })),
-        areas: payload.areas?.map((area) => ({
-          area_name: area.areaName,
-          postal_code: area.postalCode,
-        })),
-        motivation: payload.motivation,
-      },
-    })
-    const onboardingStatus = await this.getOnboardingStatus()
-    const profile = await apiRequest<any>('GET', '/users/me', {})
     const currentToken =
       typeof window !== 'undefined'
         ? window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
           window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
           ''
         : ''
+
+    const nextStatus: OnboardingStatus = {
+      ...readStoredStatus(),
+      hasBasicInfo: Boolean(payload.fullName || payload.city),
+      hasUsername: Boolean(payload.username),
+      hasSports: Boolean(payload.sports?.length),
+      hasMotivation: Boolean(payload.motivation),
+      isComplete: true,
+    }
+    persistStatus(nextStatus)
+
+    const supabaseUser = await fetchSupabaseUser(currentToken)
     return {
       token: currentToken,
-      user: adaptUser(profile),
-      onboardingStatus,
+      user: buildUser(supabaseUser),
+      onboardingStatus: nextStatus,
     }
   },
 }
