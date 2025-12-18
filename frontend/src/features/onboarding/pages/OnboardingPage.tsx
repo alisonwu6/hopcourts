@@ -196,11 +196,11 @@ export function OnboardingPage() {
     [sportsCatalog]
   )
   const favOptions = useMemo<SportChoiceOption[]>(
-    () => [{ id: 'just-started', label: '我剛開始運動' }, ...sportChoiceOptions],
+    () => [{ id: 'just-started', label: '探索中' }, ...sportChoiceOptions],
     [sportChoiceOptions]
   )
   const tryingOptions = useMemo<SportChoiceOption[]>(
-    () => [{ id: 'no-idea', label: '尋找中' }, ...sportChoiceOptions],
+    () => [{ id: 'no-idea', label: '探索中' }, ...sportChoiceOptions],
     [sportChoiceOptions]
   )
   const starterOption = favOptions.find((item) => item.id === 'just-started')
