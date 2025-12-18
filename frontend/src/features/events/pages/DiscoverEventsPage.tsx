@@ -1,10 +1,9 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Activity } from 'lucide-react'
-import { addDays, format, isSameDay, isToday, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
+import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { addDays, format, isSameDay, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
 import { BottomSheet } from '@/components'
-import { IntroSheet } from '@/components/IntroSheet'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
@@ -12,7 +11,6 @@ import { useSports } from '@/features/sports/hooks/useSports'
 import { useAuthStore } from '@/hooks'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
-const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
 
 export function DiscoverEventsPage() {
   const navigate = useNavigate()
@@ -34,9 +32,7 @@ export function DiscoverEventsPage() {
     error: sportsError,
   } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [hasSeenIntro, setHasSeenIntro] = useState(false)
   const goToMySessions = () => navigate('/my-events')
   const sports = useMemo<SportFilterOption[]>(
     () => [
@@ -54,59 +50,43 @@ export function DiscoverEventsPage() {
     [sportsCatalog]
   )
 
+  // Fetch events once on mount.
   useEffect(() => {
     void fetchEvents()
   }, [fetchEvents])
 
+  // Keep calendar month in sync with selected day.
   useEffect(() => {
     if (!isCalendarOpen && selectedDate) {
       setCalendarMonth(startOfMonth(selectedDate))
     }
   }, [isCalendarOpen, selectedDate])
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (isAuthenticated) {
-      setShowIntroSheet(false)
-      return
-    }
-    const seen = window.localStorage.getItem(INTRO_SHEET_STORAGE_KEY) === 'dismissed'
-    setHasSeenIntro(seen)
-    setShowIntroSheet(!seen)
-  }, [isAuthenticated])
-
   const handleCreateClick = () => {
-    if (isAuthenticated) {
-      navigate('/create-event')
-      return
-    }
-    if (!hasSeenIntro) {
-      setShowIntroSheet(true)
-    } else {
-      setShowLoginPrompt(true)
-    }
+    if (isAuthenticated) navigate('/create-event')
+    else setShowLoginPrompt(true)
   }
 
-  const eventsByDay = useMemo(() => {
-    return events.reduce<Record<string, number>>((acc, event) => {
-      const key = startOfDay(new Date(event.startTime)).toISOString()
-      acc[key] = (acc[key] ?? 0) + 1
-      return acc
-    }, {})
-  }, [events])
+  // Count events per day for the calendar dots.
+  const eventsByDay = useMemo(
+    () =>
+      events.reduce<Record<string, number>>((acc, event) => {
+        const key = startOfDay(new Date(event.startTime)).toISOString()
+        acc[key] = (acc[key] ?? 0) + 1
+        return acc
+      }, {}),
+    [events]
+  )
 
   const filteredEvents = useMemo(() => {
     const dateFiltered = selectedDate
       ? events.filter((event) => isSameDay(new Date(event.startTime), selectedDate))
       : events.filter((event) => new Date(event.startTime) >= today)
 
-    const sportFiltered = selectedSports.includes('all')
-      ? dateFiltered
-      : dateFiltered.filter((event) =>
-          selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
-        )
-
-    return sportFiltered
+    if (selectedSports.includes('all')) return dateFiltered
+    return dateFiltered.filter((event) =>
+      selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
+    )
   }, [events, selectedSports, selectedDate])
 
   const dateLabel = selectedDate ? format(selectedDate, 'EEE, dd MMM') : '選擇日期'
