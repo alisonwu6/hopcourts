@@ -2,9 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const yaml = require('yaml')
 
-// Reads the single source of truth (docs/manual/openapi.yaml) and parses it.
+// Reads the single source of truth (docs/openapi.yaml) and parses it.
 function loadSpec() {
-  const specPath = path.join(process.cwd(), 'docs/manual/openapi.yaml')
+  const specPath = path.join(process.cwd(), 'docs/openapi.yaml')
   try {
     const file = fs.readFileSync(specPath, 'utf8')
     return yaml.parse(file)
