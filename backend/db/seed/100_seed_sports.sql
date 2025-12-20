@@ -15,16 +15,16 @@ values
   ('bouldering', '抱石', 'Bouldering', 'adventure_endurance', '🧗', 120, true),
   ('climbing', '戶外攀岩', 'Climbing', 'adventure_endurance', '🧗', 130, true),
   ('surfing', '衝浪', 'Surfing', 'adventure_endurance', '🏄', 140, true),
-  ('diving', '潛水', 'Diving', '🤿', 150, true),
-  ('gym', '重訓', 'Strength Training', '🏋️', 160, true),
-  ('yoga', '瑜珈', 'Yoga', '🧘', 170, true),
-  ('pilates', '皮拉提斯', 'Pilates', '🤸', 180, true),
-  ('hiit', 'HIIT', 'HIIT', '🔥', 190, true),
-  ('boxing', '拳擊', 'Boxing', '🥊', 200, true),
-  ('martial-arts', '格鬥', 'Martial Arts', '🥋', 210, true),
-  ('pop-dance', '流行舞', 'Pop Dance', '💃', 220, true),
-  ('street-dance', '街舞', 'Street Dance', '🕺', 230, true),
-  ('skateboard', '滑板', 'Skateboarding', '🛹', 240, true)
+  ('diving', '潛水', 'Diving', 'adventure_endurance', '🤿', 150, true),
+  ('gym', '重訓', 'Strength Training', 'training_wellness', '🏋️', 160, true),
+  ('yoga', '瑜珈', 'Yoga', 'training_wellness', '🧘', 170, true),
+  ('pilates', '皮拉提斯', 'Pilates', 'training_wellness', '🤸', 180, true),
+  ('hiit', 'HIIT', 'HIIT', 'training_wellness', '🔥', 190, true),
+  ('boxing', '拳擊', 'Boxing', 'combat', '🥊', 200, true),
+  ('martial-arts', '格鬥', 'Martial Arts', 'combat', '🥋', 210, true),
+  ('pop-dance', '流行舞', 'Pop Dance', 'dance', '💃', 220, true),
+  ('street-dance', '街舞', 'Street Dance', 'dance', '🕺', 230, true),
+  ('skateboard', '滑板', 'Skateboarding', 'adventure_endurance', '🛹', 240, true)
 on conflict (key) do update
 set
   label_zh = excluded.label_zh,
