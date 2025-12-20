@@ -31,9 +31,17 @@ async function listUpcomingSessions({
   limit = 50,
   offset = 0,
 } = {}) {
-  const conditions = ['status = $1', 'starts_at >= $2']
-  const params = ['published', from || new Date()]
+  const conditions = ["status = 'published'", "visibility = 'public'"]
+  const params = []
   let idx = params.length
+
+  if (from) {
+    params.push(from)
+    conditions.push(`starts_at >= $${++idx}`)
+  } else {
+    params.push(new Date())
+    conditions.push(`starts_at >= $${++idx}`)
+  }
 
   if (to) {
     params.push(to)

@@ -12,9 +12,32 @@ function parseDate(value) {
   return Number.isNaN(d.getTime()) ? undefined : d
 }
 
+function buildListParams(query) {
+  const limitRaw = parseNumber(query.limit, 20)
+  const limit = Math.min(Math.max(limitRaw, 1), 50)
+  const offset = Math.max(parseNumber(query.offset, 0), 0)
+
+  return {
+    sportKey: query.sport_key || query.sport ? String(query.sport_key || query.sport) : undefined,
+    city: query.city ? String(query.city) : undefined,
+    from: parseDate(query.from),
+    to: parseDate(query.to),
+    limit,
+    offset,
+  }
+}
+
 async function listSessions(params = {}) {
   try {
-    return await sessionsModel.listUpcomingSessions(params)
+    const sessions = await sessionsModel.listUpcomingSessions(params)
+    return {
+      sessions,
+      page: {
+        limit: params.limit,
+        offset: params.offset,
+        has_more: sessions.length === params.limit,
+      },
+    }
   } catch (err) {
     throw Errors.internal('Failed to list sessions', { message: err.message })
   }
@@ -25,17 +48,6 @@ async function getSessionById(sessionId) {
     return await sessionsModel.getSessionById(sessionId)
   } catch (err) {
     throw Errors.internal('Failed to fetch session', { message: err.message })
-  }
-}
-
-function buildListParams(query) {
-  return {
-    sportKey: query.sport ? String(query.sport) : undefined,
-    city: query.city ? String(query.city) : undefined,
-    from: parseDate(query.from),
-    to: parseDate(query.to),
-    limit: parseNumber(query.limit, 50),
-    offset: parseNumber(query.offset, 0),
   }
 }
 

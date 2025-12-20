@@ -5,8 +5,8 @@ const { listSessions, getSessionById, buildListParams } = require('./sessions.se
 async function handleListSessions(req, res, next) {
   try {
     const params = buildListParams(req.query || {})
-    const items = await listSessions(params)
-    return ok(res, { items })
+    const data = await listSessions(params)
+    return ok(res, data)
   } catch (err) {
     next(err)
   }
