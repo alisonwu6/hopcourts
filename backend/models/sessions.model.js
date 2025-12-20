@@ -119,6 +119,14 @@ async function getSessionById(sessionId) {
   return rows[0] || null
 }
 
+async function getParticipantCount(sessionId) {
+  const { rows } = await query(
+    'select count(*)::int as count from public.session_participants where session_id = $1',
+    [sessionId]
+  )
+  return rows[0]?.count ?? 0
+}
+
 async function createSession(input) {
   const sql = `
     insert into public.sessions (
@@ -229,4 +237,5 @@ module.exports = {
   updateSession,
   setSessionStatus,
   countSessionParticipants,
+  getParticipantCount,
 }

@@ -51,8 +51,27 @@ async function getSessionById(sessionId) {
   }
 }
 
+async function getSessionDetail(sessionId) {
+  const session = await getSessionById(sessionId)
+  if (!session) {
+    throw Errors.notFound('Session not found')
+  }
+  const participantCount = await sessionsModel.getParticipantCount(sessionId)
+  const spotsLeft =
+    session.max_people == null ? null : Math.max(session.max_people - participantCount, 0)
+
+  return {
+    session,
+    meta: {
+      participant_count: participantCount,
+      spots_left: spotsLeft,
+    },
+  }
+}
+
 module.exports = {
   listSessions,
   getSessionById,
+  getSessionDetail,
   buildListParams,
 }
