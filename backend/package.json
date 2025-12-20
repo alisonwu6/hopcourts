@@ -6,7 +6,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:dump": "supabase db dump --schema public > db/schema.sql",
+    "db:dump": "supabase db dump --schema public > db/schema/dump.sql",
     "db:update": "npm run db:dump",
     "openapi:lint": "npx swagger-cli validate docs/openapi.yaml",
     "openapi:build": "node src/config/swagger.js",
