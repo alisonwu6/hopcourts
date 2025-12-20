@@ -53,7 +53,7 @@ paths:
       summary: List upcoming sessions
       parameters:
         - in: query
-          name: sport
+          name: sport_key
           schema: { type: string }
         - in: query
           name: city
@@ -83,10 +83,12 @@ paths:
                   data:
                     type: object
                     properties:
-                      items:
+                      sessions:
                         type: array
                         items:
                           $ref: '#/components/schemas/Session'
+                      page:
+                        $ref: '#/components/schemas/Page'
   /sessions/{id}:
     get:
       summary: Get session by id
@@ -110,8 +112,61 @@ paths:
                     properties:
                       session:
                         $ref: '#/components/schemas/Session'
+                      meta:
+                        $ref: '#/components/schemas/SessionMeta'
+  /sessions/{id}/join:
+    post:
+      summary: Join a session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      session_id: { type: string, format: uuid }
+                      joined: { type: boolean }
+                      meta: { $ref: '#/components/schemas/SessionMeta' }
+    delete:
+      summary: Leave a session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      session_id: { type: string, format: uuid }
+                      joined: { type: boolean }
+                      meta: { $ref: '#/components/schemas/SessionMeta' }
 components:
   schemas:
+    Page:
+      type: object
+      properties:
+        limit: { type: integer }
+        offset: { type: integer }
+        has_more: { type: boolean }
     Session:
       type: object
       properties:
@@ -139,3 +194,12 @@ components:
         visibility:
           type: string
           enum: [public, unlisted]
+    SessionMeta:
+      type: object
+      properties:
+        participant_count: { type: integer }
+        spots_left:
+          type: integer
+          nullable: true
+        is_joined:
+          type: boolean
