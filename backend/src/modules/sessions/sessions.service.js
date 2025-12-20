@@ -1,6 +1,7 @@
 const { Errors } = require('../../lib/errors')
 const sessionsModel = require('../../../models/sessions.model')
 const participantsModel = require('../../../models/participants.model')
+const checkinsModel = require('../../../models/checkins.model')
 
 function parseNumber(value, fallback) {
   const n = Number(value)
@@ -69,6 +70,9 @@ async function buildSessionMeta({ sessionId, session, userId } = {}) {
   const isJoined = userId
     ? Boolean(await participantsModel.getParticipant({ sessionId, userId }))
     : false
+  const hasCheckedIn = userId
+    ? await checkinsModel.hasCheckedIn({ sessionId, userId })
+    : false
   const spotsLeft =
     sessionData?.max_people == null
       ? null
@@ -78,6 +82,8 @@ async function buildSessionMeta({ sessionId, session, userId } = {}) {
     participant_count: participantCount,
     spots_left: spotsLeft,
     is_joined: isJoined,
+    viewer_has_joined: isJoined,
+    viewer_has_checked_in: hasCheckedIn,
   }
 }
 

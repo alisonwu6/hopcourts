@@ -238,6 +238,10 @@ components:
           nullable: true
         is_joined:
           type: boolean
+        viewer_has_joined:
+          type: boolean
+        viewer_has_checked_in:
+          type: boolean
     CheckIn:
       type: object
       properties:
