@@ -98,11 +98,7 @@ export default function App() {
       <Route
         path="/*"
         element={
-          isAuthenticated
-            ? isOnboardingComplete
-              ? <AuthenticatedApp />
-              : <Navigate to="/onboarding" replace />
-            : <GuestApp />
+          isAuthenticated ? <AuthenticatedApp /> : <GuestApp />
         }
       />
     </Routes>

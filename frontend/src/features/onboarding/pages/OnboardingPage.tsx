@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { ChevronLeft, ChevronRight, Lock, IdCard } from 'lucide-react'
 import { MateCard } from '@/features/mates/components/MateCard'
 import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
-import { sportOptions } from '@/constants/sportOptions'
+import { useSports } from '@/features/sports/hooks/useSports'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 
@@ -100,15 +100,7 @@ const createDaySlots = () =>
     return acc
   }, {})
 
-const sportChoiceOptions = sportOptions.map(({ id, label }) => ({ id, label }))
-export const favOptions = [
-  { id: 'just-started', label: '我剛開始運動' },
-  ...sportChoiceOptions,
-]
-export const tryingOptions = [
-  { id: 'no-idea', label: '尋找中' },
-  ...sportChoiceOptions,
-]
+type SportChoiceOption = { id: string; label: string }
 const cityOptions: CityOption[] = [
   { id: 'taipei', label: '台北' },
   { id: 'new-taipei', label: '新北' },
@@ -198,10 +190,21 @@ export function OnboardingPage() {
   )
   const [furthestStep, setFurthestStep] = useState(0)
   const [ageRange, setAgeRange] = useState<string>('')
-  const starterOption =
-    favOptions.find((item) => item.label === '我剛開始運動') ??
-    sportOptions.find((item) => item.isStarter)
-  const starterId = starterOption?.id ?? 'starter'
+  const { sports: sportsCatalog } = useSports('zh')
+  const sportChoiceOptions = useMemo<SportChoiceOption[]>(
+    () => sportsCatalog.map(({ key, label }) => ({ id: key, label })),
+    [sportsCatalog]
+  )
+  const favOptions = useMemo<SportChoiceOption[]>(
+    () => [{ id: 'just-started', label: '探索中' }, ...sportChoiceOptions],
+    [sportChoiceOptions]
+  )
+  const tryingOptions = useMemo<SportChoiceOption[]>(
+    () => [{ id: 'no-idea', label: '探索中' }, ...sportChoiceOptions],
+    [sportChoiceOptions]
+  )
+  const starterOption = favOptions.find((item) => item.id === 'just-started')
+  const starterId = starterOption?.id ?? 'just-started'
   const starterLabel = starterOption?.label ?? '我剛開始運動'
   const unsureId = 'unsure'
   const noIdeaId = 'no-idea'
@@ -227,11 +230,11 @@ export function OnboardingPage() {
 
   const sportOptionMap = useMemo(
     () => new Map(favOptions.map((item) => [item.id, item])),
-    []
+    [favOptions]
   )
   const tryingOptionMap = useMemo(
     () => new Map(tryingOptions.map((item) => [item.id, item])),
-    []
+    [tryingOptions]
   )
   const selectedSportsLabels = uniqueSports
     .map((id) => sportOptionMap.get(id)?.label)
@@ -379,7 +382,7 @@ export function OnboardingPage() {
     return filteredByTrying.filter((s) =>
       s.label.toLowerCase().startsWith(term)
     )
-  }, [sportsSearch, starterLabel, trying])
+  }, [sportsSearch, starterLabel, trying, favOptions])
 
   const filteredTrying = useMemo(() => {
     const term = tryingSearch.trim().toLowerCase()
@@ -388,7 +391,7 @@ export function OnboardingPage() {
     return filteredBySports.filter((s) =>
       s.label.toLowerCase().startsWith(term)
     )
-  }, [tryingSearch, sports])
+  }, [tryingSearch, sports, tryingOptions])
 
   return (
     <div>

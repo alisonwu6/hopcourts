@@ -1,23 +1,22 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Activity } from 'lucide-react'
-import { addDays, format, isSameDay, isToday, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
+import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { addDays, format, isSameDay, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
 import { BottomSheet } from '@/components'
-import { IntroSheet } from '@/components/IntroSheet'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
+import { useSports } from '@/features/sports/hooks/useSports'
 import { useAuthStore } from '@/hooks'
 
-const sports = ['全部', '籃球', '羽球', '匹克球', '攀岩', '跑步', '健行']
-const INTRO_SHEET_STORAGE_KEY = 'sportsmatch_intro_sheet_v20241118'
+type SportFilterOption = { key: string; label: string; icon?: string | null }
 
 export function DiscoverEventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
-  const [selectedSports, setSelectedSports] = useState<string[]>(['全部'])
-  const [pendingSports, setPendingSports] = useState<string[]>(['全部'])
+  const [selectedSports, setSelectedSports] = useState<string[]>(['all'])
+  const [pendingSports, setPendingSports] = useState<string[]>(['all'])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [pendingDate, setPendingDate] = useState<Date | null>(null)
@@ -27,77 +26,74 @@ export function DiscoverEventsPage() {
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
+  const {
+    sports: sportsCatalog,
+    isLoading: isSportsLoading,
+    error: sportsError,
+  } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [hasSeenIntro, setHasSeenIntro] = useState(false)
   const goToMySessions = () => navigate('/my-events')
+  const sports = useMemo<SportFilterOption[]>(
+    () => [
+      { key: 'all', label: '全部', icon: '全' },
+      ...sportsCatalog.map((sport) => ({
+        key: sport.key,
+        label: sport.label,
+        icon: sport.icon,
+      })),
+    ],
+    [sportsCatalog]
+  )
+  const sportsLabelMap = useMemo(
+    () => new Map(sportsCatalog.map((sport) => [sport.key, sport.label])),
+    [sportsCatalog]
+  )
 
+  // Fetch events once on mount.
   useEffect(() => {
     void fetchEvents()
   }, [fetchEvents])
 
+  // Keep calendar month in sync with selected day.
   useEffect(() => {
     if (!isCalendarOpen && selectedDate) {
       setCalendarMonth(startOfMonth(selectedDate))
     }
   }, [isCalendarOpen, selectedDate])
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    if (isAuthenticated) {
-      setShowIntroSheet(false)
-      return
-    }
-    const seen = window.localStorage.getItem(INTRO_SHEET_STORAGE_KEY) === 'dismissed'
-    setHasSeenIntro(seen)
-    setShowIntroSheet(!seen)
-  }, [isAuthenticated])
-
-  const handleIntroClose = () => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(INTRO_SHEET_STORAGE_KEY, 'dismissed')
-    }
-    setHasSeenIntro(true)
-    setShowIntroSheet(false)
-  }
-
   const handleCreateClick = () => {
-    if (isAuthenticated) {
-      navigate('/create-event')
-      return
-    }
-    if (!hasSeenIntro) {
-      setShowIntroSheet(true)
-    } else {
-      setShowLoginPrompt(true)
-    }
+    if (isAuthenticated) navigate('/create-event')
+    else setShowLoginPrompt(true)
   }
 
-  const eventsByDay = useMemo(() => {
-    return events.reduce<Record<string, number>>((acc, event) => {
-      const key = startOfDay(new Date(event.startTime)).toISOString()
-      acc[key] = (acc[key] ?? 0) + 1
-      return acc
-    }, {})
-  }, [events])
+  // Count events per day for the calendar dots.
+  const eventsByDay = useMemo(
+    () =>
+      events.reduce<Record<string, number>>((acc, event) => {
+        const key = startOfDay(new Date(event.startTime)).toISOString()
+        acc[key] = (acc[key] ?? 0) + 1
+        return acc
+      }, {}),
+    [events]
+  )
 
   const filteredEvents = useMemo(() => {
     const dateFiltered = selectedDate
       ? events.filter((event) => isSameDay(new Date(event.startTime), selectedDate))
       : events.filter((event) => new Date(event.startTime) >= today)
 
-    const sportFiltered = selectedSports.includes('全部')
-      ? dateFiltered
-      : dateFiltered.filter((event) =>
-          selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
-        )
-
-    return sportFiltered
+    if (selectedSports.includes('all')) return dateFiltered
+    return dateFiltered.filter((event) =>
+      selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
+    )
   }, [events, selectedSports, selectedDate])
 
   const dateLabel = selectedDate ? format(selectedDate, 'EEE, dd MMM') : '選擇日期'
   const showTodayLabel = Boolean(selectedDate && isSameDay(selectedDate, today))
+  const selectedSportLabels = selectedSports
+    .filter((sport) => sport !== 'all')
+    .map((sport) => sportsLabelMap.get(sport) ?? sport)
   return (
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
       <div
@@ -162,9 +158,11 @@ export function DiscoverEventsPage() {
                 aria-hidden="true"
               />
               <span className="flex-1 truncate">
-                {selectedSports.includes('全部')
+                {isSportsLoading
+                  ? '載入運動中…'
+                  : selectedSports.includes('all')
                   ? '選擇運動'
-                  : selectedSports.join(', ')}
+                  : selectedSportLabels.join(', ')}
               </span>
             </button>
           </div>
@@ -212,20 +210,21 @@ export function DiscoverEventsPage() {
       <SportFilterSheet
         open={isFilterOpen}
         selected={pendingSports}
+        options={sports}
+        loading={isSportsLoading}
+        errorText={sportsError ? '運動清單載入失敗，請稍後再試。' : undefined}
         onClose={() => setIsFilterOpen(false)}
-        onReset={() => setPendingSports(['全部'])}
+        onReset={() => setPendingSports(['all'])}
         onToggle={(value) => {
           setPendingSports((prev) => {
-            if (value === '全部') return ['全部']
-            const next = prev.filter(
-              (item) => item !== value && item !== '全部'
-            )
+            if (value === 'all') return ['all']
+            const next = prev.filter((item) => item !== value && item !== 'all')
             const exists = prev.includes(value)
             return exists ? next : [...next, value]
           })
         }}
         onApply={() => {
-          setSelectedSports(pendingSports.length ? pendingSports : ['全部'])
+          setSelectedSports(pendingSports.length ? pendingSports : ['all'])
           setIsFilterOpen(false)
         }}
       />
@@ -259,6 +258,9 @@ export function DiscoverEventsPage() {
 type SportFilterSheetProps = {
   open: boolean
   selected: string[]
+  options: SportFilterOption[]
+  loading?: boolean
+  errorText?: string
   onToggle: (sport: string) => void
   onReset: () => void
   onApply: () => void
@@ -268,6 +270,9 @@ type SportFilterSheetProps = {
 function SportFilterSheet({
   open,
   selected,
+  options,
+  loading,
+  errorText,
   onToggle,
   onReset,
   onApply,
@@ -284,6 +289,12 @@ function SportFilterSheet({
               運動篩選
             </p>
             <h2 className="text-xl font-semibold text-slate-900">想找什麼運動？</h2>
+            {loading && (
+              <p className="text-xs font-medium text-blue-500">運動清單載入中…</p>
+            )}
+            {errorText && !loading && (
+              <p className="text-xs font-medium text-rose-500">{errorText}</p>
+            )}
           </div>
           <button
             type="button"
@@ -297,13 +308,13 @@ function SportFilterSheet({
 
         <div className="max-h-[60vh] space-y-6 overflow-y-auto px-6 py-6">
           <div className="flex flex-col gap-3">
-            {sports.map((sport) => {
-              const isActive = selected.includes(sport) || (sport === '全部' && selected.includes('全部'))
+            {options.map((sport) => {
+              const isActive = selected.includes(sport.key) || (sport.key === 'all' && selected.includes('all'))
               return (
                 <button
-                  key={sport}
+                  key={sport.key}
                   type="button"
-                  onClick={() => onToggle(sport)}
+                  onClick={() => onToggle(sport.key)}
                   className={clsx(
                     'flex h-16 items-center gap-3 rounded-[24px] border px-4 text-left text-sm font-semibold transition',
                     isActive
@@ -311,14 +322,11 @@ function SportFilterSheet({
                       : 'border-slate-200 text-slate-700 hover:border-blue-200'
                   )}
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-lg font-bold">
-                    {sport.charAt(0)}
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-lg font-bold">
+                    {sport.key === 'all' ? '全' : sport.icon || sport.label.charAt(0)}
                   </span>
                   <div className="flex flex-col">
-                    <span>{sport}</span>
-                    <span className="text-xs font-normal text-slate-500">
-                      {sport === '全部' ? '顯示全部' : '點擊套用篩選'}
-                    </span>
+                    <span>{sport.label}</span>
                   </div>
                 </button>
               )
@@ -337,7 +345,8 @@ function SportFilterSheet({
           <button
             type="button"
             onClick={onApply}
-            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
+            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+            disabled={loading}
           >
             套用
           </button>

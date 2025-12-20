@@ -17,7 +17,8 @@
     "db:diff": "supabase db diff -f update_schema",
     "clean": "docker image prune -f",
     "build-image": "docker build -t sportsmatch-api:latest .",
-    "d-backend-sh": "docker exec -it sportsmatch-backend sh"
+    "d-backend-sh": "docker exec -it sportsmatch-backend sh",
+    "types:api": "openapi-typescript docs/manual/openapi.yaml -o src/types/api.ts"
   },
   "keywords": [],
   "author": "",
@@ -27,7 +28,8 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "nodemon": "^3.0.0"
+    "nodemon": "^3.0.0",
+    "openapi-typescript": "^7.4.1"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -40,6 +42,7 @@
     "multer": "^2.0.2",
     "pg": "^8.13.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.5.0"
   }
 }

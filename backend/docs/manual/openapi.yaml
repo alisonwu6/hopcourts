@@ -1,474 +1,255 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: SportsMatch API
-  version: 0.1.0
-  description: |
-    Hand-authored OpenAPI spec for SportsMatch.
-    Single source of truth for public endpoints and contracts.
-    This file is maintained manually (no auto-generation).
-
-  contact:
-    name: SportsMatch Dev
-    email: dev@sportsmatch.app
-
+  version: 1.0.0
 servers:
-  - url: http://localhost:3000/api
-    description: Local dev
-  - url: https://api.sportsmatch.app
-    description: Production (placeholder)
-
-tags:
-  - name: Auth
-    description: Authentication & session
-  - name: Profiles
-    description: Player profiles and preferences
-  - name: Games
-    description: Sports games discovery & management
-  - name: GameMembers
-    description: Join/leave games and membership states
-  - name: Venues
-    description: Venue directory
-  - name: Health
-    description: Service health & metadata
-
+  - url: /api/v1
 paths:
-  /discover/games:
+  /health:
     get:
-      security: []  
-      summary: List games for explore feed
-      description: |
-        Returns a filtered list of games for the explore screen.
-        Later we can add query parameters for date, sport, skillLevel, etc.
-      tags:
-        - Games
+      summary: Health check
       responses:
-        '200':
-          description: List of games.
+        "200":
+          description: ok
+  /sports:
+    get:
+      summary: List sports
+      parameters:
+        - in: query
+          name: lang
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        "200":
+          description: ok
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  ok:
+                    type: boolean
                   data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/GameCardDTO'
-                required:
-                  - data
-        '500':
-          description: Unexpected server error.
-
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            label:
+                              type: string
+                            category:
+                              type: string
+                            icon:
+                              type: string
+                            order:
+                              type: integer
+                            is_active:
+                              type: boolean
+  /sessions:
+    get:
+      summary: List upcoming sessions
+      parameters:
+        - in: query
+          name: sport_key
+          schema: { type: string }
+        - in: query
+          name: city
+          schema: { type: string }
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          schema: { type: string, format: date-time }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      sessions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Session'
+                      page:
+                        $ref: '#/components/schemas/Page'
+  /sessions/{id}:
+    get:
+      summary: Get session by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      session:
+                        $ref: '#/components/schemas/Session'
+                      meta:
+                        $ref: '#/components/schemas/SessionMeta'
+  /sessions/{id}/join:
     post:
-      summary: Create or update a game
-      description: |
-        Creates a new game when id is not provided.
-        Updates an existing game when id is provided in the payload.
-      tags:
-        - Games
+      summary: Join a session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      session_id: { type: string, format: uuid }
+                      joined: { type: boolean }
+                      meta: { $ref: '#/components/schemas/SessionMeta' }
+    delete:
+      summary: Leave a session
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      session_id: { type: string, format: uuid }
+                      joined: { type: boolean }
+                      meta: { $ref: '#/components/schemas/SessionMeta' }
+  /sessions/{sessionId}/check-in:
+    post:
+      summary: Check-in to a session (GPS + time window)
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SaveGamePayload'
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number }
+                lng: { type: number }
       responses:
-        '200':
-          description: Game created or updated successfully.
+        "200":
+          description: ok
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  ok: { type: boolean }
                   data:
-                    $ref: '#/components/schemas/GameDetailDTO'
-                required:
-                  - data
-        '400':
-          description: Validation error in the request payload.
-        '401':
-          description: Authentication required.
-        '500':
-          description: Unexpected server error.
-
-  /games/{id}:
-    get:
-      summary: Get game detail
-      description: Returns the full GameDetailDTO for the given game id.
-      tags:
-        - Games
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Game id.
-      responses:
-        '200':
-          description: Game detail.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    $ref: '#/components/schemas/GameDetailDTO'
-                required:
-                  - data
-        '404':
-          description: Game not found.
-        '500':
-          description: Unexpected server error.
-
+                    type: object
+                    properties:
+                      check_in:
+                        $ref: '#/components/schemas/CheckIn'
+        "401": { description: Unauthenticated }
+        "403": { description: Outside time/radius or not allowed }
+        "404": { description: Session not found }
 components:
-  securitySchemes:
-      bearerAuth:
-        type: http
-        scheme: bearer
-        bearerFormat: JWT
   schemas:
-    SkillLevel:
-      type: string
-      description: Skill level required or recommended for this game.
-      enum:
-        - all
-        - beginner
-        - intermediate
-        - advanced
-
-    PriceType:
-      type: string
-      description: How participants pay for this session.
-      enum:
-        - free        # completely free
-        - pay_on_site # pay at the venue (cash/card)
-        - fixed       # explicit fixed amount in priceAmount
-
-    GameStatus:
-      type: string
-      description: Publication status of the game.
-      enum:
-        - draft
-        - published
-        - cancelled
-        - completed
-
-    HostSummaryDTO:
+    Page:
       type: object
-      description: Lightweight host information shown on game cards and detail views.
       properties:
-        id:
-          type: string
-        displayName:
-          type: string
-        avatarUrl:
-          type: string
-          nullable: true
-          format: uri
-        tagline:
-          type: string
-          nullable: true
-        rating:
-          type: number
-          format: float
-          nullable: true
-          description: Average rating score (e.g. 4.8).
-        totalHostedSessions:
-          type: integer
-          format: int32
-          nullable: true
-          description: Total number of sessions this host has created.
-      required:
-        - id
-        - displayName
-
-    AttendeeSummaryDTO:
+        limit: { type: integer }
+        offset: { type: integer }
+        has_more: { type: boolean }
+    Session:
       type: object
-      description: Minimal attendee info shown in the participant list.
       properties:
-        id:
-          type: string
-        displayName:
-          type: string
-        avatarUrl:
-          type: string
-          nullable: true
-          format: uri
-        isHost:
-          type: boolean
-          description: True if this attendee is the host of the game.
-      required:
-        - id
-        - displayName
-        - isHost
-
-    GameCardDTO:
-      type: object
-      description: Game item used on the explore/listing screens.
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        sport:
-          type: string
-        skillLevel:
-          $ref: '#/components/schemas/SkillLevel'
-        coverPhotoUrl:
-          type: string
-          nullable: true
-          format: uri
-        startDateTime:
-          type: string
-          format: date-time
-        endDateTime:
-          type: string
-          format: date-time
-        locationName:
-          type: string
-          description: Short location label shown on cards (e.g. venue name or landmark).
-        area:
-          type: string
-          nullable: true
-        city:
-          type: string
-          nullable: true
-        countryCode:
-          type: string
-          nullable: true
-          description: ISO 3166-1 alpha-2 country code (e.g. AU, TW).
-        priceType:
-          $ref: '#/components/schemas/PriceType'
-        priceAmount:
-          type: number
-          format: float
-          nullable: true
-        currency:
-          type: string
-          nullable: true
-          description: ISO 4217 currency code (e.g. AUD, TWD).
-        capacity:
-          type: integer
-          format: int32
-        joinedCount:
-          type: integer
-          format: int32
-        waitlistCount:
-          type: integer
-          format: int32
-        host:
-          $ref: '#/components/schemas/HostSummaryDTO'
-        spotsRemaining:
-          type: integer
-          format: int32
-        isFull:
-          type: boolean
-        isFree:
-          type: boolean
-      required:
-        - id
-        - title
-        - sport
-        - skillLevel
-        - startDateTime
-        - endDateTime
-        - locationName
-        - priceType
-        - capacity
-        - joinedCount
-        - waitlistCount
-        - host
-        - spotsRemaining
-        - isFull
-        - isFree
-
-    GameDetailDTO:
-      type: object
-      description: Full game detail used on the game detail page.
-      properties:
-        id:
-          type: string
-        title:
-          type: string
-        sport:
-          type: string
-        skillLevel:
-          $ref: '#/components/schemas/SkillLevel'
+        id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        host_user_id: { type: string, format: uuid }
+        sport_key: { type: string }
+        title: { type: string }
+        notes: { type: string }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        place_name: { type: string }
+        address: { type: string }
+        lat: { type: number, format: double }
+        lng: { type: number, format: double }
+        checkin_radius_m: { type: integer }
+        checkin_open_mins_before: { type: integer }
+        checkin_close_mins_after: { type: integer }
+        min_people: { type: integer }
+        max_people: { type: integer, nullable: true }
         status:
-          $ref: '#/components/schemas/GameStatus'
-        coverPhotoUrl:
           type: string
-          nullable: true
-          format: uri
-        host:
-          $ref: '#/components/schemas/HostSummaryDTO'
-        startDateTime:
+          enum: [draft, published, cancelled, completed]
+        visibility:
           type: string
-          format: date-time
-        endDateTime:
-          type: string
-          format: date-time
-        locationName:
-          type: string
-        addressLine:
-          type: string
-          nullable: true
-        area:
-          type: string
-          nullable: true
-        city:
-          type: string
-          nullable: true
-        countryCode:
-          type: string
-          nullable: true
-        latitude:
-          type: number
-          format: float
-          nullable: true
-        longitude:
-          type: number
-          format: float
-          nullable: true
-        priceType:
-          $ref: '#/components/schemas/PriceType'
-        priceAmount:
-          type: number
-          format: float
-          nullable: true
-        currency:
-          type: string
-          nullable: true
-        capacity:
-          type: integer
-          format: int32
-        joinedCount:
-          type: integer
-          format: int32
-        waitlistCount:
-          type: integer
-          format: int32
-        spotsRemaining:
-          type: integer
-          format: int32
-        isFull:
-          type: boolean
-        description:
-          type: string
-        notesForAttendees:
-          type: string
-          nullable: true
-        attendees:
-          type: array
-          items:
-            $ref: '#/components/schemas/AttendeeSummaryDTO'
-        isUserHost:
-          type: boolean
-        isUserJoined:
-          type: boolean
-        isUserWaitlisted:
-          type: boolean
-      required:
-        - id
-        - title
-        - sport
-        - skillLevel
-        - status
-        - host
-        - startDateTime
-        - endDateTime
-        - locationName
-        - priceType
-        - capacity
-        - joinedCount
-        - waitlistCount
-        - spotsRemaining
-        - isFull
-        - description
-        - attendees
-        - isUserHost
-        - isUserJoined
-        - isUserWaitlisted
-
-    SaveGamePayload:
+          enum: [public, unlisted]
+    SessionMeta:
       type: object
-      description: Payload used when creating or updating a game.
       properties:
-        id:
-          type: string
-          description: Only required when updating an existing game.
-        title:
-          type: string
-        sport:
-          type: string
-        skillLevel:
-          $ref: '#/components/schemas/SkillLevel'
-        startDateTime:
-          type: string
-          format: date-time
-        endDateTime:
-          type: string
-          format: date-time
-        locationName:
-          type: string
-        addressLine:
-          type: string
-          nullable: true
-        area:
-          type: string
-          nullable: true
-        city:
-          type: string
-          nullable: true
-        countryCode:
-          type: string
-          nullable: true
-        latitude:
-          type: number
-          format: float
-          nullable: true
-        longitude:
-          type: number
-          format: float
-          nullable: true
-        capacity:
+        participant_count: { type: integer }
+        spots_left:
           type: integer
-          format: int32
-        priceType:
-          $ref: '#/components/schemas/PriceType'
-        priceAmount:
-          type: number
-          format: float
           nullable: true
-        currency:
-          type: string
-          nullable: true
-        description:
-          type: string
-        notesForAttendees:
-          type: string
-          nullable: true
-        coverPhotoUrl:
-          type: string
-          nullable: true
-          format: uri
-        status:
-          $ref: '#/components/schemas/GameStatus'
-      required:
-        - title
-        - sport
-        - skillLevel
-        - startDateTime
-        - endDateTime
-        - locationName
-        - capacity
-        - priceType
-        - description
-        - status
-
-security:
-  - bearerAuth: []    # 預設所有路由需要 Bearer（公開路由可在各 path 覆蓋）
-
-externalDocs:
-  description: API style guide & usage notes
-  url: https://your-docs-hub.example.com
+        is_joined:
+          type: boolean
+        viewer_has_joined:
+          type: boolean
+        viewer_has_checked_in:
+          type: boolean
+    CheckIn:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        session_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid }
+        checked_in_at: { type: string, format: date-time }
+        lat: { type: number }
+        lng: { type: number }
+        distance_m: { type: integer }
+        status: { type: string }
