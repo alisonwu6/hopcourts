@@ -1,183 +1,77 @@
-
-Table "demo_notes" {
-  "id" bigint [pk, not null]
-  "content" text [not null]
-  "created_at" timestamp [not null, default: `"now"()`]
-  "title" text
+Project SportsMatch {
+  database_type: "PostgreSQL"
+  note: "Core SportsMatch schema (sports, sessions, participants, check-ins)"
 }
 
-Table "game_members" {
-  "game_id" bigint [not null]
-  "profile_id" uuid [not null]
-  "joined_at" timestamp [default: `"now"()`]
+Table sports {
+  key text [pk, note: "Sport key, lowercase/kebab"]
+  label_zh text [not null]
+  label_en text [not null]
+  sort int [note: "Sort order (ascending)"]
+  is_active boolean [not null, default: true]
+}
+
+Table sessions {
+  id uuid [pk]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  host_user_id uuid [not null]
+  sport_key text [not null, ref: > sports.key]
+
+  title text
+  notes text
+
+  starts_at timestamptz [not null]
+  ends_at timestamptz
+
+  place_name text [not null]
+  address text
+  lat double
+  lng double
+
+  checkin_radius_m int [not null, default: 100]
+  checkin_open_mins_before int [not null, default: 20]
+  checkin_close_mins_after int [not null, default: 20]
+
+  min_people int [not null, default: 2]
+  max_people int
+
+  status text [not null, note: "draft | published | cancelled | completed"]
+  visibility text [not null, note: "public | unlisted"]
 
   Indexes {
-    (game_id, profile_id) [pk, name: "game_members_pkey"]
+    starts_at [name: "idx_sessions_starts_at"]
+    sport_key [name: "idx_sessions_sport_key"]
+    status [name: "idx_sessions_status"]
   }
 }
 
-Table "games" {
-  "id" integer [pk, not null]
-  "creator_id" integer [not null]
-  "venue_id" integer
-  "title" text [not null]
-  "sport" text [not null]
-  "description" text
-  "skill_level" text [default: `'mixed'::"text"`]
-  "energy" integer [default: 60]
-  "location_name" text
-  "location_address" text
-  "area" text
-  "city" text
-  "latitude" numeric(10,7)
-  "longitude" numeric(10,7)
-  "start_time" timestamp [not null]
-  "end_time" timestamp [not null]
-  "max_players" integer [not null]
-  "price" numeric(10,2) [default: 0]
-  "currency" text [default: `'AUD'::"text"`]
-  "requires_approval" boolean [default: false]
-  "status" text [default: `'scheduled'::"text"`]
-  "created_at" timestamp [not null, default: `"now"()`]
-  "updated_at" timestamp [not null, default: `"now"()`]
-  "cancel_reason" text
+Table session_participants {
+  session_id uuid [not null, ref: > sessions.id, note: "on delete cascade"]
+  user_id uuid [not null]
+  role text [not null, default: 'member']
+  joined_at timestamptz [not null, default: `now()`]
 
-  Checks {
-    `("skill_level" = ANY (ARRAY['beginner'::"text", 'intermediate'::"text", 'advanced'::"text", 'mixed'::"text"]))` [name: 'games_skill_level_check']
-    `("status" = ANY (ARRAY['scheduled'::"text", 'completed'::"text", 'cancelled'::"text"]))` [name: 'games_status_check']
-  }
+  primary key (session_id, user_id)
 
   Indexes {
-    sport [type: btree, name: "idx_games_sport"]
-    start_time [type: btree, name: "idx_games_start_time"]
+    user_id [name: "idx_participants_user_id"]
   }
 }
 
-Table "messages" {
-  "id" integer [pk, not null]
-  "game_id" integer [not null]
-  "sender_id" integer [not null]
-  "body" text [not null]
-  "created_at" timestamp [not null, default: `"now"()`]
-}
-
-Table "player_game_joins" {
-  "id" integer [pk, not null]
-  "game_id" integer [not null]
-  "player_id" integer [not null]
-  "status" text [default: `'joined'::"text"`]
-  "created_at" timestamp [not null, default: `"now"()`]
-
-  Checks {
-    `("status" = ANY (ARRAY['joined'::"text", 'cancelled'::"text", 'waitlisted'::"text"]))` [name: 'player_game_joins_status_check']
-  }
+Table check_ins {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  session_id uuid [not null, ref: > sessions.id, note: "on delete cascade"]
+  user_id uuid [not null]
+  checked_in_at timestamptz [not null, default: `now()`]
+  lat double [not null]
+  lng double [not null]
+  distance_m int
+  status text [not null, default: "ok", note: "ok | late | outside_radius | rejected"]
 
   Indexes {
-    (game_id, player_id) [unique, name: "player_game_joins_game_id_player_id_key"]
+    session_id [name: "idx_checkins_session_id"]
+    user_id [name: "idx_checkins_user_id"]
   }
 }
-
-Table "player_preferred_areas" {
-  "id" integer [pk, not null]
-  "user_id" integer [not null]
-  "area_name" text [not null]
-  "postal_code" text
-  "created_at" timestamp [not null, default: `"now"()`]
-}
-
-Table "player_sports" {
-  "id" integer [pk, not null]
-  "user_id" integer [not null]
-  "sport" text [not null]
-  "skill_level" text [not null]
-  "playing_style" text [default: `'mixed'::"text"`]
-  "created_at" timestamp [not null, default: `"now"()`]
-
-  Checks {
-    `("playing_style" = ANY (ARRAY['social'::"text", 'competitive'::"text", 'learning'::"text", 'mixed'::"text"]))` [name: 'player_sports_playing_style_check']
-    `("skill_level" = ANY (ARRAY['beginner'::"text", 'intermediate'::"text", 'advanced'::"text"]))` [name: 'player_sports_skill_level_check']
-  }
-}
-
-Table "profiles" {
-  "id" uuid [pk, not null, default: `"extensions"."uuid_generate_v4"()`]
-  "auth_uid" uuid [unique]
-  // "username" "extensions"."extensions".citext [unique]
-  "username" text [unique]
-  "display_name" text
-  "gender" text
-  "city" text
-  "country" text
-  "about" text
-  "created_at" timestamp [default: `"now"()`]
-  "updated_at" timestamp [default: `"now"()`]
-}
-
-Table "users" {
-  "id" integer [pk, not null]
-  "email" text [unique, not null]
-  "password_hash" text [not null]
-  "full_name" text [not null]
-  "username" text [unique]
-  "role" text [not null, default: `'player'::"text"`]
-  "city" text
-  "gender" text
-  "bio" text
-  "avatar_url" text
-  "motivation" text
-  "onboarding_status" jsonb
-  "created_at" timestamp [not null, default: `"now"()`]
-  "updated_at" timestamp [not null, default: `"now"()`]
-
-  Checks {
-    `("role" = ANY (ARRAY['player'::"text", 'venue_manager'::"text"]))` [name: 'users_role_check']
-  }
-}
-
-Table "venue_sports" {
-  "id" integer [pk, not null]
-  "venue_id" integer [not null]
-  "sport" text [not null]
-}
-
-Table "venues" {
-  "id" integer [pk, not null]
-  "manager_id" integer [not null]
-  "name" text [not null]
-  "address" text
-  "city" text
-  "state" text
-  "postal_code" text
-  "description" text
-  "phone" text
-  "email" text
-  "website" text
-  "photo_url" text
-  "verified" boolean [not null, default: false]
-  "latitude" numeric(10,7)
-  "longitude" numeric(10,7)
-  "created_at" timestamp [not null, default: `"now"()`]
-  "updated_at" timestamp [not null, default: `"now"()`]
-}
-
-Ref "game_members_profile_id_fkey":"profiles"."id" < "game_members"."profile_id" [delete: cascade]
-
-Ref "games_creator_id_fkey":"users"."id" < "games"."creator_id" [delete: cascade]
-
-Ref "games_venue_id_fkey":"venues"."id" < "games"."venue_id" [delete: set null]
-
-Ref "messages_game_id_fkey":"games"."id" < "messages"."game_id" [delete: cascade]
-
-Ref "messages_sender_id_fkey":"users"."id" < "messages"."sender_id" [delete: cascade]
-
-Ref "player_game_joins_game_id_fkey":"games"."id" < "player_game_joins"."game_id" [delete: cascade]
-
-Ref "player_game_joins_player_id_fkey":"users"."id" < "player_game_joins"."player_id" [delete: cascade]
-
-Ref "player_preferred_areas_user_id_fkey":"users"."id" < "player_preferred_areas"."user_id" [delete: cascade]
-
-Ref "player_sports_user_id_fkey":"users"."id" < "player_sports"."user_id" [delete: cascade]
-
-Ref "venue_sports_venue_id_fkey":"venues"."id" < "venue_sports"."venue_id" [delete: cascade]
-
-Ref "venues_manager_id_fkey":"users"."id" < "venues"."manager_id" [delete: cascade]
