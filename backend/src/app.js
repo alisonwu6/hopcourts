@@ -17,7 +17,7 @@ function createApp() {
   app.use(express.json({ limit: '1mb' }))
   app.use(morgan('dev'))
 
-  const openapiPath = path.join(process.cwd(), 'docs/manual/openapi.yaml')
+  const openapiPath = path.join(process.cwd(), 'docs/openapi.yaml')
   if (fs.existsSync(openapiPath)) {
     const doc = YAML.parse(fs.readFileSync(openapiPath, 'utf8'))
     app.use('/docs', swaggerUi.serve, swaggerUi.setup(doc))

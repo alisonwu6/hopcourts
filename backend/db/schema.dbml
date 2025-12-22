@@ -1,13 +1,48 @@
 Project SportsMatch {
   database_type: "PostgreSQL"
-  note: "Core SportsMatch schema (sports, sessions, participants, check-ins)"
+  note: "Core schema: sports, sessions, participants, check-ins, dictionaries, profiles"
 }
 
 Table sports {
-  key text [pk, note: "Sport key, lowercase/kebab"]
+  key text [pk, note: "Sport key (uppercase kebab)"]
   label_zh text [not null]
   label_en text [not null]
-  sort int [note: "Sort order (ascending)"]
+  category text
+  icon text
+  sort int
+  is_active boolean [not null, default: true]
+}
+
+Table countries {
+  key text [pk]
+  name_zh text [not null]
+  name_en text [not null]
+  sort int
+  is_active boolean [not null, default: true]
+}
+
+Table cities {
+  key text [pk]
+  country_key text [not null, ref: > countries.key]
+  name_zh text [not null]
+  name_en text [not null]
+  sort int
+  is_active boolean [not null, default: true]
+}
+
+Table vibes {
+  key text [pk]
+  name_zh text [not null]
+  name_en text [not null]
+  sort int
+  is_active boolean [not null, default: true]
+}
+
+Table age_ranges {
+  key text [pk]
+  label_zh text [not null]
+  label_en text [not null]
+  sort int
   is_active boolean [not null, default: true]
 }
 
@@ -74,4 +109,37 @@ Table check_ins {
     session_id [name: "idx_checkins_session_id"]
     user_id [name: "idx_checkins_user_id"]
   }
+}
+
+Table users {
+  id uuid [pk, note: "Supabase auth user id"]
+  username text [not null, unique]
+  display_name text [not null]
+  legal_name text
+  country_key text [ref: > countries.key]
+  city_key text [ref: > cities.key]
+  age_range_key text [ref: > age_ranges.key]
+  vibe_key text [ref: > vibes.key]
+  bio text
+  avatar_url text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table user_sports {
+  user_id uuid [not null, ref: > users.id, note: "on delete cascade"]
+  sport_key text [not null, ref: > sports.key]
+  kind text [not null, note: "FAVORITE | TRYING"]
+  created_at timestamptz [not null, default: `now()`]
+
+  primary key (user_id, sport_key, kind)
+}
+
+Table user_preferences {
+  user_id uuid [pk, ref: > users.id, note: "on delete cascade"]
+  preferred_time text
+  sessions_per_week int
+  day_slots jsonb
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
 }

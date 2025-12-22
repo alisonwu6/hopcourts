@@ -1,0 +1,30 @@
+insert into public.cities (key, country_key, name_zh, name_en, sort, is_active) values
+  -- Taiwan (only Taipei/New Taipei active)
+  ('TPE', 'TW', '台北市', 'Taipei', 10, true),
+  ('NWT', 'TW', '新北市', 'New Taipei', 20, true),
+  ('TYN', 'TW', '桃園市', 'Taoyuan', 30, false),
+  ('TCH', 'TW', '台中市', 'Taichung', 40, false),
+  ('TNN', 'TW', '台南市', 'Tainan', 50, false),
+  ('KHH', 'TW', '高雄市', 'Kaohsiung', 60, false),
+  ('KEE', 'TW', '基隆市', 'Keelung', 70, false),
+  ('HSZ', 'TW', '新竹市', 'Hsinchu City', 80, false),
+  ('HSQ', 'TW', '新竹縣', 'Hsinchu County', 90, false),
+  ('MIA', 'TW', '苗栗縣', 'Miaoli', 100, false),
+  ('CHA', 'TW', '彰化縣', 'Changhua', 110, false),
+  ('NAN', 'TW', '南投縣', 'Nantou', 120, false),
+  ('YUN', 'TW', '雲林縣', 'Yunlin', 130, false),
+  ('CYI', 'TW', '嘉義市', 'Chiayi City', 140, false),
+  ('CYQ', 'TW', '嘉義縣', 'Chiayi County', 150, false),
+  ('PIF', 'TW', '屏東縣', 'Pingtung', 160, false),
+  ('ILA', 'TW', '宜蘭縣', 'Yilan', 170, false),
+  ('HUA', 'TW', '花蓮縣', 'Hualien', 180, false),
+  ('TTT', 'TW', '台東縣', 'Taitung', 190, false),
+  ('PEN', 'TW', '澎湖縣', 'Penghu', 200, false),
+  ('KIN', 'TW', '金門縣', 'Kinmen', 210, false),
+  ('LIE', 'TW', '連江縣', 'Lienchiang', 220, false)
+on conflict (key) do update set
+  country_key = excluded.country_key,
+  name_zh = excluded.name_zh,
+  name_en = excluded.name_en,
+  sort = excluded.sort,
+  is_active = excluded.is_active;
