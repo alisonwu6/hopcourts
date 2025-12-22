@@ -181,6 +181,179 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/countries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List countries */
+        get: {
+            parameters: {
+                query?: {
+                    lang?: "zh" | "en";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: {
+                                items?: components["schemas"]["Country"][];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List cities */
+        get: {
+            parameters: {
+                query?: {
+                    country?: string;
+                    lang?: "zh" | "en";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: {
+                                items?: components["schemas"]["City"][];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vibes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List vibes */
+        get: {
+            parameters: {
+                query?: {
+                    lang?: "zh" | "en";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: {
+                                items?: components["schemas"]["Vibe"][];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/age-ranges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List age ranges */
+        get: {
+            parameters: {
+                query?: {
+                    lang?: "zh" | "en";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: {
+                                items?: components["schemas"]["AgeRange"][];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sessions/{id}/join": {
         parameters: {
             query?: never;
@@ -328,10 +501,252 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get my profile */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: {
+                                user?: components["schemas"]["User"];
+                                sports?: components["schemas"]["UserSport"][];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /** Upsert my profile */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        username?: string;
+                        display_name?: string;
+                        legal_name?: string;
+                        country_key?: string;
+                        city_key?: string;
+                        age_range_key?: string;
+                        vibe_key?: string;
+                        bio?: string;
+                        avatar_url?: string;
+                        sports?: components["schemas"]["UserSport"][];
+                    };
+                };
+            };
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get my preferences */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: components["schemas"]["UserPreferences"];
+                        };
+                    };
+                };
+            };
+        };
+        /** Upsert my preferences */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UserPreferences"];
+                };
+            };
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get onboarding status */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: {
+                                is_complete?: boolean;
+                                missing_fields?: string[];
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get my stats */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            data?: components["schemas"]["UserStats"];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Country: {
+            key?: string;
+            label?: string;
+            sort?: number;
+            is_active?: boolean;
+        };
+        City: {
+            key?: string;
+            country_key?: string;
+            label?: string;
+            sort?: number;
+            is_active?: boolean;
+        };
+        Vibe: {
+            key?: string;
+            label?: string;
+            sort?: number;
+            is_active?: boolean;
+        };
+        AgeRange: {
+            key?: string;
+            label?: string;
+            sort?: number;
+            is_active?: boolean;
+        };
         Page: {
             limit?: number;
             offset?: number;
@@ -389,6 +804,37 @@ export interface components {
             lng?: number;
             distance_m?: number;
             status?: string;
+        };
+        User: {
+            /** Format: uuid */
+            id?: string;
+            username?: string;
+            display_name?: string;
+            legal_name?: string;
+            country_key?: string;
+            city_key?: string;
+            age_range_key?: string;
+            vibe_key?: string;
+            bio?: string;
+            avatar_url?: string;
+        };
+        UserSport: {
+            sport_key?: string;
+            /** @enum {string} */
+            kind?: "FAVORITE" | "TRYING";
+        };
+        UserPreferences: {
+            preferred_time?: string;
+            sessions_per_week?: number;
+            day_slots?: {
+                [key: string]: unknown;
+            };
+        };
+        UserStats: {
+            sessions_joined?: number;
+            sessions_completed?: number;
+            high_fives_given?: number;
+            high_fives_received?: number;
         };
     };
     responses: never;

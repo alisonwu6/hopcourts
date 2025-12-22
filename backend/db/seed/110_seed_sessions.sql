@@ -19,7 +19,7 @@ insert into public.sessions (
   (
     '00000000-0000-4000-8000-000000000101',
     '11111111-1111-4111-8111-111111111111',
-    'basketball',
+    'BASKETBALL',
     'Sunrise Pick-up Hoops',
     'Fast-paced pick-up, bring water.',
     now() + interval '1 day',
@@ -36,7 +36,7 @@ insert into public.sessions (
   (
     '00000000-0000-4000-8000-000000000102',
     '22222222-2222-4222-8222-222222222222',
-    'running',
+    'RUNNING',
     'Evening River Run',
     'Easy pace, all levels welcome.',
     now() + interval '2 days 18 hours',
@@ -50,4 +50,19 @@ insert into public.sessions (
     'published',
     'public'
   )
-on conflict (id) do nothing;
+on conflict (id) do update set
+  host_user_id = excluded.host_user_id,
+  sport_key = excluded.sport_key,
+  title = excluded.title,
+  notes = excluded.notes,
+  starts_at = excluded.starts_at,
+  ends_at = excluded.ends_at,
+  place_name = excluded.place_name,
+  address = excluded.address,
+  lat = excluded.lat,
+  lng = excluded.lng,
+  min_people = excluded.min_people,
+  max_people = excluded.max_people,
+  status = excluded.status,
+  visibility = excluded.visibility,
+  updated_at = now();

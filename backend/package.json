@@ -6,9 +6,9 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:dump": "supabase db dump --schema public > db/schema.sql",
+    "db:dump": "supabase db dump --schema public > db/schema/dump.sql",
     "db:update": "npm run db:dump",
-    "openapi:lint": "npx swagger-cli validate docs/manual/openapi.yaml",
+    "openapi:lint": "npx swagger-cli validate docs/openapi.yaml",
     "openapi:build": "node src/config/swagger.js",
     "openapi:update": "npm run openapi:lint && npm run openapi:build",
     "docs:update": "npm run openapi:update",
@@ -18,7 +18,7 @@
     "clean": "docker image prune -f",
     "build-image": "docker build -t sportsmatch-api:latest .",
     "d-backend-sh": "docker exec -it sportsmatch-backend sh",
-    "types:api": "openapi-typescript docs/manual/openapi.yaml -o src/types/api.ts"
+    "types:api": "openapi-typescript docs/openapi.yaml -o src/types/api.ts"
   },
   "keywords": [],
   "author": "",

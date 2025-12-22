@@ -114,6 +114,97 @@ paths:
                         $ref: '#/components/schemas/Session'
                       meta:
                         $ref: '#/components/schemas/SessionMeta'
+  /countries:
+    get:
+      summary: List countries
+      parameters:
+        - in: query
+          name: lang
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Country' }
+  /cities:
+    get:
+      summary: List cities
+      parameters:
+        - in: query
+          name: country
+          schema: { type: string }
+        - in: query
+          name: lang
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/City' }
+  /vibes:
+    get:
+      summary: List vibes
+      parameters:
+        - in: query
+          name: lang
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Vibe' }
+  /age-ranges:
+    get:
+      summary: List age ranges
+      parameters:
+        - in: query
+          name: lang
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/AgeRange' }
   /sessions/{id}/join:
     post:
       summary: Join a session
@@ -194,8 +285,137 @@ paths:
         "401": { description: Unauthenticated }
         "403": { description: Outside time/radius or not allowed }
         "404": { description: Session not found }
+  /me/profile:
+    get:
+      summary: Get my profile
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      user: { $ref: '#/components/schemas/User' }
+                      sports:
+                        type: array
+                        items: { $ref: '#/components/schemas/UserSport' }
+    put:
+      summary: Upsert my profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                display_name: { type: string }
+                legal_name: { type: string }
+                country_key: { type: string }
+                city_key: { type: string }
+                age_range_key: { type: string }
+                vibe_key: { type: string }
+                bio: { type: string }
+                avatar_url: { type: string }
+                sports:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/UserSport'
+      responses:
+        "200":
+          description: ok
+  /me/preferences:
+    get:
+      summary: Get my preferences
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data: { $ref: '#/components/schemas/UserPreferences' }
+    put:
+      summary: Upsert my preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+      responses:
+        "200":
+          description: ok
+  /me/onboarding:
+    get:
+      summary: Get onboarding status
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      is_complete: { type: boolean }
+                      missing_fields:
+                        type: array
+                        items: { type: string }
+  /me/stats:
+    get:
+      summary: Get my stats
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  data: { $ref: '#/components/schemas/UserStats' }
 components:
   schemas:
+    Country:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        sort: { type: integer }
+        is_active: { type: boolean }
+    City:
+      type: object
+      properties:
+        key: { type: string }
+        country_key: { type: string }
+        label: { type: string }
+        sort: { type: integer }
+        is_active: { type: boolean }
+    Vibe:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        sort: { type: integer }
+        is_active: { type: boolean }
+    AgeRange:
+      type: object
+      properties:
+        key: { type: string }
+        label: { type: string }
+        sort: { type: integer }
+        is_active: { type: boolean }
     Page:
       type: object
       properties:
@@ -253,3 +473,36 @@ components:
         lng: { type: number }
         distance_m: { type: integer }
         status: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        display_name: { type: string }
+        legal_name: { type: string }
+        country_key: { type: string }
+        city_key: { type: string }
+        age_range_key: { type: string }
+        vibe_key: { type: string }
+        bio: { type: string }
+        avatar_url: { type: string }
+    UserSport:
+      type: object
+      properties:
+        sport_key: { type: string }
+        kind:
+          type: string
+          enum: [FAVORITE, TRYING]
+    UserPreferences:
+      type: object
+      properties:
+        preferred_time: { type: string }
+        sessions_per_week: { type: integer }
+        day_slots: { type: object, additionalProperties: true }
+    UserStats:
+      type: object
+      properties:
+        sessions_joined: { type: integer }
+        sessions_completed: { type: integer }
+        high_fives_given: { type: integer }
+        high_fives_received: { type: integer }
