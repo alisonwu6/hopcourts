@@ -34,6 +34,8 @@ Table vibes {
   key text [pk]
   name_zh text [not null]
   name_en text [not null]
+  subtitle_zh text
+  subtitle_en text
   sort int
   is_active boolean [not null, default: true]
 }
