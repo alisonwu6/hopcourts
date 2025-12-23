@@ -7,6 +7,12 @@ import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
+import {
+  useAgeRanges,
+  useCities,
+  useCountries,
+  useVibes,
+} from '@/features/dictionaries/hooks/useDictionary'
 
 type Step =
   | 'Vibe'
@@ -20,58 +26,6 @@ type Step =
 type TimeSlot = '早上' | '下午' | '晚上'
 type CityOption = { id: string; label: string }
 type AgeRangeOption = { id: string; label: string }
-
-const bioExamples = {
-  chill: [
-    '想動一下讓身體鬆一點，順便找人陪跑陪練。',
-    '最近想把運動變成生活的一部分，慢慢來就好。',
-    '平常步調快，用運動把自己放慢一下。',
-    '想找節奏合得來的人簡單動一動。',
-    '想讓生活規律一點，運動是第一步。',
-  ],
-  crew: [
-    '剛到這城市，想找固定一起動的人。',
-    '想找願意一起進步的夥伴，不用強，只要穩。',
-    '想找跟我步調差不多的人，一起流點汗。',
-    '一個人懶得動，有人一起就會出門。',
-    '想找 crew，把運動變成好玩的事。',
-  ],
-  growth: [
-    '想讓自己規律起來，從每週一次開始。',
-    '想把運動當成穩定自己的方式。',
-    '想變健康也想變穩定，一起動比較不會放棄。',
-    '正在建立自己的節奏，找夥伴一起比較有動力。',
-    '想照顧身體，也想照顧心。',
-  ],
-  explore: [
-    '想試試新運動，找人帶我入門。',
-    '剛開始嘗試，不懂沒關係，有耐心的夥伴最棒。',
-    '想試試看不同的活動，看哪個最適合現在的我。',
-    '最近很想探索新節奏，有人一起會更好玩。',
-    '初學者來著，願意一起慢慢來。',
-  ],
-  routine: [
-    '平日下班後想動一下，找固定的夥伴。',
-    '一週至少動一次，有人一起最剛好。',
-    '想建立小習慣，找穩定的人一起互相提醒。',
-    '工作忙，但想留一點時間給身體。',
-    '規律不需要很重，只要有人一起就能做到。',
-  ],
-  social: [
-    '喜歡一起流汗的感覺，想認識新朋友。',
-    '運動對我來說是社交，也是放鬆。',
-    '想邊動邊聊天，找到同頻的人。',
-    '喜歡團體能量，找一起玩的人。',
-    '享受運動，也享受新連結。',
-  ],
-  emotional: [
-    '運動讓我穩定，也讓我喘口氣。',
-    '想把情緒疏壓變得更健康一點。',
-    '用運動把生活的雜音放掉一些。',
-    '運動是我整理自己的方式。',
-    '想找到和我一樣，用運動照顧心理的人。',
-  ],
-}
 
 const steps: Step[] = [
   'Vibe',
@@ -101,10 +55,6 @@ const createDaySlots = () =>
   }, {})
 
 type SportChoiceOption = { id: string; label: string }
-const cityOptions: CityOption[] = [
-  { id: 'taipei', label: '台北' },
-  { id: 'new-taipei', label: '新北' },
-]
 const stepColors = [
   '#ef4444',
   '#f97316',
@@ -115,48 +65,6 @@ const stepColors = [
   '#8b5cf6',
   '#8b5cf6',
 ]
-const ageRangeOptions: AgeRangeOption[] = [
-  { id: '18-24', label: '18–24' },
-  { id: '25-34', label: '25–34' },
-  { id: '35-44', label: '35–44' },
-  { id: '45-54', label: '45–54' },
-  { id: '55+', label: '55+' },
-]
-
-const countryOptions = [
-  { name: '台灣', flag: '🇹🇼' },
-  { name: '日本', flag: '🇯🇵' },
-  { name: '韓國', flag: '🇰🇷' },
-  { name: '中國', flag: '🇨🇳' },
-  { name: '香港', flag: '🇭🇰' },
-  { name: '澳門', flag: '🇲🇴' },
-  { name: '新加坡', flag: '🇸🇬' },
-  { name: '馬來西亞', flag: '🇲🇾' },
-  { name: '越南', flag: '🇻🇳' },
-  { name: '泰國', flag: '🇹🇭' },
-  { name: '印尼', flag: '🇮🇩' },
-  { name: '菲律賓', flag: '🇵🇭' },
-  { name: '印度', flag: '🇮🇳' },
-  { name: '澳洲', flag: '🇦🇺' },
-  { name: '紐西蘭', flag: '🇳🇿' },
-  { name: '美國', flag: '🇺🇸' },
-  { name: '加拿大', flag: '🇨🇦' },
-  { name: '英國', flag: '🇬🇧' },
-  { name: '愛爾蘭', flag: '🇮🇪' },
-  { name: '德國', flag: '🇩🇪' },
-  { name: '法國', flag: '🇫🇷' },
-  { name: '西班牙', flag: '🇪🇸' },
-  { name: '義大利', flag: '🇮🇹' },
-  { name: '荷蘭', flag: '🇳🇱' },
-  { name: '瑞典', flag: '🇸🇪' },
-  { name: '挪威', flag: '🇳🇴' },
-  { name: '芬蘭', flag: '🇫🇮' },
-  { name: '丹麥', flag: '🇩🇰' },
-  { name: '巴西', flag: '🇧🇷' },
-  { name: '阿根廷', flag: '🇦🇷' },
-  { name: '南非', flag: '🇿🇦' },
-] as const
-
 const withAlpha = (hex: string, alpha: number) => {
   const clean = hex.replace('#', '')
   const bigint = parseInt(clean, 16)
@@ -173,9 +81,7 @@ export function OnboardingPage() {
   const [vibe, setVibe] = useState<Vibe | null>(null)
   const [sports, setSports] = useState<string[]>([])
   const [trying, setTrying] = useState<string[]>([])
-  const [country, setCountry] = useState<{ name: string; flag: string } | null>(
-    null
-  )
+  const [country, setCountry] = useState<string>('')
   const [city, setCity] = useState('')
   const [bio, setBio] = useState('')
   const [countrySearch, setCountrySearch] = useState('')
@@ -191,6 +97,10 @@ export function OnboardingPage() {
   const [furthestStep, setFurthestStep] = useState(0)
   const [ageRange, setAgeRange] = useState<string>('')
   const { sports: sportsCatalog } = useSports('zh')
+  const { items: countries } = useCountries('zh')
+  const { items: cities } = useCities(country, 'zh')
+  const { items: vibes } = useVibes('zh')
+  const { items: ageRanges } = useAgeRanges('zh')
   const sportChoiceOptions = useMemo<SportChoiceOption[]>(
     () => sportsCatalog.map(({ key, label }) => ({ id: key, label })),
     [sportsCatalog]
@@ -242,18 +152,6 @@ export function OnboardingPage() {
   const selectedTryingLabels = uniqueTrying
     .map((id) => tryingOptionMap.get(id)?.label)
     .filter(Boolean) as string[]
-
-  const bioPool = useMemo(() => {
-    const map: Record<Vibe, keyof typeof bioExamples> = {
-      Chill: 'chill',
-      Social: 'social',
-      Flow: 'explore',
-      Competitive: 'growth',
-    }
-    const key = vibe ? map[vibe] : null
-    if (key && bioExamples[key]) return bioExamples[key]
-    return Object.values(bioExamples).flat()
-  }, [vibe])
 
   const progress = useMemo(
     () => (furthestStep === 0 ? 0 : ((stepIndex + 1) / steps.length) * 100),
@@ -338,14 +236,54 @@ export function OnboardingPage() {
     if (stepIndex > 0) setStepIndex((s) => s - 1)
   }
 
+  const vibeOptions = useMemo(() => {
+    if (!vibes.length) return vibeList
+    const keyToVibe: Record<string, Vibe> = {
+      CHILL: 'Chill',
+      SOCIAL: 'Social',
+      FLOW: 'Flow',
+      EXPLORER: 'Explorer',
+      GROWTH: 'Growth',
+      COMPETITIVE: 'Competitive',
+      SUPPORTIVE: 'Supportive',
+    }
+    return vibes.map((v) => {
+      const id = keyToVibe[v.key] || (v.key as Vibe)
+      return {
+        id,
+        title: v.label ?? id,
+        subtitle: v.subtitle ?? v.label ?? id,
+      }
+    })
+  }, [vibes])
+
+  const countryOptions = useMemo(
+    () => countries.map((c) => ({ id: c.key, label: c.label })),
+    [countries]
+  )
+
+  const cityOptions: CityOption[] = useMemo(
+    () => cities.map((c) => ({ id: c.key, label: c.label })),
+    [cities]
+  )
+
+  const ageRangeOptions: AgeRangeOption[] = useMemo(
+    () => ageRanges.map((a) => ({ id: a.key, label: a.label })),
+    [ageRanges]
+  )
+
+  const selectedCountryLabel =
+    countryOptions.find((c) => c.id === country)?.label || ''
+  const selectedCityLabel =
+    cityOptions.find((c) => c.id === city)?.label || ''
+
   const previewCard = {
     name: displayName,
-    flag: country?.flag ?? '',
+    flag: '',
     vibe: (vibe ?? 'Social') as Vibe,
     sports: selectedSportsLabels,
     trying: selectedTryingLabels,
-    location:
-      cityOptions.find((c) => c.id === city)?.label ?? country?.name ?? '',
+    location: selectedCityLabel || selectedCountryLabel,
     blurb: bio,
     avatar:
       user?.avatar ||
@@ -367,8 +305,8 @@ export function OnboardingPage() {
   const filteredCountries = useMemo(() => {
     const term = countrySearch.trim().toLowerCase()
     if (!term) return countryOptions
-    return countryOptions.filter((c) => c.name.toLowerCase().startsWith(term))
-  }, [countrySearch])
+    return countryOptions.filter((c) => c.label.toLowerCase().startsWith(term))
+  }, [countrySearch, countryOptions])
 
   const filteredSports = useMemo(() => {
     const term = sportsSearch.trim().toLowerCase()
@@ -497,7 +435,7 @@ export function OnboardingPage() {
 
           {currentStep === 'Vibe' && (
             <div className="space-y-3">
-              {vibeList.map((item) => {
+              {vibeOptions.map((item) => {
                 const selected = vibe === item.id
                 return (
                   <button
@@ -691,12 +629,15 @@ export function OnboardingPage() {
               </div>
               <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
                 {filteredCountries.map((item) => {
-                  const selected = country?.name === item.name
+                  const selected = country === item.id
                   return (
                     <button
-                      key={item.name}
+                      key={item.id}
                       type="button"
-                      onClick={() => setCountry(item)}
+                      onClick={() => {
+                        setCountry(item.id)
+                        setCity('')
+                      }}
                       className={clsx(
                         'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                         selected
@@ -711,9 +652,9 @@ export function OnboardingPage() {
                             }
                           : undefined
                       }
-                    >
+                      >
                       <span className="text-lg font-semibold text-slate-900">
-                        {item.name}
+                        {item.label}
                       </span>
                       <span
                         className="text-xl"
