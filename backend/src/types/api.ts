@@ -738,6 +738,7 @@ export interface components {
         Vibe: {
             key?: string;
             label?: string;
+            subtitle?: string;
             sort?: number;
             is_active?: boolean;
         };

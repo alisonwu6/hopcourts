@@ -407,6 +407,7 @@ components:
       properties:
         key: { type: string }
         label: { type: string }
+        subtitle: { type: string }
         sort: { type: integer }
         is_active: { type: boolean }
     AgeRange:
