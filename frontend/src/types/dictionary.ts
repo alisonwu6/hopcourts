@@ -1,0 +1,17 @@
+export type DictionaryItem = {
+  key: string
+  label: string
+  subtitle?: string
+  sort?: number
+  is_active?: boolean
+}
+
+export type Country = DictionaryItem
+
+export type City = DictionaryItem & {
+  country_key: string
+}
+
+export type Vibe = DictionaryItem
+
+export type AgeRange = DictionaryItem
