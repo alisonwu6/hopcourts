@@ -12,7 +12,7 @@ import {
   useCities,
   useCountries,
   useVibes,
-} from '@/features/dictionaries/hooks/useDictionary'
+} from '@/features/dictionaries/hooks'
 
 type Step =
   | 'Vibe'

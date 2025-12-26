@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { dictionaryService } from '../services/dictionaryService'
+import { dictionaryService } from './dict.service'
 import type { Country, City, Vibe, AgeRange } from '@/types/dictionary'
 
 type Status<T> = {
