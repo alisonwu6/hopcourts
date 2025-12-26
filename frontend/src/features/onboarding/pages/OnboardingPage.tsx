@@ -932,18 +932,6 @@ export function OnboardingPage() {
               <div className="text-right text-xs text-slate-500">
                 {bio.length}/40
               </div>
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:underline"
-                onClick={() => {
-                  const random =
-                    bioPool[Math.floor(Math.random() * bioPool.length)] ??
-                    '我想透過運動找到步調合得來的人。'
-                  setBio(random)
-                }}
-              >
-                想不到？根據你選的節奏氛圍，我來給你靈感吧。
-              </button>
             </div>
           )}
 
