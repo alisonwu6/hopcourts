@@ -11,13 +11,16 @@ type RequestOptions = {
   headers?: Record<string, string>
 }
 
+const API_PREFIX = '/api/v1'
+
 const getBaseUrl = () => {
-  const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1'
+  const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
   return base.replace(/\/$/, '')
 }
 
 const buildUrl = (path: string, params?: RequestOptions['params']) => {
-  const url = new URL(path.replace(/^\//, ''), `${getBaseUrl()}/`)
+  const cleanedPath = path.replace(/^\//, '')
+  const url = new URL(`${API_PREFIX.replace(/\/$/, '')}/${cleanedPath}`, `${getBaseUrl()}/`)
   if (params) {
     const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {

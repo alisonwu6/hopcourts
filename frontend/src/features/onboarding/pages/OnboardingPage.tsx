@@ -7,6 +7,7 @@ import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
+import { onboardingService } from '../onboarding.service'
 import {
   useAgeRanges,
   useCities,
@@ -96,6 +97,10 @@ export function OnboardingPage() {
   )
   const [furthestStep, setFurthestStep] = useState(0)
   const [ageRange, setAgeRange] = useState<string>('')
+  const [loadingProfile, setLoadingProfile] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [initialized, setInitialized] = useState(false)
   const { sports: sportsCatalog } = useSports('zh')
   const { items: countries } = useCountries('zh')
   const { items: cities } = useCities(country, 'zh')
@@ -168,6 +173,58 @@ export function OnboardingPage() {
     })
   }, [stepIndex])
 
+  useEffect(() => {
+    let isMounted = true
+    async function loadProfile() {
+      try {
+        setLoadingProfile(true)
+        setSaveError(null)
+        const [profileRes, prefsRes] = await Promise.all([
+          onboardingService.getProfile(),
+          onboardingService.getPreferences(),
+        ])
+        if (!isMounted) return
+
+        const profile = profileRes.data?.user
+        const sportsData = profileRes.data?.sports ?? []
+
+        setVibe(keyToVibeSafe(profile?.vibe_key) ?? null)
+        setUsername(profile?.username ?? '')
+        setDisplayName(profile?.display_name ?? '')
+        setRealName(profile?.legal_name ?? '')
+        setCountry(profile?.country_key ?? '')
+        setCity(profile?.city_key ?? '')
+        setAgeRange(profile?.age_range_key ?? '')
+        setBio(profile?.bio ?? '')
+
+        const favSports = sportsData
+          .filter((s: any) => s.kind === 'FAVORITE')
+          .map((s: any) => s.sport_key)
+        const tryingSports = sportsData
+          .filter((s: any) => s.kind === 'TRYING')
+          .map((s: any) => s.sport_key)
+
+        setSports(favSports.length ? favSports : [])
+        setTrying(tryingSports.length ? tryingSports : [])
+
+        const prefs = prefsRes.data ?? {}
+        if (prefs.preferred_time) setPreferredTime(prefs.preferred_time as TimeSlot)
+        if (prefs.day_slots) setDaySlots(prefs.day_slots as Record<string, TimeSlot[]>)
+      } catch (err: any) {
+        if (!isMounted) return
+        setSaveError(err?.message || '讀取資料失敗')
+      } finally {
+        if (!isMounted) return
+        setLoadingProfile(false)
+        setInitialized(true)
+      }
+    }
+    loadProfile()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const toggleSport = (itemId: string) => {
     setSports((prev) => {
       if (itemId === starterId) {
@@ -227,26 +284,80 @@ export function OnboardingPage() {
     }
   })()
 
+  const handleSave = async () => {
+    if (saving) return
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const favoriteSports = uniqueSports.filter(
+        (id) => id !== starterId && id !== unsureId && id !== noIdeaId
+      )
+      const tryingSports = uniqueTrying.filter(
+        (id) => id !== starterId && id !== unsureId && id !== noIdeaId
+      )
+
+      await onboardingService.saveProfile({
+        display_name: displayName,
+        username,
+        legal_name: realName,
+        country_key: country || null,
+        city_key: city || null,
+        age_range_key: ageRange || null,
+        vibe_key: vibe ? vibeToKey[vibe] : null,
+        bio,
+        sports: [
+          ...favoriteSports.map((sport_key) => ({
+            sport_key,
+            kind: 'FAVORITE',
+          })),
+          ...tryingSports.map((sport_key) => ({
+            sport_key,
+            kind: 'TRYING',
+          })),
+        ],
+      })
+
+      await onboardingService.savePreferences({
+        preferred_time: preferredTime,
+        day_slots: daySlots,
+      })
+
+      navigate('/')
+    } catch (err: any) {
+      setSaveError(err?.message || '儲存失敗，請稍後再試')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const goNext = () => {
     if (stepIndex < steps.length - 1) setStepIndex((s) => s + 1)
-    else navigate('/')
+    else handleSave()
   }
 
   const goBack = () => {
     if (stepIndex > 0) setStepIndex((s) => s - 1)
   }
 
+  const keyToVibe: Record<string, Vibe> = {
+    CHILL: 'Chill',
+    SOCIAL: 'Social',
+    FLOW: 'Flow',
+    EXPLORER: 'Explorer',
+    GROWTH: 'Growth',
+    COMPETITIVE: 'Competitive',
+    SUPPORTIVE: 'Supportive',
+  }
+  const vibeToKey: Record<Vibe, string> = Object.fromEntries(
+    Object.entries(keyToVibe).map(([k, v]) => [v, k])
+  ) as Record<Vibe, string>
+  const keyToVibeSafe = (key?: string | null) => {
+    if (!key) return null
+    return keyToVibe[key] || null
+  }
+
   const vibeOptions = useMemo(() => {
     if (!vibes.length) return vibeList
-    const keyToVibe: Record<string, Vibe> = {
-      CHILL: 'Chill',
-      SOCIAL: 'Social',
-      FLOW: 'Flow',
-      EXPLORER: 'Explorer',
-      GROWTH: 'Growth',
-      COMPETITIVE: 'Competitive',
-      SUPPORTIVE: 'Supportive',
-    }
     return vibes.map((v) => {
       const id = keyToVibe[v.key] || (v.key as Vibe)
       return {
@@ -965,7 +1076,7 @@ export function OnboardingPage() {
               <button
                 type="button"
                 onClick={goNext}
-                disabled={nextDisabled}
+                disabled={nextDisabled || saving || (loadingProfile && !initialized)}
                 className={clsx(
                   'pointer-events-auto flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60',
                   stepIndex === 0 ? 'w-full' : 'flex-1',
