@@ -20,4 +20,4 @@ export {
   VENUE_COURTS_STEP,
   VENUE_PHOTO_STEP,
   VENUE_VERIFY_STEP,
-} from '@/store/onboardingStore'
+} from '@/stores/onboarding.store'

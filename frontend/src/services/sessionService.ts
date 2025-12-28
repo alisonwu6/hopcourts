@@ -1,6 +1,6 @@
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
 import type { User } from '@/types'
-import type { OnboardingStatus } from '@/store/onboardingStore'
+import type { OnboardingStatus } from '@/stores/onboarding.store'
 import { supabase } from '@/lib/supabase'
 
 export interface SessionContext {
