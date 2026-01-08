@@ -7,6 +7,8 @@ import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
+import { LoadingGate } from '@/components/loading/LoadingGate'
+import { OnboardingStepSkeleton } from '@/features/onboarding/components/OnboardingStepSkeleton'
 import {
   useAgeRanges,
   useCities,
@@ -99,7 +101,7 @@ export function OnboardingPage() {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [initialized, setInitialized] = useState(true)
+  const [initialized, setInitialized] = useState(false)
   const { sports: sportsCatalog } = useSports('zh')
   const { items: countries } = useCountries('zh')
   const { items: cities } = useCities(country, 'zh')
@@ -171,6 +173,11 @@ export function OnboardingPage() {
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
     })
   }, [stepIndex])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setInitialized(true), 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   const toggleSport = (itemId: string) => {
     setSports((prev) => {
@@ -352,104 +359,95 @@ export function OnboardingPage() {
   }, [tryingSearch, sports, tryingOptions])
 
   return (
-    <div>
-      <ActionToolbar
-        onBack={() => navigate(-1)}
-        showFavorite={false}
-        showShare={false}
-        borderBottom={false}
-        title={null}
-        contentClassName="max-w-3xl px-0"
-      />
+    <LoadingGate
+      loading={!initialized || loadingProfile}
+      fallback={
+        <div
+          className="px-4 pb-12 pt-6"
+          style={{ background: 'linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%)' }}
+        >
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+            <OnboardingStepSkeleton />
+          </div>
+        </div>
+      }
+    >
+      <div>
+        {loadingProfile && (
+          <div className="bg-blue-50 text-blue-700 px-4 py-3 text-sm">
+            正在載入你的資料...
+          </div>
+        )}
+        {saveError && (
+          <div className="bg-red-50 text-red-700 px-4 py-3 text-sm">
+            {saveError}
+          </div>
+        )}
+        <ActionToolbar
+          onBack={() => navigate(-1)}
+          showFavorite={false}
+          showShare={false}
+          borderBottom={false}
+          title={null}
+          contentClassName="max-w-3xl px-0"
+        />
 
-      <div
-        className="px-4 pb-12 pt-6"
-        style={{
-          background: 'linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%)',
-        }}
-      >
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-          <div className="flex flex-col gap-3">
-            <div className="relative h-1.5 w-full rounded-full bg-slate-200">
-              <div
-                className="h-1.5 rounded-full"
-                style={{ width: `${progress}%`, background: accent.ring }}
-              />
-              <div className="absolute inset-0 flex items-center justify-between px-2">
-                {steps.map((_, idx) => {
-                  const isCompleted =
-                    idx === 0 || (idx <= furthestStep && furthestStep > 0)
-                  const color = isCompleted
-                    ? stepColors[idx] ?? '#e2e8f0'
-                    : '#cbd5e1'
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => {
-                        if (idx === 0 || idx <= furthestStep) setStepIndex(idx)
-                      }}
-                      className={clsx(
-                        'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition shadow-sm ring-2 ring-white/50',
-                        isCompleted
-                          ? 'opacity-100'
-                          : 'opacity-60 cursor-not-allowed'
-                      )}
-                      aria-label={`前往步驟 ${idx + 1}`}
-                      style={{
-                        background:
-                          idx === steps.length - 1 && isCompleted
-                            ? '#fff'
-                            : color,
-                        color: '#fff',
-                      }}
-                      disabled={!isCompleted}
-                    >
-                      {idx === steps.length - 1 ? (
-                        <IdCard
-                          className="h-6 w-6 text-black"
-                          strokeWidth={2.5}
-                        />
-                      ) : (
-                        idx + 1
-                      )}
-                    </button>
-                  )
-                })}
+        <div
+          className="px-4 pb-12 pt-6"
+          style={{
+            background: 'linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%)',
+          }}
+        >
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              <div className="relative h-1.5 w-full rounded-full bg-slate-200">
+                <div
+                  className="h-1.5 rounded-full"
+                  style={{ width: `${progress}%`, background: accent.ring }}
+                />
+                <div className="absolute inset-0 flex items-center justify-between px-2">
+                  {steps.map((_, idx) => {
+                    const isCompleted =
+                      idx === 0 || (idx <= furthestStep && furthestStep > 0)
+                    const color = isCompleted
+                      ? stepColors[idx] ?? '#e2e8f0'
+                      : '#cbd5e1'
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          if (idx === 0 || idx <= furthestStep) setStepIndex(idx)
+                        }}
+                        className={clsx(
+                          'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition shadow-sm ring-2 ring-white/50',
+                          isCompleted
+                            ? 'opacity-100'
+                            : 'opacity-60 cursor-not-allowed'
+                        )}
+                        aria-label={`前往步驟 ${idx + 1}`}
+                        style={{
+                          background:
+                            idx === steps.length - 1 && isCompleted
+                              ? '#fff'
+                              : color,
+                          color: '#fff',
+                        }}
+                        disabled={!isCompleted}
+                      >
+                        {idx === steps.length - 1 ? (
+                          <IdCard
+                            className="h-6 w-6 text-black"
+                            strokeWidth={2.5}
+                          />
+                        ) : (
+                          idx + 1
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-            <div className="text-sm font-semibold text-slate-500 mt-4">
-              {stepLabels[currentStep]}
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold leading-tight text-slate-900">
-                {currentStep === 'Vibe' && '最近最需要什麼運動節奏？'}
-                {currentStep === 'Sports' && '最常說「好，走！」的運動'}
-                {currentStep === 'Trying' && '接下來想一起試試什麼？'}
-                {currentStep === 'Country' && '你來自哪裡？'}
-                {currentStep === 'City' && '你現在住在哪個城市？'}
-                {currentStep === 'Bio' &&
-                  '一句話，讓大家能知道你目前運動的狀態'}
-                {currentStep === 'Info' && '讓夥伴更好地認識你'}
-                {currentStep === 'Preview' && '專屬你的運動身份卡'}
-              </h1>
-              <p className="text-base text-slate-600">
-                {currentStep === 'Vibe' &&
-                  '選一個最貼近你最近的感覺。我們知道身心節奏會影響我們需要的運動模式，後續調整也沒問題。'}
-                {currentStep === 'Sports' &&
-                  '選最多 3 項，平常最容易讓你動起來的那些。我們會依照你的習慣，幫你找到步調相近的夥伴。'}
-                {currentStep === 'Trying' &&
-                  '最多 2 項就好，這能讓夥伴更容易揪你去適合的活動。不用很會，願意開始就很棒。'}
-                {currentStep === 'Country' &&
-                  '我們會在你的卡片上放小旗幟，讓你感受就算不同文化背景也可以有相同的運動語言。'}
-                {currentStep === 'City' &&
-                  '目前開放台北與新北，我們會持續新增更多地區。'}
-                {currentStep === 'Bio' &&
-                  '就像跟一個和你一起動的人分享運動態度或是近況。'}
-                {currentStep === 'Info' && ''}
-                {currentStep === 'Preview' &&
-                  '準備展開新節奏的起點。每一次出門、每一次流汗、每一次遇到新夥伴，都會把這張卡更新成更有故事的版本。你不是一個人開始。在這裡，有和你同樣節奏的人正在等你一起。'}
-              </p>
             </div>
           </div>
 
@@ -1004,6 +1002,6 @@ export function OnboardingPage() {
           </div>
         </div>
       </div>
-    </div>
+    </LoadingGate>
   )
 }

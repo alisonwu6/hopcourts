@@ -8,6 +8,8 @@ import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding } fro
 import type { LucideIcon } from 'lucide-react'
 import heroPlaceholder from '@/assets/placeholders/game-placeholder.JPEG'
 import { useAuthStore } from '@/hooks'
+import { LoadingGate } from '@/components/loading/LoadingGate'
+import { SessionDetailSkeleton } from '@/features/events/components/SessionDetailSkeleton'
 
 const mockEvent = {
   title: '抱石交流場',
@@ -55,98 +57,100 @@ export function EventDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f5f8] pb-12">
-      <ActionToolbar
-        onBack={() => navigate(-1)}
-        onShare={handleShare}
-        onToggleFavorite={() => setIsFavorite((prev) => !prev)}
-        isFavorite={isFavorite}
-        showShare
-        showFavorite
-        contentClassName="w-full max-w-[400px] px-4"
-      />
-      <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
-        <div className="relative overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)] mb-0">
-          <img
-            src={mockEvent.heroImage}
-            alt="Bouldering wall"
-            className="h-[230px] w-full object-cover"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
-        </div>
-        <div className="-mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)] relative z-10">
-          <div className="px-5 pb-6 pt-6">
-            
-            <div className="flex items-center gap-3">
-              <AvatarCircle name={mockEvent.host.name} src={mockEvent.host.avatar} />
-              <div>
-                <p className="text-sm font-semibold text-slate-900">由 {mockEvent.host.name} 主辦</p>
-                <p className="text-xs text-slate-500">{mockEvent.host.subtitle}</p>
-              </div>
-            </div>
-
-            <hr className="my-6 border-slate-200" />
-
-            <div className="mt-6 flex justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide">
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-                {mockEvent.sport}
-              </span>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
-                {mockEvent.skillLabel}
-              </span>
-            </div>
-
-            <div className="mt-4">
-              <h1 className="text-[28px] font-semibold text-slate-900">{mockEvent.title}</h1>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              <InfoRow icon={Calendar} label={mockEvent.dateTime} />
-              <InfoRow icon={MapPin} label={mockEvent.location} />
-              <InfoRow icon={CircleDollarSign} label={mockEvent.price} />
-            </div>
-
-            <hr className="my-6 border-slate-200" />
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                  <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-                </span>
-                <span>
-                  目前報名（剩 {mockEvent.spotsRemaining} 位）
-                </span>
-              </div>
-              <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-                <AvatarCircle name={mockEvent.participants[0].name} src={mockEvent.participants[0].avatar} />
+    <LoadingGate loading={false} fallback={<SessionDetailSkeleton />}>
+      <div className="min-h-screen bg-[#f3f5f8] pb-12">
+        <ActionToolbar
+          onBack={() => navigate(-1)}
+          onShare={handleShare}
+          onToggleFavorite={() => setIsFavorite((prev) => !prev)}
+          isFavorite={isFavorite}
+          showShare
+          showFavorite
+          contentClassName="w-full max-w-[400px] px-4"
+        />
+        <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
+          <div className="relative overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)] mb-0">
+            <img
+              src={mockEvent.heroImage}
+              alt="Bouldering wall"
+              className="h-[230px] w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
+          </div>
+          <div className="-mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)] relative z-10">
+            <div className="px-5 pb-6 pt-6">
+              
+              <div className="flex items-center gap-3">
+                <AvatarCircle name={mockEvent.host.name} src={mockEvent.host.avatar} />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{mockEvent.participants[0].name}</p>
-                  <p className="text-xs text-slate-500">{mockEvent.participants[0].subtitle}</p>
+                  <p className="text-sm font-semibold text-slate-900">由 {mockEvent.host.name} 主辦</p>
+                  <p className="text-xs text-slate-500">{mockEvent.host.subtitle}</p>
                 </div>
               </div>
-            </div>
 
-            <hr className="my-6 border-slate-200" />
+              <hr className="my-6 border-slate-200" />
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                  <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+              <div className="mt-6 flex justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
+                  {mockEvent.sport}
                 </span>
-                <span>主辦想說</span>
+                <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
+                  {mockEvent.skillLabel}
+                </span>
               </div>
-              <p className="text-sm leading-relaxed text-slate-700">{mockEvent.description}</p>
+
+              <div className="mt-4">
+                <h1 className="text-[28px] font-semibold text-slate-900">{mockEvent.title}</h1>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <InfoRow icon={Calendar} label={mockEvent.dateTime} />
+                <InfoRow icon={MapPin} label={mockEvent.location} />
+                <InfoRow icon={CircleDollarSign} label={mockEvent.price} />
+              </div>
+
+              <hr className="my-6 border-slate-200" />
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                    <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  </span>
+                  <span>
+                    目前報名（剩 {mockEvent.spotsRemaining} 位）
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
+                  <AvatarCircle name={mockEvent.participants[0].name} src={mockEvent.participants[0].avatar} />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{mockEvent.participants[0].name}</p>
+                    <p className="text-xs text-slate-500">{mockEvent.participants[0].subtitle}</p>
+                  </div>
+                </div>
+              </div>
+
+              <hr className="my-6 border-slate-200" />
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                    <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  </span>
+                  <span>主辦想說</span>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-700">{mockEvent.description}</p>
+              </div>
             </div>
           </div>
         </div>
+        <JoinBar isJoined={isJoined} onClick={handleJoinClick} />
+        <LoginPromptSheet
+          open={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          onSignup={() => navigate('/signup')}
+        />
       </div>
-      <JoinBar isJoined={isJoined} onClick={handleJoinClick} />
-      <LoginPromptSheet
-        open={showLoginPrompt}
-        onClose={() => setShowLoginPrompt(false)}
-        onSignup={() => navigate('/signup')}
-      />
-    </div>
+    </LoadingGate>
   )
 }
 
