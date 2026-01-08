@@ -108,6 +108,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: false,
       })
       persistToken(null)
+      persistUserId(null)
     }
   },
 
@@ -137,6 +138,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         error: error?.message ?? 'Signup failed',
         isLoading: false,
       })
+      persistToken(null)
+      persistUserId(null)
     }
   },
 

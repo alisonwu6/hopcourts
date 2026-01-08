@@ -23,6 +23,13 @@ import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { HomePage } from '@/features/home/pages/HomePage'
 
+const RequireAuth = ({ children }: { children: JSX.Element }) => {
+  const { isAuthenticated, isLoading } = useAuthStore()
+  if (isLoading) return <div className="p-4 text-center text-sm text-slate-600">載入中…</div>
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  return children
+}
+
 export default function App() {
   const { isAuthenticated, onboardingStatus } = useAuthStore()
   const isOnboardingComplete = onboardingStatus?.isComplete ?? false
@@ -90,9 +97,11 @@ export default function App() {
       <Route
         path="/onboarding"
         element={
-          <OnboardingRoute>
-            <OnboardingPage />
-          </OnboardingRoute>
+          <RequireAuth>
+            <OnboardingRoute>
+              <OnboardingPage />
+            </OnboardingRoute>
+          </RequireAuth>
         }
       />
       <Route
@@ -164,33 +173,41 @@ function AuthenticatedApp() {
       <Route
         path="/my-events"
         element={
-          <AppChrome showHeader={false}>
-            <MyEventsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false}>
+              <MyEventsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/create-event"
         element={
-          <AppChrome showNav={false}>
-            <CreateEventPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showNav={false}>
+              <CreateEventPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/circle"
         element={
-          <AppChrome showHeader={false}>
-            <CirclePage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false}>
+              <CirclePage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/profile"
         element={
-          <AppChrome showHeader={false}>
-            <ProfilePage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false}>
+              <ProfilePage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
@@ -212,25 +229,31 @@ function AuthenticatedApp() {
       <Route
         path="/settings"
         element={
-          <AppChrome showHeader={false} showNav={false}>
-            <ProfileSettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <ProfileSettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings/account"
         element={
-          <AppChrome showHeader={false} showNav={false}>
-            <AccountSettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <AccountSettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings/privacy"
         element={
-          <AppChrome showHeader={false} showNav={false}>
-            <PrivacySettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <PrivacySettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route path="/mates" element={<Navigate to="/" replace />} />
