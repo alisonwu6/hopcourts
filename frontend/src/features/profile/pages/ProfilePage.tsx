@@ -124,47 +124,7 @@ export function ProfilePage() {
     })
   }
 
-  if (!isAuthenticated) {
-    return null
-  }
-
-  if (isAuthenticated && !hasCompletedCard) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto flex h-full w-full max-w-2xl flex-col px-6 pb-10 pt-6">
-          <div className="flex items-center justify-end gap-2 py-2">
-            <button
-              type="button"
-              aria-label="Add game"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-              onClick={() => navigate('/create-event')}
-            >
-              <PlusSquare className="h-6 w-6" />
-            </button>
-            <Link
-              to="/settings"
-              aria-label="Menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
-            >
-              <Menu className="h-6 w-6" />
-            </Link>
-          </div>
-
-          <div className="flex flex-1 items-start justify-center">
-            <div className="w-full max-w-xl">
-              <EmptyBlock
-                title="建立你的運動身份"
-                description="分享你的氛圍與慣打運動，找到步調相近的夥伴。"
-                actionLabel="建立你的運動卡"
-                onAction={() => navigate('/onboarding')}
-                className="mt-6"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  if (!isAuthenticated) return null
 
   return (
     <div className="min-h-screen pb-[120px]">
