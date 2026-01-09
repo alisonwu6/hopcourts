@@ -2,6 +2,7 @@ const { ok } = require('../../lib/respond')
 const { Errors } = require('../../lib/errors')
 const {
   listSessions,
+  createSession,
   getSessionDetail,
   buildListParams,
   joinSession,
@@ -64,9 +65,40 @@ async function handleLeaveSession(req, res, next) {
   }
 }
 
+async function handleCreateSession(req, res, next) {
+  try {
+    const userId = resolveUserId(req)
+    if (!userId) throw Errors.unauthenticated('User id required')
+    const body = req.body || {}
+    const session = await createSession({
+      userId,
+      sportKey: body.sport_key || body.sportKey,
+      title: body.title,
+      notes: body.notes,
+      startAt: body.starts_at || body.startAt,
+      endAt: body.ends_at || body.endAt,
+      placeName: body.place_name || body.locationName || body.location_name,
+      address: body.address,
+      lat: body.lat,
+      lng: body.lng,
+      checkinRadiusM: body.checkin_radius_m ?? body.checkinRadiusM,
+      checkinOpenMinsBefore: body.checkin_open_mins_before ?? body.checkinOpenMinsBefore,
+      checkinCloseMinsAfter: body.checkin_close_mins_after ?? body.checkinCloseMinsAfter,
+      minPeople: body.min_people ?? body.minPeople,
+      maxPeople: body.max_people ?? body.maxPeople ?? body.capacity,
+      status: body.status,
+      visibility: body.visibility,
+    })
+    return ok(res, { session })
+  } catch (err) {
+    next(err)
+  }
+}
+
 module.exports = {
   handleListSessions,
   handleGetSession,
   handleJoinSession,
   handleLeaveSession,
+  handleCreateSession,
 }

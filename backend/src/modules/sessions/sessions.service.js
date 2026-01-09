@@ -33,7 +33,7 @@ async function listSessions(params = {}) {
   try {
     const sessions = await sessionsModel.listUpcomingSessions(params)
     return {
-      sessions,
+      items: sessions,
       page: {
         limit: params.limit,
         offset: params.offset,
@@ -132,4 +132,5 @@ module.exports = {
   buildListParams,
   joinSession,
   leaveSession,
+  createSession,
 }
