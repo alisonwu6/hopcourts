@@ -105,7 +105,6 @@ paths:
         "200":
           description: ok
   /sessions/{id}:
-  /sessions/{id}:
     get:
       summary: Get session by id
       parameters:
