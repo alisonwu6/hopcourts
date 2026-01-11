@@ -39,12 +39,20 @@ async function upsertProfile(userId, body = {}) {
   })
 
   const sportsInput = Array.isArray(body.sports) ? body.sports : []
-  const sports = await userSportsModel.replaceUserSports(
-    userId,
-    sportsInput.map((s) => ({
+  const favSports = Array.isArray(body.favorite_sports) ? body.favorite_sports : []
+  const tryingSports = Array.isArray(body.trying_sports) ? body.trying_sports : []
+  const normalizedSports = [
+    ...sportsInput.map((s) => ({
       sport_key: s.sport_key || s.sportKey || s.key,
       kind: s.kind || s.type || 'FAVORITE',
-    }))
+    })),
+    ...favSports.map((key) => ({ sport_key: key, kind: 'FAVORITE' })),
+    ...tryingSports.map((key) => ({ sport_key: key, kind: 'TRYING' })),
+  ].filter((s) => s.sport_key)
+
+  const sports = await userSportsModel.replaceUserSports(
+    userId,
+    normalizedSports
   )
 
   return { user, sports }
@@ -63,6 +71,15 @@ async function upsertPreferences(userId, body = {}) {
     sessions_per_week: body.sessions_per_week ?? body.sessionsPerWeek ?? null,
     day_slots: body.day_slots || body.daySlots || null,
   })
+  const favSports = Array.isArray(body.favorite_sports) ? body.favorite_sports : []
+  const tryingSports = Array.isArray(body.trying_sports) ? body.trying_sports : []
+  const sportsPayload = [
+    ...favSports.map((key) => ({ sport_key: key, kind: 'FAVORITE' })),
+    ...tryingSports.map((key) => ({ sport_key: key, kind: 'TRYING' })),
+  ]
+  if (sportsPayload.length) {
+    await userSportsModel.replaceUserSports(userId, sportsPayload)
+  }
   return prefs
 }
 

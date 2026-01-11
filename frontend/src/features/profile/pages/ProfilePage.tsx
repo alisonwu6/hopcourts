@@ -1,10 +1,12 @@
 import clsx from 'clsx'
 import { Goal, Menu, PlusSquare, Lock, Calendar, MapPin, Users, Wallet } from 'lucide-react'
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
 import { BottomSheet } from '@/components/BottomSheet'
 import { useAuthStore } from '@/hooks'
+import { onboardingService } from '@/features/onboarding/onboarding.service'
+import { useSports } from '@/features/sports/hooks/useSports'
 
 const mockProfile: MateCardProps = {
   name: 'Alison Wu',
@@ -70,19 +72,95 @@ export function ProfilePage() {
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
-  const [profile, setProfile] = useState<MateCardProps | null>(mockProfile)
+  const [profile, setProfile] = useState<MateCardProps | null>(null)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(mockProfile)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const { user, onboardingStatus, isAuthenticated } = useAuthStore()
+  const { user, onboardingStatus, isAuthenticated, isLoading } = useAuthStore()
+  const { sports: sportsCatalog } = useSports('zh')
   const navigate = useNavigate()
-  const username = (user as any)?.username || 'undefined'
+  const username = (user as any)?.username || (profile as any)?.username || 'undefined'
+  const labelForSport = useMemo(() => {
+    const map = new Map(sportsCatalog.map((s) => [s.key, s.label]))
+    const fallback: Record<string, string> = {
+      BASKETBALL: '籃球',
+      RUNNING: '慢跑',
+      CYCLING: '自行車',
+      PICKLEBALL: '匹克球',
+      SKATEBOARD: '滑板',
+    }
+    return (key: string) => map.get(key) || fallback[key] || key
+  }, [sportsCatalog])
+
+  // Remap labels when dictionary updates
+  useEffect(() => {
+    setProfile((prev) => {
+      if (!prev) return prev
+      const sportsKeys = (prev as any).sportsKeys as string[] | undefined
+      const tryingKeys = (prev as any).tryingKeys as string[] | undefined
+      if (!sportsKeys && !tryingKeys) return prev
+      return {
+        ...prev,
+        sports: (sportsKeys || prev.sports || []).map(labelForSport),
+        trying: (tryingKeys || prev.trying || []).map(labelForSport),
+      }
+    })
+  }, [labelForSport])
   const hasCompletedCard = onboardingStatus?.isComplete ?? false
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/', { replace: true })
+    if (!isAuthenticated) return
+    let cancelled = false
+    const fetchProfile = async () => {
+      try {
+        const response = await onboardingService.getProfile()
+        const payload: any = (response as any)?.data ?? response
+        if (!payload) return
+        const data = payload.user ? payload.user : payload
+        const sportsRows = payload.sports || []
+        const favoriteKeys =
+          payload.favorite_sports ||
+          sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+        const tryingKeys =
+          payload.trying_sports ||
+          sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+        const vibeMap: Record<string, MateCardProps['vibe']> = {
+          CHILL: 'Chill',
+          SOCIAL: 'Social',
+          FLOW: 'Flow',
+          EXPLORER: 'Explorer',
+          GROWTH: 'Growth',
+          COMPETITIVE: 'Competitive',
+          SUPPORTIVE: 'Supportive',
+        }
+        const mapped: MateCardProps = {
+          name: data.display_name || data.username || mockProfile.name,
+          username: data.username || data.display_name || mockProfile.name,
+          location: data.city_label || data.city || mockProfile.location,
+          flag: data.flag || mockProfile.flag,
+          vibe: vibeMap[data.vibe_key] || mockProfile.vibe,
+          sportsKeys: favoriteKeys || [],
+          tryingKeys: tryingKeys || [],
+          sports: (favoriteKeys || []).map(labelForSport),
+          trying: (tryingKeys || []).map(labelForSport),
+          blurb: data.bio || '',
+          avatar: data.avatar_url || mockProfile.avatar,
+        }
+        if (!cancelled) {
+          setProfile(mapped)
+          setDraftProfile(mapped)
+        }
+      } catch {
+        if (!cancelled) {
+          setProfile(null)
+          setDraftProfile(mockProfile)
+        }
+      }
     }
-  }, [isAuthenticated, navigate])
+    fetchProfile()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated])
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? { sessionsPerWeek: '', timeOfDay: draftPreferredTime || '早上', days: [] }
@@ -128,9 +206,10 @@ export function ProfilePage() {
     })
   }
 
+  if (isLoading) return null
   if (!isAuthenticated) return null
-  const displayProfile = hasCompletedCard ? profile : null
-  const displayGoal = hasCompletedCard ? goal : null
+  const displayProfile = profile
+  const displayGoal = goal
 
   return (
     <div className="min-h-screen pb-[120px]">

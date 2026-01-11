@@ -7,6 +7,7 @@ import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
+import { onboardingService } from '@/features/onboarding/onboarding.service'
 import {
   useAgeRanges,
   useCities,
@@ -236,8 +237,37 @@ export function OnboardingPage() {
     if (saving) return
     setSaving(true)
     setSaveError(null)
-    navigate('/')
-    setSaving(false)
+    try {
+      const vibeKey = vibe ? vibeToKey[vibe] : null
+      const profileBody = {
+        username,
+        legal_name: realName,
+        display_name: displayName,
+        country_key: country || null,
+        city_key: city || null,
+        vibe_key: vibeKey,
+        bio,
+      }
+
+      const preferencesBody = {
+        favorite_sports: sports,
+        trying_sports: trying,
+        preferred_time: preferredTime,
+        day_slots: daySlots,
+        age_range_key: ageRange || null,
+      }
+
+      await onboardingService.saveProfile(profileBody)
+      await onboardingService.savePreferences(preferencesBody)
+
+      const { setAuthData, onboardingStatus: status, user: authUser, token } = useAuthStore.getState()
+      setAuthData(authUser, token, { ...(status ?? null), isComplete: true })
+      navigate('/profile')
+    } catch (err: any) {
+      setSaveError(err?.message || '儲存失敗，請再試一次')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const goNext = () => {

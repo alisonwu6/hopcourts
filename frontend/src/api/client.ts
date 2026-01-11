@@ -1,4 +1,4 @@
-import { httpGet, httpPost, httpDelete, httpPut } from './http'
+import { httpGet, httpPost, httpDelete, httpPut, httpPatch } from './http'
 import type {
   ApiResponse,
   Sport,
@@ -28,11 +28,12 @@ export const api = {
   },
   sessions: {
     list: (params: Record<string, any> = {}) =>
-      httpGet<ApiResponse<{ sessions: Session[]; page: Page }>>('/sessions', { auth: false, params }),
+      httpGet<ApiResponse<{ items: Session[]; page: Page }>>('/sessions', { auth: false, params }),
     detail: (id: string) =>
       httpGet<ApiResponse<{ session: Session; meta: SessionMeta }>>(`/sessions/${id}`, {
         auth: false,
       }),
+    create: (body: any) => httpPost<ApiResponse<{ session: Session }>>('/sessions', { body }),
     join: (id: string) => httpPost<ApiResponse<any>>(`/sessions/${id}/join`, {}),
     leave: (id: string) => httpDelete<ApiResponse<any>>(`/sessions/${id}/join`, {}),
     checkIn: (id: string, body: { lat: number; lng: number }) =>
@@ -41,11 +42,11 @@ export const api = {
   me: {
     profile: {
       get: () => httpGet<ApiResponse<any>>('/me/profile'),
-      update: (body: any) => httpPut<ApiResponse<any>>('/me/profile', { body }),
+      update: (body: any) => httpPatch<ApiResponse<any>>('/me/profile', { body }),
     },
     preferences: {
       get: () => httpGet<ApiResponse<any>>('/me/preferences'),
-      update: (body: any) => httpPut<ApiResponse<any>>('/me/preferences', { body }),
+      update: (body: any) => httpPatch<ApiResponse<any>>('/me/preferences', { body }),
     },
     onboarding: () => httpGet<ApiResponse<any>>('/me/onboarding'),
     stats: () => httpGet<ApiResponse<any>>('/me/stats'),

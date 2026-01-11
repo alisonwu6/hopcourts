@@ -67,7 +67,6 @@ export type Session = {
 export type SessionMeta = {
   participant_count: number
   spots_left: number | null
-  is_joined?: boolean
   viewer_has_joined?: boolean
   viewer_has_checked_in?: boolean
 }
