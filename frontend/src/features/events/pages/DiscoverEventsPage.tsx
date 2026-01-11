@@ -9,9 +9,6 @@ import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { useAuthStore } from '@/hooks'
-import { LoadingGate } from '@/components/loading/LoadingGate'
-import { SessionListSkeleton } from '@/features/events/components/SessionListSkeleton'
-import { OverlayFade } from '@/components/loading/OverlayFade'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
 
@@ -179,40 +176,36 @@ export function DiscoverEventsPage() {
           </div>
         )}
 
-        <div className="relative">
-          <LoadingGate loading={isLoading} fallback={<SessionListSkeleton />}>
-            {filteredEvents.length === 0 ? (
-              <div className="flex flex-col items-center gap-4 py-10 text-center text-slate-500">
-                <div>沒有找到活動</div>
-                <button
-                  type="button"
-                  onClick={handleCreateClick}
-                  className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
-                >
-                  新增活動
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onViewDetails={() => {
-                      if (isAuthenticated) {
-                        navigate(`/event/${event.id}`)
-                      } else {
-                        setShowLoginPrompt(true)
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </LoadingGate>
-          {/* Overlay fade when reloading list but keep old content visible */}
-          <OverlayFade show={isLoading} />
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-10 text-slate-500">
+            載入活動中…
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 py-10 text-center text-slate-500">
+            <div>沒有找到活動</div>
+            <button
+              type="button"
+              onClick={handleCreateClick}
+              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+            >
+              新增活動
+            </button>
+          </div>
+        ) : (
+          filteredEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              onViewDetails={() => {
+                if (isAuthenticated) {
+                  navigate(`/event/${event.id}`)
+                } else {
+                  setShowLoginPrompt(true)
+                }
+              }}
+            />
+          ))
+        )}
       </div>
 
       <SportFilterSheet

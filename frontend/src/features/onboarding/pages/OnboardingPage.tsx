@@ -7,8 +7,6 @@ import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
-import { LoadingGate } from '@/components/loading/LoadingGate'
-import { OnboardingStepSkeleton } from '@/features/onboarding/components/OnboardingStepSkeleton'
 import {
   useAgeRanges,
   useCities,
@@ -101,7 +99,7 @@ export function OnboardingPage() {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [initialized, setInitialized] = useState(false)
+  const [initialized, setInitialized] = useState(true)
   const { sports: sportsCatalog } = useSports('zh')
   const { items: countries } = useCountries('zh')
   const { items: cities } = useCities(country, 'zh')
@@ -174,10 +172,6 @@ export function OnboardingPage() {
     })
   }, [stepIndex])
 
-  useEffect(() => {
-    const timer = setTimeout(() => setInitialized(true), 300)
-    return () => clearTimeout(timer)
-  }, [])
 
   const toggleSport = (itemId: string) => {
     setSports((prev) => {
