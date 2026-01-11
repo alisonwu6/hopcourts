@@ -353,19 +353,6 @@ export function OnboardingPage() {
   }, [tryingSearch, sports, tryingOptions])
 
   return (
-    <LoadingGate
-      loading={!initialized || loadingProfile}
-      fallback={
-        <div
-          className="px-4 pb-12 pt-6"
-          style={{ background: 'linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%)' }}
-        >
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-            <OnboardingStepSkeleton />
-          </div>
-        </div>
-      }
-    >
       <div>
         {loadingProfile && (
           <div className="bg-blue-50 text-blue-700 px-4 py-3 text-sm">
@@ -996,6 +983,5 @@ export function OnboardingPage() {
           </div>
         </div>
       </div>
-    </LoadingGate>
   )
 }
