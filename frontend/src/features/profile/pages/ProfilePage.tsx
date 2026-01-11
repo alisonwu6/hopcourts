@@ -99,6 +99,10 @@ export function ProfilePage() {
   }
 
   const handleOpenProfileEdit = () => {
+    if (!hasCompletedCard) {
+      navigate('/onboarding')
+      return
+    }
     setDraftProfile(profile ?? mockProfile)
     setShowEditSheet(true)
   }
@@ -125,6 +129,8 @@ export function ProfilePage() {
   }
 
   if (!isAuthenticated) return null
+  const displayProfile = hasCompletedCard ? profile : null
+  const displayGoal = hasCompletedCard ? goal : null
 
   return (
     <div className="min-h-screen pb-[120px]">
@@ -152,9 +158,14 @@ export function ProfilePage() {
             </Link>
           </div>
         </div>
-        <HeroCard profile={profile} onEdit={() => setShowEditSheet(true)} />
+        <HeroCard profile={displayProfile} onEdit={handleOpenProfileEdit} />
         <div className="mt-4 space-y-4">
-          <StatsContent goal={goal} goalDaySlots={goalDaySlots} onOpenGoalSheet={handleOpenGoal} />
+          <StatsContent
+            goal={displayGoal}
+            goalDaySlots={goalDaySlots}
+            onOpenGoalSheet={handleOpenGoal}
+            showEdit={hasCompletedCard}
+          />
         </div>
       </div>
       <BottomSheet
@@ -880,7 +891,7 @@ function HeroCard({ profile, onEdit }: { profile: MateCardProps | null; onEdit: 
         <EmptyBlock
           title="還沒有運動卡資料"
           description="建立或編輯你的運動卡，讓夥伴更快找到你。"
-          actionLabel="建立運動卡"
+          actionLabel="建立我的運動卡"
           onAction={onEdit}
         />
       </div>
