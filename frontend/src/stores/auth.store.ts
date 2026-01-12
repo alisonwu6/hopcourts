@@ -14,6 +14,7 @@ interface AuthState {
   user: User | null
   token: string | null
   onboardingStatus: OnboardingStatus | null
+  profileCache: any | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
@@ -27,6 +28,7 @@ interface AuthState {
     status?: OnboardingStatus | null,
     options?: { remember?: boolean }
   ) => void
+  setProfileCache: (profile: any | null) => void
   clearError: () => void
 }
 
@@ -75,6 +77,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
   onboardingStatus: null,
+  profileCache: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
@@ -95,6 +98,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user,
         token,
         onboardingStatus,
+        profileCache: null,
         isAuthenticated: true,
         isLoading: false,
       })
@@ -105,6 +109,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: null,
         token: null,
         onboardingStatus: null,
+        profileCache: null,
         isAuthenticated: false,
       })
       persistToken(null)
@@ -130,6 +135,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: response.user,
         token: response.token,
         onboardingStatus: response.onboardingStatus,
+        profileCache: null,
         isAuthenticated: true,
         isLoading: false,
       })
@@ -158,6 +164,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: null,
         token: null,
         onboardingStatus: null,
+        profileCache: null,
         isAuthenticated: false,
         isLoading: false,
       })
@@ -175,12 +182,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         persistToken(null)
         persistUserId(null)
         set({
-          user: null,
-          token: null,
-          onboardingStatus: null,
-          isAuthenticated: false,
-          isLoading: false,
-        })
+        user: null,
+        token: null,
+        onboardingStatus: null,
+        profileCache: null,
+        isAuthenticated: false,
+        isLoading: false,
+      })
         return
       }
       const context = await sessionService.bootstrap(accessToken)
@@ -191,6 +199,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         user: context.user,
         token: context.token,
         onboardingStatus: context.onboardingStatus,
+        profileCache: null,
         isAuthenticated: true,
         isLoading: false,
       })
@@ -218,9 +227,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       user,
       token,
       onboardingStatus: status ?? null,
+      profileCache: null,
       isAuthenticated: Boolean(user && token),
     })
   },
 
+  setProfileCache: (profile) => set({ profileCache: profile }),
   clearError: () => set({ error: null }),
 }))

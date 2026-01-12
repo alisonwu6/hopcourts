@@ -469,7 +469,7 @@ export function OnboardingPage() {
           </div>
 
           {currentStep === 'Vibe' && (
-            <div className="space-y-3">
+            <div className="space-y-3 mt-10">
               {vibeOptions.map((item) => {
                 const selected = vibe === item.id
                 return (
@@ -502,7 +502,7 @@ export function OnboardingPage() {
           )}
 
           {currentStep === 'Sports' && (
-            <div className="space-y-3">
+            <div className="space-y-3 mt-10">
               <div className="text-sm font-semibold text-slate-500">
                 已選 {sportsDisplayCount}/3
               </div>
@@ -577,7 +577,7 @@ export function OnboardingPage() {
           )}
 
           {currentStep === 'Trying' && (
-            <div className="space-y-3">
+            <div className="space-y-3 mt-10">
               <div className="text-sm font-semibold text-slate-500">
                 已選 {tryingDisplayCount}/2
               </div>
@@ -652,7 +652,7 @@ export function OnboardingPage() {
           )}
 
           {currentStep === 'Country' && (
-            <div className="space-y-4">
+            <div className="space-y-3 mt-10">
               <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
                 <input
                   type="text"
@@ -710,7 +710,7 @@ export function OnboardingPage() {
           )}
 
           {currentStep === 'City' && (
-            <div className="space-y-4">
+            <div className="space-y-3 mt-10">
               <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
                 <p className="text-sm font-semibold text-slate-700">
                   現居城市（僅台北/新北）
@@ -749,7 +749,7 @@ export function OnboardingPage() {
           )}
 
           {currentStep === 'Info' && (
-            <div className="space-y-5">
+            <div className="space-y-3 mt-10">
               <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
                 <div className="flex items-start gap-3">
                   <div className="mt-1 rounded-full bg-blue-50 p-2 text-blue-700">
@@ -769,7 +769,7 @@ export function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+              <div className="space-y-3 mt-10 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">
                     夥伴怎麼稱呼你？（顯示名稱）
@@ -832,7 +832,7 @@ export function OnboardingPage() {
                 </div>
               </div>
 
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+              <div className="space-y-3 mt-10 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-slate-700">
                     通常想在什麼時段運動？
@@ -880,11 +880,11 @@ export function OnboardingPage() {
                   })}
                 </div>
 
-                <details className="space-y-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <details className="space-y-3 mt-10 rounded-2xl border border-slate-200 bg-white px-4 py-3">
                   <summary className="cursor-pointer text-sm font-semibold text-slate-700">
                     按天微調（可選）
                   </summary>
-                  <div className="space-y-3 pt-1">
+                  <div className="space-y-3 mt-10 pt-1">
                     {daysList.map((day) => (
                       <div
                         key={day}
@@ -955,7 +955,7 @@ export function OnboardingPage() {
           )}
 
           {currentStep === 'Bio' && (
-            <div className="space-y-4">
+            <div className="space-y-3 mt-10">
               <textarea
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 rows={4}
@@ -971,16 +971,18 @@ export function OnboardingPage() {
           )}
 
           {currentStep === 'Preview' && (
-            <MateCard
-              name={previewCard.name}
-              flag={previewCard.flag}
-              vibe={previewCard.vibe}
-              sports={previewCard.sports}
-              trying={previewCard.trying}
-              location={previewCard.location}
-              blurb={previewCard.blurb}
-              avatar={previewCard.avatar}
-            />
+            <div className="space-y-3 mt-10">
+              <MateCard
+                name={previewCard.name}
+                flag={previewCard.flag}
+                vibe={previewCard.vibe}
+                sports={previewCard.sports}
+                trying={previewCard.trying}
+                location={previewCard.location}
+                blurb={previewCard.blurb}
+                avatar={previewCard.avatar}
+              />
+            </div>
           )}
 
           <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#f9fbff] via-[#f9fbff]/95 to-transparent pb-6 pt-8">

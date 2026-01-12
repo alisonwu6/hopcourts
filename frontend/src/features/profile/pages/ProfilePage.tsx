@@ -72,10 +72,11 @@ export function ProfilePage() {
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
-  const [profile, setProfile] = useState<MateCardProps | null>(null)
-  const [draftProfile, setDraftProfile] = useState<MateCardProps>(mockProfile)
+  const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
+    useAuthStore()
+  const [profile, setProfile] = useState<MateCardProps | null>(profileCache ?? null)
+  const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? mockProfile)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const { user, onboardingStatus, isAuthenticated, isLoading } = useAuthStore()
   const { sports: sportsCatalog } = useSports('zh')
   const navigate = useNavigate()
   const username = (user as any)?.username || (profile as any)?.username || 'undefined'
@@ -112,42 +113,64 @@ export function ProfilePage() {
     let cancelled = false
     const fetchProfile = async () => {
       try {
-        const response = await onboardingService.getProfile()
-        const payload: any = (response as any)?.data ?? response
-        if (!payload) return
-        const data = payload.user ? payload.user : payload
-        const sportsRows = payload.sports || []
-        const favoriteKeys =
-          payload.favorite_sports ||
-          sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
-        const tryingKeys =
-          payload.trying_sports ||
-          sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-        const vibeMap: Record<string, MateCardProps['vibe']> = {
-          CHILL: 'Chill',
-          SOCIAL: 'Social',
-          FLOW: 'Flow',
-          EXPLORER: 'Explorer',
-          GROWTH: 'Growth',
-          COMPETITIVE: 'Competitive',
-          SUPPORTIVE: 'Supportive',
+        const [profileRes, prefsRes] = await Promise.all([
+          onboardingService.getProfile(),
+          onboardingService.getPreferences(),
+        ])
+
+        const payload: any = (profileRes as any)?.data ?? profileRes
+        if (payload) {
+          const data = payload.user ? payload.user : payload
+          const sportsRows = payload.sports || []
+          const favoriteKeys =
+            payload.favorite_sports ||
+            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+          const tryingKeys =
+            payload.trying_sports ||
+            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+          const vibeMap: Record<string, MateCardProps['vibe']> = {
+            CHILL: 'Chill',
+            SOCIAL: 'Social',
+            FLOW: 'Flow',
+            EXPLORER: 'Explorer',
+            GROWTH: 'Growth',
+            COMPETITIVE: 'Competitive',
+            SUPPORTIVE: 'Supportive',
+          }
+          const mapped: MateCardProps = {
+            name: data.display_name || data.username || mockProfile.name,
+            username: data.username || data.display_name || mockProfile.name,
+            location: data.city_label || data.city || mockProfile.location,
+            flag: data.flag || mockProfile.flag,
+            vibe: vibeMap[data.vibe_key] || mockProfile.vibe,
+            sportsKeys: favoriteKeys || [],
+            tryingKeys: tryingKeys || [],
+            sports: (favoriteKeys || []).map(labelForSport),
+            trying: (tryingKeys || []).map(labelForSport),
+            blurb: data.bio || '',
+            avatar: data.avatar_url || mockProfile.avatar,
+          }
+          if (!cancelled) {
+            setProfile(mapped)
+            setDraftProfile(mapped)
+            setProfileCache(mapped)
+          }
         }
-        const mapped: MateCardProps = {
-          name: data.display_name || data.username || mockProfile.name,
-          username: data.username || data.display_name || mockProfile.name,
-          location: data.city_label || data.city || mockProfile.location,
-          flag: data.flag || mockProfile.flag,
-          vibe: vibeMap[data.vibe_key] || mockProfile.vibe,
-          sportsKeys: favoriteKeys || [],
-          tryingKeys: tryingKeys || [],
-          sports: (favoriteKeys || []).map(labelForSport),
-          trying: (tryingKeys || []).map(labelForSport),
-          blurb: data.bio || '',
-          avatar: data.avatar_url || mockProfile.avatar,
-        }
-        if (!cancelled) {
-          setProfile(mapped)
-          setDraftProfile(mapped)
+
+        const prefsPayload: any = (prefsRes as any)?.data ?? prefsRes
+        if (prefsPayload && !cancelled) {
+          const sessionsPerWeek = prefsPayload.sessions_per_week
+          const preferredTime = prefsPayload.preferred_time
+          const daySlots = prefsPayload.day_slots || {}
+          setGoal({
+            sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
+            timeOfDay: preferredTime || '尚未設定',
+            days: [],
+          })
+          const mergedSlots: Record<string, string[]> = { ...createDaySlots(), ...daySlots }
+          setGoalDaySlots(mergedSlots)
+          setDraftDaySlots(mergedSlots)
+          if (preferredTime) setDraftPreferredTime(preferredTime)
         }
       } catch {
         if (!cancelled) {
@@ -531,7 +554,14 @@ export function StatsContent({
     slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
   }))
 
-  if (!goal || !goal.sessionsPerWeek) {
+  const hasDaySlots = Object.values(goalDaySlots).some((slots) => (slots || []).length > 0)
+  const hasPrefs =
+    !!goal &&
+    ((goal.sessionsPerWeek && goal.sessionsPerWeek.trim() !== '') ||
+      (goal.timeOfDay && goal.timeOfDay.trim() !== '') ||
+      hasDaySlots)
+
+  if (!hasPrefs) {
     return (
       <div className="px-3">
         <EmptyBlock
@@ -563,7 +593,7 @@ export function StatsContent({
         </div>
         <div className="space-y-3 px-5">
           <p className="text-xl font-bold text-slate-900">
-            本週節奏：{goal.sessionsPerWeek} 次
+            本週節奏：{goal?.sessionsPerWeek ? `${goal.sessionsPerWeek} 次` : '未設定'}
           </p>
           <p className="text-sm font-semibold text-slate-700">本週完成度 20% — 穩穩前進。</p>
           <div className="h-3 overflow-hidden rounded-full bg-blue-100">
@@ -576,6 +606,9 @@ export function StatsContent({
         <div className="space-y-2 border-t border-blue-100 bg-white/60 px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
             你的偏好時段
+          </p>
+          <p className="text-sm font-semibold text-slate-700">
+            常用時段：{goal?.timeOfDay && goal.timeOfDay.trim() ? goal.timeOfDay : '尚未設定'}
           </p>
           <div className="space-y-1">
             {preferredTimes.map(({ dayLabel, slots }) => (
