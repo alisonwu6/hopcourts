@@ -22,7 +22,7 @@ async function handleGetMeProfile(req, res, next) {
 async function handlePutMeProfile(req, res, next) {
   try {
     const userId = resolveUserId(req)
-    const data = await upsertProfile(userId, req.body || {})
+    const data = await upsertProfile(userId, { ...req.body, auth_user: req.authUser })
     return ok(res, data)
   } catch (err) {
     next(err)

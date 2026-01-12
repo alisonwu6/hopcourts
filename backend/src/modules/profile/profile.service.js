@@ -35,7 +35,12 @@ async function upsertProfile(userId, body = {}) {
     age_range_key: body.age_range_key,
     vibe_key: body.vibe_key,
     bio: body.bio,
-    avatar_url: body.avatar_url,
+    avatar_url:
+      body.avatar_url ||
+      body.avatar ||
+      (body.auth_user && body.auth_user.avatar_url) ||
+      (body.auth_user && body.auth_user.user_metadata && body.auth_user.user_metadata.picture) ||
+      null,
   })
 
   const sportsInput = Array.isArray(body.sports) ? body.sports : []

@@ -245,8 +245,14 @@ export function OnboardingPage() {
         display_name: displayName,
         country_key: country || null,
         city_key: city || null,
+        age_range_key: ageRange || null,
         vibe_key: vibeKey,
         bio,
+        avatar_url:
+          (user as any)?.avatar ||
+          (user as any)?.user_metadata?.picture ||
+          (user as any)?.user_metadata?.avatar_url ||
+          null,
       }
 
       const preferencesBody = {
