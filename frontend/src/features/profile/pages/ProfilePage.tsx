@@ -76,6 +76,7 @@ export function ProfilePage() {
     useAuthStore()
   const [profile, setProfile] = useState<MateCardProps | null>(profileCache ?? null)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? mockProfile)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const { sports: sportsCatalog } = useSports('zh')
   const navigate = useNavigate()
@@ -90,6 +91,22 @@ export function ProfilePage() {
       SKATEBOARD: '滑板',
     }
     return (key: string) => map.get(key) || fallback[key] || key
+  }, [sportsCatalog])
+
+  const keyForLabel = useMemo(() => {
+    const map = new Map<string, string>()
+    sportsCatalog.forEach((s) => {
+      map.set(s.label, s.key)
+      map.set(s.key, s.key)
+    })
+    const fallback: Record<string, string> = {
+      籃球: 'BASKETBALL',
+      慢跑: 'RUNNING',
+      自行車: 'CYCLING',
+      匹克球: 'PICKLEBALL',
+      滑板: 'SKATEBOARD',
+    }
+    return (label: string) => map.get(label) || fallback[label] || label
   }, [sportsCatalog])
 
   // Remap labels when dictionary updates
@@ -143,6 +160,7 @@ export function ProfilePage() {
             location: data.city_label || data.city || mockProfile.location,
             flag: data.flag || mockProfile.flag,
             vibe: vibeMap[data.vibe_key] || mockProfile.vibe,
+            vibeKey: data.vibe_key || null,
             sportsKeys: favoriteKeys || [],
             tryingKeys: tryingKeys || [],
             sports: (favoriteKeys || []).map(labelForSport),
@@ -208,13 +226,53 @@ export function ProfilePage() {
     setShowEditSheet(true)
   }
 
-  const handleSaveProfile = () => {
-    setProfile({
-      ...draftProfile,
-      sports: draftProfile.sports.filter(Boolean),
-      trying: draftProfile.trying.filter(Boolean),
-    })
-    setShowEditSheet(false)
+  const handleSaveProfile = async () => {
+    if (isSavingProfile) return
+    setIsSavingProfile(true)
+    try {
+      const favoriteKeys = (draftProfile.sports || [])
+        .filter(Boolean)
+        .map((label) => keyForLabel(label))
+      const tryingKeys = (draftProfile.trying || [])
+        .filter(Boolean)
+        .map((label) => keyForLabel(label))
+
+      const vibeKeyMap: Record<string, string> = {
+        Chill: 'CHILL',
+        Social: 'SOCIAL',
+        Flow: 'FLOW',
+        Explorer: 'EXPLORER',
+        Growth: 'GROWTH',
+        Competitive: 'COMPETITIVE',
+        Supportive: 'SUPPORTIVE',
+      }
+
+      await onboardingService.saveProfile({
+        username: draftProfile.username || draftProfile.name,
+        display_name: draftProfile.name,
+        bio: draftProfile.blurb,
+        vibe_key: (draftProfile as any).vibeKey || vibeKeyMap[draftProfile.vibe] || null,
+        favorite_sports: favoriteKeys,
+        trying_sports: tryingKeys,
+      })
+
+      const updated = {
+        ...draftProfile,
+        sports: draftProfile.sports.filter(Boolean),
+        trying: draftProfile.trying.filter(Boolean),
+        sportsKeys: favoriteKeys,
+        tryingKeys: tryingKeys,
+      }
+      setProfile(updated)
+      setDraftProfile(updated)
+      setProfileCache(updated)
+      setShowEditSheet(false)
+    } catch (err) {
+      // keep sheet open for retry
+      console.error('Failed to save profile', err)
+    } finally {
+      setIsSavingProfile(false)
+    }
   }
 
   const updateDraftProfile = (key: keyof MateCardProps, value: any) => {

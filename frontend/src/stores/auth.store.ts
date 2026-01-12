@@ -6,6 +6,7 @@ import {
   OnboardingStatus,
   useOnboardingStore,
 } from './onboarding.store'
+import { onboardingService } from '@/features/onboarding/onboarding.service'
 
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
 import { supabase } from '@/lib/supabase'
@@ -21,7 +22,8 @@ interface AuthState {
   login: (email: string, password: string, remember?: boolean) => Promise<void>
   signup: (name: string, email: string, password: string, remember?: boolean) => Promise<void>
   logout: () => Promise<void>
-  hydrate: () => Promise<void>
+ hydrate: () => Promise<void>
+  refreshOnboardingStatus: () => Promise<void>
   setAuthData: (
     user: User | null,
     token: string | null,
@@ -214,6 +216,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
       persistToken(null)
       persistUserId(null)
+    }
+  },
+
+  refreshOnboardingStatus: async () => {
+    try {
+      const res = await onboardingService.getOnboardingStatus()
+      const status = (res as any)?.data ?? res
+      handleOnboardingInitialization(status, useAuthStore.getState().user)
+      set({ onboardingStatus: status })
+    } catch (err) {
+      // ignore errors
     }
   },
 

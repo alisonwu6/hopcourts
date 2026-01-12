@@ -77,7 +77,7 @@ const withAlpha = (hex: string, alpha: number) => {
 
 export function OnboardingPage() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, onboardingStatus, refreshOnboardingStatus } = useAuthStore()
   const [stepIndex, setStepIndex] = useState(0)
   const [vibe, setVibe] = useState<Vibe | null>(null)
   const [sports, setSports] = useState<string[]>([])
@@ -100,6 +100,7 @@ export function OnboardingPage() {
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [prefilled, setPrefilled] = useState(false)
   const [initialized, setInitialized] = useState(true)
   const { sports: sportsCatalog } = useSports('zh')
   const { items: countries } = useCountries('zh')
@@ -158,13 +159,24 @@ export function OnboardingPage() {
     .map((id) => tryingOptionMap.get(id)?.label)
     .filter(Boolean) as string[]
 
-  const progress = useMemo(
-    () => (furthestStep === 0 ? 0 : ((stepIndex + 1) / steps.length) * 100),
-    [stepIndex, furthestStep]
-  )
+  const isComplete = onboardingStatus?.isComplete ?? false
+  const progress = useMemo(() => {
+    if (isComplete) return 100
+    return furthestStep === 0 ? 0 : ((stepIndex + 1) / steps.length) * 100
+  }, [stepIndex, furthestStep, isComplete])
   useEffect(() => {
     setFurthestStep((prev) => Math.max(prev, stepIndex))
   }, [stepIndex])
+  useEffect(() => {
+    if (isComplete) {
+      setFurthestStep(steps.length - 1)
+    }
+  }, [isComplete])
+  useEffect(() => {
+    if (!isComplete) {
+      refreshOnboardingStatus().catch(() => {})
+    }
+  }, [isComplete, refreshOnboardingStatus])
 
   useEffect(() => {
     // Scroll back to top when step changes to keep context clear on mobile
@@ -358,6 +370,16 @@ export function OnboardingPage() {
     Info: '關於我',
     Preview: '預覽',
   }
+  const stepSubtitles: Record<Step, string> = {
+    Vibe: '選出現在最貼近你的運動氛圍。',
+    Sports: '最常說「好，走！」的運動有哪些？',
+    Trying: '近期想嘗試或探索的運動。',
+    Country: '告訴我們你的國籍。',
+    City: '你的生活圈，讓我們幫你找附近的夥伴。',
+    Bio: '寫一句關於你的運動故事或動機。',
+    Info: '填寫名稱與暱稱，讓夥伴認識你。',
+    Preview: '確認你的運動卡內容。',
+  }
 
   const filteredCountries = useMemo(() => {
     const term = countrySearch.trim().toLowerCase()
@@ -387,6 +409,57 @@ export function OnboardingPage() {
       s.label.toLowerCase().startsWith(term)
     )
   }, [tryingSearch, sports, tryingOptions])
+
+  useEffect(() => {
+    const prefill = async () => {
+      if (prefilled) return
+      setLoadingProfile(true)
+      try {
+        const [profileRes, prefsRes] = await Promise.all([
+          onboardingService.getProfile(),
+          onboardingService.getPreferences(),
+        ])
+
+        const profilePayload: any = (profileRes as any)?.data ?? profileRes
+        if (profilePayload) {
+          const user = profilePayload.user ?? profilePayload
+          const sportsRows = profilePayload.sports || []
+          const favoriteKeys =
+            profilePayload.favorite_sports ||
+            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+          const tryingKeys =
+            profilePayload.trying_sports ||
+            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+
+          setVibe(keyToVibeSafe(user.vibe_key))
+          setSports(favoriteKeys || [])
+          setTrying(tryingKeys || [])
+          setCountry(user.country_key || '')
+          setCity(user.city_key || '')
+          setBio(user.bio || '')
+          setUsername(user.username || '')
+          setRealName(user.legal_name || '')
+          setDisplayName(user.display_name || '')
+          setAgeRange(user.age_range_key || '')
+        }
+
+        const prefsPayload: any = (prefsRes as any)?.data ?? prefsRes
+        if (prefsPayload) {
+          const prefTime = prefsPayload.preferred_time as TimeSlot | null
+          const slots = prefsPayload.day_slots || createDaySlots()
+          setPreferredTime(prefTime || null)
+          setDaySlots({ ...createDaySlots(), ...slots })
+        }
+        setPrefilled(true)
+      } catch (err) {
+        // ignore prefill errors, keep defaults
+      } finally {
+        setLoadingProfile(false)
+      }
+    }
+
+    prefill()
+  }, [prefilled, keyToVibeSafe])
 
   return (
       <div>
@@ -424,33 +497,30 @@ export function OnboardingPage() {
                 />
                 <div className="absolute inset-0 flex items-center justify-between px-2">
                   {steps.map((_, idx) => {
-                    const isCompleted =
-                      idx === 0 || (idx <= furthestStep && furthestStep > 0)
-                    const color = isCompleted
+                    const unlocked = isComplete || idx === 0 || (idx <= furthestStep && furthestStep > 0)
+                    const color = unlocked
                       ? stepColors[idx] ?? '#e2e8f0'
                       : '#cbd5e1'
                     return (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => {
-                          if (idx === 0 || idx <= furthestStep) setStepIndex(idx)
-                        }}
+                        onClick={() => unlocked && setStepIndex(idx)}
                         className={clsx(
                           'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition shadow-sm ring-2 ring-white/50',
-                          isCompleted
+                          unlocked
                             ? 'opacity-100'
                             : 'opacity-60 cursor-not-allowed'
                         )}
                         aria-label={`前往步驟 ${idx + 1}`}
                         style={{
                           background:
-                            idx === steps.length - 1 && isCompleted
+                            idx === steps.length - 1 && unlocked
                               ? '#fff'
                               : color,
                           color: '#fff',
                         }}
-                        disabled={!isCompleted}
+                        disabled={!unlocked}
                       >
                         {idx === steps.length - 1 ? (
                           <IdCard
@@ -466,6 +536,15 @@ export function OnboardingPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="mx-auto mt-6 flex w-full max-w-3xl flex-col gap-1 px-1">
+            <p className="text-sm font-semibold text-slate-500">
+              {stepLabels[currentStep]}
+            </p>
+            <p className="text-xs text-slate-500">
+              {stepSubtitles[currentStep]}
+            </p>
           </div>
 
           {currentStep === 'Vibe' && (
