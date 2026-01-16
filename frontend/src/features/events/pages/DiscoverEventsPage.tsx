@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { addDays, format, isSameDay, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
 import { BottomSheet } from '@/components'
+import { SheetLayout } from '@/components/SheetLayout'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
@@ -257,14 +258,23 @@ export function DiscoverEventsPage() {
 }
 
 type SportFilterSheetProps = {
+  /** Controls the sheet visibility */
   open: boolean
+  /** Selected sports keys */
   selected: string[]
+  /** All available sport options */
   options: SportFilterOption[]
+  /** Loading state for options */
   loading?: boolean
+  /** Error message shown in header */
   errorText?: string
+  /** Toggle a sport option */
   onToggle: (sport: string) => void
+  /** Reset all selections */
   onReset: () => void
+  /** Apply current selections */
   onApply: () => void
+  /** Close sheet callback */
   onClose: () => void
 }
 
@@ -279,35 +289,34 @@ function SportFilterSheet({
   onApply,
   onClose,
 }: SportFilterSheetProps) {
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/40 backdrop-blur-sm">
-      <div className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)] animate-[sheetIn_0.25s_ease-out]">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              運動篩選
-            </p>
-            <h2 className="text-xl font-semibold text-slate-900">想找什麼運動？</h2>
-            {loading && (
-              <p className="text-xs font-medium text-blue-500">運動清單載入中…</p>
-            )}
-            {errorText && !loading && (
-              <p className="text-xs font-medium text-rose-500">{errorText}</p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
-            aria-label="Close filter"
-          >
-            <X className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="max-h-[60vh] space-y-6 overflow-y-auto px-6 py-6">
+    <BottomSheet open={open} onClose={onClose} showHandle disableContainer>
+      <SheetLayout
+        onClose={onClose}
+        title="想找什麼運動？"
+        subtitle="運動篩選"
+        height="tall"
+        className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)]"
+        contentClassName="px-6"
+        primaryButton={{
+          label: '套用',
+          onClick: onApply,
+          disabled: loading,
+        }}
+        secondaryButton={{
+          label: '全部清除',
+          onClick: onReset,
+          variant: 'ghost',
+        }}
+        headerRight={
+          loading ? (
+            <p className="text-xs font-medium text-blue-500">運動清單載入中…</p>
+          ) : errorText ? (
+            <p className="text-xs font-medium text-rose-500">{errorText}</p>
+          ) : null
+        }
+      >
+        <div className="space-y-6">
           <div className="flex flex-col gap-3">
             {options.map((sport) => {
               const isActive = selected.includes(sport.key) || (sport.key === 'all' && selected.includes('all'))
@@ -319,57 +328,47 @@ function SportFilterSheet({
                   className={clsx(
                     'flex h-16 items-center gap-3 rounded-[24px] border px-4 text-left text-sm font-semibold transition',
                     isActive
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                      : 'border-slate-200 text-slate-700 hover:border-blue-200'
+                      ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-[0_12px_28px_rgba(37,99,235,0.12)]'
+                      : 'border-slate-200 bg-white text-slate-900 hover:border-blue-200 hover:bg-blue-50/60'
                   )}
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-100 text-lg font-bold">
-                    {sport.key === 'all' ? '全' : sport.icon || sport.label.charAt(0)}
-                  </span>
-                  <div className="flex flex-col">
-                    <span>{sport.label}</span>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-lg">
+                    {sport.icon || '🏀'}
                   </div>
+                  <span className="flex-1">{sport.label}</span>
+                  {isActive && <span className="text-xs font-semibold text-blue-500">已選</span>}
                 </button>
               )
             })}
           </div>
-        </div>
 
-        <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
-          <button
-            type="button"
-            onClick={onReset}
-            className="text-sm font-semibold text-slate-500 hover:text-slate-800"
-          >
-            全部清除
-          </button>
-          <button
-            type="button"
-            onClick={onApply}
-            className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
-            disabled={loading}
-          >
-            套用
-          </button>
+          <div className="h-16" />
         </div>
-      </div>
-      <style>
-        {`@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }`}
-      </style>
-    </div>
+      </SheetLayout>
+    </BottomSheet>
   )
 }
 
 type CalendarSheetProps = {
+  /** Controls visibility of the calendar sheet */
   open: boolean
+  /** Current month displayed */
   month: Date
+  /** Already selected date (applied) */
   selectedDate: Date | null
+  /** Pending date (not yet applied) */
   pendingDate: Date | null
+  /** Choose a date in the calendar */
   onSelect: (date: Date) => void
+  /** Change month (also handles year change) */
   onMonthChange: (date: Date) => void
+  /** Close the sheet */
   onClose: () => void
+  /** Clear pending selection */
   onClear: () => void
+  /** Apply pending selection */
   onApply: () => void
+  /** Optional per-day count for dot indicators */
   counts: Record<string, number>
 }
 
@@ -403,51 +402,54 @@ function CalendarSheet({
   const years = Array.from({ length: 7 }, (_, index) => currentYear - 3 + index)
 
   return (
-    <BottomSheet open={open} onClose={onClose} showHandle={false} maxWidthClassName="max-w-[420px]" contentClassName="px-0 pb-0">
-      <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">{format(month, 'yyyy 年 MM 月')}</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={currentYear}
-            onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            onClick={() => onMonthChange(addMonths(month, -1))}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-            aria-label="上一個月"
-          >
-            <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onMonthChange(addMonths(month, 1))}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-            aria-label="下一個月"
-          >
-            <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-            aria-label="關閉月曆"
-          >
-            <X className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-
-      <div className="px-6 py-4">
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      showHandle={false}
+      maxWidthClassName="max-w-[420px]"
+      contentClassName="px-0 pb-0"
+      disableContainer
+    >
+      <SheetLayout
+        onClose={onClose}
+        title={format(month, 'yyyy 年 MM 月')}
+        height="medium"
+        contentClassName="px-6"
+        className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)]"
+        headerRight={
+          <div className="flex items-center gap-2">
+            <select
+              value={currentYear}
+              onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
+              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => onMonthChange(addMonths(month, -1))}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+              aria-label="上一個月"
+            >
+              <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onMonthChange(addMonths(month, 1))}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
+              aria-label="下一個月"
+            >
+              <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            </button>
+          </div>
+        }
+        primaryButton={{ label: '套用', onClick: onApply }}
+        secondaryButton={{ label: '清除', onClick: onClear, variant: 'ghost' }}
+      >
         <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
           {['一', '二', '三', '四', '五', '六', '日'].map((label) => (
             <span key={label}>週{label}</span>
@@ -477,24 +479,7 @@ function CalendarSheet({
             )
           })}
         </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-slate-100 px-6 py-4">
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-sm font-semibold text-slate-500 hover:text-slate-800"
-        >
-          清除
-        </button>
-        <button
-          type="button"
-          onClick={onApply}
-          className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-blue-700"
-        >
-          完成
-        </button>
-      </div>
+      </SheetLayout>
     </BottomSheet>
   )
 }

@@ -2,8 +2,17 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
 type BottomSheetProps = {
+  /**
+   * Whether the sheet is visible.
+   */
   open: boolean
+  /**
+   * Invoked when the user closes the sheet (overlay tap or close control).
+   */
   onClose: () => void
+  /**
+   * Main sheet content.
+   */
   children: ReactNode
   title?: string
   description?: string
@@ -12,8 +21,16 @@ type BottomSheetProps = {
   sheetClassName?: string
   contentClassName?: string
   backdropClassName?: string
+  /**
+   * Show the drag-handle on top of the sheet.
+   */
   showHandle?: boolean
   maxWidthClassName?: string
+  /**
+   * If true, skips the default inner container (px/max-w wrapper).
+   * Useful when a child layout wants full control of padding/width.
+   */
+  disableContainer?: boolean
 }
 
 export function BottomSheet({
@@ -29,6 +46,7 @@ export function BottomSheet({
   backdropClassName,
   showHandle = true,
   maxWidthClassName = 'max-w-md',
+  disableContainer = false,
 }: BottomSheetProps) {
   if (!open) return null
 
@@ -56,21 +74,27 @@ export function BottomSheet({
             <span className="h-1.5 w-12 rounded-full bg-slate-200" />
           </div>
         )}
-        <div className={clsx('relative mx-auto w-full px-5 pb-6 pt-4', maxWidthClassName, contentClassName)}>
-          {(icon || title || description) && (
-            <div className="mb-4 text-center">
-              {icon && <div className="mb-4 flex justify-center">{icon}</div>}
-              {title && (
-                <h2 id={labelledBy} className="text-xl font-semibold text-slate-900">
-                  {title}
-                </h2>
-              )}
-              {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
-            </div>
-          )}
-          <div>{children}</div>
-          {footer && <div className="mt-6">{footer}</div>}
-        </div>
+        {disableContainer ? (
+          <div className={clsx('relative w-full', contentClassName)}>
+            {children}
+          </div>
+        ) : (
+          <div className={clsx('relative mx-auto w-full px-5 pb-6 pt-4', maxWidthClassName, contentClassName)}>
+            {(icon || title || description) && (
+              <div className="mb-4 text-center">
+                {icon && <div className="mb-4 flex justify-center">{icon}</div>}
+                {title && (
+                  <h2 id={labelledBy} className="text-xl font-semibold text-slate-900">
+                    {title}
+                  </h2>
+                )}
+                {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
+              </div>
+            )}
+            <div>{children}</div>
+            {footer && <div className="mt-6">{footer}</div>}
+          </div>
+        )}
       </div>
       <style>
         {`@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }`}
