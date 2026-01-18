@@ -2,6 +2,11 @@ import { api } from '@/api/client'
 import type { Country, City, Vibe, AgeRange } from '@/types/dictionary'
 
 export const dictionaryService = {
+  async meta() {
+    const res = await api.dictionaries.meta()
+    if (!res.ok) throw new Error('Failed to load dictionary meta')
+    return res.data
+  },
   async listCountries(lang: 'zh' | 'en' = 'zh') {
     const res = await api.dictionaries.countries(lang)
     if (!res.ok) throw new Error('Failed to load countries')

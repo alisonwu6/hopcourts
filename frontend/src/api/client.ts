@@ -17,6 +17,7 @@ export const api = {
       httpGet<ApiResponse<{ items: Sport[] }>>('/sports', { auth: false, params: { lang } }),
   },
   dictionaries: {
+    meta: () => httpGet<ApiResponse<{ sports: any; vibes: any; countries: any; age_ranges: any }>>('/meta/dictionaries', { auth: false }),
     countries: (lang: 'zh' | 'en' = 'zh') =>
       httpGet<ApiResponse<{ items: Country[] }>>('/countries', { auth: false, params: { lang } }),
     cities: (country?: string, lang: 'zh' | 'en' = 'zh') =>

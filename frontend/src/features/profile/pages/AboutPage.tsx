@@ -132,7 +132,7 @@ export function AboutPage() {
                 <SlidersHorizontal className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動偏好</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  常做的運動、想嘗試的項目、偏好的時間與頻率，讓對的人更容易找到你。
+                  我的最愛、想嘗試的項目、偏好的時間與頻率，讓對的人更容易找到你。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">

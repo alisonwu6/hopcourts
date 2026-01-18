@@ -79,10 +79,10 @@ export function SheetLayout({
     >
       <div className="relative flex items-center justify-between border-b border-slate-200 px-5 pb-4 pt-5">
         <div className="space-y-1">
+          {title && <p className="text-xl font-bold text-slate-900">{title}</p>}
           {subtitle && (
             <p className="text-xs font-semibold text-slate-500">{subtitle}</p>
           )}
-          {title && <p className="text-xl font-bold text-slate-900">{title}</p>}
           {hint && <p className="text-xs font-medium text-slate-500">{hint}</p>}
         </div>
         <div className="flex items-center gap-2">
@@ -106,7 +106,9 @@ export function SheetLayout({
         )}
       </div>
 
-      <div className={clsx('flex-1 overflow-y-auto px-5 py-4', contentClassName)}>
+      <div
+        className={clsx('flex-1 overflow-y-auto px-5 py-4', contentClassName)}
+      >
         {children}
       </div>
 

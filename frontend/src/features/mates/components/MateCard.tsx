@@ -14,10 +14,12 @@ const withAlpha = (hex: string, alpha: number) => {
 export type MateCardProps = {
   name: string
   flag: string
+  countryKey?: string
   vibe: Vibe
   sports: string[]
   trying: string[]
   location: string
+  cityKey?: string
   blurb: string
   avatar: string
   accentClassName?: string
@@ -70,7 +72,7 @@ export function MateCard({
             </div>
             <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
               <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <span className="truncate">{location || 'Brisbane'}</span>
+              <span className="truncate">{location}</span>
             </div>
           </div>
           <span
@@ -84,11 +86,11 @@ export function MateCard({
             {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
           </span>
         </div>
-      </div>
+      </div> 
 
       <div className="flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
-          <span className="text-slate-500 tracking-wide uppercase">常打的運動：</span>
+          <span className="text-slate-500 tracking-wide uppercase">我的最愛：</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {sports.map((sport) => (
               <span

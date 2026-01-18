@@ -25,19 +25,21 @@ async function getProfile(userId) {
 
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
+  const current = (await usersModel.getUserById(userId)) || {}
   const user = await usersModel.upsertUser({
     id: userId,
-    username: body.username || userId,
-    display_name: body.display_name || body.username || 'user',
-    legal_name: body.legal_name,
-    country_key: body.country_key,
-    city_key: body.city_key,
-    age_range_key: body.age_range_key,
-    vibe_key: body.vibe_key,
-    bio: body.bio,
+    username: body.username || current.username || userId,
+    display_name: body.display_name || current.display_name || body.username || current.username || 'user',
+    legal_name: body.legal_name ?? current.legal_name ?? null,
+    country_key: body.country_key ?? current.country_key ?? null,
+    city_key: body.city_key ?? current.city_key ?? null,
+    age_range_key: body.age_range_key ?? current.age_range_key ?? null,
+    vibe_key: body.vibe_key ?? current.vibe_key ?? null,
+    bio: body.bio ?? current.bio ?? null,
     avatar_url:
       body.avatar_url ||
       body.avatar ||
+      current.avatar_url ||
       (body.auth_user && body.auth_user.avatar_url) ||
       (body.auth_user && body.auth_user.user_metadata && body.auth_user.user_metadata.picture) ||
       null,
@@ -55,10 +57,13 @@ async function upsertProfile(userId, body = {}) {
     ...tryingSports.map((key) => ({ sport_key: key, kind: 'TRYING' })),
   ].filter((s) => s.sport_key)
 
-  const sports = await userSportsModel.replaceUserSports(
-    userId,
-    normalizedSports
-  )
+  let sports
+  if (normalizedSports.length > 0) {
+    sports = await userSportsModel.replaceUserSports(userId, normalizedSports)
+  } else {
+    // 沒有提供運動相關欄位時，不要清空既有運動設定
+    sports = await userSportsModel.listUserSports(userId)
+  }
 
   return { user, sports }
 }

@@ -4,6 +4,7 @@ const {
   listCities,
   listVibes,
   listAgeRanges,
+  dictionaryMeta,
 } = require('./dictionaries.service')
 
 async function handleListCountries(req, res, next) {
@@ -42,9 +43,19 @@ async function handleListAgeRanges(req, res, next) {
   }
 }
 
+async function handleDictionaryMeta(_req, res, next) {
+  try {
+    const data = await dictionaryMeta()
+    return ok(res, { data })
+  } catch (err) {
+    next(err)
+  }
+}
+
 module.exports = {
   handleListCountries,
   handleListCities,
   handleListVibes,
   handleListAgeRanges,
+  handleDictionaryMeta,
 }
