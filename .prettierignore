@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+public
+.supabase
+.env
+.env.*
+backend/.env
+frontend/.next
+frontend/.turbo
