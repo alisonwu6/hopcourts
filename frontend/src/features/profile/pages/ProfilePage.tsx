@@ -26,6 +26,14 @@ import type { ApiResponse } from '@/api/types'
 const arraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((v, i) => v === b[i])
 
+// Convert ISO country code (e.g., TW) to emoji flag
+const countryCodeToFlag = (code?: string) => {
+  if (!code || code.length < 2) return ''
+  const upper = code.slice(0, 2).toUpperCase()
+  const chars = [...upper].map((c) => 0x1f1e6 - 65 + c.charCodeAt(0))
+  return String.fromCodePoint(...chars)
+}
+
 const emptyProfile: MateCardProps = {
   name: '',
   location: '',
@@ -172,7 +180,7 @@ export function ProfilePage() {
       ? labelForCity(vm.card.cityKey) || vm.card.location
       : vm.card.location
     const flagLabel = vm.card.countryKey
-      ? labelForCountry(vm.card.countryKey) || vm.card.flag
+      ? countryCodeToFlag(vm.card.countryKey) || labelForCountry(vm.card.countryKey) || vm.card.flag
       : vm.card.flag
     let vibeUnion: MateCardProps['vibe'] = null
     if (vm.card.vibe) {
@@ -201,7 +209,9 @@ export function ProfilePage() {
       ? labelForCity(draftProfile.cityKey) || draftProfile.location
       : draftProfile.location
     const flagLabel = draftProfile.countryKey
-      ? labelForCountry(draftProfile.countryKey) || draftProfile.flag
+      ? countryCodeToFlag(draftProfile.countryKey) ||
+        labelForCountry(draftProfile.countryKey) ||
+        draftProfile.flag
       : draftProfile.flag
     let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
     const draftVibeKey = (draftProfile as any).vibeKey
@@ -378,7 +388,7 @@ export function ProfilePage() {
         payload.city_key = value
         break
       case 'flag':
-        next.flag = labelForCountry(value) || value
+        next.flag = countryCodeToFlag(value) || labelForCountry(value) || value
         next.countryKey = value
         payload.country_key = value
         break
