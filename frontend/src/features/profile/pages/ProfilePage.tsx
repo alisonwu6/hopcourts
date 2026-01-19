@@ -79,34 +79,6 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
   })
 }
 
-function EmptyBlock({
-  title,
-  description,
-  actionLabel,
-  onAction,
-}: {
-  title: string
-  description: string
-  actionLabel?: string
-  onAction?: () => void
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200/80 bg-white/80 px-5 py-8 text-center shadow-sm">
-      <p className="text-lg font-extrabold text-slate-900">{title}</p>
-      <p className="mt-2 text-sm font-medium text-slate-600">{description}</p>
-      {actionLabel && onAction && (
-        <button
-          type="button"
-          onClick={onAction}
-          className="mt-5 w-full max-w-[220px] rounded-full bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
-        >
-          {actionLabel}
-        </button>
-      )}
-    </div>
-  )
-}
-
 export function ProfilePage() {
   const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const dayLabels: Record<string, string> = {
@@ -653,14 +625,14 @@ export function ProfilePage() {
                 },
                 {
                   key: 'location',
-                  label: '地點',
+                  label: '現居地點',
                   value:
                     labelForCity(draftProfile.cityKey) || draftProfile.location,
                   valueKey: draftProfile.cityKey || '',
                 },
                 {
                   key: 'flag',
-                  label: '旗幟',
+                  label: '國籍',
                   value:
                     labelForCountry(draftProfile.countryKey) ||
                     draftProfile.flag,
@@ -837,8 +809,8 @@ export function ProfilePage() {
           const titleMap: Record<string, string> = {
             name: '名稱',
             username: '使用者名稱',
-            location: '地點',
-            flag: '旗幟',
+            location: '現居',
+            flag: '國籍',
             vibe: '運動氛圍',
             bio: '自我介紹',
           }
@@ -846,7 +818,7 @@ export function ProfilePage() {
             name: '請輸入卡片上要顯示的名稱。',
             username: '你的帳號，夥伴可以用這個找到你。',
             location: '填寫目前所在的城市，方便配對附近的活動。',
-            flag: '選擇你的旗幟，展現身份。',
+            flag: '選擇你的國籍，展現身份。',
             vibe: '描述現在最貼近你的運動氛圍。',
             bio: '和大家分享你的運動的動態與目標吧！',
           }
@@ -1404,154 +1376,6 @@ export function StatsContent({
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-export function PeopleContent() {
-  const navigate = useNavigate()
-  const [subTab, setSubTab] = useState<'connected' | 'playmates'>('connected')
-  const connected: Array<any> = []
-  const playmates: Array<any> = []
-  const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
-    const handle = mate.username || mate.name
-    navigate(`/${encodeURIComponent(handle)}`, { state: { mate } })
-  }
-
-  return (
-    <div className="space-y-3 ">
-      <div className="sticky top-0 z-10 flex justify-center">
-        <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
-          {[
-            { key: 'connected', label: '夥伴圈' },
-            { key: 'playmates', label: '交手夥伴' },
-          ].map((tab) => {
-            const active = subTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setSubTab(tab.key as typeof subTab)}
-                className={clsx(
-                  'flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold transition',
-                  active
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-800'
-                )}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {subTab === 'connected' && (
-        <div className="space-y-4 px-3 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            我的夥伴
-          </p>
-          {connected.length === 0 ? (
-            <EmptyBlock
-              title="還沒有夥伴"
-              description="加入或建立活動，累積互動後會顯示你的夥伴圈。"
-              actionLabel="去逛活動"
-              onAction={() => navigate('/events')}
-            />
-          ) : (
-            <div className="space-y-3">
-              {connected.map((person) => (
-                <button
-                  key={person.name}
-                  type="button"
-                  onClick={() => goToMate({ name: person.name, vibe: 'Chill' })}
-                  className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 text-left shadow-sm transition hover:shadow-md focus:outline-none"
-                >
-                  <div
-                    className={clsx(
-                      'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
-                      person.colors
-                    )}
-                  >
-                    {person.name.charAt(0)}
-                  </div>
-                  <div className="flex-1 space-y-0.5">
-                    <p className="text-base font-semibold text-slate-900">
-                      {person.name}
-                    </p>
-                    <p className="text-sm text-slate-600">{person.detail}</p>
-                    <p className="text-sm text-slate-500">{person.meta}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {subTab === 'playmates' && (
-        <div className="space-y-4 px-3 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            交手夥伴
-          </p>
-          {playmates.length === 0 ? (
-            <EmptyBlock
-              title="還沒有交手夥伴"
-              description="完成活動或互動後，這裡會顯示你圈選的交手夥伴。"
-              actionLabel="去逛活動"
-              onAction={() => navigate('/events')}
-            />
-          ) : (
-            <div className="space-y-3">
-              {playmates.map((mate) => {
-                const isAdded = mate.status === 'Added'
-                return (
-                  <div
-                    key={mate.name}
-                    className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 shadow-sm"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => goToMate({ name: mate.name, vibe: 'Chill' })}
-                      className="flex items-center gap-4 text-left focus:outline-none"
-                    >
-                      <div
-                        className={clsx(
-                          'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
-                          mate.colors
-                        )}
-                      >
-                        {mate.name.charAt(0)}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-base font-semibold text-slate-900">
-                            {mate.name}
-                          </p>
-                        </div>
-                        <p className="text-sm text-slate-600">{mate.meta}</p>
-                      </div>
-                    </button>
-                    <div className="ml-auto">
-                      <button
-                        type="button"
-                        className={clsx(
-                          'min-w-[64px] rounded-xl px-4 py-2 text-sm font-semibold shadow-sm',
-                          isAdded
-                            ? 'bg-slate-100 text-slate-500'
-                            : 'border border-slate-300 text-slate-900 hover:bg-slate-50'
-                        )}
-                      >
-                        {mate.status}
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
