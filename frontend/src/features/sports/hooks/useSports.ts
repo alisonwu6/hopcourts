@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Sport } from '@/types/sport'
 import { sportsService } from '../services/sportsService'
 import { dictionaryService } from '@/features/dictionaries/dict.service'
+
+const inFlightByLang: Record<string, Promise<Sport[]> | null> = {}
 
 export function useSports(lang: 'zh' | 'en' = 'zh') {
   const [sports, setSports] = useState<Sport[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  const lastLoadedLang = useRef<string | null>(null)
 
   const STORAGE_PREFIX = 'sm.dict'
   const VERSION_KEY = `${STORAGE_PREFIX}.meta`
@@ -50,6 +53,10 @@ export function useSports(lang: 'zh' | 'en' = 'zh') {
   }
 
   useEffect(() => {
+    // Avoid duplicate fetches in React StrictMode; still allow re-run when lang changes.
+    if (lastLoadedLang.current === lang) return
+    lastLoadedLang.current = lang
+
     let isMounted = true
     const cached = getCache()
     if (cached && cached.length) {
@@ -69,7 +76,12 @@ export function useSports(lang: 'zh' | 'en' = 'zh') {
         const shouldRefresh = !remoteVersion || remoteVersion !== localVersion || !cached
 
         if (shouldRefresh) {
-          const items = await sportsService.list(lang)
+          if (!inFlightByLang[lang]) {
+            inFlightByLang[lang] = sportsService.list(lang).finally(() => {
+              inFlightByLang[lang] = null
+            })
+          }
+          const items = await inFlightByLang[lang]!
           if (!isMounted) return
           setSports(items)
           setCache(items)

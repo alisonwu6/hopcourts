@@ -22,6 +22,9 @@ import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 
+const arraysEqual = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((v, i) => v === b[i])
+
 const emptyProfile: MateCardProps = {
   name: '',
   location: '',
@@ -68,6 +71,7 @@ export function ProfilePage() {
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
   const [draftUsername, setDraftUsername] = useState<string>((profileCache as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
@@ -84,8 +88,17 @@ export function ProfilePage() {
   const navigate = useNavigate()
   const username = (user as any)?.username || vm?.username || 'undefined'
   const labelForSport = useMemo(() => {
-    const map = new Map(sportsCatalog.map((s) => [s.key, s.label]))
-    return (key: string) => map.get(key) || key
+    const keyMap = new Map<string, string>()
+    const labelMap = new Map<string, string>()
+    sportsCatalog.forEach((s) => {
+      keyMap.set(s.key.toLowerCase(), s.label)
+      labelMap.set(s.label.toLowerCase(), s.label)
+    })
+    return (value: string) => {
+      if (!value) return value
+      const lower = value.toLowerCase()
+      return keyMap.get(lower) || labelMap.get(lower) || value
+    }
   }, [sportsCatalog])
 
   const keyForLabel = useMemo(() => {
@@ -93,13 +106,19 @@ export function ProfilePage() {
     sportsCatalog.forEach((s) => {
       map.set(s.label, s.key)
       map.set(s.key, s.key)
+      map.set(s.label.toLowerCase(), s.key)
+      map.set(s.key.toLowerCase(), s.key)
     })
-    return (label: string) => map.get(label) || label
+    return (label: string) => map.get(label) || map.get(label?.toLowerCase?.() || '') || label
   }, [sportsCatalog])
 
   const labelForVibe = useMemo(() => {
-    const map = new Map(vibesCatalog.map((v) => [v.key, v.label]))
-    return (key: string) => map.get(key) || key
+    const map = new Map<string, string>()
+    vibesCatalog.forEach((v) => {
+      map.set(v.key, v.label)
+      map.set(v.key.toLowerCase(), v.label)
+    })
+    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
   }, [vibesCatalog])
 
   const vibeKeyToUnion = useMemo(() => {
@@ -107,6 +126,7 @@ export function ProfilePage() {
     vibesCatalog.forEach((v) => {
       const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
       map.set(v.key, union)
+      map.set(v.key.toLowerCase(), union)
     })
     return map
   }, [vibesCatalog])
@@ -116,6 +136,7 @@ export function ProfilePage() {
     vibesCatalog.forEach((v) => {
       const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
       map.set(union, v.key)
+      map.set(union.toLowerCase(), v.key)
     })
     return map
   }, [vibesCatalog])
@@ -130,79 +151,71 @@ export function ProfilePage() {
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
 
-  // Remap labels when dictionary updates
-  useEffect(() => {
-    setVm((prev) => {
-      if (!prev?.card) return prev
-      const sportsKeys = prev.favoriteSportKeys
-      const tryingKeys = prev.tryingSportKeys
-      if (!sportsKeys.length && !tryingKeys.length) return prev
-      return {
-        ...prev,
-        card: {
-          ...prev.card,
-          sports: (sportsKeys.length ? sportsKeys : prev.card.sports || []).map(labelForSport),
-          trying: (tryingKeys.length ? tryingKeys : prev.card.trying || []).map(labelForSport),
-        },
-      }
-    })
-  }, [labelForSport])
+  // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
+  const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
+    key && typeof key === 'string'
+      ? ((key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()) as MateCardProps['vibe'])
+      : null
 
-  // Sync vibe union when字典載入
-  useEffect(() => {
-    if (!vibesCatalog.length) return
-    setVm((prev) => {
-      if (!prev?.card) return prev
-      if (prev.card.vibe) return prev
-      const key = (prev.card as any).vibeKey
-      if (!key) return prev
-      const union = vibeKeyToUnion.get(key)
-      if (!union) return prev
-      return { ...prev, card: { ...prev.card, vibe: union } }
-    })
-    setDraftProfile((prev) => {
-      if (!prev) return prev
-      if (prev.vibe) return prev
-      const key = (prev as any).vibeKey
-      if (!key) return prev
-      const union = vibeKeyToUnion.get(key)
-      if (!union) return prev
-      return { ...prev, vibe: union }
-    })
-  }, [vibesCatalog, vibeKeyToUnion])
+  // Memo: derive resolvedProfile (display-ready, labels filled, union vibe)
+  const resolvedProfile = useMemo<MateCardProps | null>(() => {
+    if (!vm?.card) return null
+    const favoriteLabels = (
+      vm.favoriteSportKeys.length ? vm.favoriteSportKeys : vm.card.sports || []
+    ).map(labelForSport)
+    const tryingLabels = (
+      vm.tryingSportKeys.length ? vm.tryingSportKeys : vm.card.trying || []
+    ).map(labelForSport)
+    const locationLabel = vm.card.cityKey
+      ? labelForCity(vm.card.cityKey) || vm.card.location
+      : vm.card.location
+    const flagLabel = vm.card.countryKey
+      ? labelForCountry(vm.card.countryKey) || vm.card.flag
+      : vm.card.flag
+    let vibeUnion: MateCardProps['vibe'] = null
+    if (vm.card.vibe) {
+      vibeUnion = vm.card.vibe
+    } else if (vm.card.vibeKey) {
+      vibeUnion =
+        vibeKeyToUnion.get(vm.card.vibeKey) ||
+        vibeKeyToUnion.get(vm.card.vibeKey.toLowerCase()) ||
+        vibeKeyToUnionFallback(vm.card.vibeKey)
+    } else {
+      vibeUnion = null
+    }
+    return {
+      ...vm.card,
+      sports: favoriteLabels,
+      trying: tryingLabels,
+      location: locationLabel,
+      flag: flagLabel,
+      vibe: vibeUnion,
+    }
+  }, [vm, labelForSport, labelForCity, labelForCountry, vibeKeyToUnion])
 
-  // Sync label fields (vibe/location/flag) once dictionaries載入完成
-  useEffect(() => {
-    if (!vm?.card) return
-    setVm((prev) => {
-      if (!prev?.card) return prev
-      const next = { ...prev.card }
-      if (prev.card.cityKey) {
-        const label = labelForCity(prev.card.cityKey)
-        if (label && label !== prev.card.location) next.location = label
-      }
-      if (prev.card.countryKey) {
-        const label = labelForCountry(prev.card.countryKey)
-        if (label && label !== prev.card.flag) next.flag = label
-      }
-      if (next.location === prev.card.location && next.flag === prev.card.flag) return prev
-      return { ...prev, card: next }
-    })
-    setDraftProfile((prev) => {
-      if (!prev) return prev
-      const next = { ...prev }
-      if (prev.cityKey) {
-        const label = labelForCity(prev.cityKey)
-        if (label && label !== prev.location) next.location = label
-      }
-      if (prev.countryKey) {
-        const label = labelForCountry(prev.countryKey)
-        if (label && label !== prev.flag) next.flag = label
-      }
-      if (next.location === prev.location && next.flag === prev.flag) return prev
-      return next
-    })
-  }, [citiesCatalog, countriesCatalog, labelForCity, labelForCountry, vm])
+  // Memo: derive resolvedDraftProfile (for HeroCard, always label fields, union vibe)
+  const resolvedDraftProfile = useMemo<MateCardProps>(() => {
+    const locationLabel = draftProfile.cityKey
+      ? labelForCity(draftProfile.cityKey) || draftProfile.location
+      : draftProfile.location
+    const flagLabel = draftProfile.countryKey
+      ? labelForCountry(draftProfile.countryKey) || draftProfile.flag
+      : draftProfile.flag
+    let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
+    const draftVibeKey = (draftProfile as any).vibeKey
+    if (!vibeUnion && draftVibeKey) {
+      vibeUnion =
+        vibeKeyToUnion.get(draftVibeKey) ||
+        vibeKeyToUnion.get(draftVibeKey.toLowerCase()) ||
+        vibeKeyToUnionFallback(draftVibeKey)
+    }
+    return {
+      ...draftProfile,
+      location: locationLabel,
+      flag: flagLabel,
+      vibe: vibeUnion,
+    }
+  }, [draftProfile, labelForCity, labelForCountry, vibeKeyToUnion])
   const hasCompletedCard = onboardingStatus?.isComplete ?? false
 
   useEffect(() => {
@@ -226,9 +239,11 @@ export function ProfilePage() {
             payload.trying_sports ||
             sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
           const vibeKey = data.vibe_key || null
-          const vibeUnion = vibeKey ? vibeKeyToUnion.get(vibeKey) : undefined
-
-          const existingVibe = vm?.card?.vibe ?? (profileCache as any)?.vibe ?? null
+          const vibeUnion = vibeKey
+            ? vibeKeyToUnion.get(vibeKey) ||
+              vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+              vibeKeyToUnionFallback(vibeKey)
+            : null
 
           const mapped: MateCardProps = {
             name: data.display_name || data.username || '',
@@ -236,7 +251,7 @@ export function ProfilePage() {
             cityKey: data.city_key || '',
             flag: labelForCountry(data.country_key) || '',
             countryKey: data.country_key || '',
-            vibe: (vibeUnion ?? existingVibe) || null,
+            vibe: vibeUnion,
             vibeKey,
             sports: (favoriteKeys || []).map(labelForSport),
             trying: (tryingKeys || []).map(labelForSport),
@@ -283,7 +298,7 @@ export function ProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, labelForCountry, labelForSport, vibeKeyToUnion])
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
@@ -297,14 +312,31 @@ export function ProfilePage() {
     setShowGoalSheet(true)
   }
 
-  const handleSaveGoal = () => {
-    setGoal({ ...draftGoal, timeOfDay: draftPreferredTime })
-    setGoalDaySlots(draftDaySlots)
-    setShowGoalSheet(false)
+  const handleSaveGoal = async () => {
+    if (isSavingGoal) return
+    setIsSavingGoal(true)
+    try {
+      const sessions = draftGoal.sessionsPerWeek
+        ? Number(draftGoal.sessionsPerWeek)
+        : draftGoal.sessionsPerWeek
+      await onboardingService.savePreferences({
+        sessions_per_week: sessions || null,
+        preferred_time: draftPreferredTime || null,
+        day_slots: draftDaySlots,
+      })
+
+      setGoal({ ...draftGoal, timeOfDay: draftPreferredTime })
+      setGoalDaySlots(draftDaySlots)
+      setShowGoalSheet(false)
+    } catch (err) {
+      console.error('Failed to save preferences', err)
+    } finally {
+      setIsSavingGoal(false)
+    }
   }
 
   const handleOpenProfileEdit = () => {
-    setDraftProfile(vm?.card ?? emptyProfile)
+    setDraftProfile(resolvedProfile ?? emptyProfile)
     setDraftUsername(vm?.username || '')
     setShowEditSheet(true)
   }
@@ -410,7 +442,7 @@ export function ProfilePage() {
 
   if (isLoading) return null
   if (!isAuthenticated) return null
-  const displayProfile = vm?.card ?? null
+  const displayProfile = resolvedProfile
   const displayGoal = goal
 
   return (
@@ -440,7 +472,7 @@ export function ProfilePage() {
           </div>
         </div>
         <HeroCard
-          profile={displayProfile}
+          profile={resolvedProfile}
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
         />
@@ -461,10 +493,9 @@ export function ProfilePage() {
         onAvatarUpdated={(url) => {
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
           setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
-
           // Keep cache shape consistent: cache stores MateCardProps (no username)
           // Avoid functional-updater style here because setProfileCache is a store action.
-          const base = vm?.card ?? draftProfile
+          const base = (resolvedProfile ?? draftProfile) as MateCardProps
           setProfileCache({ ...base, avatar: url })
         }}
       />
@@ -1054,9 +1085,10 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={handleSaveGoal}
-              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+              disabled={isSavingGoal}
+              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
             >
-              儲存
+              {isSavingGoal ? '儲存中...' : '儲存'}
             </button>
           </div>
         </div>
