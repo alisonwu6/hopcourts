@@ -41,7 +41,17 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
     if (isAuthenticated && !status && !onboardingLoading) {
       void loadStatus()
     }
-  }, [isAuthenticated, user, status, onboardingStatus, onboardingLoading, navigate, setLoading, setError, initializeOnboarding])
+  }, [
+    isAuthenticated,
+    user,
+    status,
+    onboardingStatus,
+    onboardingLoading,
+    navigate,
+    setLoading,
+    setError,
+    initializeOnboarding,
+  ])
 
   if (!isAuthenticated) {
     return <>{children}</>

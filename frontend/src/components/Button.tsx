@@ -49,7 +49,7 @@ export function Button({
         sizeClasses[size],
         variantClasses[variant],
         textClassName,
-        className,
+        className
       )}
     >
       {children}

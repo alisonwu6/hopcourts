@@ -1,4 +1,4 @@
-import { apiRequest } from '@/services/apiClient'
+import { api } from '@/api/client'
 import type { Sport } from '@/types/sport'
 
 type SportsResponse = {
@@ -10,13 +10,8 @@ type SportsResponse = {
 
 export const sportsService = {
   async list(lang: 'zh' | 'en' = 'zh') {
-    const response = await apiRequest<SportsResponse>('GET', '/v1/sports', {
-      auth: false,
-      params: { lang },
-    })
-    if (!response.ok) {
-      throw new Error('Failed to load sports')
-    }
+    const response = await api.sports.list(lang)
+    if (!response.ok) throw new Error('Failed to load sports')
     return response.data.items
   },
 }

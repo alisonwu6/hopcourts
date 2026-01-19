@@ -85,14 +85,14 @@ export function ActionToolbar({
               aria-pressed={isFavorite}
               aria-label={isFavorite ? 'Saved' : 'Save for later'}
             >
-              <Heart className={clsx('h-5 w-5', isFavorite && 'fill-current')} strokeWidth={2} aria-hidden="true" />
+              <Heart
+                className={clsx('h-5 w-5', isFavorite && 'fill-current')}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </button>
           )}
-          {rightContent ? (
-            rightContent
-          ) : (
-            <span className="h-10 w-10" aria-hidden="true" />
-          )}
+          {rightContent ? rightContent : <span className="h-10 w-10" aria-hidden="true" />}
         </div>
       </div>
     </div>

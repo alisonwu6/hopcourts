@@ -16,7 +16,11 @@ function isCompleted(event: PlayerEvent) {
 }
 
 function groupByDate(events: PlayerEvent[]) {
-  const formatter = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' })
+  const formatter = new Intl.DateTimeFormat(undefined, {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  })
   const map = new Map<string, PlayerEvent[]>()
   events.forEach((event) => {
     const label = formatter.format(event.startTime)
@@ -48,7 +52,7 @@ export function MyEventsPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#f4f6fb] pb-24 px-4 pt-4">
+      <div className="min-h-screen bg-[#f4f6fb] px-4 pb-24 pt-4">
         <div className="mx-auto w-full max-w-4xl space-y-4">
           <div className="flex justify-center">
             <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100">
@@ -69,10 +73,8 @@ export function MyEventsPage() {
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-4xl pt-4 px-4 space-y-4">
-            <h1 className="text-[22px] font-bold leading-tight text-slate-900">
-              我的場次
-            </h1>
+          <div className="mx-auto w-full max-w-4xl space-y-4 px-4 pt-4">
+            <h1 className="text-[22px] font-bold leading-tight text-slate-900">我的場次</h1>
             <p className="text-base text-slate-700">
               登入後就能看到你已加入、即將到來的場次，以及過去的紀錄。
             </p>
@@ -104,7 +106,7 @@ export function MyEventsPage() {
 
   return (
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
-      <div className="sticky top-0 z-20 border-b border-blue-200 bg-[#f4f6fb]/95 backdrop-blur shadow-sm px-4 py-3">
+      <div className="sticky top-0 z-20 border-b border-blue-200 bg-[#f4f6fb]/95 px-4 py-3 shadow-sm backdrop-blur">
         <div className="flex justify-center">
           <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100">
             <button
@@ -144,29 +146,19 @@ export function MyEventsPage() {
           </div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">
-            載入你的場次中…
-          </div>
+          <div className="py-10 text-center text-slate-500">載入你的場次中…</div>
         ) : tab === 'upcoming' ? (
           <EventGroupList
             groups={groupByDate(upcomingEvents)}
             emptyState={
-              <EmptyState
-                icon="📭"
-                title="目前沒有場次"
-                description="去看看其他活動並加入吧"
-              />
+              <EmptyState icon="📭" title="目前沒有場次" description="去看看其他活動並加入吧" />
             }
           />
         ) : (
           <EventGroupList
             groups={groupByDate(completedEvents)}
             emptyState={
-              <EmptyState
-                icon="✓"
-                title="尚無已完成的場次"
-                description="完成的場次會顯示在這裡"
-              />
+              <EmptyState icon="✓" title="尚無已完成的場次" description="完成的場次會顯示在這裡" />
             }
           />
         )}
@@ -175,7 +167,15 @@ export function MyEventsPage() {
   )
 }
 
-function TabButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
   return (
     <button
       type="button"
@@ -189,7 +189,15 @@ function TabButton({ label, active, onClick }: { label: string; active: boolean;
   )
 }
 
-function TagPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function TagPill({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
   return (
     <button
       type="button"
@@ -220,7 +228,9 @@ function EventGroupList({
     <div className="space-y-6">
       {groups.map(([dateLabel, groupedEvents]) => (
         <div key={dateLabel}>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
+            {dateLabel}
+          </h3>
           <div className="space-y-3">
             {groupedEvents.map((event) => (
               <button
@@ -234,7 +244,10 @@ function EventGroupList({
                     <h4 className="font-semibold text-slate-900">{event.title}</h4>
                     <p className="mt-2 text-xs text-gray-600">
                       {new Date(event.startTime).toLocaleDateString()} ·{' '}
-                      {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(event.startTime).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </p>
                     <p className="mt-1 text-xs text-gray-600">📍 {event.location.name}</p>
                     <p className="mt-2 text-xs font-semibold text-blue-600">
@@ -256,7 +269,15 @@ function EventGroupList({
   )
 }
 
-function EmptyState({ icon, title, description }: { icon: string; title: string; description: string }) {
+function EmptyState({
+  icon,
+  title,
+  description,
+}: {
+  icon: string
+  title: string
+  description: string
+}) {
   return (
     <div className="rounded-2xl border border-dashed border-blue-200 bg-white p-8 text-center">
       <div className="text-4xl">{icon}</div>

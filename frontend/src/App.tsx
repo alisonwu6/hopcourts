@@ -14,7 +14,6 @@ import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { CirclePage } from '@/features/profile/pages/CirclePage'
-import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
@@ -22,6 +21,13 @@ import { AboutPage } from '@/features/profile/pages/AboutPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { HomePage } from '@/features/home/pages/HomePage'
+
+const RequireAuth = ({ children }: { children: JSX.Element }) => {
+  const { isAuthenticated, isLoading } = useAuthStore()
+  if (isLoading) return <div className="p-4 text-center text-sm text-slate-600">載入中…</div>
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  return children
+}
 
 export default function App() {
   const { isAuthenticated, onboardingStatus } = useAuthStore()
@@ -90,17 +96,14 @@ export default function App() {
       <Route
         path="/onboarding"
         element={
-          <OnboardingRoute>
-            <OnboardingPage />
-          </OnboardingRoute>
+          <RequireAuth>
+            <OnboardingRoute>
+              <OnboardingPage />
+            </OnboardingRoute>
+          </RequireAuth>
         }
       />
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? <AuthenticatedApp /> : <GuestApp />
-        }
-      />
+      <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
     </Routes>
   )
 }
@@ -117,15 +120,17 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
-    const noHeaderPaths = ['/events', '/my-events', '/event/', '/create-event']
-    const hideHeader = noHeaderPaths.some((segment) =>
-      pathname.startsWith(segment)
-    )
-    const headerVisible = showHeader && !hideHeader
-    const navVisible = showNav && !pathname.startsWith('/event/')
+  const noHeaderPaths = ['/events', '/my-events', '/event/', '/create-event']
+  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
+  const headerVisible = showHeader && !hideHeader
+  const navVisible = showNav && !pathname.startsWith('/event/')
 
   return (
-    <div style={{ paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0 }}>
+    <div
+      style={{
+        paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0,
+      }}
+    >
       {headerVisible && <Header showActions={showActions} />}
       {children}
       {navVisible && <BottomNav />}
@@ -164,73 +169,71 @@ function AuthenticatedApp() {
       <Route
         path="/my-events"
         element={
-          <AppChrome showHeader={false}>
-            <MyEventsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false}>
+              <MyEventsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/create-event"
         element={
-          <AppChrome showNav={false}>
-            <CreateEventPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showNav={false}>
+              <CreateEventPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/circle"
         element={
-          <AppChrome showHeader={false}>
-            <CirclePage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false}>
+              <CirclePage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/profile"
         element={
-          <AppChrome showHeader={false}>
-            <ProfilePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/profile/mate"
-        element={
-          <AppChrome showHeader={false} showNav={false}>
-            <MateProfilePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/:username"
-        element={
-          <AppChrome showHeader={false} showNav={false}>
-            <MateProfilePage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false}>
+              <ProfilePage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings"
         element={
-          <AppChrome showHeader={false} showNav={false}>
-            <ProfileSettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <ProfileSettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings/account"
         element={
-          <AppChrome showHeader={false} showNav={false}>
-            <AccountSettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <AccountSettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings/privacy"
         element={
-          <AppChrome showHeader={false} showNav={false}>
-            <PrivacySettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <PrivacySettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route path="/mates" element={<Navigate to="/" replace />} />
@@ -297,14 +300,6 @@ function GuestApp() {
         element={
           <AppChrome showActions={false} showHeader={false}>
             <ProfilePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/:username"
-        element={
-          <AppChrome showActions={false} showHeader={false}>
-            <MateProfilePage />
           </AppChrome>
         }
       />

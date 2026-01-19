@@ -16,7 +16,7 @@ export function PrivacySettingsPage() {
         borderBottom
       />
 
-      <div className="mx-auto w-full max-w-3xl px-4 pb-8 pt-4 space-y-6">
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-8 pt-4">
         <Section title="資料與可見性" icon={<ShieldCheck className="h-5 w-5 text-slate-500" />}>
           <Row label="個人檔案可見度" value="僅限夥伴" />
         </Section>

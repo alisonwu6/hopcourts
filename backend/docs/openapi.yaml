@@ -56,8 +56,11 @@ paths:
           name: sport_key
           schema: { type: string }
         - in: query
-          name: city
+          name: city_key
           schema: { type: string }
+        - in: query
+          name: city
+          schema: { type: string, deprecated: true }
         - in: query
           name: from
           schema: { type: string, format: date-time }
@@ -83,12 +86,24 @@ paths:
                   data:
                     type: object
                     properties:
-                      sessions:
+                      items:
                         type: array
                         items:
                           $ref: '#/components/schemas/Session'
                       page:
                         $ref: '#/components/schemas/Page'
+    post:
+      summary: Create a session
+      security: [{ ApiKeyHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        "200":
+          description: ok
   /sessions/{id}:
     get:
       summary: Get session by id
@@ -213,6 +228,7 @@ paths:
           name: id
           required: true
           schema: { type: string, format: uuid }
+      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
@@ -235,6 +251,7 @@ paths:
           name: id
           required: true
           schema: { type: string, format: uuid }
+      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
@@ -258,6 +275,7 @@ paths:
           name: sessionId
           required: true
           schema: { type: string, format: uuid }
+      security: [{ ApiKeyHeader: [] }]
       requestBody:
         required: true
         content:
@@ -288,6 +306,7 @@ paths:
   /me/profile:
     get:
       summary: Get my profile
+      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
@@ -306,6 +325,33 @@ paths:
                         items: { $ref: '#/components/schemas/UserSport' }
     put:
       summary: Upsert my profile
+      security: [{ ApiKeyHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                display_name: { type: string }
+                legal_name: { type: string }
+                country_key: { type: string }
+                city_key: { type: string }
+                age_range_key: { type: string }
+                vibe_key: { type: string }
+                bio: { type: string }
+                avatar_url: { type: string }
+                sports:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/UserSport'
+      responses:
+        "200":
+          description: ok
+    patch:
+      summary: Patch my profile
+      security: [{ ApiKeyHeader: [] }]
       requestBody:
         required: true
         content:
@@ -332,6 +378,7 @@ paths:
   /me/preferences:
     get:
       summary: Get my preferences
+      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
@@ -344,6 +391,19 @@ paths:
                   data: { $ref: '#/components/schemas/UserPreferences' }
     put:
       summary: Upsert my preferences
+      security: [{ ApiKeyHeader: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferences'
+      responses:
+        "200":
+          description: ok
+    patch:
+      summary: Patch my preferences
+      security: [{ ApiKeyHeader: [] }]
       requestBody:
         required: true
         content:
@@ -356,6 +416,7 @@ paths:
   /me/onboarding:
     get:
       summary: Get onboarding status
+      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
@@ -375,6 +436,7 @@ paths:
   /me/stats:
     get:
       summary: Get my stats
+      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
@@ -386,6 +448,11 @@ paths:
                   ok: { type: boolean }
                   data: { $ref: '#/components/schemas/UserStats' }
 components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: x-user-id
   schemas:
     Country:
       type: object
@@ -457,8 +524,6 @@ components:
         spots_left:
           type: integer
           nullable: true
-        is_joined:
-          type: boolean
         viewer_has_joined:
           type: boolean
         viewer_has_checked_in:

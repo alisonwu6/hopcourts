@@ -34,7 +34,8 @@ export function ForgotPasswordPage() {
           <div className="mt-4 space-y-2">
             <h1 className="text-2xl font-semibold text-player-900">Reset your password</h1>
             <p className="text-sm text-player-900/70">
-              Enter the email address associated with your account and we&apos;ll send you a reset link.
+              Enter the email address associated with your account and we&apos;ll send you a reset
+              link.
             </p>
           </div>
 

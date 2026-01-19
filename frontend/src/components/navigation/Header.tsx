@@ -31,10 +31,7 @@ export default function Header({
     <header className={headerClass}>
       <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-4">
-          <Link
-            to="/"
-            className="flex items-center gap-2"
-          >
+          <Link to="/" className="flex items-center gap-2">
             <img
               className="h-10 w-auto flex-shrink-0"
               src={logoUrl}
@@ -69,10 +66,7 @@ export default function Header({
             >
               <MessageCircle className="h-5 w-5" />
             </button>
-            <Link
-              to="/notifications"
-              className="relative"
-            >
+            <Link to="/notifications" className="relative">
               <span className="sr-only">Notifications</span>
               <div
                 className={clsx(

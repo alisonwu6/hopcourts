@@ -2,6 +2,7 @@ const { Errors } = require('../../lib/errors')
 const sessionsModel = require('../../../models/sessions.model')
 const participantsModel = require('../../../models/participants.model')
 const checkinsModel = require('../../../models/checkins.model')
+const { createSession: createSessionModel } = require('../../../models/sessions.model')
 
 function parseNumber(value, fallback) {
   const n = Number(value)
@@ -33,7 +34,7 @@ async function listSessions(params = {}) {
   try {
     const sessions = await sessionsModel.listUpcomingSessions(params)
     return {
-      sessions,
+      items: sessions,
       page: {
         limit: params.limit,
         offset: params.offset,
@@ -125,6 +126,35 @@ async function leaveSession({ sessionId, userId }) {
   }
 }
 
+async function createSession(input) {
+  if (!input.userId) throw Errors.unauthenticated('User id is required')
+  if (!input.sportKey) throw Errors.validation('sport_key is required')
+  if (!input.startAt) throw Errors.validation('starts_at is required')
+  if (!input.placeName) throw Errors.validation('place_name is required')
+
+  const payload = {
+    hostUserId: input.userId,
+    sportKey: input.sportKey,
+    title: input.title ?? null,
+    notes: input.notes ?? null,
+    startAt: new Date(input.startAt),
+    endAt: input.endAt ? new Date(input.endAt) : null,
+    locationName: input.placeName,
+    address: input.address ?? null,
+    lat: input.lat ?? 0,
+    lng: input.lng ?? 0,
+    checkinRadiusM: input.checkinRadiusM ?? 100,
+    checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 20,
+    checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 20,
+    minPeople: input.minPeople ?? 2,
+    maxPeople: input.maxPeople ?? input.capacity ?? null,
+    status: input.status ?? 'published',
+    visibility: input.visibility ?? 'public',
+  }
+
+  return createSessionModel(payload)
+}
+
 module.exports = {
   listSessions,
   getSessionById,
@@ -132,4 +162,5 @@ module.exports = {
   buildListParams,
   joinSession,
   leaveSession,
+  createSession,
 }

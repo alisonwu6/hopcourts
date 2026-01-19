@@ -1,175 +1,467 @@
 import clsx from 'clsx'
-import { Goal, Menu, PlusSquare, Lock, Calendar, MapPin, Users, Wallet } from 'lucide-react'
-import { forwardRef, useEffect, useState } from 'react'
+import { Menu, PlusSquare, Lock } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
+import { type MateCardProps } from '@/features/mates/components/MateCard'
+type ProfileVM = {
+  username: string
+  card: MateCardProps
+  favoriteSportKeys: string[]
+  tryingSportKeys: string[]
+}
 import { BottomSheet } from '@/components/BottomSheet'
+import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
+import { onboardingService } from '@/features/onboarding/onboarding.service'
+import { useSports } from '@/features/sports/hooks/useSports'
+import { useVibes } from '@/features/dictionaries/hooks'
+import { useCountries, useCities } from '@/features/dictionaries/hooks'
+import { HeroCard } from '@/features/profile/components/HeroCard'
+import { ProfileContent } from '@/features/profile/components/ProfileContent'
+import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { createDaySlots, dayLabels } from '@/features/profile/constants'
+import type { GoalState } from '@/features/profile/types'
+import type { ApiResponse } from '@/api/types'
 
-const mockProfile: MateCardProps = {
-  name: 'Alison Wu',
-  location: '台北',
-  flag: '🇹🇼',
-  vibe: 'Chill',
-  sports: ['籃球', '慢跑', '健身房'],
-  trying: ['匹克球', '抱石'],
-  blurb: '「找同頻的夥伴，輕鬆聊、輕鬆動，下班也能一起放鬆。」',
-  avatar: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=320&q=80',
+const arraysEqual = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((v, i) => v === b[i])
+
+const emptyProfile: MateCardProps = {
+  name: '',
+  location: '',
+  cityKey: '',
+  flag: '',
+  countryKey: '',
+  vibe: null,
+  vibeKey: null,
+  sports: [],
+  trying: [],
+  blurb: '',
+  avatar: '',
 }
 
-type GoalState = { sessionsPerWeek: string; timeOfDay: string; days: string[] }
-
-function EmptyBlock({
-  title,
-  description,
-  actionLabel,
-  onAction,
-}: {
-  title: string
-  description: string
-  actionLabel?: string
-  onAction?: () => void
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200/80 bg-white/80 px-5 py-8 text-center shadow-sm">
-      <p className="text-lg font-extrabold text-slate-900">{title}</p>
-      <p className="mt-2 text-sm font-medium text-slate-600">{description}</p>
-      {actionLabel && onAction && (
-        <button
-          type="button"
-          onClick={onAction}
-          className="mt-5 w-full max-w-[220px] rounded-full bg-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-600"
-        >
-          {actionLabel}
-        </button>
-      )}
-    </div>
-  )
-}
+const SAMPLE_AVATAR =
+  'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
 
 export function ProfilePage() {
-  const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-  const dayLabels: Record<string, string> = {
-    Monday: '週一',
-    Tuesday: '週二',
-    Wednesday: '週三',
-    Thursday: '週四',
-    Friday: '週五',
-    Saturday: '週六',
-    Sunday: '週日',
-  }
-  const createDaySlots = () =>
-    daysList.reduce<Record<string, string[]>>((acc, day) => {
-      acc[day] = []
-      return acc
-    }, {})
   const [showGoalSheet, setShowGoalSheet] = useState(false)
-  const defaultGoal: GoalState = { sessionsPerWeek: '2', timeOfDay: '晚上', days: ['Mon', 'Wed'] }
-  const [goal, setGoal] = useState<GoalState | null>(defaultGoal)
-  const [draftGoal, setDraftGoal] = useState<GoalState>(defaultGoal)
+  const [goal, setGoal] = useState<GoalState | null>(null)
+  const [draftGoal, setDraftGoal] = useState<GoalState>({
+    sessionsPerWeek: '',
+    timeOfDay: '早上',
+    days: [],
+  })
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
-  const [profile, setProfile] = useState<MateCardProps | null>(mockProfile)
-  const [draftProfile, setDraftProfile] = useState<MateCardProps>(mockProfile)
+  const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
+  const [showAvatarCropper, setShowAvatarCropper] = useState(false)
+  const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
+    useAuthStore()
+  const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
+  const userId = (user as any)?.id
+  const [stats, setStats] = useState<ApiResponse<any>['data'] | null>(null)
+  const [vm, setVm] = useState<ProfileVM | null>(
+    profileCache
+      ? {
+          username: (profileCache as any)?.username || '',
+          card: profileCache,
+          favoriteSportKeys: [],
+          tryingSportKeys: [],
+        }
+      : null
+  )
+  const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
+  const [draftUsername, setDraftUsername] = useState<string>((profileCache as any)?.username || '')
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
-  const { user, onboardingStatus, isAuthenticated } = useAuthStore()
+  const [showSportsSheet, setShowSportsSheet] = useState(false)
+  const [showTryingSheet, setShowTryingSheet] = useState(false)
+  const [activeField, setActiveField] = useState<
+    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio'
+  >(null)
+  const [fieldValue, setFieldValue] = useState('')
+  const [sportsSearch, setSportsSearch] = useState('')
+  const [tryingSearch, setTryingSearch] = useState('')
+  const { sports: sportsCatalog } = useSports('zh')
+  const { items: vibesCatalog } = useVibes('zh')
+  const { items: countriesCatalog } = useCountries('zh')
+  const { items: citiesCatalog } = useCities(undefined, 'zh')
   const navigate = useNavigate()
-  const username = (user as any)?.username || 'undefined'
+  const username = (user as any)?.username || vm?.username || 'undefined'
+  const labelForSport = useMemo(() => {
+    const keyMap = new Map<string, string>()
+    const labelMap = new Map<string, string>()
+    sportsCatalog.forEach((s) => {
+      keyMap.set(s.key.toLowerCase(), s.label)
+      labelMap.set(s.label.toLowerCase(), s.label)
+    })
+    return (value: string) => {
+      if (!value) return value
+      const lower = value.toLowerCase()
+      return keyMap.get(lower) || labelMap.get(lower) || value
+    }
+  }, [sportsCatalog])
+
+  const keyForLabel = useMemo(() => {
+    const map = new Map<string, string>()
+    sportsCatalog.forEach((s) => {
+      map.set(s.label, s.key)
+      map.set(s.key, s.key)
+      map.set(s.label.toLowerCase(), s.key)
+      map.set(s.key.toLowerCase(), s.key)
+    })
+    return (label: string) => map.get(label) || map.get(label?.toLowerCase?.() || '') || label
+  }, [sportsCatalog])
+
+  const labelForVibe = useMemo(() => {
+    const map = new Map<string, string>()
+    vibesCatalog.forEach((v) => {
+      map.set(v.key, v.label)
+      map.set(v.key.toLowerCase(), v.label)
+    })
+    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
+  }, [vibesCatalog])
+
+  const vibeKeyToUnion = useMemo(() => {
+    const map = new Map<string, MateCardProps['vibe']>()
+    vibesCatalog.forEach((v) => {
+      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      map.set(v.key, union)
+      map.set(v.key.toLowerCase(), union)
+    })
+    return map
+  }, [vibesCatalog])
+
+  const vibeUnionToKey = useMemo(() => {
+    const map = new Map<string, string>()
+    vibesCatalog.forEach((v) => {
+      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      map.set(union, v.key)
+      map.set(union.toLowerCase(), v.key)
+    })
+    return map
+  }, [vibesCatalog])
+
+  const labelForCountry = useMemo(() => {
+    const map = new Map(countriesCatalog.map((c) => [c.key, c.label]))
+    return (key?: string) => (key ? map.get(key) || key : '')
+  }, [countriesCatalog])
+
+  const labelForCity = useMemo(() => {
+    const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
+    return (key?: string) => (key ? map.get(key) || key : '')
+  }, [citiesCatalog])
+
+  // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
+  const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
+    key && typeof key === 'string'
+      ? ((key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()) as MateCardProps['vibe'])
+      : null
+
+  // Memo: derive resolvedProfile (display-ready, labels filled, union vibe)
+  const resolvedProfile = useMemo<MateCardProps | null>(() => {
+    if (!vm?.card) return null
+    const favoriteLabels = (
+      vm.favoriteSportKeys.length ? vm.favoriteSportKeys : vm.card.sports || []
+    ).map(labelForSport)
+    const tryingLabels = (
+      vm.tryingSportKeys.length ? vm.tryingSportKeys : vm.card.trying || []
+    ).map(labelForSport)
+    const locationLabel = vm.card.cityKey
+      ? labelForCity(vm.card.cityKey) || vm.card.location
+      : vm.card.location
+    const flagLabel = vm.card.countryKey
+      ? labelForCountry(vm.card.countryKey) || vm.card.flag
+      : vm.card.flag
+    let vibeUnion: MateCardProps['vibe'] = null
+    if (vm.card.vibe) {
+      vibeUnion = vm.card.vibe
+    } else if (vm.card.vibeKey) {
+      vibeUnion =
+        vibeKeyToUnion.get(vm.card.vibeKey) ||
+        vibeKeyToUnion.get(vm.card.vibeKey.toLowerCase()) ||
+        vibeKeyToUnionFallback(vm.card.vibeKey)
+    } else {
+      vibeUnion = null
+    }
+    return {
+      ...vm.card,
+      sports: favoriteLabels,
+      trying: tryingLabels,
+      location: locationLabel,
+      flag: flagLabel,
+      vibe: vibeUnion,
+    }
+  }, [vm, labelForSport, labelForCity, labelForCountry, vibeKeyToUnion])
+
+  // Memo: derive resolvedDraftProfile (for HeroCard, always label fields, union vibe)
+  const resolvedDraftProfile = useMemo<MateCardProps>(() => {
+    const locationLabel = draftProfile.cityKey
+      ? labelForCity(draftProfile.cityKey) || draftProfile.location
+      : draftProfile.location
+    const flagLabel = draftProfile.countryKey
+      ? labelForCountry(draftProfile.countryKey) || draftProfile.flag
+      : draftProfile.flag
+    let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
+    const draftVibeKey = (draftProfile as any).vibeKey
+    if (!vibeUnion && draftVibeKey) {
+      vibeUnion =
+        vibeKeyToUnion.get(draftVibeKey) ||
+        vibeKeyToUnion.get(draftVibeKey.toLowerCase()) ||
+        vibeKeyToUnionFallback(draftVibeKey)
+    }
+    return {
+      ...draftProfile,
+      location: locationLabel,
+      flag: flagLabel,
+      vibe: vibeUnion,
+    }
+  }, [draftProfile, labelForCity, labelForCountry, vibeKeyToUnion])
   const hasCompletedCard = onboardingStatus?.isComplete ?? false
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/', { replace: true })
+    if (!isAuthenticated) return
+    let cancelled = false
+    const fetchProfile = async () => {
+      const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
+        onboardingService.getProfile(),
+        onboardingService.getPreferences(),
+        onboardingService.getStats(),
+      ])
+
+      if (!cancelled && profileRes.status === 'fulfilled') {
+        const payload: any = (profileRes.value as any)?.data ?? profileRes.value
+        if (payload) {
+          const data = payload.user ? payload.user : payload
+          const sportsRows = payload.sports || []
+          const favoriteKeys =
+            payload.favorite_sports ||
+            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+          const tryingKeys =
+            payload.trying_sports ||
+            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+          const vibeKey = data.vibe_key || null
+          const vibeUnion = vibeKey
+            ? vibeKeyToUnion.get(vibeKey) ||
+              vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+              vibeKeyToUnionFallback(vibeKey)
+            : null
+
+          const mapped: MateCardProps = {
+            name: data.display_name || data.username || '',
+            location: data.city_label || data.city || '',
+            cityKey: data.city_key || '',
+            flag: labelForCountry(data.country_key) || '',
+            countryKey: data.country_key || '',
+            vibe: vibeUnion,
+            vibeKey,
+            sports: (favoriteKeys || []).map(labelForSport),
+            trying: (tryingKeys || []).map(labelForSport),
+            blurb: data.bio || '',
+            avatar: data.avatar_url || userAvatar || '',
+          }
+          const nextUsername = data.username || ''
+          setVm({
+            username: nextUsername,
+            card: mapped,
+            favoriteSportKeys: favoriteKeys || [],
+            tryingSportKeys: tryingKeys || [],
+          })
+          setDraftProfile(mapped)
+          setDraftUsername(nextUsername)
+          setProfileCache(mapped)
+        }
+      } else if (!cancelled && profileRes.status === 'rejected') {
+        setVm(null)
+        setDraftProfile(emptyProfile)
+      }
+
+      if (!cancelled && preferencesRes.status === 'fulfilled') {
+        const preferencesPayload: any =
+          (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
+        const sessionsPerWeek = preferencesPayload.sessions_per_week
+        const preferredTime = preferencesPayload.preferred_time
+        const daySlots = preferencesPayload.day_slots || {}
+        setGoal({
+          sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
+          timeOfDay: preferredTime || '早上',
+          days: [],
+        })
+        const mergedSlots: Record<string, string[]> = {
+          ...createDaySlots(),
+          ...daySlots,
+        }
+        setGoalDaySlots(mergedSlots)
+        setDraftDaySlots(mergedSlots)
+        if (preferredTime) setDraftPreferredTime(preferredTime)
+      }
+
+      if (!cancelled && statsRes.status === 'fulfilled') {
+        const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
+        setStats(statsPayload)
+      }
     }
-  }, [isAuthenticated, navigate])
+    fetchProfile()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated, labelForCountry, labelForSport, vibeKeyToUnion])
 
   const handleOpenGoal = () => {
-    const baseGoal = goal ?? { sessionsPerWeek: '', timeOfDay: draftPreferredTime || '早上', days: [] }
+    const baseGoal = goal ?? {
+      sessionsPerWeek: '',
+      timeOfDay: draftPreferredTime || '早上',
+      days: [],
+    }
     setDraftGoal(baseGoal)
     setDraftDaySlots(goalDaySlots)
     setDraftPreferredTime(baseGoal.timeOfDay || '早上')
     setShowGoalSheet(true)
   }
 
-  const handleSaveGoal = () => {
-    setGoal({ ...draftGoal, timeOfDay: draftPreferredTime })
-    setGoalDaySlots(draftDaySlots)
-    setShowGoalSheet(false)
+  const handleSaveGoal = async () => {
+    if (isSavingGoal) return
+    setIsSavingGoal(true)
+    try {
+      const sessions = draftGoal.sessionsPerWeek
+        ? Number(draftGoal.sessionsPerWeek)
+        : draftGoal.sessionsPerWeek
+      await onboardingService.savePreferences({
+        sessions_per_week: sessions || null,
+        preferred_time: draftPreferredTime || null,
+        day_slots: draftDaySlots,
+      })
+
+      setGoal({ ...draftGoal, timeOfDay: draftPreferredTime })
+      setGoalDaySlots(draftDaySlots)
+      setShowGoalSheet(false)
+    } catch (err) {
+      console.error('Failed to save preferences', err)
+    } finally {
+      setIsSavingGoal(false)
+    }
   }
 
   const handleOpenProfileEdit = () => {
-    setDraftProfile(profile ?? mockProfile)
+    setDraftProfile(resolvedProfile ?? emptyProfile)
+    setDraftUsername(vm?.username || '')
     setShowEditSheet(true)
   }
 
-  const handleSaveProfile = () => {
-    setProfile({
-      ...draftProfile,
-      sports: draftProfile.sports.filter(Boolean),
-      trying: draftProfile.trying.filter(Boolean),
-    })
-    setShowEditSheet(false)
+  const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
+    let nextValue = rawKey ?? value
+    if (field === 'vibe') {
+      nextValue = rawKey || vibeUnionToKey.get(value as MateCardProps['vibe']) || value
+    }
+    setActiveField(field)
+    setFieldValue(nextValue)
   }
 
-  const updateDraftProfile = (key: keyof MateCardProps, value: any) => {
-    setDraftProfile((prev) => ({ ...prev, [key]: value }))
+  const handleSaveField = async () => {
+    if (!activeField) return
+    const value = fieldValue.trim()
+    const next = { ...draftProfile }
+    const payload: Record<string, any> = {}
+    switch (activeField) {
+      case 'name':
+        next.name = value
+        payload.display_name = value
+        break
+      case 'username':
+        setDraftUsername(value)
+        payload.username = value
+        break
+      case 'location':
+        next.location = labelForCity(value) || value
+        next.cityKey = value
+        payload.city_key = value
+        break
+      case 'flag':
+        next.flag = labelForCountry(value) || value
+        next.countryKey = value
+        payload.country_key = value
+        break
+      case 'vibe':
+        next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
+        next.vibeKey = value
+        payload.vibe_key = value
+        break
+      case 'bio':
+        next.blurb = value
+        payload.bio = value
+        break
+      default:
+        break
+    }
+    setDraftProfile(next)
+    try {
+      await onboardingService.saveProfile(payload)
+    } catch (err) {
+      console.error('Failed to patch profile field', err)
+    } finally {
+      setActiveField(null)
+    }
   }
 
-  const toggleDay = (day: string) => {
-    setDraftGoal((prev) => {
-      const hasDay = prev.days.includes(day)
-      const days = hasDay ? prev.days.filter((d) => d !== day) : [...prev.days, day]
-      return { ...prev, days }
-    })
+  const handleSaveProfile = async () => {
+    if (isSavingProfile) return
+    setIsSavingProfile(true)
+    try {
+      const favoriteKeys = (draftProfile.sports || [])
+        .filter(Boolean)
+        .map((label) => keyForLabel(label))
+      const tryingKeys = (draftProfile.trying || [])
+        .filter(Boolean)
+        .map((label) => keyForLabel(label))
+
+      await onboardingService.saveProfile({
+        username: draftUsername || draftProfile.name,
+        display_name: draftProfile.name,
+        bio: draftProfile.blurb,
+        vibe_key:
+          (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || null,
+        favorite_sports: favoriteKeys,
+        trying_sports: tryingKeys,
+        avatar_url: draftProfile.avatar || null,
+      })
+
+      const updated = {
+        ...draftProfile,
+        sports: draftProfile.sports.filter(Boolean),
+        trying: draftProfile.trying.filter(Boolean),
+      }
+      setVm((prev) => ({
+        username: draftUsername || prev?.username || '',
+        card: updated,
+        favoriteSportKeys: favoriteKeys,
+        tryingSportKeys: tryingKeys,
+      }))
+      setDraftProfile(updated)
+      setProfileCache(updated)
+      setShowEditSheet(false)
+    } catch (err) {
+      // keep sheet open for retry
+      console.error('Failed to save profile', err)
+    } finally {
+      setIsSavingProfile(false)
+    }
   }
 
-  if (!isAuthenticated) {
-    return null
-  }
-
-  if (isAuthenticated && !hasCompletedCard) {
-    return (
-      <div className="min-h-screen bg-white">
-        <div className="mx-auto flex h-full w-full max-w-2xl flex-col px-6 pb-10 pt-6">
-          <div className="flex items-center justify-end gap-2 py-2">
-            <button
-              type="button"
-              aria-label="Add game"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-              onClick={() => navigate('/create-event')}
-            >
-              <PlusSquare className="h-6 w-6" />
-            </button>
-            <Link
-              to="/settings"
-              aria-label="Menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
-            >
-              <Menu className="h-6 w-6" />
-            </Link>
-          </div>
-
-          <div className="flex flex-1 items-start justify-center">
-            <div className="w-full max-w-xl">
-              <EmptyBlock
-                title="建立你的運動身份"
-                description="分享你的氛圍與慣打運動，找到步調相近的夥伴。"
-                actionLabel="建立你的運動卡"
-                onAction={() => navigate('/onboarding')}
-                className="mt-6"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  if (isLoading) return null
+  if (!isAuthenticated) return null
+  const displayProfile = resolvedProfile
+  const displayGoal = goal
+  const allowGoalEdit = true
+  const sessionsCompleted = Math.max(0, Number((stats as any)?.sessions_completed ?? 0))
+  const sessionsTarget = Math.max(0, Number(displayGoal?.sessionsPerWeek ?? 0))
+  const completion =
+    sessionsTarget > 0 ? Math.min(100, Math.round((sessionsCompleted / sessionsTarget) * 100)) : 0
 
   return (
-    <div className="min-h-screen pb-[120px]">
-        <div className="mx-auto w-full max-w-4xl pb-6">
-        <div className="flex items-center justify-between px-4 py-4 bg-white">
+    <div className="min-h-screen pb-[120px] overflow-y-auto">
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
             {username && <span className="text-2xl font-bold text-slate-900">{username}</span>}
@@ -192,132 +484,483 @@ export function ProfilePage() {
             </Link>
           </div>
         </div>
-        <HeroCard profile={profile} onEdit={() => setShowEditSheet(true)} />
+        <HeroCard
+          profile={resolvedProfile}
+          onEdit={handleOpenProfileEdit}
+          avatarFallback={userAvatar || ''}
+        />
         <div className="mt-4 space-y-4">
-          <StatsContent goal={goal} goalDaySlots={goalDaySlots} onOpenGoalSheet={handleOpenGoal} />
+          <ProfileContent
+            goal={displayGoal}
+            goalDaySlots={goalDaySlots}
+            completion={completion}
+            sessionsCompleted={sessionsCompleted}
+            onOpenGoalSheet={handleOpenGoal}
+            showEdit={allowGoalEdit || hasCompletedCard}
+          />
         </div>
       </div>
+      <AvatarCropSheet
+        open={showAvatarCropper}
+        onClose={() => setShowAvatarCropper(false)}
+        userId={userId}
+        defaultAvatar={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+        onAvatarUpdated={(url) => {
+          setDraftProfile((prev) => ({ ...prev, avatar: url }))
+          setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
+          // Keep cache shape consistent: cache stores MateCardProps (no username)
+          // Avoid functional-updater style here because setProfileCache is a store action.
+          const base = (resolvedProfile ?? draftProfile) as MateCardProps
+          setProfileCache({ ...base, avatar: url })
+        }}
+      />
       <BottomSheet
         open={showEditSheet}
         onClose={() => setShowEditSheet(false)}
         showHandle={false}
-        sheetClassName="rounded-t-[32px] border border-white/50 bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
-        contentClassName="px-5 pb-8 pt-8 text-slate-900"
+        disableContainer
       >
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-500">編輯運動卡</p>
-              <p className="text-xl font-bold text-slate-900">保持你的氛圍最新</p>
+        <SheetLayout
+          onClose={() => setShowEditSheet(false)}
+          title="編輯運動卡"
+          subtitle="保持最新運動狀態"
+          height="tall"
+          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+          contentClassName="flex-1 min-h-0 overflow-y-auto px-5 pb-24 pt-4 space-y-4"
+          primaryButton={{
+            label: isSavingProfile ? '儲存中...' : '儲存卡片',
+            onClick: handleSaveProfile,
+            disabled: isSavingProfile,
+          }}
+        >
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <img
+                src={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+                alt="Avatar"
+                className="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-white"
+              />
+              <button
+                type="button"
+                onClick={() => setShowAvatarCropper(true)}
+                className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
+              >
+                編輯
+              </button>
             </div>
-            <button
-              type="button"
-              aria-label="Close"
-              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500 hover:text-slate-700"
-              onClick={() => setShowEditSheet(false)}
-            >
-              ×
-            </button>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">名稱</label>
-            <input
-              value={draftProfile.name}
-              onChange={(e) => updateDraftProfile('name', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">地點</label>
-            <input
-              value={draftProfile.location}
-              onChange={(e) => updateDraftProfile('location', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Flag</label>
-              <input
-              value={draftProfile.flag}
-              onChange={(e) => updateDraftProfile('flag', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">Vibe</label>
-            <select
-              value={draftProfile.vibe}
-              onChange={(e) => updateDraftProfile('vibe', e.target.value as MateCardProps['vibe'])}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-            >
-              {['Chill', 'Social', 'Flow', 'Competitive'].map((v) => (
-                <option key={v} value={v}>{v}</option>
+            <p className="text-sm font-semibold text-slate-700">基本資料</p>
+            <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              {[
+                { key: 'name', label: '名稱', value: draftProfile.name },
+                {
+                  key: 'username',
+                  label: '使用者名稱',
+                  value: draftUsername ?? '',
+                },
+                {
+                  key: 'location',
+                  label: '現居地點',
+                  value: labelForCity(draftProfile.cityKey) || draftProfile.location,
+                  valueKey: draftProfile.cityKey || '',
+                },
+                {
+                  key: 'flag',
+                  label: '國籍',
+                  value: labelForCountry(draftProfile.countryKey) || draftProfile.flag,
+                  valueKey: draftProfile.countryKey || '',
+                },
+                {
+                  key: 'vibe',
+                  label: '運動氛圍',
+                  value: draftProfile.vibe || '',
+                  valueKey:
+                    vibeUnionToKey.get(draftProfile.vibe as string) ||
+                    (draftProfile as any).vibeKey ||
+                    '',
+                },
+              ].map((row) => (
+                <button
+                  key={row.key}
+                  type="button"
+                  onClick={() => openFieldSheet(row.key as any, row.value, (row as any).valueKey)}
+                  className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-700">{row.label}</p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {row.key === 'vibe'
+                        ? labelForVibe(
+                            (row as any).valueKey ||
+                              vibeUnionToKey.get(row.value as string) ||
+                              (row.value as string)
+                          ) || '未設定'
+                        : row.value || '未設定'}
+                    </p>
+                  </div>
+                  <span className="text-slate-400">›</span>
+                </button>
               ))}
-            </select>
-          </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">常打的運動</label>
-            <input
-              value={draftProfile.sports.join(', ')}
-              onChange={(e) => updateDraftProfile('sports', e.target.value.split(',').map((s) => s.trim()))}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-              placeholder="Basketball, Running"
-            />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">想嘗試</label>
-            <input
-              value={draftProfile.trying.join(', ')}
-              onChange={(e) => updateDraftProfile('trying', e.target.value.split(',').map((s) => s.trim()))}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-              placeholder="Pickleball, Bouldering"
-            />
+            <p className="text-sm font-semibold text-slate-700">運動</p>
+            <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <button
+                type="button"
+                onClick={() => setShowSportsSheet(true)}
+                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">我的最愛</p>
+                  <p className="text-base font-semibold text-slate-900">
+                    {draftProfile.sports.length ? draftProfile.sports.join('、') : '未設定'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowTryingSheet(true)}
+                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">想嘗試</p>
+                  <p className="text-base font-semibold text-slate-900">
+                    {draftProfile.trying.length ? draftProfile.trying.join('、') : '未設定'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">關於你</label>
-            <textarea
-              value={draftProfile.blurb}
-              onChange={(e) => updateDraftProfile('blurb', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-              rows={3}
-            />
+            <p className="text-sm font-semibold text-slate-700">關於我</p>
+            <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <button
+                type="button"
+                onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
+                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">自我介紹</p>
+                  <p className="line-clamp-1 text-base font-semibold text-slate-900">
+                    {draftProfile.blurb || '未設定'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+            </div>
           </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700">大頭貼網址</label>
-            <input
-              value={draftProfile.avatar}
-              onChange={(e) => updateDraftProfile('avatar', e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-              placeholder="https://..."
-            />
-          </div>
-
-          <div className="flex gap-3 pt-1">
-            <button
-              type="button"
-              onClick={() => setShowEditSheet(false)}
-              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300"
+        </SheetLayout>
+      </BottomSheet>
+      <BottomSheet
+        open={!!activeField}
+        onClose={() => setActiveField(null)}
+        showHandle={false}
+        disableContainer
+      >
+        {(() => {
+          const titleMap: Record<string, string> = {
+            name: '名稱',
+            username: '使用者名稱',
+            location: '現居',
+            flag: '國籍',
+            vibe: '運動氛圍',
+            bio: '自我介紹',
+          }
+          const subtitleMap: Record<string, string> = {
+            name: '請輸入卡片上要顯示的名稱。',
+            username: '你的帳號，夥伴可以用這個找到你。',
+            location: '填寫目前所在的城市，方便配對附近的活動。',
+            flag: '選擇你的國籍，展現身份。',
+            vibe: '描述現在最貼近你的運動氛圍。',
+            bio: '和大家分享你的運動的動態與目標吧！',
+          }
+          const fieldKey = activeField ?? ''
+          return (
+            <SheetLayout
+              onClose={() => setActiveField(null)}
+              title={titleMap[fieldKey] || ''}
+              subtitle={subtitleMap[fieldKey] || ''}
+              height="medium"
+              className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+              contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-3"
+              primaryButton={{
+                label: '儲存',
+                onClick: handleSaveField,
+                disabled: isSavingProfile,
+              }}
+              showHandle={false}
             >
-              取消
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveProfile}
-              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
-            >
-              儲存卡片
-            </button>
+              {activeField === 'vibe' ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {vibesCatalog.map((v) => {
+                    const active =
+                      v.key === fieldValue ||
+                      vibeUnionToKey.get(fieldValue) === v.key ||
+                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() === v.key.toLowerCase()
+                    return (
+                      <button
+                        key={v.key}
+                        type="button"
+                        onClick={() => setFieldValue(v.key)}
+                        className={clsx(
+                          'flex flex-col items-start rounded-2xl border px-4 py-4 text-left shadow-sm transition',
+                          active
+                            ? 'border-blue-500 bg-blue-50 text-blue-800'
+                            : 'border-slate-200 bg-white text-slate-900 hover:border-blue-300'
+                        )}
+                      >
+                        <p className="text-lg font-bold">{v.label}</p>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : activeField === 'location' ? (
+                <select
+                  value={fieldValue}
+                  onChange={(e) => setFieldValue(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">請選擇城市</option>
+                  {citiesCatalog.map((c) => (
+                    <option key={c.key} value={c.key}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              ) : activeField === 'flag' ? (
+                <select
+                  value={fieldValue}
+                  onChange={(e) => setFieldValue(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">請選擇國籍</option>
+                  {countriesCatalog.map((c) => (
+                    <option key={c.key} value={c.key}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              ) : activeField === 'bio' ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={fieldValue}
+                    onChange={(e) => setFieldValue(e.target.value)}
+                    maxLength={120}
+                    rows={4}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="和大家分享你想說的一句話。"
+                  />
+                  <div className="text-right text-sm text-slate-500">
+                    還可以輸入 {120 - (fieldValue?.length || 0)} 個字
+                  </div>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={fieldValue}
+                  onChange={(e) => setFieldValue(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  placeholder="請輸入"
+                />
+              )}
+            </SheetLayout>
+          )
+        })()}
+      </BottomSheet>
+      <BottomSheet
+        open={showSportsSheet}
+        onClose={() => setShowSportsSheet(false)}
+        showHandle={false}
+        disableContainer
+      >
+        <SheetLayout
+          onClose={() => setShowSportsSheet(false)}
+          title="選擇常做運動"
+          subtitle="最多選 3 項，依照你常說「好，走！」的運動，幫你排程與配對。"
+          height="tall"
+          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+          contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
+          primaryButton={{
+            label: '儲存',
+            onClick: () => setShowSportsSheet(false),
+            disabled: isSavingProfile,
+          }}
+          showHandle={false}
+        >
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-slate-700">
+              已選 {draftProfile.sports.length}/3
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {draftProfile.sports.map((s) => (
+                <span
+                  key={s}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-800"
+                >
+                  {s}
+                  <button
+                    type="button"
+                    aria-label="移除"
+                    className="text-slate-400 hover:text-slate-600"
+                    onClick={() =>
+                      setDraftProfile((prev) => ({
+                        ...prev,
+                        sports: prev.sports.filter((x) => x !== s),
+                      }))
+                    }
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+
+          <input
+            value={sportsSearch}
+            onChange={(e) => setSportsSearch(e.target.value)}
+            placeholder="搜尋運動"
+            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
+          />
+
+          <div className="space-y-2">
+            {sportsCatalog
+              .filter((sport) => sport.label.toLowerCase().includes(sportsSearch.toLowerCase()))
+              .map((sport) => {
+                const selected = draftProfile.sports.includes(sport.label)
+                const disabled = !selected && draftProfile.sports.length >= 3
+                return (
+                  <label
+                    key={sport.key}
+                    className={clsx(
+                      'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-base font-semibold shadow-sm transition',
+                      selected
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300',
+                      disabled && !selected && 'cursor-not-allowed opacity-50'
+                    )}
+                  >
+                    <span>{sport.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      disabled={disabled}
+                      onChange={() => {
+                        setDraftProfile((prev) => {
+                          const next = selected
+                            ? prev.sports.filter((s) => s !== sport.label)
+                            : [...prev.sports, sport.label]
+                          return { ...prev, sports: next }
+                        })
+                      }}
+                      className="h-5 w-5 accent-blue-600"
+                    />
+                  </label>
+                )
+              })}
+          </div>
+        </SheetLayout>
+      </BottomSheet>
+      <BottomSheet
+        open={showTryingSheet}
+        onClose={() => setShowTryingSheet(false)}
+        showHandle={false}
+        disableContainer
+      >
+        <SheetLayout
+          onClose={() => setShowTryingSheet(false)}
+          title="想嘗試的運動"
+          subtitle="最多選 2 項，挑你感興趣的新挑戰，我們會幫你找帶路人。"
+          height="tall"
+          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+          contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
+          primaryButton={{
+            label: '儲存',
+            onClick: () => setShowTryingSheet(false),
+            disabled: isSavingProfile,
+          }}
+          showHandle={false}
+        >
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-slate-700">
+              已選 {draftProfile.trying.length}/2
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {draftProfile.trying.map((s) => (
+                <span
+                  key={s}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-800"
+                >
+                  {s}
+                  <button
+                    type="button"
+                    aria-label="移除"
+                    className="text-slate-400 hover:text-slate-600"
+                    onClick={() =>
+                      setDraftProfile((prev) => ({
+                        ...prev,
+                        trying: prev.trying.filter((x) => x !== s),
+                      }))
+                    }
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <input
+            value={tryingSearch}
+            onChange={(e) => setTryingSearch(e.target.value)}
+            placeholder="搜尋運動"
+            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
+          />
+
+          <div className="space-y-2">
+            {sportsCatalog
+              .filter((sport) => sport.label.toLowerCase().includes(tryingSearch.toLowerCase()))
+              .map((sport) => {
+                const selected = draftProfile.trying.includes(sport.label)
+                const disabled = !selected && draftProfile.trying.length >= 2
+                return (
+                  <label
+                    key={sport.key}
+                    className={clsx(
+                      'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-base font-semibold shadow-sm transition',
+                      selected
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300',
+                      disabled && !selected && 'cursor-not-allowed opacity-50'
+                    )}
+                  >
+                    <span>{sport.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      disabled={disabled}
+                      onChange={() => {
+                        setDraftProfile((prev) => {
+                          const next = selected
+                            ? prev.trying.filter((s) => s !== sport.label)
+                            : [...prev.trying, sport.label]
+                          return { ...prev, trying: next }
+                        })
+                      }}
+                      className="h-5 w-5 accent-blue-600"
+                    />
+                  </label>
+                )
+              })}
+          </div>
+        </SheetLayout>
       </BottomSheet>
       <BottomSheet
         open={showGoalSheet}
@@ -349,7 +992,12 @@ export function ProfilePage() {
               min={1}
               max={14}
               value={draftGoal.sessionsPerWeek}
-              onChange={(e) => setDraftGoal((prev) => ({ ...prev, sessionsPerWeek: e.target.value || '1' }))}
+              onChange={(e) =>
+                setDraftGoal((prev) => ({
+                  ...prev,
+                  sessionsPerWeek: e.target.value || '1',
+                }))
+              }
               className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
             />
           </div>
@@ -391,41 +1039,48 @@ export function ProfilePage() {
                 按天微調（可選）
               </summary>
               <div className="space-y-3 pt-2">
-                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                  <div key={day} className="space-y-2">
-                    <p className="text-base font-semibold text-slate-800">{dayLabels[day] ?? day}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {['早上', '下午', '晚上'].map((slot) => {
-                        const active = draftDaySlots[day]?.includes(slot)
-                        return (
-                          <button
-                            key={slot}
-                            type="button"
-                            onClick={() =>
-                              setDraftDaySlots((prev) => {
-                                const next = { ...prev, [day]: [...(prev[day] ?? [])] }
-                                if (next[day].includes(slot)) {
-                                  next[day] = next[day].filter((s) => s !== slot)
-                                } else {
-                                  next[day].push(slot)
-                                }
-                                return next
-                              })
-                            }
-                            className={clsx(
-                              'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
-                              active
-                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                            )}
-                          >
-                            {slot}
-                          </button>
-                        )
-                      })}
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
+                  (day) => (
+                    <div key={day} className="space-y-2">
+                      <p className="text-base font-semibold text-slate-800">
+                        {dayLabels[day] ?? day}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {['早上', '下午', '晚上'].map((slot) => {
+                          const active = draftDaySlots[day]?.includes(slot)
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              onClick={() =>
+                                setDraftDaySlots((prev) => {
+                                  const next = {
+                                    ...prev,
+                                    [day]: [...(prev[day] ?? [])],
+                                  }
+                                  if (next[day].includes(slot)) {
+                                    next[day] = next[day].filter((s) => s !== slot)
+                                  } else {
+                                    next[day].push(slot)
+                                  }
+                                  return next
+                                })
+                              }
+                              className={clsx(
+                                'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
+                                active
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                              )}
+                            >
+                              {slot}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </details>
           </div>
@@ -445,9 +1100,10 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={handleSaveGoal}
-              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+              disabled={isSavingGoal}
+              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
             >
-              儲存
+              {isSavingGoal ? '儲存中...' : '儲存'}
             </button>
           </div>
         </div>
@@ -455,503 +1111,3 @@ export function ProfilePage() {
     </div>
   )
 }
-
-export function StatsContent({
-  goal,
-  goalDaySlots,
-  onOpenGoalSheet,
-  showEdit = true,
-}: {
-  goal: GoalState | null
-  goalDaySlots: Record<string, string[]>
-  onOpenGoalSheet: () => void
-  showEdit?: boolean
-}) {
-  const dayLabels: Record<string, string> = {
-    Monday: '週一',
-    Tuesday: '週二',
-    Wednesday: '週三',
-    Thursday: '週四',
-    Friday: '週五',
-    Saturday: '週六',
-    Sunday: '週日',
-  }
-  const preferredTimes = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => ({
-    dayLabel: dayLabels[day] ?? day,
-    slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
-  }))
-
-  if (!goal || !goal.sessionsPerWeek) {
-    return (
-      <div className="px-3">
-        <EmptyBlock
-          title="尚未設定每週節奏"
-          description="設定你的每週目標次數與時段，幫你配對到適合的活動與夥伴。"
-          actionLabel={showEdit ? '設定每週節奏' : undefined}
-          onAction={showEdit ? onOpenGoalSheet : undefined}
-        />
-      </div>
-    )
-  }
-
-  return (
-    <div className="px-3">
-      <div className="space-y-4 overflow-hidden rounded-3xl border border-blue-100 bg-blue-50 shadow-sm">
-        <div className="flex items-start justify-between px-5 pt-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            我的每週節奏
-          </p>
-          {showEdit && (
-            <button
-              type="button"
-              onClick={onOpenGoalSheet}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              編輯
-            </button>
-          )}
-        </div>
-        <div className="space-y-3 px-5">
-          <p className="text-xl font-bold text-slate-900">
-            本週節奏：{goal.sessionsPerWeek} 次
-          </p>
-          <p className="text-sm font-semibold text-slate-700">本週完成度 20% — 穩穩前進。</p>
-          <div className="h-3 overflow-hidden rounded-full bg-blue-100">
-            <div className="h-full w-1/2 rounded-full bg-emerald-500" />
-          </div>
-          <p className="text-base font-semibold text-emerald-600">
-            你出現過一次 — 傳奇。
-          </p>
-        </div>
-        <div className="space-y-2 border-t border-blue-100 bg-white/60 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            你的偏好時段
-          </p>
-          <div className="space-y-1">
-            {preferredTimes.map(({ dayLabel, slots }) => (
-              <div
-                key={dayLabel}
-                className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800"
-              >
-                <span>{dayLabel}</span>
-                <span className="text-slate-500 font-medium">{slots}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function MatchesContent() {
-  const navigate = useNavigate()
-  const upcoming: Array<any> = []
-
-  const completed: Array<any> = []
-  const [active, setActive] = useState<'upcoming' | 'completed'>('upcoming')
-
-  return (
-    <div className="space-y-5 px-3">
-      <div className="space-y-3">
-        <div className="flex border-b border-slate-200">
-          {[
-            { key: 'upcoming', label: `Upcoming (${upcoming.length})` },
-            { key: 'completed', label: 'History' },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActive(tab.key as typeof active)}
-              className={clsx(
-                'relative flex-1 py-2 text-center text-sm font-semibold',
-                active === tab.key ? 'text-blue-600' : 'text-slate-500'
-              )}
-            >
-              {tab.label}
-              {active === tab.key && (
-                <span className="absolute bottom-0 left-0 right-0 mx-auto block h-0.5 w-1/2 rounded-full bg-blue-600" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {active === 'upcoming' && (
-        <section className="space-y-3">
-          {upcoming.length === 0 ? (
-            <EmptyBlock
-              title="還沒有即將到來的活動"
-              description="建立或報名一場活動，就能在這裡看到行程。"
-              actionLabel="去逛活動"
-              onAction={() => navigate('/events')}
-            />
-          ) : (
-            upcoming.map((item) => (
-              <div
-                key={item.title}
-                className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)]"
-              >
-                <button
-                  type="button"
-                  onClick={() => navigate(`/event/${item.id}`)}
-                  className="w-full text-left"
-                >
-                  <div className="space-y-3 px-5 pt-5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                        {item.pace}
-                      </span>
-                      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                        {item.tag}
-                      </span>
-                    </div>
-                    <p className="text-xl font-semibold text-slate-900 flex items-center gap-2">
-                      <span>{item.title}</span>
-                    </p>
-                    <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <Calendar className="h-4 w-4 text-slate-500" />
-                      {item.time}
-                    </p>
-                    <p className="flex items-center gap-2 text-sm text-slate-600">
-                      <MapPin className="h-4 w-4 text-slate-500" />
-                      {item.location}
-                    </p>
-                    <p className="flex items-center gap-2 text-sm text-slate-600">
-                      <Users className="h-4 w-4 text-slate-500" />
-                      {item.joined}
-                    </p>
-                    <p className="flex items-center gap-2 text-sm text-slate-600">
-                      <Wallet className="h-4 w-4 text-slate-500" />
-                      {item.price}
-                    </p>
-                  </div>
-                </button>
-
-                {item.checkIn && !item.checkIn.status && (
-                  <div className="space-y-3 px-5 pb-5">
-                    <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-800">
-                            {item.checkIn.label}
-                          </p>
-                          <p className="text-xs text-slate-600">
-                            {item.checkIn.instructions}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-slate-700">
-                        <span>Check-in available:</span>
-                        <span className="font-semibold">
-                          {item.checkIn.window}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-slate-700">
-                        <span>You’re good as long as you’re within:</span>
-                        <span className="font-semibold">
-                          {item.checkIn.radius}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-blue-500 hover:to-blue-500"
-                    >
-                      📍 I’m here — check me in
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </section>
-      )}
-
-      {active === 'completed' && (
-        <section className="space-y-3">
-          {completed.length === 0 ? (
-            <EmptyBlock
-              title="還沒有歷史紀錄"
-              description="完成一場活動後，會在這裡看到你的紀錄。"
-              actionLabel="去逛活動"
-              onAction={() => navigate('/events')}
-            />
-          ) : (
-            completed.map((item) => (
-              <div
-                key={item.title}
-                className="space-y-4 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_12px_30px_rgba(15,41,77,0.06)]"
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate(`/event/${item.id}`)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    navigate(`/event/${item.id}`)
-                  }
-                }}
-              >
-                <div className="flex items-start justify-between px-5 pt-5">
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {item.pace && (
-                        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                          {item.pace}
-                        </span>
-                      )}
-                      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                        {item.tag}
-                      </span>
-                    </div>
-                    <p className="text-xl font-semibold text-slate-900">
-                      {item.title}
-                    </p>
-                    <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <Calendar className="h-4 w-4 text-slate-500" />
-                      {item.time}
-                    </p>
-                    <p className="flex items-center gap-2 text-sm text-slate-600">
-                      <MapPin className="h-4 w-4 text-slate-500" />
-                      {item.location}
-                    </p>
-                    <p className="flex items-center gap-2 text-sm text-slate-600">
-                      <Users className="h-4 w-4 text-slate-500" />
-                      {item.joined}
-                    </p>
-                    <p className="flex items-center gap-2 text-sm text-slate-600">
-                      <Wallet className="h-4 w-4 text-slate-500" />
-                      {item.price}
-                    </p>
-                  </div>
-                </div>
-                <div className="">
-                  <div className="space-y-2 bg-slate-200 px-5 py-3 text-sm text-slate-700">
-                    {item.checkIn?.time && (
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold">Time</span>
-                        <span className="font-semibold">{item.checkIn.time}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold">Check-in</p>
-                      {item.checkIn && (
-                        <span
-                          className={clsx(
-                            'inline-flex rounded-full px-3 py-1 text-xs font-semibold',
-                            item.checkIn.status === 'on-time'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : item.checkIn.status === 'late'
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'bg-rose-100 text-rose-700'
-                          )}
-                        >
-                          {item.checkIn.status === 'on-time'
-                            ? 'On time'
-                            : item.checkIn.status === 'late'
-                            ? 'Good on ya, you made it'
-                            : 'No show'}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </section>
-      )}
-    </div>
-  )
-}
-
-export function PeopleContent() {
-  const navigate = useNavigate()
-  const [subTab, setSubTab] = useState<'connected' | 'playmates'>('connected')
-  const connected: Array<any> = []
-  const playmates: Array<any> = []
-  const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
-    const handle = mate.username || mate.name
-    navigate(`/${encodeURIComponent(handle)}`, { state: { mate } })
-  }
-
-  return (
-    <div className="space-y-3 ">
-      <div className="sticky top-0 z-10 flex justify-center">
-        <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
-          {[
-            { key: 'connected', label: '夥伴圈' },
-            { key: 'playmates', label: '交手夥伴' },
-          ].map((tab) => {
-            const active = subTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setSubTab(tab.key as typeof subTab)}
-                className={clsx(
-                  'flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold transition',
-                  active
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-800'
-                )}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {subTab === 'connected' && (
-        <div className="space-y-4 px-3 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            我的夥伴
-          </p>
-          {connected.length === 0 ? (
-            <EmptyBlock
-              title="還沒有夥伴"
-              description="加入或建立活動，累積互動後會顯示你的夥伴圈。"
-              actionLabel="去逛活動"
-              onAction={() => navigate('/events')}
-            />
-          ) : (
-            <div className="space-y-3">
-              {connected.map((person) => (
-                <button
-                  key={person.name}
-                  type="button"
-                  onClick={() => goToMate({ name: person.name, vibe: 'Chill' })}
-                  className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 text-left shadow-sm transition hover:shadow-md focus:outline-none"
-                >
-                  <div
-                    className={clsx(
-                      'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
-                      person.colors
-                    )}
-                  >
-                    {person.name.charAt(0)}
-                  </div>
-                  <div className="flex-1 space-y-0.5">
-                    <p className="text-base font-semibold text-slate-900">
-                      {person.name}
-                    </p>
-                    <p className="text-sm text-slate-600">{person.detail}</p>
-                    <p className="text-sm text-slate-500">{person.meta}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {subTab === 'playmates' && (
-        <div className="space-y-4 px-3 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            交手夥伴
-          </p>
-          {playmates.length === 0 ? (
-            <EmptyBlock
-              title="還沒有交手夥伴"
-              description="完成活動或互動後，這裡會顯示你圈選的交手夥伴。"
-              actionLabel="去逛活動"
-              onAction={() => navigate('/events')}
-            />
-          ) : (
-            <div className="space-y-3">
-              {playmates.map((mate) => {
-                const isAdded = mate.status === 'Added'
-                return (
-                  <div
-                    key={mate.name}
-                    className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 shadow-sm"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => goToMate({ name: mate.name, vibe: 'Chill' })}
-                      className="flex items-center gap-4 text-left focus:outline-none"
-                    >
-                      <div
-                        className={clsx(
-                          'flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br text-lg font-bold text-white shadow-sm',
-                          mate.colors
-                        )}
-                      >
-                        {mate.name.charAt(0)}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-base font-semibold text-slate-900">
-                            {mate.name}
-                          </p>
-                        </div>
-                        <p className="text-sm text-slate-600">{mate.meta}</p>
-                      </div>
-                    </button>
-                    <div className="ml-auto">
-                      <button
-                        type="button"
-                        className={clsx(
-                          'min-w-[64px] rounded-xl px-4 py-2 text-sm font-semibold shadow-sm',
-                          isAdded
-                            ? 'bg-slate-100 text-slate-500'
-                            : 'border border-slate-300 text-slate-900 hover:bg-slate-50'
-                        )}
-                      >
-                        {mate.status}
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function HeroCard({ profile, onEdit }: { profile: MateCardProps | null; onEdit: () => void }) {
-  if (!profile) {
-    return (
-      <div className="bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff] px-4 py-8">
-        <EmptyBlock
-          title="還沒有運動卡資料"
-          description="建立或編輯你的運動卡，讓夥伴更快找到你。"
-          actionLabel="建立運動卡"
-          onAction={onEdit}
-        />
-      </div>
-    )
-  }
-
-  return (
-    <div className="bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff]">
-      <MateCard
-        {...profile}
-        accentClassName="w-full max-w-none min-w-0 shadow-none bg-transparent px-0 rounded-none"
-      />
-      <div className="py-3 flex justify-center">
-        <button
-          type="button"
-          onClick={onEdit}
-          className="w-100 max-w-xs rounded-lg bg-slate-100 px-4 py-1 text-slate-400 text-sm"
-        >
-          編輯運動卡
-        </button>
-      </div>
-    </div>
-  )
-}
-
-const TabsBar = forwardRef<HTMLDivElement>((_, ref) => (
-  <div ref={ref} className="flex justify-between border-b border-slate-200 px-6">
-    <div className="relative flex h-12 flex-1 flex-col items-center justify-center text-slate-600">
-      <Goal className="h-6 w-6" />
-      <span className="text-[11px] font-semibold">Activity</span>
-      <span className="absolute -bottom-[1px] left-0 right-0 mx-auto h-1 w-12 rounded-full bg-[#1e63f4]" />
-    </div>
-  </div>
-))

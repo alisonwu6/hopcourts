@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
-import { StatsContent } from './ProfilePage'
+import { ProfileContent } from './ProfilePage'
 
 export function MateProfilePage() {
   const navigate = useNavigate()
@@ -45,7 +45,7 @@ export function MateProfilePage() {
           <MateCard {...profile} />
         </div>
         <div className="mt-4">
-          <StatsContent
+          <ProfileContent
             goal={{ sessionsPerWeek: '2', timeOfDay: 'Evenings', days: ['Mon', 'Wed'] }}
             goalDaySlots={goalDaySlots}
             onOpenGoalSheet={() => {}}

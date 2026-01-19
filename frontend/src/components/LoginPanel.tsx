@@ -52,7 +52,8 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
         <h1 className="text-2xl font-semibold text-slate-900">歡迎加入 SportsMatch</h1>
         <p className="mt-2 text-sm text-slate-600">
           探索在地活動、認識新夥伴，
-          <br />一起組成你的運動夥伴圈。
+          <br />
+          一起組成你的運動夥伴圈。
         </p>
       </div>
 

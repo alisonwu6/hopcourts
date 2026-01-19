@@ -1,6 +1,6 @@
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
 import type { User } from '@/types'
-import type { OnboardingStatus } from '@/store/onboardingStore'
+import type { OnboardingStatus } from '@/stores/onboarding.store'
 import { supabase } from '@/lib/supabase'
 
 export interface SessionContext {
@@ -117,9 +117,9 @@ export const sessionService = {
   }): Promise<SessionContext> {
     const currentToken =
       typeof window !== 'undefined'
-        ? window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
+        ? (window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
           window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
-          ''
+          '')
         : ''
 
     const nextStatus: OnboardingStatus = {

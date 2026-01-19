@@ -29,15 +29,13 @@ export function IntroSheet({
     >
       <div className="mx-auto w-full max-w-md">
         {showLogo && (
-          <img
-            src={logoUrl}
-            alt="SportsMatch"
-            className="mx-auto h-48 w-auto drop-shadow-lg"
-          />
+          <img src={logoUrl} alt="SportsMatch" className="mx-auto h-48 w-auto drop-shadow-lg" />
         )}
         {title && <h2 className="text-2xl font-semibold">{title}</h2>}
         {description && (
-          <p className="mt-2 whitespace-pre-line text-base text-slate-700 font-semibold">{description}</p>
+          <p className="mt-2 whitespace-pre-line text-base font-semibold text-slate-700">
+            {description}
+          </p>
         )}
 
         {dismissLabel && (

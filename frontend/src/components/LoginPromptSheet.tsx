@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 import { BottomSheet } from './BottomSheet'
 import { LoginPanel } from './LoginPanel'
 
@@ -18,18 +18,13 @@ export function LoginPromptSheet({ open, onClose, onSignup }: LoginPromptSheetPr
       contentClassName="px-6 pb-8 pt-4 text-slate-900"
     >
       <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          登入或註冊
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">登入或註冊</p>
       </div>
       <div className="mt-4">
         <LoginPanel variant="sheet" />
         <p className="text-center text-sm text-slate-500">
           還沒有帳號嗎？{' '}
-          <Link
-            to="/signup"
-            className="font-semibold text-blue-600 hover:text-blue-700"
-          >
+          <Link to="/signup" className="font-semibold text-blue-600 hover:text-blue-700">
             加入 SportsMatch
           </Link>
         </p>
@@ -38,7 +33,7 @@ export function LoginPromptSheet({ open, onClose, onSignup }: LoginPromptSheetPr
         <button
           type="button"
           onClick={onClose}
-          className="underline inline-flex w-full items-center justify-center text-sm font-semibold text-slate-500 transition hover:text-slate-800"
+          className="inline-flex w-full items-center justify-center text-sm font-semibold text-slate-500 underline transition hover:text-slate-800"
         >
           繼續逛逛
         </button>

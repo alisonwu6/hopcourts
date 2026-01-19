@@ -35,17 +35,8 @@ export function AboutPage() {
         showFavorite={false}
         contentClassName="max-w-5xl px-4"
         showBack
-        title={
-          <span className="text-lg font-semibold text-slate-900">
-            關於 SportsMatch
-          </span>
-        }
-        rightContent={
-          <span
-            className="h-10 w-10"
-            aria-hidden="true"
-          />
-        }
+        title={<span className="text-lg font-semibold text-slate-900">關於 SportsMatch</span>}
+        rightContent={<span className="h-10 w-10" aria-hidden="true" />}
         borderBottom
       />
 
@@ -81,27 +72,21 @@ export function AboutPage() {
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <UsersRound className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  靈魂匹配
-                </h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">靈魂匹配</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   根據你的運動心態和節奏，找到與你同頻的夥伴。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  可靠夥伴
-                </h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">可靠夥伴</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   社群信用系統幫你篩選準時、投入的運動夥伴。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  隱私最高標準
-                </h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">隱私最高標準</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   個人資料與行程都有加密防護，讓你安心享受運動。
                 </p>
@@ -113,7 +98,8 @@ export function AboutPage() {
         <section className="bg-emerald-50/60 py-14">
           <div className="mx-auto w-full max-w-5xl px-4">
             <h2 className="text-2xl font-black text-slate-900 sm:text-3xl">
-              不是報名一場運動，<br />
+              不是報名一場運動，
+              <br />
               是建立你在城市裡的運動身份。
             </h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
@@ -132,7 +118,7 @@ export function AboutPage() {
                 <SlidersHorizontal className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動偏好</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  常做的運動、想嘗試的項目、偏好的時間與頻率，讓對的人更容易找到你。
+                  我的最愛、想嘗試的項目、偏好的時間與頻率，讓對的人更容易找到你。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">

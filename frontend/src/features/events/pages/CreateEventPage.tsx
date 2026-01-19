@@ -1,5 +1,11 @@
 import clsx from 'clsx'
-import type { ChangeEvent, FormEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
+import type {
+  ChangeEvent,
+  FormEvent,
+  InputHTMLAttributes,
+  ReactNode,
+  TextareaHTMLAttributes,
+} from 'react'
 import { useMemo, useState, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components'
@@ -150,7 +156,8 @@ export default function CreateEventPage() {
           lat: null,
           lng: null,
           address: form.location.trim(),
-          instructions: [form.priceNote.trim(), form.notes.trim()].filter(Boolean).join('\n\n') || undefined,
+          instructions:
+            [form.priceNote.trim(), form.notes.trim()].filter(Boolean).join('\n\n') || undefined,
         },
         isFree: true,
         tags: [],
@@ -169,110 +176,110 @@ export default function CreateEventPage() {
   return (
     <>
       <div className="min-h-screen bg-blue-50 pb-16">
-      <ActionToolbar
-        onBack={handleCancel}
-        onToggleFavorite={() => setIsFavorite((prev) => !prev)}
-        isFavorite={isFavorite}
-        showFavorite={false}
-        showShare={false}
-        backLabel="取消"
-        contentClassName="w-full max-w-3xl px-4 sm:px-6"
-      />
-      <form
-        id="event-form"
-        className="mx-auto mt-6 w-full max-w-3xl space-y-4 px-4 pb-8 sm:px-6"
-        onSubmit={handleSubmit}
-      >
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm">
-            {error}
-          </div>
-        )}
-
-        <section className="space-y-8 rounded-[32px] border border-slate-100 bg-white shadow-[0_24px_60px_rgba(15,41,77,0.12)] px-6 py-8 sm:px-8">
-          <CoverUploader previewUrl={heroPreview} onChange={handleImageChange} />
-
-          <FieldSection title="活動基本資料" description="先填最重要的資訊，讓大家一眼看懂。">
-            <FloatingField
-              label="標題"
-              name="title"
-              value={form.title}
-              onChange={handleInputChange}
-              required
-            />
-            <FloatingField
-              label="運動項目"
-              name="sport"
-              value={form.sport}
-              onChange={handleInputChange}
-              required
-            />
-            <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
-          </FieldSection>
-
-          <FieldSection title="時間與地點" description="設定集合時間與地點。">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FloatingField
-                label="開始時間"
-                name="startTime"
-                type="datetime-local"
-                value={form.startTime}
-                onChange={handleInputChange}
-                required
-              />
-              <FloatingField
-                label="結束時間"
-                name="endTime"
-                type="datetime-local"
-                value={form.endTime}
-                onChange={handleInputChange}
-                required
-              />
+        <ActionToolbar
+          onBack={handleCancel}
+          onToggleFavorite={() => setIsFavorite((prev) => !prev)}
+          isFavorite={isFavorite}
+          showFavorite={false}
+          showShare={false}
+          backLabel="取消"
+          contentClassName="w-full max-w-3xl px-4 sm:px-6"
+        />
+        <form
+          id="event-form"
+          className="mx-auto mt-6 w-full max-w-3xl space-y-4 px-4 pb-8 sm:px-6"
+          onSubmit={handleSubmit}
+        >
+          {error && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm">
+              {error}
             </div>
-            <FloatingField
-              label="地點"
-              name="location"
-              value={form.location}
-              onChange={handleInputChange}
-              required
-            />
-            <div className="grid gap-4 sm:grid-cols-2">
+          )}
+
+          <section className="space-y-8 rounded-[32px] border border-slate-100 bg-white px-6 py-8 shadow-[0_24px_60px_rgba(15,41,77,0.12)] sm:px-8">
+            <CoverUploader previewUrl={heroPreview} onChange={handleImageChange} />
+
+            <FieldSection title="活動基本資料" description="先填最重要的資訊，讓大家一眼看懂。">
               <FloatingField
-                label="Capacity"
-                name="capacity"
-                type="number"
-                min={1}
-                value={form.capacity}
+                label="標題"
+                name="title"
+                value={form.title}
                 onChange={handleInputChange}
                 required
               />
-            </div>
-          </FieldSection>
+              <FloatingField
+                label="運動項目"
+                name="sport"
+                value={form.sport}
+                onChange={handleInputChange}
+                required
+              />
+              <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
+            </FieldSection>
 
-          <FieldSection title="告訴大家期待什麼" description="描述氛圍、目標，或注意事項。">
-            <FloatingField
-              as="textarea"
-              label="描述"
-              name="description"
-              rows={4}
-              value={form.description}
-              onChange={handleInputChange}
-              supportingText="說明活動的氛圍、步調，讓參加者知道會遇到什麼。"
-            />
-            <FloatingField
-              as="textarea"
-              label="給參加者的小提醒"
-              name="notes"
-              rows={3}
-              value={form.notes}
-              onChange={handleInputChange}
-              supportingText="只給已報名者的最新通知或重要細節。"
-            />
-          </FieldSection>
-        </section>
-      </form>
+            <FieldSection title="時間與地點" description="設定集合時間與地點。">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FloatingField
+                  label="開始時間"
+                  name="startTime"
+                  type="datetime-local"
+                  value={form.startTime}
+                  onChange={handleInputChange}
+                  required
+                />
+                <FloatingField
+                  label="結束時間"
+                  name="endTime"
+                  type="datetime-local"
+                  value={form.endTime}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <FloatingField
+                label="地點"
+                name="location"
+                value={form.location}
+                onChange={handleInputChange}
+                required
+              />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FloatingField
+                  label="Capacity"
+                  name="capacity"
+                  type="number"
+                  min={1}
+                  value={form.capacity}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </FieldSection>
 
-      <ActionBar canSubmit={canSubmit} isSubmitting={isSubmitting} />
+            <FieldSection title="告訴大家期待什麼" description="描述氛圍、目標，或注意事項。">
+              <FloatingField
+                as="textarea"
+                label="描述"
+                name="description"
+                rows={4}
+                value={form.description}
+                onChange={handleInputChange}
+                supportingText="說明活動的氛圍、步調，讓參加者知道會遇到什麼。"
+              />
+              <FloatingField
+                as="textarea"
+                label="給參加者的小提醒"
+                name="notes"
+                rows={3}
+                value={form.notes}
+                onChange={handleInputChange}
+                supportingText="只給已報名者的最新通知或重要細節。"
+              />
+            </FieldSection>
+          </section>
+        </form>
+
+        <ActionBar canSubmit={canSubmit} isSubmitting={isSubmitting} />
       </div>
       <LoginPromptSheet
         open={showLoginPrompt}
@@ -310,7 +317,15 @@ function ActionBar({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitti
   )
 }
 
-function FieldSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+function FieldSection({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children: ReactNode
+}) {
   return (
     <div className="space-y-4 rounded-[28px] border border-slate-100 bg-slate-50/60 p-4 sm:p-6">
       <div className="space-y-1">
@@ -322,7 +337,13 @@ function FieldSection({ title, description, children }: { title: string; descrip
   )
 }
 
-function SkillSelector({ selected, onSelect }: { selected: SkillLevelKey; onSelect: (level: SkillLevelKey) => void }) {
+function SkillSelector({
+  selected,
+  onSelect,
+}: {
+  selected: SkillLevelKey
+  onSelect: (level: SkillLevelKey) => void
+}) {
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold tracking-wide text-slate-500">Skill level</p>
@@ -351,15 +372,27 @@ function SkillSelector({ selected, onSelect }: { selected: SkillLevelKey; onSele
   )
 }
 
-function CoverUploader({ previewUrl, onChange }: { previewUrl?: string; onChange: (event: ChangeEvent<HTMLInputElement>) => void }) {
+function CoverUploader({
+  previewUrl,
+  onChange,
+}: {
+  previewUrl?: string
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void
+}) {
   return (
     <div className="rounded-[28px] border border-slate-200 bg-slate-50/80 p-4">
       <label className="flex h-52 cursor-pointer flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed border-slate-300 bg-white text-center text-sm text-slate-500 transition hover:border-blue-300">
         {previewUrl ? (
-          <img src={previewUrl} alt="Preview" className="h-full w-full rounded-[20px] object-cover" />
+          <img
+            src={previewUrl}
+            alt="Preview"
+            className="h-full w-full rounded-[20px] object-cover"
+          />
         ) : (
           <>
-            <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">Cover photo</div>
+            <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
+              Cover photo
+            </div>
             <p>Add an inviting photo (Airbnb-style). Drag or click to upload.</p>
           </>
         )}
@@ -372,10 +405,12 @@ function CoverUploader({ previewUrl, onChange }: { previewUrl?: string; onChange
 type FloatingFieldProps =
   | ({
       as?: 'input'
-    } & InputHTMLAttributes<HTMLInputElement> & CommonFloatingProps)
+    } & InputHTMLAttributes<HTMLInputElement> &
+      CommonFloatingProps)
   | ({
       as: 'textarea'
-    } & TextareaHTMLAttributes<HTMLTextAreaElement> & CommonFloatingProps)
+    } & TextareaHTMLAttributes<HTMLTextAreaElement> &
+      CommonFloatingProps)
 
 type CommonFloatingProps = {
   label: string
@@ -389,9 +424,9 @@ function FloatingField(props: FloatingFieldProps) {
   const id = useId()
   const value =
     'value' in props
-      ? props.value ?? ''
+      ? (props.value ?? '')
       : 'defaultValue' in props
-        ? (props.defaultValue as string | number | readonly string[] | undefined) ?? ''
+        ? ((props.defaultValue as string | number | readonly string[] | undefined) ?? '')
         : ''
   const hasValue =
     typeof value === 'number'
@@ -409,7 +444,12 @@ function FloatingField(props: FloatingFieldProps) {
       : supportingText
 
   if (as === 'textarea') {
-    const { as: _as, className, rows = 4, ...rest } = props as Extract<FloatingFieldProps, { as: 'textarea' }>
+    const {
+      as: _as,
+      className,
+      rows = 4,
+      ...rest
+    } = props as Extract<FloatingFieldProps, { as: 'textarea' }>
     return (
       <div className="space-y-1">
         <div className="relative">
@@ -430,7 +470,12 @@ function FloatingField(props: FloatingFieldProps) {
     )
   }
 
-  const { as: _as, className, type = 'text', ...rest } = props as Extract<FloatingFieldProps, { as?: 'input' }>
+  const {
+    as: _as,
+    className,
+    type = 'text',
+    ...rest
+  } = props as Extract<FloatingFieldProps, { as?: 'input' }>
   return (
     <div className="space-y-1">
       <div className="relative">

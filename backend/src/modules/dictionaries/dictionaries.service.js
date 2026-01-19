@@ -2,6 +2,7 @@ const countriesModel = require('../../../models/countries.model')
 const citiesModel = require('../../../models/cities.model')
 const vibesModel = require('../../../models/vibes.model')
 const ageRangesModel = require('../../../models/ageRanges.model')
+const { query } = require('../../../db/client')
 
 function parseLang(query) {
   const lang = (query.lang || 'zh').toString()
@@ -33,9 +34,24 @@ async function listAgeRanges(query = {}) {
   return { items }
 }
 
+async function dictionaryMeta() {
+  const meta = {}
+  // sports: use updated_at ；其他暫用 now()
+  const sportsRes = await query(
+    `select coalesce(to_char(max(updated_at), 'YYYY-MM-DD\"T\"HH24:MI:SSZ'), to_char(now(), 'YYYY-MM-DD\"T\"HH24:MI:SSZ')) as version from public.sports`
+  )
+  meta.sports = { version: sportsRes.rows[0]?.version || new Date().toISOString() }
+  const now = new Date().toISOString()
+  meta.vibes = { version: now }
+  meta.countries = { version: now }
+  meta.age_ranges = { version: now }
+  return meta
+}
+
 module.exports = {
   listCountries,
   listCities,
   listVibes,
   listAgeRanges,
+  dictionaryMeta,
 }

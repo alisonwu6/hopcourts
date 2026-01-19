@@ -63,9 +63,7 @@ export function BottomNav() {
     >
       <div className="mx-auto flex items-center justify-center gap-10 px-4 py-2">
         {navItems.map(({ label, icon: Icon, path, matchPaths }) => {
-          const isActive = matchPaths
-            ? matchPaths.some(matchesPath)
-            : matchesPath(path)
+          const isActive = matchPaths ? matchPaths.some(matchesPath) : matchesPath(path)
 
           return (
             <button
