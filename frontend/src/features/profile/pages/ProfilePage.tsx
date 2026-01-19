@@ -19,6 +19,7 @@ const emptyProfile: MateCardProps = {
   flag: '',
   countryKey: '',
   vibe: '',
+  vibeKey: null,
   sports: [],
   trying: [],
   blurb: '',
@@ -199,6 +200,39 @@ export function ProfilePage() {
       return { ...prev, vibe: union }
     })
   }, [vibesCatalog, vibeKeyToUnion])
+
+  // Sync label fields (vibe/location/flag) once dictionaries載入完成
+  useEffect(() => {
+    if (!profile) return
+    setProfile((prev) => {
+      if (!prev) return prev
+      const next = { ...prev }
+      if (prev.cityKey) {
+        const label = labelForCity(prev.cityKey)
+        if (label && label !== prev.location) next.location = label
+      }
+      if (prev.countryKey) {
+        const label = labelForCountry(prev.countryKey)
+        if (label && label !== prev.flag) next.flag = label
+      }
+      if (next.location === prev.location && next.flag === prev.flag) return prev
+      return next
+    })
+    setDraftProfile((prev) => {
+      if (!prev) return prev
+      const next = { ...prev }
+      if (prev.cityKey) {
+        const label = labelForCity(prev.cityKey)
+        if (label && label !== prev.location) next.location = label
+      }
+      if (prev.countryKey) {
+        const label = labelForCountry(prev.countryKey)
+        if (label && label !== prev.flag) next.flag = label
+      }
+      if (next.location === prev.location && next.flag === prev.flag) return prev
+      return next
+    })
+  }, [citiesCatalog, countriesCatalog, labelForCity, labelForCountry, profile])
   const hasCompletedCard = onboardingStatus?.isComplete ?? false
 
   useEffect(() => {
@@ -293,8 +327,15 @@ export function ProfilePage() {
   }
 
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
+    let nextValue = rawKey ?? value
+    if (field === 'vibe') {
+      nextValue =
+        rawKey ||
+        vibeUnionToKey.get(value as MateCardProps['vibe']) ||
+        value
+    }
     setActiveField(field)
-    setFieldValue(rawKey ?? value)
+    setFieldValue(nextValue)
   }
 
   const handleSaveField = async () => {
@@ -323,6 +364,7 @@ export function ProfilePage() {
         break
       case 'vibe':
         next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
+        next.vibeKey = value
         payload.vibe_key = value
         break
       case 'bio':
@@ -690,25 +732,76 @@ export function ProfilePage() {
                 </select>
               ) : activeField === 'flag' ? (
                 <select
-              value={fieldValue}
-              onChange={(e) => setFieldValue(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-            >
-              <option value="">請選擇國籍</option>
-              {countriesCatalog.map((c) => (
-                <option
-                  key={c.key}
-                  value={c.key}
+                  value={fieldValue}
+                  onChange={(e) => setFieldValue(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
                 >
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          ) : activeField === 'bio' ? (
-            <div className="space-y-2">
-              <textarea
-                value={fieldValue}
-                onChange={(e) => setFieldValue(e.target.value)}
+                  <option value="">請選擇國籍</option>
+                  {countriesCatalog.map((c) => (
+                    <option
+                      key={c.key}
+                      value={c.key}
+                    >
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              ) : activeField === 'avatar' ? (
+                <div className="space-y-3">
+                  <input
+                    type="url"
+                    value={fieldValue}
+                    onChange={(e) => setFieldValue(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="貼上圖片網址或上傳檔案"
+                  />
+                  <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
+                    <div className="text-sm font-semibold text-slate-700">
+                      或上傳圖片 (Supabase)
+                    </div>
+                    <label className="inline-flex cursor-pointer rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          if (!supabase || !userId) {
+                            alert('尚未設定 Supabase 或未登入，請改貼上圖片網址。')
+                            return
+                          }
+                          setAvatarUploading(true)
+                          try {
+                            const fileExt = file.name.split('.').pop()
+                            const path = `avatars/${userId}-${Date.now()}.${fileExt ?? 'jpg'}`
+                            const { error } = await supabase.storage
+                              .from('avatars')
+                              .upload(path, file, { upsert: true })
+                            if (error) throw error
+                            const { data: publicData } = supabase.storage
+                              .from('avatars')
+                              .getPublicUrl(path)
+                            if (publicData?.publicUrl) {
+                              setFieldValue(publicData.publicUrl)
+                            }
+                          } catch (err) {
+                            console.error('avatar upload failed', err)
+                            alert('上傳失敗，請再試一次或改貼上圖片網址。')
+                          } finally {
+                            setAvatarUploading(false)
+                          }
+                        }}
+                      />
+                      選擇檔案
+                    </label>
+                  </div>
+                </div>
+              ) : activeField === 'bio' ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={fieldValue}
+                    onChange={(e) => setFieldValue(e.target.value)}
                 maxLength={120}
                 rows={4}
                 className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"

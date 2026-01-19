@@ -16,6 +16,7 @@ export type MateCardProps = {
   flag: string
   countryKey?: string
   vibe: Vibe
+  vibeKey?: string | null
   sports: string[]
   trying: string[]
   location: string
