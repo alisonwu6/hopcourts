@@ -23,4 +23,8 @@ export const onboardingService = {
       ApiResponse<{ is_complete: boolean; missing_fields: string[] }>
     >
   },
+
+  async getStats() {
+    return api.me.stats()
+  },
 }

@@ -21,6 +21,7 @@ import { ProfileContent } from '@/features/profile/components/ProfileContent'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
+import type { ApiResponse } from '@/api/types'
 
 const arraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((v, i) => v === b[i])
@@ -58,6 +59,7 @@ export function ProfilePage() {
     useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
+  const [stats, setStats] = useState<ApiResponse<any>['data'] | null>(null)
   const [vm, setVm] = useState<ProfileVM | null>(
     profileCache
       ? {
@@ -222,9 +224,10 @@ export function ProfilePage() {
     if (!isAuthenticated) return
     let cancelled = false
     const fetchProfile = async () => {
-      const [profileRes, preferencesRes] = await Promise.allSettled([
+      const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
         onboardingService.getProfile(),
         onboardingService.getPreferences(),
+        onboardingService.getStats(),
       ])
 
       if (!cancelled && profileRes.status === 'fulfilled') {
@@ -292,6 +295,11 @@ export function ProfilePage() {
         setGoalDaySlots(mergedSlots)
         setDraftDaySlots(mergedSlots)
         if (preferredTime) setDraftPreferredTime(preferredTime)
+      }
+
+      if (!cancelled && statsRes.status === 'fulfilled') {
+        const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
+        setStats(statsPayload)
       }
     }
     fetchProfile()
@@ -444,9 +452,14 @@ export function ProfilePage() {
   if (!isAuthenticated) return null
   const displayProfile = resolvedProfile
   const displayGoal = goal
+  const allowGoalEdit = true
+  const sessionsCompleted = Math.max(0, Number((stats as any)?.sessions_completed ?? 0))
+  const sessionsTarget = Math.max(0, Number(displayGoal?.sessionsPerWeek ?? 0))
+  const completion =
+    sessionsTarget > 0 ? Math.min(100, Math.round((sessionsCompleted / sessionsTarget) * 100)) : 0
 
   return (
-    <div className="min-h-screen pb-[120px]">
+    <div className="min-h-screen pb-[120px] overflow-y-auto">
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
@@ -480,8 +493,10 @@ export function ProfilePage() {
           <ProfileContent
             goal={displayGoal}
             goalDaySlots={goalDaySlots}
+            completion={completion}
+            sessionsCompleted={sessionsCompleted}
             onOpenGoalSheet={handleOpenGoal}
-            showEdit={hasCompletedCard}
+            showEdit={allowGoalEdit || hasCompletedCard}
           />
         </div>
       </div>

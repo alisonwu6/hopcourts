@@ -6,11 +6,20 @@ import type { GoalState } from '@/features/profile/types'
 type Props = {
   goal: GoalState | null
   goalDaySlots: Record<string, string[]>
+  completion: number
+  sessionsCompleted?: number
   onOpenGoalSheet: () => void
   showEdit?: boolean
 }
 
-export function ProfileContent({ goal, goalDaySlots, onOpenGoalSheet, showEdit = true }: Props) {
+export function ProfileContent({
+  goal,
+  goalDaySlots,
+  completion,
+  sessionsCompleted = 0,
+  onOpenGoalSheet,
+  showEdit = true,
+}: Props) {
   const preferredTimes = Object.keys(dayLabels).map((day) => ({
     dayLabel: dayLabels[day] ?? day,
     slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
@@ -57,11 +66,18 @@ export function ProfileContent({ goal, goalDaySlots, onOpenGoalSheet, showEdit =
           <p className="text-xl font-bold text-slate-900">
             本週節奏：{goal?.sessionsPerWeek ? `${goal.sessionsPerWeek} 次` : '未設定'}
           </p>
-          <p className="text-sm font-semibold text-slate-700">本週完成度 20% — 穩穩前進。</p>
+          <p className="text-sm font-semibold text-slate-400">
+            本週完成度 {completion}% — {completion === 0 ? '從 0 開始，慢慢來。' : '穩穩前進。'}
+          </p>
           <div className="h-3 overflow-hidden rounded-full bg-blue-100">
-            <div className="h-full w-1/2 rounded-full bg-emerald-500" />
+            <div
+              className="h-full rounded-full bg-emerald-500 transition-all"
+              style={{ width: `${completion}%` }}
+            />
           </div>
-          <p className="text-base font-semibold text-emerald-600">你出現過一次 — 傳奇。</p>
+          <p className="text-base font-semibold text-emerald-600">
+            你出現過 {sessionsCompleted || 0} 次 — 讓多巴胺起飛
+          </p>
         </div>
         <div className="space-y-2 border-t border-blue-100 bg-white/60 px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
