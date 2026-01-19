@@ -35,9 +35,7 @@ export function AboutPage() {
         showFavorite={false}
         contentClassName="max-w-5xl px-4"
         showBack
-        title={
-          <span className="text-lg font-semibold text-slate-900">關於 SportsMatch</span>
-        }
+        title={<span className="text-lg font-semibold text-slate-900">關於 SportsMatch</span>}
         rightContent={<span className="h-10 w-10" aria-hidden="true" />}
         borderBottom
       />
@@ -88,9 +86,7 @@ export function AboutPage() {
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  隱私最高標準
-                </h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">隱私最高標準</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   個人資料與行程都有加密防護，讓你安心享受運動。
                 </p>
@@ -113,27 +109,21 @@ export function AboutPage() {
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
                 <Activity className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  你的運動狀態
-                </h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動狀態</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   不是程度高低，而是你的步調、心情與生活節奏。輕鬆 / 穩定 / 成長 / 探索。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
                 <SlidersHorizontal className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  你的運動偏好
-                </h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動偏好</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   我的最愛、想嘗試的項目、偏好的時間與頻率，讓對的人更容易找到你。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
                 <MessageCircle className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">
-                  你的運動故事
-                </h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動故事</h3>
                 <p className="mt-2 text-sm text-slate-600">
                   一句話就好，這會成為你運動卡片上最真實、也最吸引人的部分。
                 </p>
@@ -149,9 +139,7 @@ export function AboutPage() {
                 建立我的運動身份
                 <ArrowRight className="ml-2 h-4 w-4" />
               </button>
-              <span className="text-xs text-slate-500">
-                約 2 分鐘完成，之後都可以調整
-              </span>
+              <span className="text-xs text-slate-500">約 2 分鐘完成，之後都可以調整</span>
             </div>
           </div>
         </section>

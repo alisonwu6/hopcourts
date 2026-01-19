@@ -85,19 +85,12 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
           autoComplete="current-password"
         />
 
-        <Button
-          type="submit"
-          className="w-full rounded-2xl text-base"
-          disabled={isLoading}
-        >
+        <Button type="submit" className="w-full rounded-2xl text-base" disabled={isLoading}>
           {isLoading ? '登入中…' : '用 Email 繼續'}
         </Button>
 
         <div className="text-center text-sm">
-          <Link
-            to="/forgot-password"
-            className="font-semibold text-blue-600 hover:text-blue-700"
-          >
+          <Link to="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700">
             忘記密碼？
           </Link>
         </div>

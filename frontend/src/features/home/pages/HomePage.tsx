@@ -259,9 +259,7 @@ export function HomePage() {
 
           <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
             <h2 className="text-lg font-semibold text-slate-900">建立你的運動身份</h2>
-            <p className="text-sm text-slate-600">
-              分享你的氛圍與喜好的運動，找到步調相近的夥伴。
-            </p>
+            <p className="text-sm text-slate-600">分享你的氛圍與喜好的運動，找到步調相近的夥伴。</p>
             <button
               type="button"
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition"
@@ -300,9 +298,7 @@ export function HomePage() {
           </button>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900">登入建立你的運動身份</h2>
-            <p className="text-sm text-slate-600">
-              一起會探索城市裡的運動氛圍，找到步調相近的夥伴
-            </p>
+            <p className="text-sm text-slate-600">一起會探索城市裡的運動氛圍，找到步調相近的夥伴</p>
           </div>
 
           <div className="space-y-3">

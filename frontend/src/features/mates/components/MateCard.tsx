@@ -70,11 +70,7 @@ export function MateCard({
               </span>
             </div>
             <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
-              <MapPin
-                className="h-3.5 w-3.5 text-slate-400"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+              <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
               <span className="truncate">{location}</span>
             </div>
           </div>

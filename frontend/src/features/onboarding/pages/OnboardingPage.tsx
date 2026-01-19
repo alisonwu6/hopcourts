@@ -8,28 +8,14 @@ import { useSports } from '@/features/sports/hooks/useSports'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
-import {
-  useAgeRanges,
-  useCities,
-  useCountries,
-  useVibes,
-} from '@/features/dictionaries/hooks'
+import { useAgeRanges, useCities, useCountries, useVibes } from '@/features/dictionaries/hooks'
 
 type Step = 'Vibe' | 'Sports' | 'Trying' | 'Country' | 'City' | 'Bio' | 'Info' | 'Preview'
 type TimeSlot = '早上' | '下午' | '晚上'
 type CityOption = { id: string; label: string }
 type AgeRangeOption = { id: string; label: string }
 
-const steps: Step[] = [
-  'Vibe',
-  'Sports',
-  'Trying',
-  'Country',
-  'City',
-  'Bio',
-  'Info',
-  'Preview',
-]
+const steps: Step[] = ['Vibe', 'Sports', 'Trying', 'Country', 'City', 'Bio', 'Info', 'Preview']
 
 const dayLabels: Record<string, string> = {
   Monday: '週一',
@@ -410,14 +396,10 @@ export function OnboardingPage() {
           const sportsRows = profilePayload.sports || []
           const favoriteKeys =
             profilePayload.favorite_sports ||
-            sportsRows
-              .filter((s: any) => s.kind === 'FAVORITE')
-              .map((s: any) => s.sport_key)
+            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
           const tryingKeys =
             profilePayload.trying_sports ||
-            sportsRows
-              .filter((s: any) => s.kind === 'TRYING')
-              .map((s: any) => s.sport_key)
+            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
 
           setVibe(keyToVibeSafe(user.vibe_key))
           setSports(favoriteKeys || [])
@@ -452,13 +434,9 @@ export function OnboardingPage() {
   return (
     <div>
       {loadingProfile && (
-        <div className="bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          正在載入你的資料...
-        </div>
+        <div className="bg-blue-50 px-4 py-3 text-sm text-blue-700">正在載入你的資料...</div>
       )}
-      {saveError && (
-        <div className="bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>
-      )}
+      {saveError && <div className="bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>}
       <ActionToolbar
         onBack={() => navigate(-1)}
         showFavorite={false}
@@ -516,9 +494,7 @@ export function OnboardingPage() {
         </div>
 
         <div className="mx-auto mt-6 flex w-full max-w-3xl flex-col gap-1 px-1">
-          <p className="text-sm font-semibold text-slate-500">
-            {stepLabels[currentStep]}
-          </p>
+          <p className="text-sm font-semibold text-slate-500">{stepLabels[currentStep]}</p>
           <p className="text-xs text-slate-500">{stepSubtitles[currentStep]}</p>
         </div>
 
@@ -537,9 +513,7 @@ export function OnboardingPage() {
                       ? 'border-transparent shadow-[0_12px_30px_-18px_rgba(0,0,0,0.3)]'
                       : 'border-slate-200 bg-white/90 hover:bg-white'
                   )}
-                  style={
-                    selected ? { background: withAlpha(accent.ring, 0.16) } : undefined
-                  }
+                  style={selected ? { background: withAlpha(accent.ring, 0.16) } : undefined}
                 >
                   <div className="text-lg font-semibold text-slate-900">{item.title}</div>
                   <div className="text-sm text-slate-600">{item.subtitle}</div>
@@ -551,9 +525,7 @@ export function OnboardingPage() {
 
         {currentStep === 'Sports' && (
           <div className="mt-10 space-y-3">
-            <div className="text-sm font-semibold text-slate-500">
-              已選 {sportsDisplayCount}/3
-            </div>
+            <div className="text-sm font-semibold text-slate-500">已選 {sportsDisplayCount}/3</div>
             {uniqueSports.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {uniqueSports.map((sportId) => {
@@ -609,12 +581,8 @@ export function OnboardingPage() {
                         : undefined
                     }
                   >
-                    <span className="text-sm font-semibold text-slate-900">
-                      {sport.label}
-                    </span>
-                    {selected && (
-                      <span className="text-xs font-semibold text-slate-600">✓</span>
-                    )}
+                    <span className="text-sm font-semibold text-slate-900">{sport.label}</span>
+                    {selected && <span className="text-xs font-semibold text-slate-600">✓</span>}
                   </button>
                 )
               })}
@@ -624,9 +592,7 @@ export function OnboardingPage() {
 
         {currentStep === 'Trying' && (
           <div className="mt-10 space-y-3">
-            <div className="text-sm font-semibold text-slate-500">
-              已選 {tryingDisplayCount}/2
-            </div>
+            <div className="text-sm font-semibold text-slate-500">已選 {tryingDisplayCount}/2</div>
             {uniqueTrying.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {uniqueTrying.map((itemId) => {
@@ -682,12 +648,8 @@ export function OnboardingPage() {
                         : undefined
                     }
                   >
-                    <span className="text-sm font-semibold text-slate-900">
-                      {item.label}
-                    </span>
-                    {selected && (
-                      <span className="text-xs font-semibold text-slate-600">✓</span>
-                    )}
+                    <span className="text-sm font-semibold text-slate-900">{item.label}</span>
+                    {selected && <span className="text-xs font-semibold text-slate-600">✓</span>}
                   </button>
                 )
               })}
@@ -732,9 +694,7 @@ export function OnboardingPage() {
                         : undefined
                     }
                   >
-                    <span className="text-lg font-semibold text-slate-900">
-                      {item.label}
-                    </span>
+                    <span className="text-lg font-semibold text-slate-900">{item.label}</span>
                     <span className="text-xl" aria-hidden="true">
                       {item.flag}
                     </span>
@@ -753,9 +713,7 @@ export function OnboardingPage() {
         {currentStep === 'City' && (
           <div className="mt-10 space-y-3">
             <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-              <p className="text-sm font-semibold text-slate-700">
-                現居城市（僅台北/新北）
-              </p>
+              <p className="text-sm font-semibold text-slate-700">現居城市（僅台北/新北）</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {cityOptions.map((option) => {
@@ -797,9 +755,7 @@ export function OnboardingPage() {
                   <Lock className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-800">
-                    你的名字，我們會好好保護
-                  </p>
+                  <p className="text-sm font-semibold text-slate-800">你的名字，我們會好好保護</p>
                   <p className="text-xs text-slate-500">
                     夥伴在社群裡只會看到你想被怎麼稱呼。真實姓名只會在真的需要安全驗證時才會使用。
                   </p>
@@ -829,9 +785,7 @@ export function OnboardingPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  真實姓名（不公開）
-                </label>
+                <label className="text-sm font-semibold text-slate-700">真實姓名（不公開）</label>
                 <input
                   value={realName}
                   onChange={(e) => setRealName(e.target.value)}
@@ -862,12 +816,8 @@ export function OnboardingPage() {
 
             <div className="mt-10 space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-700">
-                  通常想在什麼時段運動？
-                </p>
-                <span className="text-xs font-semibold text-slate-500">
-                  選 1 個主要時段
-                </span>
+                <p className="text-sm font-semibold text-slate-700">通常想在什麼時段運動？</p>
+                <span className="text-xs font-semibold text-slate-500">選 1 個主要時段</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {(['早上', '下午', '晚上'] as TimeSlot[]).map((slot) => {
@@ -915,9 +865,7 @@ export function OnboardingPage() {
                 <div className="mt-10 space-y-3 pt-1">
                   {daysList.map((day) => (
                     <div key={day} className="space-y-2">
-                      <p className="text-base font-semibold text-slate-800">
-                        {dayLabels[day]}
-                      </p>
+                      <p className="text-base font-semibold text-slate-800">{dayLabels[day]}</p>
                       <div className="flex flex-wrap gap-2">
                         {(['早上', '下午', '晚上'] as TimeSlot[]).map((slot) => {
                           const active = daySlots[day]?.includes(slot)

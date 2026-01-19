@@ -56,8 +56,7 @@ export const api = {
       httpGet<ApiResponse<{ session: Session; meta: SessionMeta }>>(`/sessions/${id}`, {
         auth: false,
       }),
-    create: (body: any) =>
-      httpPost<ApiResponse<{ session: Session }>>('/sessions', { body }),
+    create: (body: any) => httpPost<ApiResponse<{ session: Session }>>('/sessions', { body }),
     join: (id: string) => httpPost<ApiResponse<any>>(`/sessions/${id}/join`, {}),
     leave: (id: string) => httpDelete<ApiResponse<any>>(`/sessions/${id}/join`, {}),
     checkIn: (id: string, body: { lat: number; lng: number }) =>

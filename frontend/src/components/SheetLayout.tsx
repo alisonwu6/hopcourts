@@ -103,9 +103,7 @@ export function SheetLayout({
         )}
       </div>
 
-      <div className={clsx('flex-1 overflow-y-auto px-5 py-4', contentClassName)}>
-        {children}
-      </div>
+      <div className={clsx('flex-1 overflow-y-auto px-5 py-4', contentClassName)}>{children}</div>
 
       {(primaryButton || secondaryButton) && (
         <div className="sticky bottom-0 left-0 right-0 z-10 border-t border-slate-200 bg-white px-5 pb-5 pt-3">

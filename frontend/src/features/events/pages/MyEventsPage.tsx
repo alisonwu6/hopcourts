@@ -47,14 +47,8 @@ export function MyEventsPage() {
     }
   }, [fetchMyEvents, isAuthenticated])
 
-  const upcomingEvents = useMemo(
-    () => events.filter((event) => !isCompleted(event)),
-    [events]
-  )
-  const completedEvents = useMemo(
-    () => events.filter((event) => isCompleted(event)),
-    [events]
-  )
+  const upcomingEvents = useMemo(() => events.filter((event) => !isCompleted(event)), [events])
+  const completedEvents = useMemo(() => events.filter((event) => isCompleted(event)), [events])
 
   if (!isAuthenticated) {
     return (
@@ -80,9 +74,7 @@ export function MyEventsPage() {
           </div>
 
           <div className="mx-auto w-full max-w-4xl space-y-4 px-4 pt-4">
-            <h1 className="text-[22px] font-bold leading-tight text-slate-900">
-              我的場次
-            </h1>
+            <h1 className="text-[22px] font-bold leading-tight text-slate-900">我的場次</h1>
             <p className="text-base text-slate-700">
               登入後就能看到你已加入、即將到來的場次，以及過去的紀錄。
             </p>
@@ -159,22 +151,14 @@ export function MyEventsPage() {
           <EventGroupList
             groups={groupByDate(upcomingEvents)}
             emptyState={
-              <EmptyState
-                icon="📭"
-                title="目前沒有場次"
-                description="去看看其他活動並加入吧"
-              />
+              <EmptyState icon="📭" title="目前沒有場次" description="去看看其他活動並加入吧" />
             }
           />
         ) : (
           <EventGroupList
             groups={groupByDate(completedEvents)}
             emptyState={
-              <EmptyState
-                icon="✓"
-                title="尚無已完成的場次"
-                description="完成的場次會顯示在這裡"
-              />
+              <EmptyState icon="✓" title="尚無已完成的場次" description="完成的場次會顯示在這裡" />
             }
           />
         )}

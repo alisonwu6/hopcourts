@@ -70,9 +70,7 @@ function Section({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col rounded-lg bg-slate-50 px-3 py-2">
-      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
       <span className="text-sm text-slate-800">{value}</span>
     </div>
   )

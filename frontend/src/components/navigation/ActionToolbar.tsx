@@ -63,9 +63,7 @@ export function ActionToolbar({
         )}
 
         <div className="flex min-w-0 flex-1 items-center justify-center px-2">
-          {title && (
-            <div className="truncate text-sm font-semibold text-slate-800">{title}</div>
-          )}
+          {title && <div className="truncate text-sm font-semibold text-slate-800">{title}</div>}
         </div>
 
         <div className="flex items-center gap-3">
@@ -94,11 +92,7 @@ export function ActionToolbar({
               />
             </button>
           )}
-          {rightContent ? (
-            rightContent
-          ) : (
-            <span className="h-10 w-10" aria-hidden="true" />
-          )}
+          {rightContent ? rightContent : <span className="h-10 w-10" aria-hidden="true" />}
         </div>
       </div>
     </div>

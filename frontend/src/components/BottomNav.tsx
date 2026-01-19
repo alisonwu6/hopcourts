@@ -76,12 +76,7 @@ export function BottomNav() {
               aria-current={isActive ? 'page' : undefined}
             >
               {Icon && (
-                <Icon
-                  className={clsx(
-                    'h-6 w-6',
-                    isActive ? 'text-blue-600' : 'text-slate-400'
-                  )}
-                />
+                <Icon className={clsx('h-6 w-6', isActive ? 'text-blue-600' : 'text-slate-400')} />
               )}
               <span className="text-[11px] sm:text-xs">{label}</span>
             </button>

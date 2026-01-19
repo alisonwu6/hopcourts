@@ -80,8 +80,7 @@ export function useSports(lang: 'zh' | 'en' = 'zh') {
         }
       } catch (err: any) {
         if (!cached) {
-          if (isMounted)
-            setError(err instanceof Error ? err : new Error('Failed to load sports'))
+          if (isMounted) setError(err instanceof Error ? err : new Error('Failed to load sports'))
         }
       } finally {
         if (isMounted) setIsLoading(false)

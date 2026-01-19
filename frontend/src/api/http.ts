@@ -20,10 +20,7 @@ const getBaseUrl = () => {
 
 const buildUrl = (path: string, params?: RequestOptions['params']) => {
   const cleanedPath = path.replace(/^\//, '')
-  const url = new URL(
-    `${API_PREFIX.replace(/\/$/, '')}/${cleanedPath}`,
-    `${getBaseUrl()}/`
-  )
+  const url = new URL(`${API_PREFIX.replace(/\/$/, '')}/${cleanedPath}`, `${getBaseUrl()}/`)
   if (params) {
     const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
@@ -46,9 +43,7 @@ const getStoredToken = () => {
 
 const getStoredUserId = () => {
   if (typeof window === 'undefined') return null
-  return (
-    window.sessionStorage.getItem('x-user-id') ?? window.localStorage.getItem('x-user-id')
-  )
+  return window.sessionStorage.getItem('x-user-id') ?? window.localStorage.getItem('x-user-id')
 }
 
 export async function http<T>(
@@ -56,14 +51,7 @@ export async function http<T>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const {
-    body,
-    params,
-    auth = true,
-    userIdOverride,
-    tokenOverride,
-    headers = {},
-  } = options
+  const { body, params, auth = true, userIdOverride, tokenOverride, headers = {} } = options
 
   const reqHeaders: HeadersInit = {
     'Content-Type': 'application/json',
@@ -106,13 +94,8 @@ export async function http<T>(
   return response.json() as Promise<T>
 }
 
-export const httpGet = <T>(path: string, opts?: RequestOptions) =>
-  http<T>('GET', path, opts)
-export const httpPost = <T>(path: string, opts?: RequestOptions) =>
-  http<T>('POST', path, opts)
-export const httpPut = <T>(path: string, opts?: RequestOptions) =>
-  http<T>('PUT', path, opts)
-export const httpPatch = <T>(path: string, opts?: RequestOptions) =>
-  http<T>('PATCH', path, opts)
-export const httpDelete = <T>(path: string, opts?: RequestOptions) =>
-  http<T>('DELETE', path, opts)
+export const httpGet = <T>(path: string, opts?: RequestOptions) => http<T>('GET', path, opts)
+export const httpPost = <T>(path: string, opts?: RequestOptions) => http<T>('POST', path, opts)
+export const httpPut = <T>(path: string, opts?: RequestOptions) => http<T>('PUT', path, opts)
+export const httpPatch = <T>(path: string, opts?: RequestOptions) => http<T>('PATCH', path, opts)
+export const httpDelete = <T>(path: string, opts?: RequestOptions) => http<T>('DELETE', path, opts)

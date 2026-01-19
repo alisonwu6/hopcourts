@@ -70,15 +70,7 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
 }
 
 export function ProfilePage() {
-  const daysList = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ]
+  const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const dayLabels: Record<string, string> = {
     Monday: '週一',
     Tuesday: '週二',
@@ -101,10 +93,8 @@ export function ProfilePage() {
   }
   const [goal, setGoal] = useState<GoalState | null>(defaultGoal)
   const [draftGoal, setDraftGoal] = useState<GoalState>(defaultGoal)
-  const [goalDaySlots, setGoalDaySlots] =
-    useState<Record<string, string[]>>(createDaySlots())
-  const [draftDaySlots, setDraftDaySlots] =
-    useState<Record<string, string[]>>(createDaySlots())
+  const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
+  const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
@@ -113,21 +103,12 @@ export function ProfilePage() {
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
-  const {
-    user,
-    onboardingStatus,
-    isAuthenticated,
-    isLoading,
-    profileCache,
-    setProfileCache,
-  } = useAuthStore()
-  const userAvatar =
-    (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
+  const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
+    useAuthStore()
+  const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
   const [profile, setProfile] = useState<MateCardProps | null>(profileCache ?? null)
-  const [draftProfile, setDraftProfile] = useState<MateCardProps>(
-    profileCache ?? emptyProfile
-  )
+  const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
@@ -180,8 +161,7 @@ export function ProfilePage() {
   const vibeKeyToUnion = useMemo(() => {
     const map = new Map<string, MateCardProps['vibe']>()
     vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) +
-        v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
       map.set(v.key, union)
     })
     return map
@@ -190,8 +170,7 @@ export function ProfilePage() {
   const vibeUnionToKey = useMemo(() => {
     const map = new Map<string, string>()
     vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) +
-        v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
       map.set(union, v.key)
     })
     return map
@@ -296,14 +275,10 @@ export function ProfilePage() {
           const sportsRows = payload.sports || []
           const favoriteKeys =
             payload.favorite_sports ||
-            sportsRows
-              .filter((s: any) => s.kind === 'FAVORITE')
-              .map((s: any) => s.sport_key)
+            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
           const tryingKeys =
             payload.trying_sports ||
-            sportsRows
-              .filter((s: any) => s.kind === 'TRYING')
-              .map((s: any) => s.sport_key)
+            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
           const vibeUnion = data.vibe_key ? vibeKeyToUnion.get(data.vibe_key) || '' : ''
           const mapped: MateCardProps = {
             name: data.display_name || data.username || '',
@@ -517,9 +492,7 @@ export function ProfilePage() {
         display_name: draftProfile.name,
         bio: draftProfile.blurb,
         vibe_key:
-          (draftProfile as any).vibeKey ||
-          vibeUnionToKey.get(draftProfile.vibe as string) ||
-          null,
+          (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || null,
         favorite_sports: favoriteKeys,
         trying_sports: tryingKeys,
         avatar_url: draftProfile.avatar || null,
@@ -562,9 +535,7 @@ export function ProfilePage() {
         <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
-            {username && (
-              <span className="text-2xl font-bold text-slate-900">{username}</span>
-            )}
+            {username && <span className="text-2xl font-bold text-slate-900">{username}</span>}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -669,9 +640,7 @@ export function ProfilePage() {
                 <button
                   key={row.key}
                   type="button"
-                  onClick={() =>
-                    openFieldSheet(row.key as any, row.value, (row as any).valueKey)
-                  }
+                  onClick={() => openFieldSheet(row.key as any, row.value, (row as any).valueKey)}
                   className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
                 >
                   <div className="space-y-1">
@@ -703,9 +672,7 @@ export function ProfilePage() {
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">我的最愛</p>
                   <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.sports.length
-                      ? draftProfile.sports.join('、')
-                      : '未設定'}
+                    {draftProfile.sports.length ? draftProfile.sports.join('、') : '未設定'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -718,9 +685,7 @@ export function ProfilePage() {
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">想嘗試</p>
                   <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.trying.length
-                      ? draftProfile.trying.join('、')
-                      : '未設定'}
+                    {draftProfile.trying.length ? draftProfile.trying.join('、') : '未設定'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -848,8 +813,7 @@ export function ProfilePage() {
                     const active =
                       v.key === fieldValue ||
                       vibeUnionToKey.get(fieldValue) === v.key ||
-                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() ===
-                        v.key.toLowerCase()
+                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() === v.key.toLowerCase()
                     return (
                       <button
                         key={v.key}
@@ -978,9 +942,7 @@ export function ProfilePage() {
 
           <div className="space-y-2">
             {sportsCatalog
-              .filter((sport) =>
-                sport.label.toLowerCase().includes(sportsSearch.toLowerCase())
-              )
+              .filter((sport) => sport.label.toLowerCase().includes(sportsSearch.toLowerCase()))
               .map((sport) => {
                 const selected = draftProfile.sports.includes(sport.label)
                 const disabled = !selected && draftProfile.sports.length >= 3
@@ -1074,9 +1036,7 @@ export function ProfilePage() {
 
           <div className="space-y-2">
             {sportsCatalog
-              .filter((sport) =>
-                sport.label.toLowerCase().includes(tryingSearch.toLowerCase())
-              )
+              .filter((sport) => sport.label.toLowerCase().includes(tryingSearch.toLowerCase()))
               .map((sport) => {
                 const selected = draftProfile.trying.includes(sport.label)
                 const disabled = !selected && draftProfile.trying.length >= 2
@@ -1123,9 +1083,7 @@ export function ProfilePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-500">設定你的每週節奏</p>
-              <p className="text-xl font-bold text-slate-900">
-                我們會依此幫你推薦夥伴與活動
-              </p>
+              <p className="text-xl font-bold text-slate-900">我們會依此幫你推薦夥伴與活動</p>
             </div>
             <button
               type="button"
@@ -1191,54 +1149,48 @@ export function ProfilePage() {
                 按天微調（可選）
               </summary>
               <div className="space-y-3 pt-2">
-                {[
-                  'Monday',
-                  'Tuesday',
-                  'Wednesday',
-                  'Thursday',
-                  'Friday',
-                  'Saturday',
-                  'Sunday',
-                ].map((day) => (
-                  <div key={day} className="space-y-2">
-                    <p className="text-base font-semibold text-slate-800">
-                      {dayLabels[day] ?? day}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {['早上', '下午', '晚上'].map((slot) => {
-                        const active = draftDaySlots[day]?.includes(slot)
-                        return (
-                          <button
-                            key={slot}
-                            type="button"
-                            onClick={() =>
-                              setDraftDaySlots((prev) => {
-                                const next = {
-                                  ...prev,
-                                  [day]: [...(prev[day] ?? [])],
-                                }
-                                if (next[day].includes(slot)) {
-                                  next[day] = next[day].filter((s) => s !== slot)
-                                } else {
-                                  next[day].push(slot)
-                                }
-                                return next
-                              })
-                            }
-                            className={clsx(
-                              'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
-                              active
-                                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                            )}
-                          >
-                            {slot}
-                          </button>
-                        )
-                      })}
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
+                  (day) => (
+                    <div key={day} className="space-y-2">
+                      <p className="text-base font-semibold text-slate-800">
+                        {dayLabels[day] ?? day}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {['早上', '下午', '晚上'].map((slot) => {
+                          const active = draftDaySlots[day]?.includes(slot)
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              onClick={() =>
+                                setDraftDaySlots((prev) => {
+                                  const next = {
+                                    ...prev,
+                                    [day]: [...(prev[day] ?? [])],
+                                  }
+                                  if (next[day].includes(slot)) {
+                                    next[day] = next[day].filter((s) => s !== slot)
+                                  } else {
+                                    next[day].push(slot)
+                                  }
+                                  return next
+                                })
+                              }
+                              className={clsx(
+                                'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
+                                active
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                              )}
+                            >
+                              {slot}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </details>
           </div>
@@ -1302,9 +1254,7 @@ export function StatsContent({
     slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
   }))
 
-  const hasDaySlots = Object.values(goalDaySlots).some(
-    (slots) => (slots || []).length > 0
-  )
+  const hasDaySlots = Object.values(goalDaySlots).some((slots) => (slots || []).length > 0)
   const hasPrefs =
     !!goal &&
     ((goal.sessionsPerWeek && goal.sessionsPerWeek.trim() !== '') ||
@@ -1345,15 +1295,11 @@ export function StatsContent({
           <p className="text-xl font-bold text-slate-900">
             本週節奏：{goal?.sessionsPerWeek ? `${goal.sessionsPerWeek} 次` : '未設定'}
           </p>
-          <p className="text-sm font-semibold text-slate-700">
-            本週完成度 20% — 穩穩前進。
-          </p>
+          <p className="text-sm font-semibold text-slate-700">本週完成度 20% — 穩穩前進。</p>
           <div className="h-3 overflow-hidden rounded-full bg-blue-100">
             <div className="h-full w-1/2 rounded-full bg-emerald-500" />
           </div>
-          <p className="text-base font-semibold text-emerald-600">
-            你出現過一次 — 傳奇。
-          </p>
+          <p className="text-base font-semibold text-emerald-600">你出現過一次 — 傳奇。</p>
         </div>
         <div className="space-y-2 border-t border-blue-100 bg-white/60 px-5 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">

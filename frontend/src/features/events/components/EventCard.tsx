@@ -37,8 +37,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
   const remaining = Math.max(attendeeCount - participantPreview.length, 0)
   const isClickable = Boolean(onViewDetails)
   const heroImage =
-    (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ??
-    event.detail?.heroImageUrl
+    (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
   const heroStyle = heroImage
     ? {
         backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.15), rgba(2,6,23,0.55)), url(${heroImage})`,
@@ -114,9 +113,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
         </div>
 
         <div className="space-y-1">
-          <h3 className="text-xl font-semibold leading-snug text-slate-900">
-            {event.title}
-          </h3>
+          <h3 className="text-xl font-semibold leading-snug text-slate-900">{event.title}</h3>
 
           <div className="flex flex-col text-sm text-slate-600">
             <InfoRow icon={Calendar} label={scheduleLabel} />

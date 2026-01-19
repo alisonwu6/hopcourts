@@ -10,12 +10,7 @@ interface OnboardingRouteProps {
 
 export function OnboardingRoute({ children }: OnboardingRouteProps) {
   const navigate = useNavigate()
-  const {
-    isAuthenticated,
-    user,
-    onboardingStatus,
-    isLoading: authLoading,
-  } = useAuthStore()
+  const { isAuthenticated, user, onboardingStatus, isLoading: authLoading } = useAuthStore()
   const {
     status,
     initializeOnboarding,
@@ -30,8 +25,7 @@ export function OnboardingRoute({ children }: OnboardingRouteProps) {
     const loadStatus = async () => {
       try {
         setLoading(true)
-        const remoteStatus =
-          onboardingStatus ?? (await sessionService.getOnboardingStatus())
+        const remoteStatus = onboardingStatus ?? (await sessionService.getOnboardingStatus())
         initializeOnboarding(remoteStatus, {
           fullName: user?.name ?? '',
           role: user && (user.managedVenues?.length ?? 0) > 0 ? 'venue_manager' : null,

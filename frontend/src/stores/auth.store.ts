@@ -21,12 +21,7 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   login: (email: string, password: string, remember?: boolean) => Promise<void>
-  signup: (
-    name: string,
-    email: string,
-    password: string,
-    remember?: boolean
-  ) => Promise<void>
+  signup: (name: string, email: string, password: string, remember?: boolean) => Promise<void>
   logout: () => Promise<void>
   hydrate: () => Promise<void>
   refreshOnboardingStatus: () => Promise<void>
@@ -70,11 +65,7 @@ const persistUserId = (userId: string | null, remember = true) => {
 const handleOnboardingInitialization = (status: OnboardingStatus, user: User | null) => {
   const onboarding = useOnboardingStore.getState()
   const inferredRole =
-    user && (user.managedVenues?.length ?? 0) > 0
-      ? 'venue_manager'
-      : user
-        ? 'player'
-        : null
+    user && (user.managedVenues?.length ?? 0) > 0 ? 'venue_manager' : user ? 'player' : null
   onboarding.initializeOnboarding(status, {
     fullName: user?.name ?? '',
     role: inferredRole,

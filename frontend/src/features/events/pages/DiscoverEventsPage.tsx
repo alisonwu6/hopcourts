@@ -1,13 +1,7 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Search,
-  X,
-  Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react'
+import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   addDays,
   format,
@@ -46,11 +40,7 @@ export function DiscoverEventsPage() {
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
-  const {
-    sports: sportsCatalog,
-    isLoading: isSportsLoading,
-    error: sportsError,
-  } = useSports('zh')
+  const { sports: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const goToMySessions = () => navigate('/my-events')
@@ -151,16 +141,10 @@ export function DiscoverEventsPage() {
               }}
               className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
             >
-              <CalendarIcon
-                className="h-4 w-4 text-slate-400"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+              <CalendarIcon className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
               <div className="flex flex-col text-left">
                 <span className="text-sm font-semibold text-slate-700">{dateLabel}</span>
-                {showTodayLabel && (
-                  <span className="text-xs font-medium text-blue-500">Today</span>
-                )}
+                {showTodayLabel && <span className="text-xs font-medium text-blue-500">Today</span>}
               </div>
             </button>
             <button
@@ -168,11 +152,7 @@ export function DiscoverEventsPage() {
               onClick={() => setIsFilterOpen(true)}
               className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
             >
-              <Search
-                className="h-4 w-4 text-slate-400"
-                strokeWidth={2}
-                aria-hidden="true"
-              />
+              <Search className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
               <span className="flex-1 truncate">
                 {isSportsLoading
                   ? '載入運動中…'
@@ -333,8 +313,7 @@ function SportFilterSheet({
           <div className="flex flex-col gap-3">
             {options.map((sport) => {
               const isActive =
-                selected.includes(sport.key) ||
-                (sport.key === 'all' && selected.includes('all'))
+                selected.includes(sport.key) || (sport.key === 'all' && selected.includes('all'))
               return (
                 <button
                   key={sport.key}
@@ -351,9 +330,7 @@ function SportFilterSheet({
                     {sport.icon || '🏀'}
                   </div>
                   <span className="flex-1">{sport.label}</span>
-                  {isActive && (
-                    <span className="text-xs font-semibold text-blue-500">已選</span>
-                  )}
+                  {isActive && <span className="text-xs font-semibold text-blue-500">已選</span>}
                 </button>
               )
             })}
@@ -437,9 +414,7 @@ function CalendarSheet({
           <div className="flex items-center gap-2">
             <select
               value={currentYear}
-              onChange={(event) =>
-                onMonthChange(setYear(monthStart, Number(event.target.value)))
-              }
+              onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
               className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
             >
               {years.map((year) => (

@@ -71,9 +71,7 @@ export function ProfileSettingsPage() {
           >
             <div className="flex items-center gap-3">
               <LogOut className="h-5 w-5 text-slate-500" />
-              <span className="text-base font-medium">
-                {isLoggingOut ? '登出中…' : '登出'}
-              </span>
+              <span className="text-base font-medium">{isLoggingOut ? '登出中…' : '登出'}</span>
             </div>
           </button>
         </div>

@@ -18,9 +18,7 @@ export function LoginPromptSheet({ open, onClose, onSignup }: LoginPromptSheetPr
       contentClassName="px-6 pb-8 pt-4 text-slate-900"
     >
       <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          登入或註冊
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">登入或註冊</p>
       </div>
       <div className="mt-4">
         <LoginPanel variant="sheet" />

@@ -7,10 +7,7 @@ export type Vibe =
   | 'Explorer'
   | 'Supportive'
 
-export const vibeTokens: Record<
-  Vibe,
-  { bg: string; text: string; ring: string; card: string }
-> = {
+export const vibeTokens: Record<Vibe, { bg: string; text: string; ring: string; card: string }> = {
   Chill: {
     bg: 'linear-gradient(135deg, #5FA8FF 0%, #1E72F1 100%)',
     text: '#FFFFFF',

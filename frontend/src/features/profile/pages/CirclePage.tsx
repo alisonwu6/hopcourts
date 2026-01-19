@@ -95,9 +95,7 @@ function PeopleContent() {
 
       {subTab === 'connected' && (
         <div className="space-y-4 px-3 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            我的夥伴
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">我的夥伴</p>
           {connected.length === 0 ? (
             <EmptyBlock
               title="還沒有夥伴"
@@ -123,9 +121,7 @@ function PeopleContent() {
                     {person.name.charAt(0)}
                   </div>
                   <div className="flex-1 space-y-0.5">
-                    <p className="text-base font-semibold text-slate-900">
-                      {person.name}
-                    </p>
+                    <p className="text-base font-semibold text-slate-900">{person.name}</p>
                     <p className="text-sm text-slate-600">{person.detail}</p>
                     <p className="text-sm text-slate-500">{person.meta}</p>
                   </div>
@@ -138,9 +134,7 @@ function PeopleContent() {
 
       {subTab === 'playmates' && (
         <div className="space-y-4 px-3 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            交手夥伴
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">交手夥伴</p>
           {playmates.length === 0 ? (
             <EmptyBlock
               title="還沒有交手夥伴"
@@ -172,9 +166,7 @@ function PeopleContent() {
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-base font-semibold text-slate-900">
-                            {mate.name}
-                          </p>
+                          <p className="text-base font-semibold text-slate-900">{mate.name}</p>
                         </div>
                         <p className="text-sm text-slate-600">{mate.meta}</p>
                       </div>

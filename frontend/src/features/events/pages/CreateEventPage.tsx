@@ -157,8 +157,7 @@ export default function CreateEventPage() {
           lng: null,
           address: form.location.trim(),
           instructions:
-            [form.priceNote.trim(), form.notes.trim()].filter(Boolean).join('\n\n') ||
-            undefined,
+            [form.priceNote.trim(), form.notes.trim()].filter(Boolean).join('\n\n') || undefined,
         },
         isFree: true,
         tags: [],
@@ -200,10 +199,7 @@ export default function CreateEventPage() {
           <section className="space-y-8 rounded-[32px] border border-slate-100 bg-white px-6 py-8 shadow-[0_24px_60px_rgba(15,41,77,0.12)] sm:px-8">
             <CoverUploader previewUrl={heroPreview} onChange={handleImageChange} />
 
-            <FieldSection
-              title="活動基本資料"
-              description="先填最重要的資訊，讓大家一眼看懂。"
-            >
+            <FieldSection title="活動基本資料" description="先填最重要的資訊，讓大家一眼看懂。">
               <FloatingField
                 label="標題"
                 name="title"
@@ -260,10 +256,7 @@ export default function CreateEventPage() {
               </div>
             </FieldSection>
 
-            <FieldSection
-              title="告訴大家期待什麼"
-              description="描述氛圍、目標，或注意事項。"
-            >
+            <FieldSection title="告訴大家期待什麼" description="描述氛圍、目標，或注意事項。">
               <FloatingField
                 as="textarea"
                 label="描述"
@@ -297,13 +290,7 @@ export default function CreateEventPage() {
   )
 }
 
-function ActionBar({
-  canSubmit,
-  isSubmitting,
-}: {
-  canSubmit: boolean
-  isSubmitting: boolean
-}) {
+function ActionBar({ canSubmit, isSubmitting }: { canSubmit: boolean; isSubmitting: boolean }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 bg-blue-50/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(30,64,175,0.12)] backdrop-blur">
       <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 sm:px-6">
@@ -342,9 +329,7 @@ function FieldSection({
   return (
     <div className="space-y-4 rounded-[28px] border border-slate-100 bg-slate-50/60 p-4 sm:p-6">
       <div className="space-y-1">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-600">
-          {title}
-        </p>
+        <p className="text-sm font-semibold uppercase tracking-wide text-slate-600">{title}</p>
         <p className="text-sm text-slate-500">{description}</p>
       </div>
       <div className="space-y-4">{children}</div>

@@ -24,8 +24,7 @@ import { HomePage } from '@/features/home/pages/HomePage'
 
 const RequireAuth = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuthStore()
-  if (isLoading)
-    return <div className="p-4 text-center text-sm text-slate-600">載入中…</div>
+  if (isLoading) return <div className="p-4 text-center text-sm text-slate-600">載入中…</div>
   if (!isAuthenticated) return <Navigate to="/login" replace />
   return children
 }

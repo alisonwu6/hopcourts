@@ -81,8 +81,7 @@ const useDictionary = <T>(
         const remoteVersion = meta?.[type]?.version
         const localVersion = versionMap[type]?.version
 
-        const shouldRefresh =
-          !remoteVersion || remoteVersion !== localVersion || !cachedItems
+        const shouldRefresh = !remoteVersion || remoteVersion !== localVersion || !cachedItems
         if (shouldRefresh) {
           const data = await loader()
           if (!active) return
@@ -96,8 +95,7 @@ const useDictionary = <T>(
       } catch (err: any) {
         // API 失敗：如果有舊快取就沿用，否則標記錯誤
         if (!cachedItems) {
-          if (active)
-            setError(err instanceof Error ? err : new Error('Failed to load dictionary'))
+          if (active) setError(err instanceof Error ? err : new Error('Failed to load dictionary'))
         }
       } finally {
         if (active) setIsLoading(false)
@@ -116,34 +114,24 @@ const useDictionary = <T>(
 }
 
 export function useCountries(lang: 'zh' | 'en' = 'zh') {
-  return useDictionary<Country>(
-    'countries',
-    lang,
-    () => dictionaryService.listCountries(lang),
-    [lang]
-  )
-}
-
-export function useCities(country?: string, lang: 'zh' | 'en' = 'zh') {
-  return useDictionary<City>(
-    'cities',
-    lang,
-    () => dictionaryService.listCities(country, lang),
-    [country, lang]
-  )
-}
-
-export function useVibes(lang: 'zh' | 'en' = 'zh') {
-  return useDictionary<Vibe>('vibes', lang, () => dictionaryService.listVibes(lang), [
+  return useDictionary<Country>('countries', lang, () => dictionaryService.listCountries(lang), [
     lang,
   ])
 }
 
-export function useAgeRanges(lang: 'zh' | 'en' = 'zh') {
-  return useDictionary<AgeRange>(
-    'age_ranges',
+export function useCities(country?: string, lang: 'zh' | 'en' = 'zh') {
+  return useDictionary<City>('cities', lang, () => dictionaryService.listCities(country, lang), [
+    country,
     lang,
-    () => dictionaryService.listAgeRanges(lang),
-    [lang]
-  )
+  ])
+}
+
+export function useVibes(lang: 'zh' | 'en' = 'zh') {
+  return useDictionary<Vibe>('vibes', lang, () => dictionaryService.listVibes(lang), [lang])
+}
+
+export function useAgeRanges(lang: 'zh' | 'en' = 'zh') {
+  return useDictionary<AgeRange>('age_ranges', lang, () => dictionaryService.listAgeRanges(lang), [
+    lang,
+  ])
 }
