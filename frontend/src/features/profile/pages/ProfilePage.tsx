@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 import { Menu, PlusSquare, Lock } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
+import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
@@ -10,17 +10,20 @@ import { onboardingService } from '@/features/onboarding/onboarding.service'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { useVibes } from '@/features/dictionaries/hooks'
 import { useCountries, useCities } from '@/features/dictionaries/hooks'
-import { supabase } from '@/lib/supabase'
-import Cropper from 'react-easy-crop'
+import { HeroCard } from '@/features/profile/components/HeroCard'
+import { ProfileContent } from '@/features/profile/components/ProfileContent'
+import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { createDaySlots, dayLabels } from '@/features/profile/constants'
+import type { GoalState } from '@/features/profile/types'
 
 const emptyProfile: MateCardProps = {
   name: '',
-  username: '',
+  // username: '',
   location: '',
   cityKey: '',
   flag: '',
   countryKey: '',
-  vibe: '',
+  vibe: null,
   vibeKey: null,
   sports: [],
   trying: [],
@@ -28,63 +31,10 @@ const emptyProfile: MateCardProps = {
   avatar: '',
 }
 
-type GoalState = { sessionsPerWeek: string; timeOfDay: string; days: string[] }
 const SAMPLE_AVATAR =
   'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
 
-async function createImage(url: string) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image()
-    img.addEventListener('load', () => resolve(img))
-    img.addEventListener('error', (error) => reject(error))
-    img.setAttribute('crossOrigin', 'anonymous')
-    img.src = url
-  })
-}
-
-async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation = 0) {
-  const image = await createImage(imageSrc)
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas not supported')
-
-  const { width, height, x, y } = croppedAreaPixels
-  const safeArea = Math.max(image.width, image.height) * 2
-  canvas.width = width
-  canvas.height = height
-
-  ctx.translate(width / 2, height / 2)
-  ctx.rotate((rotation * Math.PI) / 180)
-  ctx.translate(-width / 2, -height / 2)
-  ctx.drawImage(image, x, y, width, height, 0, 0, width, height)
-
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((file) => {
-      if (!file) {
-        reject(new Error('Failed to crop image'))
-        return
-      }
-      resolve(file)
-    }, 'image/jpeg')
-  })
-}
-
 export function ProfilePage() {
-  const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-  const dayLabels: Record<string, string> = {
-    Monday: '週一',
-    Tuesday: '週二',
-    Wednesday: '週三',
-    Thursday: '週四',
-    Friday: '週五',
-    Saturday: '週六',
-    Sunday: '週日',
-  }
-  const createDaySlots = () =>
-    daysList.reduce<Record<string, string[]>>((acc, day) => {
-      acc[day] = []
-      return acc
-    }, {})
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const defaultGoal: GoalState = {
     sessionsPerWeek: '2',
@@ -96,13 +46,7 @@ export function ProfilePage() {
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
-  const [avatarUploading, setAvatarUploading] = useState(false)
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
-  const [avatarImageSrc, setAvatarImageSrc] = useState<string>('')
-  const [crop, setCrop] = useState({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
-  const [rotation, setRotation] = useState(0)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
   const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
     useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
@@ -175,7 +119,6 @@ export function ProfilePage() {
     })
     return map
   }, [vibesCatalog])
-  const avatarFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const labelForCountry = useMemo(() => {
     const map = new Map(countriesCatalog.map((c) => [c.key, c.label]))
@@ -357,66 +300,6 @@ export function ProfilePage() {
     setShowEditSheet(true)
   }
 
-  const handleAvatarFile = (file: File | null) => {
-    if (!file) return
-    setCrop({ x: 0, y: 0 })
-    setZoom(1)
-    setRotation(0)
-    setCroppedAreaPixels(null)
-    const reader = new FileReader()
-    reader.onload = () => {
-      setAvatarImageSrc(reader.result as string)
-      setShowAvatarCropper(true)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const onCropComplete = useCallback((_: any, croppedPixels: any) => {
-    setCroppedAreaPixels(croppedPixels)
-  }, [])
-
-  const handleAvatarCropSave = async () => {
-    if (!avatarImageSrc || !croppedAreaPixels) {
-      setShowAvatarCropper(false)
-      return
-    }
-    if (!supabase || !userId) {
-      alert('尚未設定 Supabase 或未登入，請改貼上圖片網址。')
-      setShowAvatarCropper(false)
-      return
-    }
-    setAvatarUploading(true)
-    try {
-      const croppedBlob = await getCroppedImg(avatarImageSrc, croppedAreaPixels, rotation)
-      const fileExt = 'jpg'
-      const path = `avatars/${userId}-${Date.now()}.${fileExt}`
-      const { error } = await supabase.storage.from('avatars').upload(path, croppedBlob, {
-        upsert: true,
-        contentType: 'image/jpeg',
-      })
-      if (error) throw error
-      const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
-      if (publicData?.publicUrl) {
-        const publicUrl = publicData.publicUrl
-        setDraftProfile((prev) => ({ ...prev, avatar: publicUrl }))
-        setProfile((prev) => (prev ? { ...prev, avatar: publicUrl } : prev))
-        setProfileCache((prev) => (prev ? { ...prev, avatar: publicUrl } : prev))
-        await onboardingService.saveProfile({ avatar_url: publicUrl })
-      }
-    } catch (err) {
-      console.error('avatar crop/upload failed', err)
-      alert('上傳失敗，請再試一次或改貼上圖片網址。')
-    } finally {
-      setAvatarUploading(false)
-      setShowAvatarCropper(false)
-      setAvatarImageSrc('')
-      setCroppedAreaPixels(null)
-      setZoom(1)
-      setCrop({ x: 0, y: 0 })
-      setRotation(0)
-    }
-  }
-
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
     let nextValue = rawKey ?? value
     if (field === 'vibe') {
@@ -424,10 +307,6 @@ export function ProfilePage() {
     }
     setActiveField(field)
     setFieldValue(nextValue)
-  }
-
-  const triggerAvatarSelect = () => {
-    avatarFileInputRef.current?.click()
   }
 
   const handleSaveField = async () => {
@@ -524,13 +403,6 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen pb-[120px]">
-      <input
-        ref={avatarFileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleAvatarFile(e.target.files?.[0] || null)}
-      />
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
@@ -561,7 +433,7 @@ export function ProfilePage() {
           avatarFallback={userAvatar || ''}
         />
         <div className="mt-4 space-y-4">
-          <StatsContent
+          <ProfileContent
             goal={displayGoal}
             goalDaySlots={goalDaySlots}
             onOpenGoalSheet={handleOpenGoal}
@@ -597,7 +469,7 @@ export function ProfilePage() {
               />
               <button
                 type="button"
-                onClick={triggerAvatarSelect}
+                onClick={() => setShowAvatarCropper(true)}
                 className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
               >
                 編輯
@@ -713,61 +585,17 @@ export function ProfilePage() {
           </div>
         </SheetLayout>
       </BottomSheet>
-      <BottomSheet
+      <AvatarCropSheet
         open={showAvatarCropper}
         onClose={() => setShowAvatarCropper(false)}
-        showHandle={false}
-        disableContainer
-      >
-        <SheetLayout
-          onClose={() => setShowAvatarCropper(false)}
-          title="調整大頭貼"
-          subtitle="拖曳與縮放，讓頭像置中，保存後上傳。"
-          height="tall"
-          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
-          contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-4"
-          primaryButton={{
-            label: avatarUploading ? '上傳中...' : '套用',
-            onClick: handleAvatarCropSave,
-            disabled: avatarUploading,
-          }}
-          showHandle={false}
-        >
-          {avatarImageSrc ? (
-            <div className="space-y-4">
-              <div className="relative h-[360px] w-full overflow-hidden rounded-2xl bg-slate-900/5">
-                <Cropper
-                  image={avatarImageSrc}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  rotation={rotation}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onRotationChange={setRotation}
-                  onCropComplete={onCropComplete}
-                  cropShape="round"
-                  showGrid={false}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">縮放</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.1}
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                  className="w-full accent-blue-600"
-                />
-              </div>
-            </div>
-          ) : (
-            <p className="text-center text-sm text-slate-600">尚未選擇圖片</p>
-          )}
-        </SheetLayout>
-      </BottomSheet>
+        userId={userId}
+        defaultAvatar={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+        onAvatarUpdated={(url) => {
+          setDraftProfile((prev) => ({ ...prev, avatar: url }))
+          setProfile((prev) => (prev ? { ...prev, avatar: url } : prev))
+          setProfileCache((prev) => (prev ? { ...prev, avatar: url } : prev))
+        }}
+      />
       <BottomSheet
         open={!!activeField}
         onClose={() => setActiveField(null)}
@@ -1217,159 +1045,6 @@ export function ProfilePage() {
           </div>
         </div>
       </BottomSheet>
-    </div>
-  )
-}
-
-export function StatsContent({
-  goal,
-  goalDaySlots,
-  onOpenGoalSheet,
-  showEdit = true,
-}: {
-  goal: GoalState | null
-  goalDaySlots: Record<string, string[]>
-  onOpenGoalSheet: () => void
-  showEdit?: boolean
-}) {
-  const dayLabels: Record<string, string> = {
-    Monday: '週一',
-    Tuesday: '週二',
-    Wednesday: '週三',
-    Thursday: '週四',
-    Friday: '週五',
-    Saturday: '週六',
-    Sunday: '週日',
-  }
-  const preferredTimes = [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ].map((day) => ({
-    dayLabel: dayLabels[day] ?? day,
-    slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
-  }))
-
-  const hasDaySlots = Object.values(goalDaySlots).some((slots) => (slots || []).length > 0)
-  const hasPrefs =
-    !!goal &&
-    ((goal.sessionsPerWeek && goal.sessionsPerWeek.trim() !== '') ||
-      (goal.timeOfDay && goal.timeOfDay.trim() !== '') ||
-      hasDaySlots)
-
-  if (!hasPrefs) {
-    return (
-      <div className="px-3">
-        <EmptyBlock
-          title="尚未設定每週節奏"
-          description="設定你的每週目標次數與時段，幫你配對到適合的活動與夥伴。"
-          actionLabel={showEdit ? '設定每週節奏' : undefined}
-          onAction={showEdit ? onOpenGoalSheet : undefined}
-        />
-      </div>
-    )
-  }
-
-  return (
-    <div className="px-3">
-      <div className="space-y-4 overflow-hidden rounded-3xl border border-blue-100 bg-blue-50 shadow-sm">
-        <div className="flex items-start justify-between px-5 pt-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            我的每週節奏
-          </p>
-          {showEdit && (
-            <button
-              type="button"
-              onClick={onOpenGoalSheet}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              編輯
-            </button>
-          )}
-        </div>
-        <div className="space-y-3 px-5">
-          <p className="text-xl font-bold text-slate-900">
-            本週節奏：{goal?.sessionsPerWeek ? `${goal.sessionsPerWeek} 次` : '未設定'}
-          </p>
-          <p className="text-sm font-semibold text-slate-700">本週完成度 20% — 穩穩前進。</p>
-          <div className="h-3 overflow-hidden rounded-full bg-blue-100">
-            <div className="h-full w-1/2 rounded-full bg-emerald-500" />
-          </div>
-          <p className="text-base font-semibold text-emerald-600">你出現過一次 — 傳奇。</p>
-        </div>
-        <div className="space-y-2 border-t border-blue-100 bg-white/60 px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-            你的偏好時段
-          </p>
-          <p className="text-sm font-semibold text-slate-700">
-            常用時段：
-            {goal?.timeOfDay && goal.timeOfDay.trim() ? goal.timeOfDay : '尚未設定'}
-          </p>
-          <div className="space-y-1">
-            {preferredTimes.map(({ dayLabel, slots }) => (
-              <div
-                key={dayLabel}
-                className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800"
-              >
-                <span>{dayLabel}</span>
-                <span className="font-medium text-slate-500">{slots}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function HeroCard({
-  profile,
-  onEdit,
-  avatarFallback = '',
-}: {
-  profile: MateCardProps | null
-  onEdit: () => void
-  avatarFallback?: string
-}) {
-  const safeProfile: MateCardProps = profile ?? {
-    name: '',
-    username: '',
-    location: '',
-    flag: '',
-    vibe: '',
-    sports: [],
-    trying: [],
-    blurb: '',
-    avatar: avatarFallback,
-  }
-
-  return (
-    <div
-      className="cursor-pointer bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff]"
-      onClick={onEdit}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') onEdit()
-      }}
-    >
-      <MateCard
-        {...safeProfile}
-        accentClassName="w-full max-w-none min-w-0 shadow-none bg-transparent px-0 rounded-none"
-      />
-      <div className="flex justify-center py-3">
-        <button
-          type="button"
-          onClick={onEdit}
-          className="w-100 max-w-xs rounded-lg bg-slate-100 px-4 py-1 text-sm text-slate-400"
-        >
-          編輯運動卡
-        </button>
-      </div>
     </div>
   )
 }
