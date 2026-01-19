@@ -72,12 +72,21 @@ interface OnboardingState {
   requiredSteps: number[]
   isLoading: boolean
   error: string | null
-  initializeOnboarding: (status: OnboardingStatus, existingData?: Partial<OnboardingData>) => void
+  initializeOnboarding: (
+    status: OnboardingStatus,
+    existingData?: Partial<OnboardingData>
+  ) => void
   setStatus: (status: OnboardingStatus) => void
   getNextStep: () => number | null
   markStepCompleted: (step: number) => void
   setRole: (role: OnboardingRole) => void
-  setBasicInfo: (payload: { fullName: string; city: string; postalCode: string; postalArea: string; gender: string }) => void
+  setBasicInfo: (payload: {
+    fullName: string
+    city: string
+    postalCode: string
+    postalArea: string
+    gender: string
+  }) => void
   setUsername: (username: string, available: boolean) => void
   addSport: (sport: string) => void
   removeSport: (sport: string) => void
@@ -261,7 +270,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
         requiredSteps,
         currentStep: requiredSteps.includes(state.currentStep)
           ? state.currentStep
-          : requiredSteps[0] ?? ROLE_STEP,
+          : (requiredSteps[0] ?? ROLE_STEP),
       }
     })
     get().markStepCompleted(ROLE_STEP)
@@ -280,7 +289,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setUsername: (username, available) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasUsername: available && username.length > 0 } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasUsername: available && username.length > 0 }
+        : null
       return {
         data: {
           ...state.data,
@@ -300,7 +311,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     set((state) => {
       if (state.data.sports.includes(sport)) return state
       const sports = [...state.data.sports, sport]
-      const updatedStatus = state.status ? { ...state.status, hasSports: sports.length > 0 } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasSports: sports.length > 0 }
+        : null
       return {
         data: { ...state.data, sports },
         status: updatedStatus,
@@ -314,7 +327,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       const sports = state.data.sports.filter((item) => item !== sport)
       const skillLevels = { ...state.data.skillLevels }
       delete skillLevels[sport]
-      const updatedStatus = state.status ? { ...state.status, hasSports: sports.length > 0 } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasSports: sports.length > 0 }
+        : null
       return {
         data: { ...state.data, sports, skillLevels },
         status: updatedStatus,
@@ -325,8 +340,12 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   setSkillLevel: (sport, level) => {
     set((state) => {
       const skillLevels = { ...state.data.skillLevels, [sport]: level }
-      const hasAllLevels = state.data.sports.length > 0 && state.data.sports.every((item) => skillLevels[item])
-      const updatedStatus = state.status ? { ...state.status, hasSkillLevels: hasAllLevels } : null
+      const hasAllLevels =
+        state.data.sports.length > 0 &&
+        state.data.sports.every((item) => skillLevels[item])
+      const updatedStatus = state.status
+        ? { ...state.status, hasSkillLevels: hasAllLevels }
+        : null
       return {
         data: { ...state.data, skillLevels },
         status: updatedStatus,
@@ -337,7 +356,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setPlayingStyle: (style) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasPlayingStyle: true } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasPlayingStyle: true }
+        : null
       return {
         data: { ...state.data, playingStyle: style },
         status: updatedStatus,
@@ -348,7 +369,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setPlayFrequency: (value) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasPlayFrequency: Boolean(value) } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasPlayFrequency: Boolean(value) }
+        : null
       return {
         data: { ...state.data, playFrequency: value },
         status: updatedStatus,
@@ -359,7 +382,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setAvatar: (file, preview) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasAvatar: Boolean(file || preview) } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasAvatar: Boolean(file || preview) }
+        : null
       return {
         data: { ...state.data, avatar: file, avatarPreview: preview },
         status: updatedStatus,
@@ -378,7 +403,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setAthleteMotivation: (motivation) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasMotivation: motivation.trim().length > 0 } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasMotivation: motivation.trim().length > 0 }
+        : null
       return {
         data: { ...state.data, athleteMotivation: motivation },
         status: updatedStatus,
@@ -387,11 +414,26 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     get().markStepCompleted(PLAYER_MOTIVATION_STEP)
   },
 
-  setVenueDetails: ({ venueName, venueAddress, venuePhone, venueEmail, venueDescription }) => {
+  setVenueDetails: ({
+    venueName,
+    venueAddress,
+    venuePhone,
+    venueEmail,
+    venueDescription,
+  }) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasVenueDetails: true } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasVenueDetails: true }
+        : null
       return {
-        data: { ...state.data, venueName, venueAddress, venuePhone, venueEmail, venueDescription },
+        data: {
+          ...state.data,
+          venueName,
+          venueAddress,
+          venuePhone,
+          venueEmail,
+          venueDescription,
+        },
         status: updatedStatus,
       }
     })
@@ -400,7 +442,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setVenueSports: (sports) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasVenueSports: sports.length > 0 } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasVenueSports: sports.length > 0 }
+        : null
       return {
         data: { ...state.data, venueSports: sports },
         status: updatedStatus,
@@ -413,7 +457,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setVenueCourts: ({ totalCourts, courtNames }) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasVenueCourts: totalCourts > 0 } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasVenueCourts: totalCourts > 0 }
+        : null
       return {
         data: { ...state.data, totalCourts, courtNames },
         status: updatedStatus,
@@ -426,7 +472,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setVenuePhoto: (file, preview) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasVenuePhoto: Boolean(file || preview) } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasVenuePhoto: Boolean(file || preview) }
+        : null
       return {
         data: { ...state.data, venuePhoto: file, venuePhotoPreview: preview },
         status: updatedStatus,
@@ -439,7 +487,9 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
   setVenueConsent: (consent) => {
     set((state) => {
-      const updatedStatus = state.status ? { ...state.status, hasVenueVerification: consent } : null
+      const updatedStatus = state.status
+        ? { ...state.status, hasVenueVerification: consent }
+        : null
       return {
         data: { ...state.data, venueConsent: consent },
         status: updatedStatus,

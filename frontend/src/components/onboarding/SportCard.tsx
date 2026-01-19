@@ -14,12 +14,7 @@ export function SportCard({ icon, name, selected, onToggle }: SportCardProps) {
           : 'border-player-200 hover:border-player-300'
       }`}
     >
-      <input
-        type="checkbox"
-        className="sr-only"
-        checked={selected}
-        onChange={onToggle}
-      />
+      <input type="checkbox" className="sr-only" checked={selected} onChange={onToggle} />
       <div className="mb-3 text-3xl">{icon}</div>
       <div className="text-base font-semibold text-player-900">{name}</div>
       <span

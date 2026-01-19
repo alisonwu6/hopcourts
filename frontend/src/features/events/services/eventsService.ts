@@ -82,14 +82,18 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
     difficulty: 2,
     isFree: input.isFree,
     price: input.pricePerPerson ?? undefined,
-    priceRange: input.isFree ? 'Free to join' : `$${(input.pricePerPerson ?? 0).toFixed(2)}`,
+    priceRange: input.isFree
+      ? 'Free to join'
+      : `$${(input.pricePerPerson ?? 0).toFixed(2)}`,
     description: input.description ?? '',
     participants: [],
   }
 }
 
 export const eventsService = {
-  async getEvents(_filters?: EventFilter): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+  async getEvents(
+    _filters?: EventFilter
+  ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
     return wrapEmptyEvents()
   },
 

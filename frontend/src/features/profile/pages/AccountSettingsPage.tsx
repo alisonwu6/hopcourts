@@ -18,7 +18,7 @@ export function AccountSettingsPage() {
         borderBottom
       />
 
-      <div className="mx-auto w-full max-w-3xl px-4 pb-8 pt-4 space-y-6">
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-8 pt-4">
         <Section title="帳號資訊" icon={<UserRound className="h-5 w-5 text-slate-500" />}>
           <Row label="Email" value={email} />
           <Row label="登入方式" value="Apple / Google / Email" />
@@ -26,7 +26,9 @@ export function AccountSettingsPage() {
 
         <Section title="密碼" icon={<Lock className="h-5 w-5 text-slate-500" />}>
           {method === 'email' ? (
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">重設密碼</button>
+            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+              重設密碼
+            </button>
           ) : (
             <p className="text-sm text-slate-500">僅支援 Email 登入時重設密碼。</p>
           )}
@@ -68,7 +70,9 @@ function Section({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col rounded-lg bg-slate-50 px-3 py-2">
-      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
       <span className="text-sm text-slate-800">{value}</span>
     </div>
   )

@@ -1,4 +1,11 @@
-export type Vibe = 'Chill' | 'Social' | 'Competitive' | 'Flow' | 'Growth' | 'Explorer' | 'Supportive'
+export type Vibe =
+  | 'Chill'
+  | 'Social'
+  | 'Competitive'
+  | 'Flow'
+  | 'Growth'
+  | 'Explorer'
+  | 'Supportive'
 
 export const vibeTokens: Record<
   Vibe,

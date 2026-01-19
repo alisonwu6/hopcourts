@@ -15,7 +15,7 @@ type DictType = 'sports' | 'vibes' | 'countries' | 'age_ranges' | 'cities'
 
 type DictionaryMeta = Partial<Record<DictType, { version: string }>>
 
-const getCache = <T,>(type: DictType, lang: string) => {
+const getCache = <T>(type: DictType, lang: string) => {
   try {
     const raw = localStorage.getItem(`${STORAGE_PREFIX}.${type}.${lang}`)
     if (!raw) return null
@@ -25,7 +25,7 @@ const getCache = <T,>(type: DictType, lang: string) => {
   }
 }
 
-const setCache = <T,>(type: DictType, lang: string, items: T[]) => {
+const setCache = <T>(type: DictType, lang: string, items: T[]) => {
   try {
     localStorage.setItem(`${STORAGE_PREFIX}.${type}.${lang}`, JSON.stringify(items))
   } catch {
@@ -51,7 +51,7 @@ const setVersionCache = (meta: DictionaryMeta) => {
   }
 }
 
-const useDictionary = <T,>(
+const useDictionary = <T>(
   type: DictType,
   lang: 'zh' | 'en',
   loader: () => Promise<T[]>,
@@ -81,18 +81,23 @@ const useDictionary = <T,>(
         const remoteVersion = meta?.[type]?.version
         const localVersion = versionMap[type]?.version
 
-        const shouldRefresh = !remoteVersion || remoteVersion !== localVersion || !cachedItems
+        const shouldRefresh =
+          !remoteVersion || remoteVersion !== localVersion || !cachedItems
         if (shouldRefresh) {
           const data = await loader()
           if (!active) return
           setItems(data)
           setCache(type, lang, data)
-          setVersionCache({ ...versionMap, [type]: { version: remoteVersion || Date.now().toString() } })
+          setVersionCache({
+            ...versionMap,
+            [type]: { version: remoteVersion || Date.now().toString() },
+          })
         }
       } catch (err: any) {
         // API 失敗：如果有舊快取就沿用，否則標記錯誤
         if (!cachedItems) {
-          if (active) setError(err instanceof Error ? err : new Error('Failed to load dictionary'))
+          if (active)
+            setError(err instanceof Error ? err : new Error('Failed to load dictionary'))
         }
       } finally {
         if (active) setIsLoading(false)
@@ -111,7 +116,12 @@ const useDictionary = <T,>(
 }
 
 export function useCountries(lang: 'zh' | 'en' = 'zh') {
-  return useDictionary<Country>('countries', lang, () => dictionaryService.listCountries(lang), [lang])
+  return useDictionary<Country>(
+    'countries',
+    lang,
+    () => dictionaryService.listCountries(lang),
+    [lang]
+  )
 }
 
 export function useCities(country?: string, lang: 'zh' | 'en' = 'zh') {
@@ -124,9 +134,16 @@ export function useCities(country?: string, lang: 'zh' | 'en' = 'zh') {
 }
 
 export function useVibes(lang: 'zh' | 'en' = 'zh') {
-  return useDictionary<Vibe>('vibes', lang, () => dictionaryService.listVibes(lang), [lang])
+  return useDictionary<Vibe>('vibes', lang, () => dictionaryService.listVibes(lang), [
+    lang,
+  ])
 }
 
 export function useAgeRanges(lang: 'zh' | 'en' = 'zh') {
-  return useDictionary<AgeRange>('age_ranges', lang, () => dictionaryService.listAgeRanges(lang), [lang])
+  return useDictionary<AgeRange>(
+    'age_ranges',
+    lang,
+    () => dictionaryService.listAgeRanges(lang),
+    [lang]
+  )
 }

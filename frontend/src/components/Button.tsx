@@ -25,7 +25,8 @@ const sizeClasses: Record<ButtonSize, string> = {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-300',
-  secondary: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-200',
+  secondary:
+    'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-200',
   tertiary: 'text-blue-600 hover:underline focus:ring-transparent',
 }
 
@@ -49,7 +50,7 @@ export function Button({
         sizeClasses[size],
         variantClasses[variant],
         textClassName,
-        className,
+        className
       )}
     >
       {children}

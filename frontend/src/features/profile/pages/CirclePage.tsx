@@ -14,17 +14,15 @@ export function CirclePage() {
   return (
     <>
       {isAuthenticated ? (
-        <div className="min-h-screen pb-[120px] px-4 pt-4">
+        <div className="min-h-screen px-4 pb-[120px] pt-4">
           <div className="mx-auto w-full max-w-4xl">
             <PeopleContent />
           </div>
         </div>
       ) : (
-        <div className="min-h-screen pb-[120px] px-4 pt-10">
-          <div className="mx-auto w-full max-w-4xl pt-4 px-4 space-y-4">
-            <h1 className="text-[22px] font-bold leading-tight text-slate-900">
-              夥伴圈
-            </h1>
+        <div className="min-h-screen px-4 pb-[120px] pt-10">
+          <div className="mx-auto w-full max-w-4xl space-y-4 px-4 pt-4">
+            <h1 className="text-[22px] font-bold leading-tight text-slate-900">夥伴圈</h1>
             <p className="text-base text-slate-700">
               在
               SportsMatch，每一次運動都可能為你帶來一個同行的夥伴。登入後，你會看到那些陪你完成任務、給你
@@ -62,17 +60,13 @@ function PeopleContent() {
   const [subTab, setSubTab] = useState<'connected' | 'playmates'>('connected')
   const connected: Array<any> = []
   const playmates: Array<any> = []
-  const goToMate = (mate: {
-    name: string
-    vibe: string
-    username?: string
-  }) => {
+  const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
     const handle = mate.username || mate.name
     navigate(`/${encodeURIComponent(handle)}`, { state: { mate } })
   }
 
   return (
-    <div className="space-y-3 ">
+    <div className="space-y-3">
       <div className="sticky top-0 z-10 flex justify-center">
         <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
           {[
@@ -165,9 +159,7 @@ function PeopleContent() {
                   >
                     <button
                       type="button"
-                      onClick={() =>
-                        goToMate({ name: mate.name, vibe: 'Chill' })
-                      }
+                      onClick={() => goToMate({ name: mate.name, vibe: 'Chill' })}
                       className="flex items-center gap-4 text-left focus:outline-none"
                     >
                       <div

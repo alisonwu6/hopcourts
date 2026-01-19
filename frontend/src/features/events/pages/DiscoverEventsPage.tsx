@@ -1,8 +1,27 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
-import { addDays, format, isSameDay, startOfDay, startOfMonth, endOfMonth, addMonths, startOfWeek, endOfWeek, isSameMonth, getYear, setYear } from 'date-fns'
+import {
+  Search,
+  X,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
+import {
+  addDays,
+  format,
+  isSameDay,
+  startOfDay,
+  startOfMonth,
+  endOfMonth,
+  addMonths,
+  startOfWeek,
+  endOfWeek,
+  isSameMonth,
+  getYear,
+  setYear,
+} from 'date-fns'
 import { BottomSheet } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
@@ -98,7 +117,7 @@ export function DiscoverEventsPage() {
   return (
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
       <div
-        className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-[#f4f6fb]/95 backdrop-blur shadow-sm"
+        className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-[#f4f6fb]/95 shadow-sm backdrop-blur"
         style={{ top: '0px' }}
       >
         <div className="mx-auto w-full max-w-4xl space-y-3 px-4 py-3">
@@ -106,7 +125,7 @@ export function DiscoverEventsPage() {
             <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
               <button
                 type="button"
-                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm bg-white"
+                className="flex-1 rounded-full bg-white px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm"
                 aria-current="page"
               >
                 即將到來的活動
@@ -138,13 +157,9 @@ export function DiscoverEventsPage() {
                 aria-hidden="true"
               />
               <div className="flex flex-col text-left">
-                <span className="text-sm font-semibold text-slate-700">
-                  {dateLabel}
-                </span>
+                <span className="text-sm font-semibold text-slate-700">{dateLabel}</span>
                 {showTodayLabel && (
-                  <span className="text-xs font-medium text-blue-500">
-                    Today
-                  </span>
+                  <span className="text-xs font-medium text-blue-500">Today</span>
                 )}
               </div>
             </button>
@@ -162,8 +177,8 @@ export function DiscoverEventsPage() {
                 {isSportsLoading
                   ? '載入運動中…'
                   : selectedSports.includes('all')
-                  ? '選擇運動'
-                  : selectedSportLabels.join(', ')}
+                    ? '選擇運動'
+                    : selectedSportLabels.join(', ')}
               </span>
             </button>
           </div>
@@ -178,9 +193,7 @@ export function DiscoverEventsPage() {
         )}
 
         {isLoading ? (
-          <div className="flex justify-center py-10 text-slate-500">
-            載入活動中…
-          </div>
+          <div className="flex justify-center py-10 text-slate-500">載入活動中…</div>
         ) : filteredEvents.length === 0 ? (
           <div className="flex flex-col items-center gap-4 py-10 text-center text-slate-500">
             <div>沒有找到活動</div>
@@ -319,7 +332,9 @@ function SportFilterSheet({
         <div className="space-y-6">
           <div className="flex flex-col gap-3">
             {options.map((sport) => {
-              const isActive = selected.includes(sport.key) || (sport.key === 'all' && selected.includes('all'))
+              const isActive =
+                selected.includes(sport.key) ||
+                (sport.key === 'all' && selected.includes('all'))
               return (
                 <button
                   key={sport.key}
@@ -336,7 +351,9 @@ function SportFilterSheet({
                     {sport.icon || '🏀'}
                   </div>
                   <span className="flex-1">{sport.label}</span>
-                  {isActive && <span className="text-xs font-semibold text-blue-500">已選</span>}
+                  {isActive && (
+                    <span className="text-xs font-semibold text-blue-500">已選</span>
+                  )}
                 </button>
               )
             })}
@@ -420,7 +437,9 @@ function CalendarSheet({
           <div className="flex items-center gap-2">
             <select
               value={currentYear}
-              onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
+              onChange={(event) =>
+                onMonthChange(setYear(monthStart, Number(event.target.value)))
+              }
               className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
             >
               {years.map((year) => (
@@ -468,7 +487,7 @@ function CalendarSheet({
                 onClick={() => onSelect(day)}
                 className={clsx(
                   'flex h-12 flex-col items-center justify-center rounded-full border text-sm font-semibold transition',
-                  inactive && 'text-slate-300 border-transparent',
+                  inactive && 'border-transparent text-slate-300',
                   !inactive && 'border-transparent',
                   active && '!border-blue-500 bg-blue-50 text-blue-700'
                 )}

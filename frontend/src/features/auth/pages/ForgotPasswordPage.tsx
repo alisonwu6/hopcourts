@@ -32,9 +32,12 @@ export function ForgotPasswordPage() {
         <main className="w-full max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-xl backdrop-blur">
           <img className="mx-auto h-16 w-auto" src={logoUrl} alt="SportsMatch" />
           <div className="mt-4 space-y-2">
-            <h1 className="text-2xl font-semibold text-player-900">Reset your password</h1>
+            <h1 className="text-2xl font-semibold text-player-900">
+              Reset your password
+            </h1>
             <p className="text-sm text-player-900/70">
-              Enter the email address associated with your account and we&apos;ll send you a reset link.
+              Enter the email address associated with your account and we&apos;ll send you
+              a reset link.
             </p>
           </div>
 
@@ -60,7 +63,10 @@ export function ForgotPasswordPage() {
 
           <p className="mt-6 text-center text-sm text-player-900/70">
             Remembered your password?{' '}
-            <Link to="/login" className="font-semibold text-player-600 hover:text-player-700">
+            <Link
+              to="/login"
+              className="font-semibold text-player-600 hover:text-player-700"
+            >
               Back to login
             </Link>
           </p>

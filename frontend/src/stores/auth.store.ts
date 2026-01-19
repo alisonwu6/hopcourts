@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { User } from '@/types'
-import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/services/authService'
-import { sessionService } from '@/services/sessionService'
 import {
-  OnboardingStatus,
-  useOnboardingStore,
-} from './onboarding.store'
+  signInWithEmail,
+  signUpWithEmail,
+  signOut as supabaseSignOut,
+} from '@/services/authService'
+import { sessionService } from '@/services/sessionService'
+import { OnboardingStatus, useOnboardingStore } from './onboarding.store'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
 
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
@@ -20,9 +21,14 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   login: (email: string, password: string, remember?: boolean) => Promise<void>
-  signup: (name: string, email: string, password: string, remember?: boolean) => Promise<void>
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+    remember?: boolean
+  ) => Promise<void>
   logout: () => Promise<void>
- hydrate: () => Promise<void>
+  hydrate: () => Promise<void>
   refreshOnboardingStatus: () => Promise<void>
   setAuthData: (
     user: User | null,
@@ -64,9 +70,11 @@ const persistUserId = (userId: string | null, remember = true) => {
 const handleOnboardingInitialization = (status: OnboardingStatus, user: User | null) => {
   const onboarding = useOnboardingStore.getState()
   const inferredRole =
-    user && (user.managedVenues?.length ?? 0) > 0 ? 'venue_manager' : user
-      ? 'player'
-      : null
+    user && (user.managedVenues?.length ?? 0) > 0
+      ? 'venue_manager'
+      : user
+        ? 'player'
+        : null
   onboarding.initializeOnboarding(status, {
     fullName: user?.name ?? '',
     role: inferredRole,
@@ -184,13 +192,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         persistToken(null)
         persistUserId(null)
         set({
-        user: null,
-        token: null,
-        onboardingStatus: null,
-        profileCache: null,
-        isAuthenticated: false,
-        isLoading: false,
-      })
+          user: null,
+          token: null,
+          onboardingStatus: null,
+          profileCache: null,
+          isAuthenticated: false,
+          isLoading: false,
+        })
         return
       }
       const context = await sessionService.bootstrap(accessToken)

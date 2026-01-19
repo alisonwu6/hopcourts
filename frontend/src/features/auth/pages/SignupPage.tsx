@@ -6,7 +6,8 @@ import logoUrl from '@/assets/logo.png'
 
 export function SignupPage() {
   const navigate = useNavigate()
-  const { signup, isLoading, error, clearError, isAuthenticated, onboardingStatus } = useAuthStore()
+  const { signup, isLoading, error, clearError, isAuthenticated, onboardingStatus } =
+    useAuthStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -49,7 +50,8 @@ export function SignupPage() {
           <div className="mt-3 space-y-2">
             {/* <h1 className="text-2xl font-semibold text-player-900">Join the movement.</h1> */}
             <p className="text-sm text-player-900/70">
-              SportsMatch 想讓大家都更愛動起來——和在地夥伴配對、說好就玩，幫你一路維持動力。
+              SportsMatch
+              想讓大家都更愛動起來——和在地夥伴配對、說好就玩，幫你一路維持動力。
             </p>
           </div>
 
@@ -114,11 +116,17 @@ export function SignupPage() {
               />
               <label htmlFor="terms">
                 我同意
-                <a href="#" className="font-semibold text-player-600 hover:text-player-700">
+                <a
+                  href="#"
+                  className="font-semibold text-player-600 hover:text-player-700"
+                >
                   服務條款
                 </a>{' '}
                 與{' '}
-                <a href="#" className="font-semibold text-player-600 hover:text-player-700">
+                <a
+                  href="#"
+                  className="font-semibold text-player-600 hover:text-player-700"
+                >
                   隱私權政策
                 </a>
               </label>
@@ -133,7 +141,10 @@ export function SignupPage() {
 
           <p className="mt-6 text-center text-sm text-player-900/70">
             已經有帳號了？{' '}
-            <Link to="/login" className="font-semibold text-player-600 hover:text-player-700">
+            <Link
+              to="/login"
+              className="font-semibold text-player-600 hover:text-player-700"
+            >
               立即登入
             </Link>
           </p>

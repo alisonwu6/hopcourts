@@ -8,7 +8,15 @@ export function MateProfilePage() {
   const { username } = useParams<{ username: string }>()
   const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps> } }
   const mate = state?.mate
-  const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const daysList = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ]
   const goalDaySlots = daysList.reduce<Record<string, string[]>>((acc, day) => {
     acc[day] = []
     return acc

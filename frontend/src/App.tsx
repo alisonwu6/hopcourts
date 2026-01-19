@@ -24,7 +24,8 @@ import { HomePage } from '@/features/home/pages/HomePage'
 
 const RequireAuth = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuthStore()
-  if (isLoading) return <div className="p-4 text-center text-sm text-slate-600">載入中…</div>
+  if (isLoading)
+    return <div className="p-4 text-center text-sm text-slate-600">載入中…</div>
   if (!isAuthenticated) return <Navigate to="/login" replace />
   return children
 }
@@ -103,12 +104,7 @@ export default function App() {
           </RequireAuth>
         }
       />
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? <AuthenticatedApp /> : <GuestApp />
-        }
-      />
+      <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
     </Routes>
   )
 }
@@ -125,15 +121,17 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
-    const noHeaderPaths = ['/events', '/my-events', '/event/', '/create-event']
-    const hideHeader = noHeaderPaths.some((segment) =>
-      pathname.startsWith(segment)
-    )
-    const headerVisible = showHeader && !hideHeader
-    const navVisible = showNav && !pathname.startsWith('/event/')
+  const noHeaderPaths = ['/events', '/my-events', '/event/', '/create-event']
+  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
+  const headerVisible = showHeader && !hideHeader
+  const navVisible = showNav && !pathname.startsWith('/event/')
 
   return (
-    <div style={{ paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0 }}>
+    <div
+      style={{
+        paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0,
+      }}
+    >
       {headerVisible && <Header showActions={showActions} />}
       {children}
       {navVisible && <BottomNav />}

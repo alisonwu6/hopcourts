@@ -13,7 +13,10 @@ export function AuthCallback() {
   const [err, setErr] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const queryType = useMemo(() => new URLSearchParams(location.search).get('type'), [location.search])
+  const queryType = useMemo(
+    () => new URLSearchParams(location.search).get('type'),
+    [location.search]
+  )
 
   useEffect(() => {
     if (queryType === 'recovery') {
@@ -115,9 +118,7 @@ export function AuthCallback() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-4">
       <div className="w-full max-w-sm rounded-2xl border border-player-100 bg-white p-8 text-center shadow-sm">
         <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-player-100 border-t-player-600" />
-        <p className="mt-4 text-sm text-player-900/70">
-          {err ?? ok ?? '完成登入中…'}
-        </p>
+        <p className="mt-4 text-sm text-player-900/70">{err ?? ok ?? '完成登入中…'}</p>
       </div>
     </div>
   )

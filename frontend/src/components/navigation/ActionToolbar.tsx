@@ -63,7 +63,9 @@ export function ActionToolbar({
         )}
 
         <div className="flex min-w-0 flex-1 items-center justify-center px-2">
-          {title && <div className="truncate text-sm font-semibold text-slate-800">{title}</div>}
+          {title && (
+            <div className="truncate text-sm font-semibold text-slate-800">{title}</div>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -85,7 +87,11 @@ export function ActionToolbar({
               aria-pressed={isFavorite}
               aria-label={isFavorite ? 'Saved' : 'Save for later'}
             >
-              <Heart className={clsx('h-5 w-5', isFavorite && 'fill-current')} strokeWidth={2} aria-hidden="true" />
+              <Heart
+                className={clsx('h-5 w-5', isFavorite && 'fill-current')}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </button>
           )}
           {rightContent ? (

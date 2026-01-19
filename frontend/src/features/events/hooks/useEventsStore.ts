@@ -107,8 +107,11 @@ export const useEventsStore = create<EventsStore>((set) => ({
       const response = await eventsService.joinEvent(eventId)
       if (response.success && response.data) {
         set((state) => ({
-          events: state.events.map((event) => (event.id === eventId ? response.data! : event)),
-          selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
+          events: state.events.map((event) =>
+            event.id === eventId ? response.data! : event
+          ),
+          selectedEvent:
+            state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
         }))
       } else {
         set({
@@ -125,8 +128,11 @@ export const useEventsStore = create<EventsStore>((set) => ({
       const response = await eventsService.leaveEvent(eventId)
       if (response.success && response.data) {
         set((state) => ({
-          events: state.events.map((event) => (event.id === eventId ? response.data! : event)),
-          selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
+          events: state.events.map((event) =>
+            event.id === eventId ? response.data! : event
+          ),
+          selectedEvent:
+            state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
         }))
       } else {
         set({

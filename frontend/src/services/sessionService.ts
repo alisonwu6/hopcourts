@@ -117,9 +117,9 @@ export const sessionService = {
   }): Promise<SessionContext> {
     const currentToken =
       typeof window !== 'undefined'
-        ? window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
+        ? (window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
           window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
-          ''
+          '')
         : ''
 
     const nextStatus: OnboardingStatus = {

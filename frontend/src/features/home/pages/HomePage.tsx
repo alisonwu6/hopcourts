@@ -107,14 +107,12 @@ export function HomePage() {
     isAuthenticated: state.isAuthenticated,
     onboardingStatus: state.onboardingStatus,
   }))
-  const showRecommendations =
-    isAuthenticated && (onboardingStatus?.isComplete ?? false)
+  const showRecommendations = isAuthenticated && (onboardingStatus?.isComplete ?? false)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    const seen =
-      window.localStorage.getItem('sportsmatch_mates_intro_v1') === 'dismissed'
+    const seen = window.localStorage.getItem('sportsmatch_mates_intro_v1') === 'dismissed'
     if (!seen) setShowIntroSheet(true)
   }, [])
 
@@ -218,12 +216,8 @@ export function HomePage() {
               />
               <div className="flex flex-1 items-center justify-between gap-2">
                 <div className="flex flex-col">
-                  <span className="text-base font-semibold text-slate-900">
-                    {city}
-                  </span>
-                  <span className="text-xs font-medium text-slate-500">
-                    目前所在城市
-                  </span>
+                  <span className="text-base font-semibold text-slate-900">{city}</span>
+                  <span className="text-xs font-medium text-slate-500">目前所在城市</span>
                 </div>
               </div>
             </button>
@@ -235,21 +229,16 @@ export function HomePage() {
             <h1 className="text-[26px] font-bold leading-tight tracking-tight text-slate-900">
               找到你的運動樣子
             </h1>
-            <p className="text-sm text-slate-600">
-              從這裡開始，看看附近的氛圍與夥伴。
-            </p>
+            <p className="text-sm text-slate-600">從這裡開始，看看附近的氛圍與夥伴。</p>
           </header>
 
           <section className="pb-12">
             <div
               ref={listRef}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="flex snap-x snap-mandatory gap-4 overflow-x-auto [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {mates.map((mate, idx) => (
-                <MateCard
-                  key={`${mate.name}-${idx}`}
-                  {...mate}
-                />
+                <MateCard key={`${mate.name}-${idx}`} {...mate} />
               ))}
             </div>
             <div className="mt-3 flex justify-center gap-2">
@@ -269,9 +258,7 @@ export function HomePage() {
           </section>
 
           <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
-            <h2 className="text-lg font-semibold text-slate-900">
-              建立你的運動身份
-            </h2>
+            <h2 className="text-lg font-semibold text-slate-900">建立你的運動身份</h2>
             <p className="text-sm text-slate-600">
               分享你的氛圍與喜好的運動，找到步調相近的夥伴。
             </p>
@@ -312,9 +299,7 @@ export function HomePage() {
             ×
           </button>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-slate-900">
-              登入建立你的運動身份
-            </h2>
+            <h2 className="text-2xl font-bold text-slate-900">登入建立你的運動身份</h2>
             <p className="text-sm text-slate-600">
               一起會探索城市裡的運動氛圍，找到步調相近的夥伴
             </p>

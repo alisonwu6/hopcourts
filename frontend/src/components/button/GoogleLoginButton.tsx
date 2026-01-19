@@ -1,10 +1,6 @@
 import { Button } from '@/components'
 
-export default function GoogleLoginButton({
-  loginGoogle,
-}: {
-  loginGoogle: () => void
-}) {
+export default function GoogleLoginButton({ loginGoogle }: { loginGoogle: () => void }) {
   return (
     <Button
       onClick={loginGoogle}
@@ -34,9 +30,7 @@ export default function GoogleLoginButton({
           fill="#EA4335"
         />
       </svg>
-      <span className="text-sm font-medium text-slate-900">
-        使用 Google 繼續
-      </span>
+      <span className="text-sm font-medium text-slate-900">使用 Google 繼續</span>
     </Button>
   )
 }

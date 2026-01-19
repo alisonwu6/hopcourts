@@ -37,7 +37,9 @@ export function IntroSheet({
         )}
         {title && <h2 className="text-2xl font-semibold">{title}</h2>}
         {description && (
-          <p className="mt-2 whitespace-pre-line text-base text-slate-700 font-semibold">{description}</p>
+          <p className="mt-2 whitespace-pre-line text-base font-semibold text-slate-700">
+            {description}
+          </p>
         )}
 
         {dismissLabel && (

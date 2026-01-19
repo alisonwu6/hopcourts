@@ -15,15 +15,7 @@ import {
   useVibes,
 } from '@/features/dictionaries/hooks'
 
-type Step =
-  | 'Vibe'
-  | 'Sports'
-  | 'Trying'
-  | 'Country'
-  | 'City'
-  | 'Bio'
-  | 'Info'
-  | 'Preview'
+type Step = 'Vibe' | 'Sports' | 'Trying' | 'Country' | 'City' | 'Bio' | 'Info' | 'Preview'
 type TimeSlot = '早上' | '下午' | '晚上'
 type CityOption = { id: string; label: string }
 type AgeRangeOption = { id: string; label: string }
@@ -92,9 +84,7 @@ export function OnboardingPage() {
   const [realName, setRealName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [preferredTime, setPreferredTime] = useState<TimeSlot | null>(null)
-  const [daySlots, setDaySlots] = useState<Record<string, TimeSlot[]>>(
-    createDaySlots()
-  )
+  const [daySlots, setDaySlots] = useState<Record<string, TimeSlot[]>>(createDaySlots())
   const [furthestStep, setFurthestStep] = useState(0)
   const [ageRange, setAgeRange] = useState<string>('')
   const [loadingProfile, setLoadingProfile] = useState(false)
@@ -126,12 +116,8 @@ export function OnboardingPage() {
   const noIdeaId = 'no-idea'
   const uniqueSports = useMemo(() => Array.from(new Set(sports)), [sports])
   const uniqueTrying = useMemo(() => Array.from(new Set(trying)), [trying])
-  const sportsDisplayCount = uniqueSports.includes(starterId)
-    ? 0
-    : uniqueSports.length
-  const tryingDisplayCount = uniqueTrying.some(
-    (id) => id === unsureId || id === noIdeaId
-  )
+  const sportsDisplayCount = uniqueSports.includes(starterId) ? 0 : uniqueSports.length
+  const tryingDisplayCount = uniqueTrying.some((id) => id === unsureId || id === noIdeaId)
     ? 0
     : uniqueTrying.length
 
@@ -184,7 +170,6 @@ export function OnboardingPage() {
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
     })
   }, [stepIndex])
-
 
   const toggleSport = (itemId: string) => {
     setSports((prev) => {
@@ -278,7 +263,12 @@ export function OnboardingPage() {
       await onboardingService.saveProfile(profileBody)
       await onboardingService.savePreferences(preferencesBody)
 
-      const { setAuthData, onboardingStatus: status, user: authUser, token } = useAuthStore.getState()
+      const {
+        setAuthData,
+        onboardingStatus: status,
+        user: authUser,
+        token,
+      } = useAuthStore.getState()
       setAuthData(authUser, token, { ...(status ?? null), isComplete: true })
       navigate('/profile')
     } catch (err: any) {
@@ -341,10 +331,8 @@ export function OnboardingPage() {
     [ageRanges]
   )
 
-  const selectedCountryLabel =
-    countryOptions.find((c) => c.id === country)?.label || ''
-  const selectedCityLabel =
-    cityOptions.find((c) => c.id === city)?.label || ''
+  const selectedCountryLabel = countryOptions.find((c) => c.id === country)?.label || ''
+  const selectedCityLabel = cityOptions.find((c) => c.id === city)?.label || ''
 
   const previewCard = {
     name: displayName,
@@ -396,18 +384,14 @@ export function OnboardingPage() {
     })
     const filteredByTrying = ordered.filter((s) => !trying.includes(s.id))
     if (!term) return filteredByTrying
-    return filteredByTrying.filter((s) =>
-      s.label.toLowerCase().startsWith(term)
-    )
+    return filteredByTrying.filter((s) => s.label.toLowerCase().startsWith(term))
   }, [sportsSearch, starterLabel, trying, favOptions])
 
   const filteredTrying = useMemo(() => {
     const term = tryingSearch.trim().toLowerCase()
     const filteredBySports = tryingOptions.filter((s) => !sports.includes(s.id))
     if (!term) return filteredBySports
-    return filteredBySports.filter((s) =>
-      s.label.toLowerCase().startsWith(term)
-    )
+    return filteredBySports.filter((s) => s.label.toLowerCase().startsWith(term))
   }, [tryingSearch, sports, tryingOptions])
 
   useEffect(() => {
@@ -426,10 +410,14 @@ export function OnboardingPage() {
           const sportsRows = profilePayload.sports || []
           const favoriteKeys =
             profilePayload.favorite_sports ||
-            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+            sportsRows
+              .filter((s: any) => s.kind === 'FAVORITE')
+              .map((s: any) => s.sport_key)
           const tryingKeys =
             profilePayload.trying_sports ||
-            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+            sportsRows
+              .filter((s: any) => s.kind === 'TRYING')
+              .map((s: any) => s.sport_key)
 
           setVibe(keyToVibeSafe(user.vibe_key))
           setSports(favoriteKeys || [])
@@ -462,347 +450,442 @@ export function OnboardingPage() {
   }, [prefilled, keyToVibeSafe])
 
   return (
-      <div>
-        {loadingProfile && (
-          <div className="bg-blue-50 text-blue-700 px-4 py-3 text-sm">
-            正在載入你的資料...
-          </div>
-        )}
-        {saveError && (
-          <div className="bg-red-50 text-red-700 px-4 py-3 text-sm">
-            {saveError}
-          </div>
-        )}
-        <ActionToolbar
-          onBack={() => navigate(-1)}
-          showFavorite={false}
-          showShare={false}
-          borderBottom={false}
-          title={null}
-          contentClassName="max-w-3xl px-0"
-        />
+    <div>
+      {loadingProfile && (
+        <div className="bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          正在載入你的資料...
+        </div>
+      )}
+      {saveError && (
+        <div className="bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>
+      )}
+      <ActionToolbar
+        onBack={() => navigate(-1)}
+        showFavorite={false}
+        showShare={false}
+        borderBottom={false}
+        title={null}
+        contentClassName="max-w-3xl px-0"
+      />
 
-        <div
-          className="px-4 pb-12 pt-6"
-          style={{
-            background: 'linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%)',
-          }}
-        >
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
-            <div className="flex flex-col gap-3">
-              <div className="relative h-1.5 w-full rounded-full bg-slate-200">
-                <div
-                  className="h-1.5 rounded-full"
-                  style={{ width: `${progress}%`, background: accent.ring }}
-                />
-                <div className="absolute inset-0 flex items-center justify-between px-2">
-                  {steps.map((_, idx) => {
-                    const unlocked = isComplete || idx === 0 || (idx <= furthestStep && furthestStep > 0)
-                    const color = unlocked
-                      ? stepColors[idx] ?? '#e2e8f0'
-                      : '#cbd5e1'
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => unlocked && setStepIndex(idx)}
-                        className={clsx(
-                          'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition shadow-sm ring-2 ring-white/50',
-                          unlocked
-                            ? 'opacity-100'
-                            : 'opacity-60 cursor-not-allowed'
-                        )}
-                        aria-label={`前往步驟 ${idx + 1}`}
-                        style={{
-                          background:
-                            idx === steps.length - 1 && unlocked
-                              ? '#fff'
-                              : color,
-                          color: '#fff',
-                        }}
-                        disabled={!unlocked}
-                      >
-                        {idx === steps.length - 1 ? (
-                          <IdCard
-                            className="h-6 w-6 text-black"
-                            strokeWidth={2.5}
-                          />
-                        ) : (
-                          idx + 1
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
+      <div
+        className="px-4 pb-12 pt-6"
+        style={{
+          background: 'linear-gradient(180deg, #eef2f7 0%, #f9fbff 100%)',
+        }}
+      >
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+          <div className="flex flex-col gap-3">
+            <div className="relative h-1.5 w-full rounded-full bg-slate-200">
+              <div
+                className="h-1.5 rounded-full"
+                style={{ width: `${progress}%`, background: accent.ring }}
+              />
+              <div className="absolute inset-0 flex items-center justify-between px-2">
+                {steps.map((_, idx) => {
+                  const unlocked =
+                    isComplete || idx === 0 || (idx <= furthestStep && furthestStep > 0)
+                  const color = unlocked ? (stepColors[idx] ?? '#e2e8f0') : '#cbd5e1'
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => unlocked && setStepIndex(idx)}
+                      className={clsx(
+                        'flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold shadow-sm ring-2 ring-white/50 transition',
+                        unlocked ? 'opacity-100' : 'cursor-not-allowed opacity-60'
+                      )}
+                      aria-label={`前往步驟 ${idx + 1}`}
+                      style={{
+                        background: idx === steps.length - 1 && unlocked ? '#fff' : color,
+                        color: '#fff',
+                      }}
+                      disabled={!unlocked}
+                    >
+                      {idx === steps.length - 1 ? (
+                        <IdCard className="h-6 w-6 text-black" strokeWidth={2.5} />
+                      ) : (
+                        idx + 1
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="mx-auto mt-6 flex w-full max-w-3xl flex-col gap-1 px-1">
-            <p className="text-sm font-semibold text-slate-500">
-              {stepLabels[currentStep]}
-            </p>
-            <p className="text-xs text-slate-500">
-              {stepSubtitles[currentStep]}
-            </p>
+        <div className="mx-auto mt-6 flex w-full max-w-3xl flex-col gap-1 px-1">
+          <p className="text-sm font-semibold text-slate-500">
+            {stepLabels[currentStep]}
+          </p>
+          <p className="text-xs text-slate-500">{stepSubtitles[currentStep]}</p>
+        </div>
+
+        {currentStep === 'Vibe' && (
+          <div className="mt-10 space-y-3">
+            {vibeOptions.map((item) => {
+              const selected = vibe === item.id
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setVibe(item.id)}
+                  className={clsx(
+                    'w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition',
+                    selected
+                      ? 'border-transparent shadow-[0_12px_30px_-18px_rgba(0,0,0,0.3)]'
+                      : 'border-slate-200 bg-white/90 hover:bg-white'
+                  )}
+                  style={
+                    selected ? { background: withAlpha(accent.ring, 0.16) } : undefined
+                  }
+                >
+                  <div className="text-lg font-semibold text-slate-900">{item.title}</div>
+                  <div className="text-sm text-slate-600">{item.subtitle}</div>
+                </button>
+              )
+            })}
           </div>
+        )}
 
-          {currentStep === 'Vibe' && (
-            <div className="space-y-3 mt-10">
-              {vibeOptions.map((item) => {
-                const selected = vibe === item.id
+        {currentStep === 'Sports' && (
+          <div className="mt-10 space-y-3">
+            <div className="text-sm font-semibold text-slate-500">
+              已選 {sportsDisplayCount}/3
+            </div>
+            {uniqueSports.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {uniqueSports.map((sportId) => {
+                  const label = sportOptionMap.get(sportId)?.label ?? sportId
+                  return (
+                    <span
+                      key={sportId}
+                      className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
+                    >
+                      {label}
+                      <button
+                        type="button"
+                        className="text-slate-500 hover:text-slate-700"
+                        onClick={() => toggleSport(sportId)}
+                        aria-label={`Remove ${label}`}
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+            <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                type="text"
+                value={sportsSearch}
+                onChange={(e) => setSportsSearch(e.target.value)}
+                className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                placeholder="搜尋運動..."
+              />
+            </div>
+            <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
+              {filteredSports.map((sport) => {
+                const selected = uniqueSports.includes(sport.id)
                 return (
                   <button
-                    key={item.id}
+                    key={sport.id}
                     type="button"
-                    onClick={() => setVibe(item.id)}
+                    onClick={() => toggleSport(sport.id)}
                     className={clsx(
-                      'w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition',
+                      'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                       selected
-                        ? 'border-transparent shadow-[0_12px_30px_-18px_rgba(0,0,0,0.3)]'
-                        : 'border-slate-200 bg-white/90 hover:bg-white'
+                        ? 'border-transparent shadow-sm'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
                     )}
                     style={
                       selected
-                        ? { background: withAlpha(accent.ring, 0.16) }
+                        ? {
+                            background: withAlpha(accent.ring, 0.14),
+                            boxShadow: `0 8px 20px -14px ${accent.ring}`,
+                          }
                         : undefined
                     }
                   >
-                    <div className="text-lg font-semibold text-slate-900">
-                      {item.title}
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      {item.subtitle}
-                    </div>
+                    <span className="text-sm font-semibold text-slate-900">
+                      {sport.label}
+                    </span>
+                    {selected && (
+                      <span className="text-xs font-semibold text-slate-600">✓</span>
+                    )}
                   </button>
                 )
               })}
             </div>
-          )}
+          </div>
+        )}
 
-          {currentStep === 'Sports' && (
-            <div className="space-y-3 mt-10">
-              <div className="text-sm font-semibold text-slate-500">
-                已選 {sportsDisplayCount}/3
-              </div>
-              {uniqueSports.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {uniqueSports.map((sportId) => {
-                    const label = sportOptionMap.get(sportId)?.label ?? sportId
-                    return (
-                      <span
-                        key={sportId}
-                        className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
+        {currentStep === 'Trying' && (
+          <div className="mt-10 space-y-3">
+            <div className="text-sm font-semibold text-slate-500">
+              已選 {tryingDisplayCount}/2
+            </div>
+            {uniqueTrying.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {uniqueTrying.map((itemId) => {
+                  const label = tryingOptionMap.get(itemId)?.label ?? itemId
+                  return (
+                    <span
+                      key={itemId}
+                      className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
+                    >
+                      {label}
+                      <button
+                        type="button"
+                        className="text-slate-500 hover:text-slate-700"
+                        onClick={() => toggleTrying(itemId)}
+                        aria-label={`Remove ${label}`}
                       >
-                        {label}
-                        <button
-                          type="button"
-                          className="text-slate-500 hover:text-slate-700"
-                          onClick={() => toggleSport(sportId)}
-                          aria-label={`Remove ${label}`}
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    )
-                  })}
+                        ✕
+                      </button>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+            <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                type="text"
+                value={tryingSearch}
+                onChange={(e) => setTryingSearch(e.target.value)}
+                className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                placeholder="搜尋想嘗試的運動..."
+              />
+            </div>
+            <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
+              {filteredTrying.map((item) => {
+                const selected = uniqueTrying.includes(item.id)
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => toggleTrying(item.id)}
+                    className={clsx(
+                      'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
+                      selected
+                        ? 'border-transparent shadow-sm'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                    )}
+                    style={
+                      selected
+                        ? {
+                            background: withAlpha(accent.ring, 0.14),
+                            boxShadow: `0 8px 20px -14px ${accent.ring}`,
+                          }
+                        : undefined
+                    }
+                  >
+                    <span className="text-sm font-semibold text-slate-900">
+                      {item.label}
+                    </span>
+                    {selected && (
+                      <span className="text-xs font-semibold text-slate-600">✓</span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'Country' && (
+          <div className="mt-10 space-y-3">
+            <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+              <input
+                type="text"
+                value={countrySearch}
+                onChange={(e) => setCountrySearch(e.target.value)}
+                className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+                placeholder="搜尋你的國家/地區..."
+              />
+            </div>
+            <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
+              {filteredCountries.map((item) => {
+                const selected = country === item.id
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setCountry(item.id)
+                      setCity('')
+                    }}
+                    className={clsx(
+                      'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
+                      selected
+                        ? 'border-transparent shadow-sm'
+                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                    )}
+                    style={
+                      selected
+                        ? {
+                            background: withAlpha(accent.ring, 0.14),
+                            boxShadow: `0 8px 20px -14px ${accent.ring}`,
+                          }
+                        : undefined
+                    }
+                  >
+                    <span className="text-lg font-semibold text-slate-900">
+                      {item.label}
+                    </span>
+                    <span className="text-xl" aria-hidden="true">
+                      {item.flag}
+                    </span>
+                  </button>
+                )
+              })}
+              {filteredCountries.length === 0 && (
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
+                  No matches found
                 </div>
               )}
-              <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
-                <input
-                  type="text"
-                  value={sportsSearch}
-                  onChange={(e) => setSportsSearch(e.target.value)}
-                  className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                  placeholder="搜尋運動..."
-                />
-              </div>
-              <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
-                {filteredSports.map((sport) => {
-                  const selected = uniqueSports.includes(sport.id)
-                  return (
-                    <button
-                      key={sport.id}
-                      type="button"
-                      onClick={() => toggleSport(sport.id)}
-                      className={clsx(
-                        'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
-                        selected
-                          ? 'border-transparent shadow-sm'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      )}
-                      style={
-                        selected
-                          ? {
-                              background: withAlpha(accent.ring, 0.14),
-                              boxShadow: `0 8px 20px -14px ${accent.ring}`,
-                            }
-                          : undefined
-                      }
-                    >
-                      <span className="text-sm font-semibold text-slate-900">
-                        {sport.label}
-                      </span>
-                      {selected && (
-                        <span className="text-xs font-semibold text-slate-600">
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {currentStep === 'Trying' && (
-            <div className="space-y-3 mt-10">
-              <div className="text-sm font-semibold text-slate-500">
-                已選 {tryingDisplayCount}/2
-              </div>
-              {uniqueTrying.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {uniqueTrying.map((itemId) => {
-                    const label = tryingOptionMap.get(itemId)?.label ?? itemId
-                    return (
-                      <span
-                        key={itemId}
-                        className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800 ring-1 ring-slate-200"
-                      >
-                        {label}
-                        <button
-                          type="button"
-                          className="text-slate-500 hover:text-slate-700"
-                          onClick={() => toggleTrying(itemId)}
-                          aria-label={`Remove ${label}`}
-                        >
-                          ✕
-                        </button>
-                      </span>
-                    )
-                  })}
+        {currentStep === 'City' && (
+          <div className="mt-10 space-y-3">
+            <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+              <p className="text-sm font-semibold text-slate-700">
+                現居城市（僅台北/新北）
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {cityOptions.map((option) => {
+                const active = city === option.id
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setCity(option.id)}
+                    className={clsx(
+                      'rounded-full border px-4 py-2 text-sm font-semibold transition',
+                      active
+                        ? 'border-transparent'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                    )}
+                    style={
+                      active
+                        ? {
+                            background: withAlpha(accent.ring, 0.18),
+                            color: '#0f172a',
+                            boxShadow: `0 12px 28px -18px ${accent.ring}`,
+                          }
+                        : undefined
+                    }
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'Info' && (
+          <div className="mt-10 space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="mt-1 rounded-full bg-blue-50 p-2 text-blue-700">
+                  <Lock className="h-5 w-5" aria-hidden="true" />
                 </div>
-              )}
-              <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
-                <input
-                  type="text"
-                  value={tryingSearch}
-                  onChange={(e) => setTryingSearch(e.target.value)}
-                  className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                  placeholder="搜尋想嘗試的運動..."
-                />
-              </div>
-              <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
-                {filteredTrying.map((item) => {
-                  const selected = uniqueTrying.includes(item.id)
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => toggleTrying(item.id)}
-                      className={clsx(
-                        'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
-                        selected
-                          ? 'border-transparent shadow-sm'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      )}
-                      style={
-                        selected
-                          ? {
-                              background: withAlpha(accent.ring, 0.14),
-                              boxShadow: `0 8px 20px -14px ${accent.ring}`,
-                            }
-                          : undefined
-                      }
-                    >
-                      <span className="text-sm font-semibold text-slate-900">
-                        {item.label}
-                      </span>
-                      {selected && (
-                        <span className="text-xs font-semibold text-slate-600">
-                          ✓
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-800">
+                    你的名字，我們會好好保護
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    夥伴在社群裡只會看到你想被怎麼稱呼。真實姓名只會在真的需要安全驗證時才會使用。
+                  </p>
+                </div>
               </div>
             </div>
-          )}
 
-          {currentStep === 'Country' && (
-            <div className="space-y-3 mt-10">
-              <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="mt-10 space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  夥伴怎麼稱呼你？（顯示名稱）
+                </label>
                 <input
-                  type="text"
-                  value={countrySearch}
-                  onChange={(e) => setCountrySearch(e.target.value)}
-                  className="w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
-                  placeholder="搜尋你的國家/地區..."
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  placeholder="例如: 跳跳虎"
                 />
               </div>
-              <div className="flex max-h-96 flex-col gap-3 overflow-y-auto pr-1">
-                {filteredCountries.map((item) => {
-                  const selected = country === item.id
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => {
-                        setCountry(item.id)
-                        setCity('')
-                      }}
-                      className={clsx(
-                        'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
-                        selected
-                          ? 'border-transparent shadow-sm'
-                          : 'border-slate-200 bg-white hover:bg-slate-50'
-                      )}
-                      style={
-                        selected
-                          ? {
-                              background: withAlpha(accent.ring, 0.14),
-                              boxShadow: `0 8px 20px -14px ${accent.ring}`,
-                            }
-                          : undefined
-                      }
-                      >
-                      <span className="text-lg font-semibold text-slate-900">
-                        {item.label}
-                      </span>
-                      <span
-                        className="text-xl"
-                        aria-hidden="true"
-                      >
-                        {item.flag}
-                      </span>
-                    </button>
-                  )
-                })}
-                {filteredCountries.length === 0 && (
-                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-                    No matches found
-                  </div>
-                )}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Username</label>
+                <input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  placeholder="例如: tiger20260101"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  真實姓名（不公開）
+                </label>
+                <input
+                  value={realName}
+                  onChange={(e) => setRealName(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  placeholder="請填寫證件上的姓名（不會公開）"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">年齡區間</label>
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+                  <select
+                    value={ageRange}
+                    onChange={(e) => setAgeRange(e.target.value)}
+                    className="w-full bg-transparent text-sm font-semibold text-slate-900 outline-none"
+                  >
+                    <option value="" disabled>
+                      請選擇
+                    </option>
+                    {ageRangeOptions.map((option) => (
+                      <option key={option.id} value={option.id}>
+                        {`${option.label}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-          )}
 
-          {currentStep === 'City' && (
-            <div className="space-y-3 mt-10">
-              <div className="flex items-center rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+            <div className="mt-10 space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+              <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-slate-700">
-                  現居城市（僅台北/新北）
+                  通常想在什麼時段運動？
                 </p>
+                <span className="text-xs font-semibold text-slate-500">
+                  選 1 個主要時段
+                </span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {cityOptions.map((option) => {
-                  const active = city === option.id
+                {(['早上', '下午', '晚上'] as TimeSlot[]).map((slot) => {
+                  const active = preferredTime === slot
                   return (
                     <button
-                      key={option.id}
+                      key={slot}
                       type="button"
-                      onClick={() => setCity(option.id)}
+                      onClick={() => {
+                        setPreferredTime(slot)
+                        setDaySlots(() => {
+                          const next: Record<string, TimeSlot[]> = {}
+                          daysList.forEach((day) => {
+                            next[day] = [slot]
+                          })
+                          return next
+                        })
+                      }}
                       className={clsx(
                         'rounded-full border px-4 py-2 text-sm font-semibold transition',
                         active
@@ -819,286 +902,140 @@ export function OnboardingPage() {
                           : undefined
                       }
                     >
-                      {option.label}
+                      {slot}
                     </button>
                   )
                 })}
               </div>
-            </div>
-          )}
 
-          {currentStep === 'Info' && (
-            <div className="space-y-3 mt-10">
-              <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 rounded-full bg-blue-50 p-2 text-blue-700">
-                    <Lock
-                      className="h-5 w-5"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-slate-800">
-                      你的名字，我們會好好保護
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      夥伴在社群裡只會看到你想被怎麼稱呼。真實姓名只會在真的需要安全驗證時才會使用。
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 mt-10 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    夥伴怎麼稱呼你？（顯示名稱）
-                  </label>
-                  <input
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="例如: 跳跳虎"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    Username
-                  </label>
-                  <input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="例如: tiger20260101"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    真實姓名（不公開）
-                  </label>
-                  <input
-                    value={realName}
-                    onChange={(e) => setRealName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="請填寫證件上的姓名（不會公開）"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    年齡區間
-                  </label>
-                  <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-                    <select
-                      value={ageRange}
-                      onChange={(e) => setAgeRange(e.target.value)}
-                      className="w-full bg-transparent text-sm font-semibold text-slate-900 outline-none"
-                    >
-                      <option
-                        value=""
-                        disabled
-                      >
-                        請選擇
-                      </option>
-                      {ageRangeOptions.map((option) => (
-                        <option
-                          key={option.id}
-                          value={option.id}
-                        >
-                          {`${option.label}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 mt-10 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-slate-700">
-                    通常想在什麼時段運動？
-                  </p>
-                  <span className="text-xs font-semibold text-slate-500">
-                    選 1 個主要時段
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {(['早上', '下午', '晚上'] as TimeSlot[]).map((slot) => {
-                    const active = preferredTime === slot
-                    return (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => {
-                          setPreferredTime(slot)
-                          setDaySlots(() => {
-                            const next: Record<string, TimeSlot[]> = {}
-                            daysList.forEach((day) => {
-                              next[day] = [slot]
-                            })
-                            return next
-                          })
-                        }}
-                        className={clsx(
-                          'rounded-full border px-4 py-2 text-sm font-semibold transition',
-                          active
-                            ? 'border-transparent'
-                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                        )}
-                        style={
-                          active
-                            ? {
-                                background: withAlpha(accent.ring, 0.18),
-                                color: '#0f172a',
-                                boxShadow: `0 12px 28px -18px ${accent.ring}`,
+              <details className="mt-10 space-y-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <summary className="cursor-pointer text-sm font-semibold text-slate-700">
+                  按天微調（可選）
+                </summary>
+                <div className="mt-10 space-y-3 pt-1">
+                  {daysList.map((day) => (
+                    <div key={day} className="space-y-2">
+                      <p className="text-base font-semibold text-slate-800">
+                        {dayLabels[day]}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {(['早上', '下午', '晚上'] as TimeSlot[]).map((slot) => {
+                          const active = daySlots[day]?.includes(slot)
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              onClick={() =>
+                                setDaySlots((prev) => {
+                                  const next = {
+                                    ...prev,
+                                    [day]: [...(prev[day] ?? [])],
+                                  }
+                                  if (next[day].includes(slot)) {
+                                    next[day] = next[day].filter((s) => s !== slot)
+                                  } else {
+                                    next[day].push(slot)
+                                  }
+                                  return next
+                                })
                               }
-                            : undefined
-                        }
-                      >
-                        {slot}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                <details className="space-y-3 mt-10 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <summary className="cursor-pointer text-sm font-semibold text-slate-700">
-                    按天微調（可選）
-                  </summary>
-                  <div className="space-y-3 mt-10 pt-1">
-                    {daysList.map((day) => (
-                      <div
-                        key={day}
-                        className="space-y-2"
-                      >
-                        <p className="text-base font-semibold text-slate-800">
-                          {dayLabels[day]}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {(['早上', '下午', '晚上'] as TimeSlot[]).map(
-                            (slot) => {
-                              const active = daySlots[day]?.includes(slot)
-                              return (
-                                <button
-                                  key={slot}
-                                  type="button"
-                                  onClick={() =>
-                                    setDaySlots((prev) => {
-                                      const next = {
-                                        ...prev,
-                                        [day]: [...(prev[day] ?? [])],
-                                      }
-                                      if (next[day].includes(slot)) {
-                                        next[day] = next[day].filter(
-                                          (s) => s !== slot
-                                        )
-                                      } else {
-                                        next[day].push(slot)
-                                      }
-                                      return next
-                                    })
-                                  }
-                                  className={clsx(
-                                    'min-w-[60px] rounded-full border px-4 py-2 text-sm font-semibold transition',
-                                    active
-                                      ? 'border-transparent'
-                                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
-                                  )}
-                                  style={
-                                    active
-                                      ? {
-                                          background: withAlpha(
-                                            accent.ring,
-                                            0.18
-                                          ),
-                                          color: '#0f172a',
-                                          boxShadow: `0 12px 28px -18px ${accent.ring}`,
-                                        }
-                                      : undefined
-                                  }
-                                >
-                                  {slot}
-                                </button>
-                              )
-                            }
-                          )}
-                        </div>
+                              className={clsx(
+                                'min-w-[60px] rounded-full border px-4 py-2 text-sm font-semibold transition',
+                                active
+                                  ? 'border-transparent'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                              )}
+                              style={
+                                active
+                                  ? {
+                                      background: withAlpha(accent.ring, 0.18),
+                                      color: '#0f172a',
+                                      boxShadow: `0 12px 28px -18px ${accent.ring}`,
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {slot}
+                            </button>
+                          )
+                        })}
                       </div>
-                    ))}
-                  </div>
-                </details>
-
-                <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                  我們會幫你找到符合節奏的活動與夥伴。
+                    </div>
+                  ))}
                 </div>
+              </details>
+
+              <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                我們會幫你找到符合節奏的活動與夥伴。
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {currentStep === 'Bio' && (
-            <div className="space-y-3 mt-10">
-              <textarea
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                rows={4}
-                maxLength={120}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="I move to feel grounded and find my crew wherever I land."
-              />
-              <div className="text-right text-xs text-slate-500">
-                {bio.length}/40
-              </div>
-            </div>
-          )}
+        {currentStep === 'Bio' && (
+          <div className="mt-10 space-y-3">
+            <textarea
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              rows={4}
+              maxLength={120}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="I move to feel grounded and find my crew wherever I land."
+            />
+            <div className="text-right text-xs text-slate-500">{bio.length}/40</div>
+          </div>
+        )}
 
-          {currentStep === 'Preview' && (
-            <div className="space-y-3 mt-10">
-              <MateCard
-                name={previewCard.name}
-                flag={previewCard.flag}
-                vibe={previewCard.vibe}
-                sports={previewCard.sports}
-                trying={previewCard.trying}
-                location={previewCard.location}
-                blurb={previewCard.blurb}
-                avatar={previewCard.avatar}
-              />
-            </div>
-          )}
+        {currentStep === 'Preview' && (
+          <div className="mt-10 space-y-3">
+            <MateCard
+              name={previewCard.name}
+              flag={previewCard.flag}
+              vibe={previewCard.vibe}
+              sports={previewCard.sports}
+              trying={previewCard.trying}
+              location={previewCard.location}
+              blurb={previewCard.blurb}
+              avatar={previewCard.avatar}
+            />
+          </div>
+        )}
 
-          <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#f9fbff] via-[#f9fbff]/95 to-transparent pb-6 pt-8">
-            <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4">
-              {stepIndex > 0 ? (
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  上一步
-                </button>
-              ) : (
-                <div className="flex-1" />
-              )}
+        <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-[#f9fbff] via-[#f9fbff]/95 to-transparent pb-6 pt-8">
+          <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-4">
+            {stepIndex > 0 ? (
               <button
                 type="button"
-                onClick={goNext}
-                disabled={nextDisabled || saving || (loadingProfile && !initialized)}
-                className={clsx(
-                  'pointer-events-auto flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60',
-                  stepIndex === 0 ? 'w-full' : 'flex-1',
-                  nextDisabled ? 'bg-slate-200 text-slate-500' : undefined
-                )}
-                style={nextDisabled ? undefined : { background: accent.ring }}
+                onClick={goBack}
+                className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
               >
-                {currentStep === 'Preview'
-                  ? '儲存我的運動卡'
-                  : currentStep === 'Info'
+                <ChevronLeft className="h-4 w-4" />
+                上一步
+              </button>
+            ) : (
+              <div className="flex-1" />
+            )}
+            <button
+              type="button"
+              onClick={goNext}
+              disabled={nextDisabled || saving || (loadingProfile && !initialized)}
+              className={clsx(
+                'pointer-events-auto flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60',
+                stepIndex === 0 ? 'w-full' : 'flex-1',
+                nextDisabled ? 'bg-slate-200 text-slate-500' : undefined
+              )}
+              style={nextDisabled ? undefined : { background: accent.ring }}
+            >
+              {currentStep === 'Preview'
+                ? '儲存我的運動卡'
+                : currentStep === 'Info'
                   ? '我的運動卡預覽'
                   : '下一步'}
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
+    </div>
   )
 }

@@ -2,15 +2,11 @@ import { supabase } from '@/lib/supabase'
 
 const authRedirect =
   import.meta.env.VITE_SUPABASE_AUTH_REDIRECT ||
-  (typeof window !== 'undefined'
-    ? `${window.location.origin}/auth/callback`
-    : undefined)
+  (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined)
 
 const resetRedirect =
   import.meta.env.VITE_SUPABASE_RESET_REDIRECT ||
-  (typeof window !== 'undefined'
-    ? `${window.location.origin}/auth/reset`
-    : undefined)
+  (typeof window !== 'undefined' ? `${window.location.origin}/auth/reset` : undefined)
 
 function ensureSupabase() {
   if (!supabase) {

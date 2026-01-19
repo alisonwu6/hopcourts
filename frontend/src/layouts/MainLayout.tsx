@@ -30,7 +30,9 @@ export default function MainLayout({
   backgroundClassName = 'bg-white',
 }: Props) {
   return (
-    <div className={clsx('flex min-h-screen flex-col text-slate-900', backgroundClassName)}>
+    <div
+      className={clsx('flex min-h-screen flex-col text-slate-900', backgroundClassName)}
+    >
       <div className="flex min-h-screen flex-col">
         <div
           className={clsx(
@@ -46,9 +48,7 @@ export default function MainLayout({
                     {title}
                   </h1>
                 )}
-                {description && (
-                  <p className="text-sm text-slate-600">{description}</p>
-                )}
+                {description && <p className="text-sm text-slate-600">{description}</p>}
               </div>
               {actions && <div className="flex items-center gap-2">{actions}</div>}
             </header>

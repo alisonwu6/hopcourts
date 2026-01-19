@@ -19,6 +19,8 @@ export const onboardingService = {
   },
 
   async getOnboardingStatus() {
-    return api.me.onboarding() as Promise<ApiResponse<{ is_complete: boolean; missing_fields: string[] }>>
+    return api.me.onboarding() as Promise<
+      ApiResponse<{ is_complete: boolean; missing_fields: string[] }>
+    >
   },
 }

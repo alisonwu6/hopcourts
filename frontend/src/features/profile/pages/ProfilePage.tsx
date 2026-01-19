@@ -56,17 +56,7 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
   ctx.translate(width / 2, height / 2)
   ctx.rotate((rotation * Math.PI) / 180)
   ctx.translate(-width / 2, -height / 2)
-  ctx.drawImage(
-    image,
-    x,
-    y,
-    width,
-    height,
-    0,
-    0,
-    width,
-    height
-  )
+  ctx.drawImage(image, x, y, width, height, 0, 0, width, height)
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((file) => {
@@ -80,7 +70,15 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
 }
 
 export function ProfilePage() {
-  const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const daysList = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ]
   const dayLabels: Record<string, string> = {
     Monday: '週一',
     Tuesday: '週二',
@@ -96,11 +94,17 @@ export function ProfilePage() {
       return acc
     }, {})
   const [showGoalSheet, setShowGoalSheet] = useState(false)
-  const defaultGoal: GoalState = { sessionsPerWeek: '2', timeOfDay: '晚上', days: ['Mon', 'Wed'] }
+  const defaultGoal: GoalState = {
+    sessionsPerWeek: '2',
+    timeOfDay: '晚上',
+    days: ['Mon', 'Wed'],
+  }
   const [goal, setGoal] = useState<GoalState | null>(defaultGoal)
   const [draftGoal, setDraftGoal] = useState<GoalState>(defaultGoal)
-  const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
+  const [goalDaySlots, setGoalDaySlots] =
+    useState<Record<string, string[]>>(createDaySlots())
+  const [draftDaySlots, setDraftDaySlots] =
+    useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
@@ -109,12 +113,21 @@ export function ProfilePage() {
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
-  const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
-    useAuthStore()
-  const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
+  const {
+    user,
+    onboardingStatus,
+    isAuthenticated,
+    isLoading,
+    profileCache,
+    setProfileCache,
+  } = useAuthStore()
+  const userAvatar =
+    (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
   const [profile, setProfile] = useState<MateCardProps | null>(profileCache ?? null)
-  const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
+  const [draftProfile, setDraftProfile] = useState<MateCardProps>(
+    profileCache ?? emptyProfile
+  )
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
@@ -167,7 +180,8 @@ export function ProfilePage() {
   const vibeKeyToUnion = useMemo(() => {
     const map = new Map<string, MateCardProps['vibe']>()
     vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      const union = (v.key.charAt(0) +
+        v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
       map.set(v.key, union)
     })
     return map
@@ -176,7 +190,8 @@ export function ProfilePage() {
   const vibeUnionToKey = useMemo(() => {
     const map = new Map<string, string>()
     vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      const union = (v.key.charAt(0) +
+        v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
       map.set(union, v.key)
     })
     return map
@@ -281,10 +296,14 @@ export function ProfilePage() {
           const sportsRows = payload.sports || []
           const favoriteKeys =
             payload.favorite_sports ||
-            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+            sportsRows
+              .filter((s: any) => s.kind === 'FAVORITE')
+              .map((s: any) => s.sport_key)
           const tryingKeys =
             payload.trying_sports ||
-            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+            sportsRows
+              .filter((s: any) => s.kind === 'TRYING')
+              .map((s: any) => s.sport_key)
           const vibeUnion = data.vibe_key ? vibeKeyToUnion.get(data.vibe_key) || '' : ''
           const mapped: MateCardProps = {
             name: data.display_name || data.username || '',
@@ -319,7 +338,10 @@ export function ProfilePage() {
             timeOfDay: preferredTime || '尚未設定',
             days: [],
           })
-          const mergedSlots: Record<string, string[]> = { ...createDaySlots(), ...daySlots }
+          const mergedSlots: Record<string, string[]> = {
+            ...createDaySlots(),
+            ...daySlots,
+          }
           setGoalDaySlots(mergedSlots)
           setDraftDaySlots(mergedSlots)
           if (preferredTime) setDraftPreferredTime(preferredTime)
@@ -338,7 +360,11 @@ export function ProfilePage() {
   }, [isAuthenticated])
 
   const handleOpenGoal = () => {
-    const baseGoal = goal ?? { sessionsPerWeek: '', timeOfDay: draftPreferredTime || '早上', days: [] }
+    const baseGoal = goal ?? {
+      sessionsPerWeek: '',
+      timeOfDay: draftPreferredTime || '早上',
+      days: [],
+    }
     setDraftGoal(baseGoal)
     setDraftDaySlots(goalDaySlots)
     setDraftPreferredTime(baseGoal.timeOfDay || '早上')
@@ -533,16 +559,11 @@ export function ProfilePage() {
         onChange={(e) => handleAvatarFile(e.target.files?.[0] || null)}
       />
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-between px-4 py-4 bg-white">
+        <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
-            <Lock
-              className="h-5 w-5 text-slate-700"
-              aria-hidden="true"
-            />
+            <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
             {username && (
-              <span className="text-2xl font-bold text-slate-900">
-                {username}
-              </span>
+              <span className="text-2xl font-bold text-slate-900">{username}</span>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -626,16 +647,13 @@ export function ProfilePage() {
                 {
                   key: 'location',
                   label: '現居地點',
-                  value:
-                    labelForCity(draftProfile.cityKey) || draftProfile.location,
+                  value: labelForCity(draftProfile.cityKey) || draftProfile.location,
                   valueKey: draftProfile.cityKey || '',
                 },
                 {
                   key: 'flag',
                   label: '國籍',
-                  value:
-                    labelForCountry(draftProfile.countryKey) ||
-                    draftProfile.flag,
+                  value: labelForCountry(draftProfile.countryKey) || draftProfile.flag,
                   valueKey: draftProfile.countryKey || '',
                 },
                 {
@@ -652,18 +670,12 @@ export function ProfilePage() {
                   key={row.key}
                   type="button"
                   onClick={() =>
-                    openFieldSheet(
-                      row.key as any,
-                      row.value,
-                      (row as any).valueKey
-                    )
+                    openFieldSheet(row.key as any, row.value, (row as any).valueKey)
                   }
                   className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
                 >
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-slate-700">
-                      {row.label}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-700">{row.label}</p>
                     <p className="text-base font-semibold text-slate-900">
                       {row.key === 'vibe'
                         ? labelForVibe(
@@ -689,9 +701,7 @@ export function ProfilePage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">
-                    我的最愛
-                  </p>
+                  <p className="text-sm font-semibold text-slate-700">我的最愛</p>
                   <p className="text-base font-semibold text-slate-900">
                     {draftProfile.sports.length
                       ? draftProfile.sports.join('、')
@@ -727,10 +737,8 @@ export function ProfilePage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">
-                    自我介紹
-                  </p>
-                  <p className="text-base font-semibold text-slate-900 line-clamp-1">
+                  <p className="text-sm font-semibold text-slate-700">自我介紹</p>
+                  <p className="line-clamp-1 text-base font-semibold text-slate-900">
                     {draftProfile.blurb || '未設定'}
                   </p>
                 </div>
@@ -778,9 +786,7 @@ export function ProfilePage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  縮放
-                </label>
+                <label className="text-sm font-semibold text-slate-700">縮放</label>
                 <input
                   type="range"
                   min={1}
@@ -793,9 +799,7 @@ export function ProfilePage() {
               </div>
             </div>
           ) : (
-            <p className="text-center text-sm text-slate-600">
-              尚未選擇圖片
-            </p>
+            <p className="text-center text-sm text-slate-600">尚未選擇圖片</p>
           )}
         </SheetLayout>
       </BottomSheet>
@@ -844,8 +848,8 @@ export function ProfilePage() {
                     const active =
                       v.key === fieldValue ||
                       vibeUnionToKey.get(fieldValue) === v.key ||
-                      (vibeUnionToKey.get(fieldValue)?.toLowerCase?.() ===
-                        v.key.toLowerCase())
+                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() ===
+                        v.key.toLowerCase()
                     return (
                       <button
                         key={v.key}
@@ -871,10 +875,7 @@ export function ProfilePage() {
                 >
                   <option value="">請選擇城市</option>
                   {citiesCatalog.map((c) => (
-                    <option
-                      key={c.key}
-                      value={c.key}
-                    >
+                    <option key={c.key} value={c.key}>
                       {c.label}
                     </option>
                   ))}
@@ -887,10 +888,7 @@ export function ProfilePage() {
                 >
                   <option value="">請選擇國籍</option>
                   {countriesCatalog.map((c) => (
-                    <option
-                      key={c.key}
-                      value={c.key}
-                    >
+                    <option key={c.key} value={c.key}>
                       {c.label}
                     </option>
                   ))}
@@ -900,20 +898,20 @@ export function ProfilePage() {
                   <textarea
                     value={fieldValue}
                     onChange={(e) => setFieldValue(e.target.value)}
-                maxLength={120}
-                rows={4}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                placeholder="和大家分享你想說的一句話。"
-              />
-              <div className="text-right text-sm text-slate-500">
-                還可以輸入 {120 - (fieldValue?.length || 0)} 個字
-              </div>
-            </div>
-          ) : (
-            <input
-              type="text"
-              value={fieldValue}
-              onChange={(e) => setFieldValue(e.target.value)}
+                    maxLength={120}
+                    rows={4}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="和大家分享你想說的一句話。"
+                  />
+                  <div className="text-right text-sm text-slate-500">
+                    還可以輸入 {120 - (fieldValue?.length || 0)} 個字
+                  </div>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={fieldValue}
+                  onChange={(e) => setFieldValue(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
                   placeholder="請輸入"
                 />
@@ -1124,9 +1122,7 @@ export function ProfilePage() {
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-500">
-                設定你的每週節奏
-              </p>
+              <p className="text-sm font-semibold text-slate-500">設定你的每週節奏</p>
               <p className="text-xl font-bold text-slate-900">
                 我們會依此幫你推薦夥伴與活動
               </p>
@@ -1142,9 +1138,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700">
-              每週目標次數
-            </label>
+            <label className="text-sm font-semibold text-slate-700">每週目標次數</label>
             <input
               type="number"
               min={1}
@@ -1161,9 +1155,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-slate-700">
-              通常想在什麼時段運動？
-            </p>
+            <p className="text-sm font-semibold text-slate-700">通常想在什麼時段運動？</p>
             <div className="flex flex-wrap gap-2">
               {['早上', '下午', '晚上'].map((slot) => {
                 const active = draftPreferredTime === slot
@@ -1208,10 +1200,7 @@ export function ProfilePage() {
                   'Saturday',
                   'Sunday',
                 ].map((day) => (
-                  <div
-                    key={day}
-                    className="space-y-2"
-                  >
+                  <div key={day} className="space-y-2">
                     <p className="text-base font-semibold text-slate-800">
                       {dayLabels[day] ?? day}
                     </p>
@@ -1229,9 +1218,7 @@ export function ProfilePage() {
                                   [day]: [...(prev[day] ?? [])],
                                 }
                                 if (next[day].includes(slot)) {
-                                  next[day] = next[day].filter(
-                                    (s) => s !== slot
-                                  )
+                                  next[day] = next[day].filter((s) => s !== slot)
                                 } else {
                                   next[day].push(slot)
                                 }
@@ -1302,12 +1289,22 @@ export function StatsContent({
     Saturday: '週六',
     Sunday: '週日',
   }
-  const preferredTimes = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => ({
+  const preferredTimes = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ].map((day) => ({
     dayLabel: dayLabels[day] ?? day,
     slots: goalDaySlots[day]?.length ? goalDaySlots[day].join(', ') : '尚未設定',
   }))
 
-  const hasDaySlots = Object.values(goalDaySlots).some((slots) => (slots || []).length > 0)
+  const hasDaySlots = Object.values(goalDaySlots).some(
+    (slots) => (slots || []).length > 0
+  )
   const hasPrefs =
     !!goal &&
     ((goal.sessionsPerWeek && goal.sessionsPerWeek.trim() !== '') ||
@@ -1348,7 +1345,9 @@ export function StatsContent({
           <p className="text-xl font-bold text-slate-900">
             本週節奏：{goal?.sessionsPerWeek ? `${goal.sessionsPerWeek} 次` : '未設定'}
           </p>
-          <p className="text-sm font-semibold text-slate-700">本週完成度 20% — 穩穩前進。</p>
+          <p className="text-sm font-semibold text-slate-700">
+            本週完成度 20% — 穩穩前進。
+          </p>
           <div className="h-3 overflow-hidden rounded-full bg-blue-100">
             <div className="h-full w-1/2 rounded-full bg-emerald-500" />
           </div>
@@ -1361,7 +1360,8 @@ export function StatsContent({
             你的偏好時段
           </p>
           <p className="text-sm font-semibold text-slate-700">
-            常用時段：{goal?.timeOfDay && goal.timeOfDay.trim() ? goal.timeOfDay : '尚未設定'}
+            常用時段：
+            {goal?.timeOfDay && goal.timeOfDay.trim() ? goal.timeOfDay : '尚未設定'}
           </p>
           <div className="space-y-1">
             {preferredTimes.map(({ dayLabel, slots }) => (
@@ -1370,7 +1370,7 @@ export function StatsContent({
                 className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800"
               >
                 <span>{dayLabel}</span>
-                <span className="text-slate-500 font-medium">{slots}</span>
+                <span className="font-medium text-slate-500">{slots}</span>
               </div>
             ))}
           </div>
@@ -1389,22 +1389,21 @@ function HeroCard({
   onEdit: () => void
   avatarFallback?: string
 }) {
-  const safeProfile: MateCardProps =
-    profile ?? {
-      name: '',
-      username: '',
-      location: '',
-      flag: '',
-      vibe: '',
-      sports: [],
-      trying: [],
-      blurb: '',
-      avatar: avatarFallback,
-    }
+  const safeProfile: MateCardProps = profile ?? {
+    name: '',
+    username: '',
+    location: '',
+    flag: '',
+    vibe: '',
+    sports: [],
+    trying: [],
+    blurb: '',
+    avatar: avatarFallback,
+  }
 
   return (
     <div
-      className="bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff] cursor-pointer"
+      className="cursor-pointer bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff]"
       onClick={onEdit}
       role="button"
       tabIndex={0}
@@ -1416,11 +1415,11 @@ function HeroCard({
         {...safeProfile}
         accentClassName="w-full max-w-none min-w-0 shadow-none bg-transparent px-0 rounded-none"
       />
-      <div className="py-3 flex justify-center">
+      <div className="flex justify-center py-3">
         <button
           type="button"
           onClick={onEdit}
-          className="w-100 max-w-xs rounded-lg bg-slate-100 px-4 py-1 text-slate-400 text-sm"
+          className="w-100 max-w-xs rounded-lg bg-slate-100 px-4 py-1 text-sm text-slate-400"
         >
           編輯運動卡
         </button>

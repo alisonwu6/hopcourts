@@ -15,7 +15,7 @@ export type MateCardProps = {
   name: string
   flag: string
   countryKey?: string
-  vibe: Vibe
+  vibe: Vibe | null
   vibeKey?: string | null
   sports: string[]
   trying: string[]
@@ -37,14 +37,12 @@ export function MateCard({
   avatar,
   accentClassName,
 }: MateCardProps) {
-  const vibeColors =
-    vibeTokens[vibe] ??
-    {
-      bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',
-      text: '#1E293B',
-      ring: '#CBD5E1',
-      card: 'linear-gradient(145deg, rgba(226,232,240,0.18) 0%, rgba(226,232,240,0.08) 100%)',
-    }
+  const vibeColors = vibeTokens[vibe] ?? {
+    bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',
+    text: '#1E293B',
+    ring: '#CBD5E1',
+    card: 'linear-gradient(145deg, rgba(226,232,240,0.18) 0%, rgba(226,232,240,0.08) 100%)',
+  }
 
   return (
     <article
@@ -72,7 +70,11 @@ export function MateCard({
               </span>
             </div>
             <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
-              <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
+              <MapPin
+                className="h-3.5 w-3.5 text-slate-400"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
               <span className="truncate">{location}</span>
             </div>
           </div>
@@ -87,11 +89,11 @@ export function MateCard({
             {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
           </span>
         </div>
-      </div> 
+      </div>
 
       <div className="flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
-          <span className="text-slate-500 tracking-wide uppercase">我的最愛：</span>
+          <span className="uppercase tracking-wide text-slate-500">我的最愛：</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {sports.map((sport) => (
               <span
@@ -109,7 +111,7 @@ export function MateCard({
           </div>
         </div>
         <div>
-          <span className="text-slate-500 tracking-wide uppercase">想嘗試：</span>
+          <span className="uppercase tracking-wide text-slate-500">想嘗試：</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {trying.map((item) => (
               <span
@@ -128,14 +130,14 @@ export function MateCard({
         </div>
         <div className="flex items-start gap-2 pt-1 text-[12px] text-slate-600">
           <span
-            className="block w-1 rounded self-stretch min-h-[32px]"
+            className="block min-h-[32px] w-1 self-stretch rounded"
             style={{ background: vibeColors.ring }}
             aria-hidden="true"
           />
           {blurb?.trim() ? (
             <span className="italic">“{blurb}”</span>
           ) : (
-            <span className="text-slate-400 not-italic">這位夥伴還沒寫一句話。</span>
+            <span className="not-italic text-slate-400">這位夥伴還沒寫一句話。</span>
           )}
         </div>
       </div>

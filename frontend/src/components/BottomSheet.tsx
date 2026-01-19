@@ -62,10 +62,15 @@ export function BottomSheet({
       aria-modal="true"
       aria-labelledby={labelledBy}
     >
-      <button type="button" className="flex-1" onClick={onClose} aria-label="Close sheet overlay" />
+      <button
+        type="button"
+        className="flex-1"
+        onClick={onClose}
+        aria-label="Close sheet overlay"
+      />
       <div
         className={clsx(
-          'relative w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.2)] animate-[sheetIn_0.25s_ease-out]',
+          'relative w-full animate-[sheetIn_0.25s_ease-out] rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.2)]',
           sheetClassName
         )}
       >
@@ -75,11 +80,15 @@ export function BottomSheet({
           </div>
         )}
         {disableContainer ? (
-          <div className={clsx('relative w-full', contentClassName)}>
-            {children}
-          </div>
+          <div className={clsx('relative w-full', contentClassName)}>{children}</div>
         ) : (
-          <div className={clsx('relative mx-auto w-full px-5 pb-6 pt-4', maxWidthClassName, contentClassName)}>
+          <div
+            className={clsx(
+              'relative mx-auto w-full px-5 pb-6 pt-4',
+              maxWidthClassName,
+              contentClassName
+            )}
+          >
             {(icon || title || description) && (
               <div className="mb-4 text-center">
                 {icon && <div className="mb-4 flex justify-center">{icon}</div>}
@@ -88,7 +97,9 @@ export function BottomSheet({
                     {title}
                   </h2>
                 )}
-                {description && <p className="mt-1 text-sm text-slate-600">{description}</p>}
+                {description && (
+                  <p className="mt-1 text-sm text-slate-600">{description}</p>
+                )}
               </div>
             )}
             <div>{children}</div>

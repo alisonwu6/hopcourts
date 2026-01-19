@@ -73,11 +73,15 @@ export function useSports(lang: 'zh' | 'en' = 'zh') {
           if (!isMounted) return
           setSports(items)
           setCache(items)
-          setVersionCache({ ...versionMap, sports: { version: remoteVersion || Date.now().toString() } })
+          setVersionCache({
+            ...versionMap,
+            sports: { version: remoteVersion || Date.now().toString() },
+          })
         }
       } catch (err: any) {
         if (!cached) {
-          if (isMounted) setError(err instanceof Error ? err : new Error('Failed to load sports'))
+          if (isMounted)
+            setError(err instanceof Error ? err : new Error('Failed to load sports'))
         }
       } finally {
         if (isMounted) setIsLoading(false)

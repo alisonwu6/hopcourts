@@ -52,7 +52,8 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
         <h1 className="text-2xl font-semibold text-slate-900">歡迎加入 SportsMatch</h1>
         <p className="mt-2 text-sm text-slate-600">
           探索在地活動、認識新夥伴，
-          <br />一起組成你的運動夥伴圈。
+          <br />
+          一起組成你的運動夥伴圈。
         </p>
       </div>
 
@@ -84,12 +85,19 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
           autoComplete="current-password"
         />
 
-        <Button type="submit" className="w-full rounded-2xl text-base" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full rounded-2xl text-base"
+          disabled={isLoading}
+        >
           {isLoading ? '登入中…' : '用 Email 繼續'}
         </Button>
 
         <div className="text-center text-sm">
-          <Link to="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700">
+          <Link
+            to="/forgot-password"
+            className="font-semibold text-blue-600 hover:text-blue-700"
+          >
             忘記密碼？
           </Link>
         </div>

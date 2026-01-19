@@ -4,7 +4,13 @@ import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import clsx from 'clsx'
-import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding } from 'lucide-react'
+import {
+  Calendar,
+  CircleDollarSign,
+  MapPin,
+  MessageCircle,
+  PersonStanding,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import heroPlaceholder from '@/assets/placeholders/game-placeholder.JPEG'
 import { useAuthStore } from '@/hooks'
@@ -21,14 +27,16 @@ const mockEvent = {
   host: {
     name: 'Alison Wu',
     subtitle: '籃球 • 跑步 • 健身',
-    avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
+    avatar:
+      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
   },
   participants: [
     {
       id: '1',
       name: 'Alison Wu',
       subtitle: '籃球 • 跑步 • 健身',
-      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
+      avatar:
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=60',
     },
   ],
   spotsRemaining: 8,
@@ -66,7 +74,7 @@ export function EventDetailPage() {
         contentClassName="w-full max-w-[400px] px-4"
       />
       <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
-        <div className="relative overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)] mb-0">
+        <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <img
             src={mockEvent.heroImage}
             alt="Bouldering wall"
@@ -74,13 +82,14 @@ export function EventDetailPage() {
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
         </div>
-        <div className="-mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)] relative z-10">
+        <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="px-5 pb-6 pt-6">
-            
             <div className="flex items-center gap-3">
               <AvatarCircle name={mockEvent.host.name} src={mockEvent.host.avatar} />
               <div>
-                <p className="text-sm font-semibold text-slate-900">由 {mockEvent.host.name} 主辦</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  由 {mockEvent.host.name} 主辦
+                </p>
                 <p className="text-xs text-slate-500">{mockEvent.host.subtitle}</p>
               </div>
             </div>
@@ -97,7 +106,9 @@ export function EventDetailPage() {
             </div>
 
             <div className="mt-4">
-              <h1 className="text-[28px] font-semibold text-slate-900">{mockEvent.title}</h1>
+              <h1 className="text-[28px] font-semibold text-slate-900">
+                {mockEvent.title}
+              </h1>
             </div>
 
             <div className="mt-6 space-y-3">
@@ -111,17 +122,26 @@ export function EventDetailPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                  <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  <PersonStanding
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                 </span>
-                <span>
-                  目前報名（剩 {mockEvent.spotsRemaining} 位）
-                </span>
+                <span>目前報名（剩 {mockEvent.spotsRemaining} 位）</span>
               </div>
               <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-                <AvatarCircle name={mockEvent.participants[0].name} src={mockEvent.participants[0].avatar} />
+                <AvatarCircle
+                  name={mockEvent.participants[0].name}
+                  src={mockEvent.participants[0].avatar}
+                />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{mockEvent.participants[0].name}</p>
-                  <p className="text-xs text-slate-500">{mockEvent.participants[0].subtitle}</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {mockEvent.participants[0].name}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {mockEvent.participants[0].subtitle}
+                  </p>
                 </div>
               </div>
             </div>
@@ -135,7 +155,9 @@ export function EventDetailPage() {
                 </span>
                 <span>主辦想說</span>
               </div>
-              <p className="text-sm leading-relaxed text-slate-700">{mockEvent.description}</p>
+              <p className="text-sm leading-relaxed text-slate-700">
+                {mockEvent.description}
+              </p>
             </div>
           </div>
         </div>
@@ -190,7 +212,9 @@ function JoinBar({ isJoined, onClick }: { isJoined: boolean; onClick: () => void
           onClick={onClick}
           className={clsx(
             'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-            isJoined ? 'bg-player-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+            isJoined
+              ? 'bg-player-600 text-white'
+              : 'bg-blue-600 text-white hover:bg-blue-700'
           )}
         >
           {isJoined ? '已加入' : '加入活動'}

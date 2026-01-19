@@ -34,13 +34,20 @@ export function ResetPasswordPage() {
     const refresh_token = params.get('refresh_token')
     if (!access_token || !refresh_token) return false
     try {
-      const { data, error } = await supabase.auth.setSession({ access_token, refresh_token })
+      const { data, error } = await supabase.auth.setSession({
+        access_token,
+        refresh_token,
+      })
       if (error) throw error
       if (data.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token, context.onboardingStatus)
       }
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+      window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname + window.location.search
+      )
       setSessionReady(true)
       return true
     } catch (err: any) {
@@ -56,7 +63,9 @@ export function ResetPasswordPage() {
     const type = params.get('type')
     if (!recoveryToken || type !== 'recovery') return false
     try {
-      const { data, error } = await supabase.auth.exchangeCodeForSession({ authCode: recoveryToken })
+      const { data, error } = await supabase.auth.exchangeCodeForSession({
+        authCode: recoveryToken,
+      })
       if (error) throw error
       if (data.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
@@ -116,9 +125,14 @@ export function ResetPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-player-50 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 rounded-3xl bg-white p-8 shadow-xl">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md space-y-4 rounded-3xl bg-white p-8 shadow-xl"
+      >
         <h1 className="text-2xl font-semibold text-player-900">Set a new password</h1>
-        <p className="text-sm text-player-900/70">You will be signed in automatically after updating.</p>
+        <p className="text-sm text-player-900/70">
+          You will be signed in automatically after updating.
+        </p>
         <InputField
           label="New Password"
           type="password"
