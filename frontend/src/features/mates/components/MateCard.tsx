@@ -131,7 +131,7 @@ export function MateCard({
             aria-hidden="true"
           />
           {blurb?.trim() ? (
-            <span className="italic">“{blurb}”</span>
+            <span className="italic">{blurb}</span>
           ) : (
             <span className="not-italic text-slate-400">這位夥伴還沒寫一句話。</span>
           )}
