@@ -3,6 +3,12 @@ import { Menu, PlusSquare, Lock } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
+type ProfileVM = {
+  username: string
+  card: MateCardProps
+  favoriteSportKeys: string[]
+  tryingSportKeys: string[]
+}
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
@@ -18,7 +24,6 @@ import type { GoalState } from '@/features/profile/types'
 
 const emptyProfile: MateCardProps = {
   name: '',
-  // username: '',
   location: '',
   cityKey: '',
   flag: '',
@@ -36,23 +41,32 @@ const SAMPLE_AVATAR =
 
 export function ProfilePage() {
   const [showGoalSheet, setShowGoalSheet] = useState(false)
-  const defaultGoal: GoalState = {
-    sessionsPerWeek: '2',
-    timeOfDay: '晚上',
-    days: ['Mon', 'Wed'],
-  }
-  const [goal, setGoal] = useState<GoalState | null>(defaultGoal)
-  const [draftGoal, setDraftGoal] = useState<GoalState>(defaultGoal)
+  const [goal, setGoal] = useState<GoalState | null>(null)
+  const [draftGoal, setDraftGoal] = useState<GoalState>({
+    sessionsPerWeek: '',
+    timeOfDay: '早上',
+    days: [],
+  })
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
+  const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
   const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
     useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
-  const [profile, setProfile] = useState<MateCardProps | null>(profileCache ?? null)
+  const [vm, setVm] = useState<ProfileVM | null>(
+    profileCache
+      ? {
+          username: (profileCache as any)?.username || '',
+          card: profileCache,
+          favoriteSportKeys: [],
+          tryingSportKeys: [],
+        }
+      : null
+  )
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
+  const [draftUsername, setDraftUsername] = useState<string>((profileCache as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
@@ -68,17 +82,10 @@ export function ProfilePage() {
   const { items: countriesCatalog } = useCountries('zh')
   const { items: citiesCatalog } = useCities(undefined, 'zh')
   const navigate = useNavigate()
-  const username = (user as any)?.username || (profile as any)?.username || 'undefined'
+  const username = (user as any)?.username || vm?.username || 'undefined'
   const labelForSport = useMemo(() => {
     const map = new Map(sportsCatalog.map((s) => [s.key, s.label]))
-    const fallback: Record<string, string> = {
-      BASKETBALL: '籃球',
-      RUNNING: '慢跑',
-      CYCLING: '自行車',
-      PICKLEBALL: '匹克球',
-      SKATEBOARD: '滑板',
-    }
-    return (key: string) => map.get(key) || fallback[key] || key
+    return (key: string) => map.get(key) || key
   }, [sportsCatalog])
 
   const keyForLabel = useMemo(() => {
@@ -87,14 +94,7 @@ export function ProfilePage() {
       map.set(s.label, s.key)
       map.set(s.key, s.key)
     })
-    const fallback: Record<string, string> = {
-      籃球: 'BASKETBALL',
-      慢跑: 'RUNNING',
-      自行車: 'CYCLING',
-      匹克球: 'PICKLEBALL',
-      滑板: 'SKATEBOARD',
-    }
-    return (label: string) => map.get(label) || fallback[label] || label
+    return (label: string) => map.get(label) || label
   }, [sportsCatalog])
 
   const labelForVibe = useMemo(() => {
@@ -132,15 +132,18 @@ export function ProfilePage() {
 
   // Remap labels when dictionary updates
   useEffect(() => {
-    setProfile((prev) => {
-      if (!prev) return prev
-      const sportsKeys = (prev as any).sportsKeys as string[] | undefined
-      const tryingKeys = (prev as any).tryingKeys as string[] | undefined
-      if (!sportsKeys && !tryingKeys) return prev
+    setVm((prev) => {
+      if (!prev?.card) return prev
+      const sportsKeys = prev.favoriteSportKeys
+      const tryingKeys = prev.tryingSportKeys
+      if (!sportsKeys.length && !tryingKeys.length) return prev
       return {
         ...prev,
-        sports: (sportsKeys || prev.sports || []).map(labelForSport),
-        trying: (tryingKeys || prev.trying || []).map(labelForSport),
+        card: {
+          ...prev.card,
+          sports: (sportsKeys.length ? sportsKeys : prev.card.sports || []).map(labelForSport),
+          trying: (tryingKeys.length ? tryingKeys : prev.card.trying || []).map(labelForSport),
+        },
       }
     })
   }, [labelForSport])
@@ -148,14 +151,14 @@ export function ProfilePage() {
   // Sync vibe union when字典載入
   useEffect(() => {
     if (!vibesCatalog.length) return
-    setProfile((prev) => {
-      if (!prev) return prev
-      if (prev.vibe) return prev
-      const key = (prev as any).vibeKey
+    setVm((prev) => {
+      if (!prev?.card) return prev
+      if (prev.card.vibe) return prev
+      const key = (prev.card as any).vibeKey
       if (!key) return prev
       const union = vibeKeyToUnion.get(key)
       if (!union) return prev
-      return { ...prev, vibe: union }
+      return { ...prev, card: { ...prev.card, vibe: union } }
     })
     setDraftProfile((prev) => {
       if (!prev) return prev
@@ -170,20 +173,20 @@ export function ProfilePage() {
 
   // Sync label fields (vibe/location/flag) once dictionaries載入完成
   useEffect(() => {
-    if (!profile) return
-    setProfile((prev) => {
-      if (!prev) return prev
-      const next = { ...prev }
-      if (prev.cityKey) {
-        const label = labelForCity(prev.cityKey)
-        if (label && label !== prev.location) next.location = label
+    if (!vm?.card) return
+    setVm((prev) => {
+      if (!prev?.card) return prev
+      const next = { ...prev.card }
+      if (prev.card.cityKey) {
+        const label = labelForCity(prev.card.cityKey)
+        if (label && label !== prev.card.location) next.location = label
       }
-      if (prev.countryKey) {
-        const label = labelForCountry(prev.countryKey)
-        if (label && label !== prev.flag) next.flag = label
+      if (prev.card.countryKey) {
+        const label = labelForCountry(prev.card.countryKey)
+        if (label && label !== prev.card.flag) next.flag = label
       }
-      if (next.location === prev.location && next.flag === prev.flag) return prev
-      return next
+      if (next.location === prev.card.location && next.flag === prev.card.flag) return prev
+      return { ...prev, card: next }
     })
     setDraftProfile((prev) => {
       if (!prev) return prev
@@ -199,20 +202,20 @@ export function ProfilePage() {
       if (next.location === prev.location && next.flag === prev.flag) return prev
       return next
     })
-  }, [citiesCatalog, countriesCatalog, labelForCity, labelForCountry, profile])
+  }, [citiesCatalog, countriesCatalog, labelForCity, labelForCountry, vm])
   const hasCompletedCard = onboardingStatus?.isComplete ?? false
 
   useEffect(() => {
     if (!isAuthenticated) return
     let cancelled = false
     const fetchProfile = async () => {
-      try {
-        const [profileRes, prefsRes] = await Promise.all([
-          onboardingService.getProfile(),
-          onboardingService.getPreferences(),
-        ])
+      const [profileRes, preferencesRes] = await Promise.allSettled([
+        onboardingService.getProfile(),
+        onboardingService.getPreferences(),
+      ])
 
-        const payload: any = (profileRes as any)?.data ?? profileRes
+      if (!cancelled && profileRes.status === 'fulfilled') {
+        const payload: any = (profileRes.value as any)?.data ?? profileRes.value
         if (payload) {
           const data = payload.user ? payload.user : payload
           const sportsRows = payload.sports || []
@@ -222,53 +225,58 @@ export function ProfilePage() {
           const tryingKeys =
             payload.trying_sports ||
             sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-          const vibeUnion = data.vibe_key ? vibeKeyToUnion.get(data.vibe_key) || '' : ''
+          const vibeKey = data.vibe_key || null
+          const vibeUnion = vibeKey ? vibeKeyToUnion.get(vibeKey) : undefined
+
+          const existingVibe = vm?.card?.vibe ?? (profileCache as any)?.vibe ?? null
+
           const mapped: MateCardProps = {
             name: data.display_name || data.username || '',
-            username: data.username || data.display_name || '',
             location: data.city_label || data.city || '',
             cityKey: data.city_key || '',
             flag: labelForCountry(data.country_key) || '',
             countryKey: data.country_key || '',
-            vibe: vibeUnion || '',
-            vibeKey: data.vibe_key || null,
-            sportsKeys: favoriteKeys || [],
-            tryingKeys: tryingKeys || [],
+            vibe: (vibeUnion ?? existingVibe) || null,
+            vibeKey,
             sports: (favoriteKeys || []).map(labelForSport),
             trying: (tryingKeys || []).map(labelForSport),
             blurb: data.bio || '',
             avatar: data.avatar_url || userAvatar || '',
           }
-          if (!cancelled) {
-            setProfile(mapped)
-            setDraftProfile(mapped)
-            setProfileCache(mapped)
-          }
-        }
-
-        const prefsPayload: any = (prefsRes as any)?.data ?? prefsRes
-        if (prefsPayload && !cancelled) {
-          const sessionsPerWeek = prefsPayload.sessions_per_week
-          const preferredTime = prefsPayload.preferred_time
-          const daySlots = prefsPayload.day_slots || {}
-          setGoal({
-            sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
-            timeOfDay: preferredTime || '尚未設定',
-            days: [],
+          const nextUsername = data.username || ''
+          setVm({
+            username: nextUsername,
+            card: mapped,
+            favoriteSportKeys: favoriteKeys || [],
+            tryingSportKeys: tryingKeys || [],
           })
-          const mergedSlots: Record<string, string[]> = {
-            ...createDaySlots(),
-            ...daySlots,
-          }
-          setGoalDaySlots(mergedSlots)
-          setDraftDaySlots(mergedSlots)
-          if (preferredTime) setDraftPreferredTime(preferredTime)
+          setDraftProfile(mapped)
+          setDraftUsername(nextUsername)
+          setProfileCache(mapped)
         }
-      } catch {
-        if (!cancelled) {
-          setProfile(null)
-          setDraftProfile(emptyProfile)
+      } else if (!cancelled && profileRes.status === 'rejected') {
+        setVm(null)
+        setDraftProfile(emptyProfile)
+      }
+
+      if (!cancelled && preferencesRes.status === 'fulfilled') {
+        const preferencesPayload: any =
+          (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
+        const sessionsPerWeek = preferencesPayload.sessions_per_week
+        const preferredTime = preferencesPayload.preferred_time
+        const daySlots = preferencesPayload.day_slots || {}
+        setGoal({
+          sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
+          timeOfDay: preferredTime || '早上',
+          days: [],
+        })
+        const mergedSlots: Record<string, string[]> = {
+          ...createDaySlots(),
+          ...daySlots,
         }
+        setGoalDaySlots(mergedSlots)
+        setDraftDaySlots(mergedSlots)
+        if (preferredTime) setDraftPreferredTime(preferredTime)
       }
     }
     fetchProfile()
@@ -296,7 +304,8 @@ export function ProfilePage() {
   }
 
   const handleOpenProfileEdit = () => {
-    setDraftProfile(profile ?? emptyProfile)
+    setDraftProfile(vm?.card ?? emptyProfile)
+    setDraftUsername(vm?.username || '')
     setShowEditSheet(true)
   }
 
@@ -320,7 +329,7 @@ export function ProfilePage() {
         payload.display_name = value
         break
       case 'username':
-        next.username = value
+        setDraftUsername(value)
         payload.username = value
         break
       case 'location':
@@ -367,7 +376,7 @@ export function ProfilePage() {
         .map((label) => keyForLabel(label))
 
       await onboardingService.saveProfile({
-        username: draftProfile.username || draftProfile.name,
+        username: draftUsername || draftProfile.name,
         display_name: draftProfile.name,
         bio: draftProfile.blurb,
         vibe_key:
@@ -381,10 +390,13 @@ export function ProfilePage() {
         ...draftProfile,
         sports: draftProfile.sports.filter(Boolean),
         trying: draftProfile.trying.filter(Boolean),
-        sportsKeys: favoriteKeys,
-        tryingKeys: tryingKeys,
       }
-      setProfile(updated)
+      setVm((prev) => ({
+        username: draftUsername || prev?.username || '',
+        card: updated,
+        favoriteSportKeys: favoriteKeys,
+        tryingSportKeys: tryingKeys,
+      }))
       setDraftProfile(updated)
       setProfileCache(updated)
       setShowEditSheet(false)
@@ -398,7 +410,7 @@ export function ProfilePage() {
 
   if (isLoading) return null
   if (!isAuthenticated) return null
-  const displayProfile = profile
+  const displayProfile = vm?.card ?? null
   const displayGoal = goal
 
   return (
@@ -441,6 +453,21 @@ export function ProfilePage() {
           />
         </div>
       </div>
+      <AvatarCropSheet
+        open={showAvatarCropper}
+        onClose={() => setShowAvatarCropper(false)}
+        userId={userId}
+        defaultAvatar={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+        onAvatarUpdated={(url) => {
+          setDraftProfile((prev) => ({ ...prev, avatar: url }))
+          setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
+
+          // Keep cache shape consistent: cache stores MateCardProps (no username)
+          // Avoid functional-updater style here because setProfileCache is a store action.
+          const base = vm?.card ?? draftProfile
+          setProfileCache({ ...base, avatar: url })
+        }}
+      />
       <BottomSheet
         open={showEditSheet}
         onClose={() => setShowEditSheet(false)}
@@ -485,7 +512,7 @@ export function ProfilePage() {
                 {
                   key: 'username',
                   label: '使用者名稱',
-                  value: draftProfile.username ?? '',
+                  value: draftUsername ?? '',
                 },
                 {
                   key: 'location',
@@ -585,17 +612,6 @@ export function ProfilePage() {
           </div>
         </SheetLayout>
       </BottomSheet>
-      <AvatarCropSheet
-        open={showAvatarCropper}
-        onClose={() => setShowAvatarCropper(false)}
-        userId={userId}
-        defaultAvatar={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
-        onAvatarUpdated={(url) => {
-          setDraftProfile((prev) => ({ ...prev, avatar: url }))
-          setProfile((prev) => (prev ? { ...prev, avatar: url } : prev))
-          setProfileCache((prev) => (prev ? { ...prev, avatar: url } : prev))
-        }}
-      />
       <BottomSheet
         open={!!activeField}
         onClose={() => setActiveField(null)}
