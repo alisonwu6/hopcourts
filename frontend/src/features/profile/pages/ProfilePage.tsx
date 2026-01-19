@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { Menu, PlusSquare, Lock } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
 import { BottomSheet } from '@/components/BottomSheet'
@@ -10,6 +10,8 @@ import { onboardingService } from '@/features/onboarding/onboarding.service'
 import { useSports } from '@/features/sports/hooks/useSports'
 import { useVibes } from '@/features/dictionaries/hooks'
 import { useCountries, useCities } from '@/features/dictionaries/hooks'
+import { supabase } from '@/lib/supabase'
+import Cropper from 'react-easy-crop'
 
 const emptyProfile: MateCardProps = {
   name: '',
@@ -29,6 +31,53 @@ const emptyProfile: MateCardProps = {
 type GoalState = { sessionsPerWeek: string; timeOfDay: string; days: string[] }
 const SAMPLE_AVATAR =
   'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
+
+async function createImage(url: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image()
+    img.addEventListener('load', () => resolve(img))
+    img.addEventListener('error', (error) => reject(error))
+    img.setAttribute('crossOrigin', 'anonymous')
+    img.src = url
+  })
+}
+
+async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation = 0) {
+  const image = await createImage(imageSrc)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Canvas not supported')
+
+  const { width, height, x, y } = croppedAreaPixels
+  const safeArea = Math.max(image.width, image.height) * 2
+  canvas.width = width
+  canvas.height = height
+
+  ctx.translate(width / 2, height / 2)
+  ctx.rotate((rotation * Math.PI) / 180)
+  ctx.translate(-width / 2, -height / 2)
+  ctx.drawImage(
+    image,
+    x,
+    y,
+    width,
+    height,
+    0,
+    0,
+    width,
+    height
+  )
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((file) => {
+      if (!file) {
+        reject(new Error('Failed to crop image'))
+        return
+      }
+      resolve(file)
+    }, 'image/jpeg')
+  })
+}
 
 function EmptyBlock({
   title,
@@ -81,9 +130,17 @@ export function ProfilePage() {
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState(goal?.timeOfDay || '早上')
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [showAvatarCropper, setShowAvatarCropper] = useState(false)
+  const [avatarImageSrc, setAvatarImageSrc] = useState<string>('')
+  const [crop, setCrop] = useState({ x: 0, y: 0 })
+  const [zoom, setZoom] = useState(1)
+  const [rotation, setRotation] = useState(0)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null)
   const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
     useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
+  const userId = (user as any)?.id
   const [profile, setProfile] = useState<MateCardProps | null>(profileCache ?? null)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
@@ -91,7 +148,7 @@ export function ProfilePage() {
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio' | 'avatar'
+    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
@@ -152,6 +209,7 @@ export function ProfilePage() {
     })
     return map
   }, [vibesCatalog])
+  const avatarFileInputRef = useRef<HTMLInputElement | null>(null)
 
   const labelForCountry = useMemo(() => {
     const map = new Map(countriesCatalog.map((c) => [c.key, c.label]))
@@ -326,16 +384,77 @@ export function ProfilePage() {
     setShowEditSheet(true)
   }
 
+  const handleAvatarFile = (file: File | null) => {
+    if (!file) return
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+    setRotation(0)
+    setCroppedAreaPixels(null)
+    const reader = new FileReader()
+    reader.onload = () => {
+      setAvatarImageSrc(reader.result as string)
+      setShowAvatarCropper(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const onCropComplete = useCallback((_: any, croppedPixels: any) => {
+    setCroppedAreaPixels(croppedPixels)
+  }, [])
+
+  const handleAvatarCropSave = async () => {
+    if (!avatarImageSrc || !croppedAreaPixels) {
+      setShowAvatarCropper(false)
+      return
+    }
+    if (!supabase || !userId) {
+      alert('尚未設定 Supabase 或未登入，請改貼上圖片網址。')
+      setShowAvatarCropper(false)
+      return
+    }
+    setAvatarUploading(true)
+    try {
+      const croppedBlob = await getCroppedImg(avatarImageSrc, croppedAreaPixels, rotation)
+      const fileExt = 'jpg'
+      const path = `avatars/${userId}-${Date.now()}.${fileExt}`
+      const { error } = await supabase.storage.from('avatars').upload(path, croppedBlob, {
+        upsert: true,
+        contentType: 'image/jpeg',
+      })
+      if (error) throw error
+      const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
+      if (publicData?.publicUrl) {
+        const publicUrl = publicData.publicUrl
+        setDraftProfile((prev) => ({ ...prev, avatar: publicUrl }))
+        setProfile((prev) => (prev ? { ...prev, avatar: publicUrl } : prev))
+        setProfileCache((prev) => (prev ? { ...prev, avatar: publicUrl } : prev))
+        await onboardingService.saveProfile({ avatar_url: publicUrl })
+      }
+    } catch (err) {
+      console.error('avatar crop/upload failed', err)
+      alert('上傳失敗，請再試一次或改貼上圖片網址。')
+    } finally {
+      setAvatarUploading(false)
+      setShowAvatarCropper(false)
+      setAvatarImageSrc('')
+      setCroppedAreaPixels(null)
+      setZoom(1)
+      setCrop({ x: 0, y: 0 })
+      setRotation(0)
+    }
+  }
+
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
     let nextValue = rawKey ?? value
     if (field === 'vibe') {
-      nextValue =
-        rawKey ||
-        vibeUnionToKey.get(value as MateCardProps['vibe']) ||
-        value
+      nextValue = rawKey || vibeUnionToKey.get(value as MateCardProps['vibe']) || value
     }
     setActiveField(field)
     setFieldValue(nextValue)
+  }
+
+  const triggerAvatarSelect = () => {
+    avatarFileInputRef.current?.click()
   }
 
   const handleSaveField = async () => {
@@ -370,10 +489,6 @@ export function ProfilePage() {
       case 'bio':
         next.blurb = value
         payload.bio = value
-        break
-      case 'avatar':
-        next.avatar = value || ''
-        payload.avatar_url = value
         break
       default:
         break
@@ -438,6 +553,13 @@ export function ProfilePage() {
 
   return (
     <div className="min-h-screen pb-[120px]">
+      <input
+        ref={avatarFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleAvatarFile(e.target.files?.[0] || null)}
+      />
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between px-4 py-4 bg-white">
           <div className="flex items-center gap-2">
@@ -511,9 +633,7 @@ export function ProfilePage() {
               />
               <button
                 type="button"
-                onClick={() =>
-                  openFieldSheet('avatar', draftProfile.avatar || SAMPLE_AVATAR)
-                }
+                onClick={triggerAvatarSelect}
                 className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
               >
                 編輯
@@ -649,6 +769,65 @@ export function ProfilePage() {
         </SheetLayout>
       </BottomSheet>
       <BottomSheet
+        open={showAvatarCropper}
+        onClose={() => setShowAvatarCropper(false)}
+        showHandle={false}
+        disableContainer
+      >
+        <SheetLayout
+          onClose={() => setShowAvatarCropper(false)}
+          title="調整大頭貼"
+          subtitle="拖曳與縮放，讓頭像置中，保存後上傳。"
+          height="tall"
+          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+          contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-4"
+          primaryButton={{
+            label: avatarUploading ? '上傳中...' : '套用',
+            onClick: handleAvatarCropSave,
+            disabled: avatarUploading,
+          }}
+          showHandle={false}
+        >
+          {avatarImageSrc ? (
+            <div className="space-y-4">
+              <div className="relative h-[360px] w-full overflow-hidden rounded-2xl bg-slate-900/5">
+                <Cropper
+                  image={avatarImageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  rotation={rotation}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onRotationChange={setRotation}
+                  onCropComplete={onCropComplete}
+                  cropShape="round"
+                  showGrid={false}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">
+                  縮放
+                </label>
+                <input
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full accent-blue-600"
+                />
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-sm text-slate-600">
+              尚未選擇圖片
+            </p>
+          )}
+        </SheetLayout>
+      </BottomSheet>
+      <BottomSheet
         open={!!activeField}
         onClose={() => setActiveField(null)}
         showHandle={false}
@@ -662,7 +841,6 @@ export function ProfilePage() {
             flag: '旗幟',
             vibe: '運動氛圍',
             bio: '自我介紹',
-            avatar: '大頭貼',
           }
           const subtitleMap: Record<string, string> = {
             name: '請輸入卡片上要顯示的名稱。',
@@ -671,7 +849,6 @@ export function ProfilePage() {
             flag: '選擇你的旗幟，展現身份。',
             vibe: '描述現在最貼近你的運動氛圍。',
             bio: '和大家分享你的運動的動態與目標吧！',
-            avatar: '上傳或貼上大頭貼網址，讓夥伴一眼認出你。',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -746,57 +923,6 @@ export function ProfilePage() {
                     </option>
                   ))}
                 </select>
-              ) : activeField === 'avatar' ? (
-                <div className="space-y-3">
-                  <input
-                    type="url"
-                    value={fieldValue}
-                    onChange={(e) => setFieldValue(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="貼上圖片網址或上傳檔案"
-                  />
-                  <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3">
-                    <div className="text-sm font-semibold text-slate-700">
-                      或上傳圖片 (Supabase)
-                    </div>
-                    <label className="inline-flex cursor-pointer rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (!file) return
-                          if (!supabase || !userId) {
-                            alert('尚未設定 Supabase 或未登入，請改貼上圖片網址。')
-                            return
-                          }
-                          setAvatarUploading(true)
-                          try {
-                            const fileExt = file.name.split('.').pop()
-                            const path = `avatars/${userId}-${Date.now()}.${fileExt ?? 'jpg'}`
-                            const { error } = await supabase.storage
-                              .from('avatars')
-                              .upload(path, file, { upsert: true })
-                            if (error) throw error
-                            const { data: publicData } = supabase.storage
-                              .from('avatars')
-                              .getPublicUrl(path)
-                            if (publicData?.publicUrl) {
-                              setFieldValue(publicData.publicUrl)
-                            }
-                          } catch (err) {
-                            console.error('avatar upload failed', err)
-                            alert('上傳失敗，請再試一次或改貼上圖片網址。')
-                          } finally {
-                            setAvatarUploading(false)
-                          }
-                        }}
-                      />
-                      選擇檔案
-                    </label>
-                  </div>
-                </div>
               ) : activeField === 'bio' ? (
                 <div className="space-y-2">
                   <textarea
