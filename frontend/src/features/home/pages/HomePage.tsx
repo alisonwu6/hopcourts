@@ -234,7 +234,7 @@ export function HomePage() {
               你的世界，等你探索。
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-              透過找建立友好的連結。找到步調相近的人。 <br />
+              透過建立友好的連結。找到步調相近的人。 <br />
               把運動變成日常裡最爽快的約定。
             </p>
           </div>
