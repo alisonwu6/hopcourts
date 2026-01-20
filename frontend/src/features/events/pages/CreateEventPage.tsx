@@ -6,9 +6,11 @@ import type {
   ReactNode,
   TextareaHTMLAttributes,
 } from 'react'
-import { useMemo, useState, useId } from 'react'
+import { useMemo, useState, useId, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { MapPin, ChevronRight } from 'lucide-react'
 import { Button } from '@/components'
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const SKILL_LEVEL_LABELS = {
   mixed: '不限程度',
   beginner: '初階',
@@ -19,6 +21,10 @@ import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
+import { BottomSheet } from '@/components/BottomSheet'
+import { SheetLayout } from '@/components/SheetLayout'
+import { useSports } from '@/features/sports/hooks/useSports'
+import { MapPicker, type LatLng } from '@/components/map/MapPicker'
 
 type SkillLevelKey = keyof typeof SKILL_LEVEL_LABELS
 
@@ -32,12 +38,16 @@ const SKILL_LEVEL_ORDER: Record<SkillLevelKey, 1 | 2 | 3 | 4 | 5> = {
 type FormState = {
   title: string
   sport: string
+  sportKey: string
   startTime: string
   endTime: string
   location: string
+  lat: string
+  lng: string
   capacity: string
   priceNote: string
   skillLevel: SkillLevelKey
+  gender: 'mixed' | 'female' | 'male'
   description: string
   notes: string
 }
@@ -45,12 +55,16 @@ type FormState = {
 const initialState: FormState = {
   title: '',
   sport: '',
+  sportKey: '',
   startTime: '',
   endTime: '',
   location: '',
+  lat: '',
+  lng: '',
   capacity: '3',
   priceNote: '現場收費',
   skillLevel: 'mixed',
+  gender: 'mixed',
   description: '',
   notes: '',
 }
@@ -59,17 +73,100 @@ export default function CreateEventPage() {
   const navigate = useNavigate()
   const createEvent = useEventsStore((state) => state.createEvent)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { sports: sportsCatalog } = useSports('zh')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [heroPreview, setHeroPreview] = useState<string>('')
+  const [heroPreviews, setHeroPreviews] = useState<string[]>([])
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showSportSheet, setShowSportSheet] = useState(false)
+  const [sportSearch, setSportSearch] = useState('')
+  const [showLocationSheet, setShowLocationSheet] = useState(false)
+  const [selectedLocation, setSelectedLocation] = useState<LatLng | null>(null)
+  const [selectedAddress, setSelectedAddress] = useState<string>('')
+  const [addressMode, setAddressMode] = useState<'auto' | 'manual'>('auto')
+  const [reverseGeoError, setReverseGeoError] = useState<string | null>(null)
+  const [locationConfirming, setLocationConfirming] = useState(false)
+  const [addressLookupPending, setAddressLookupPending] = useState(false)
+  const [isAddressClearing, setIsAddressClearing] = useState(false)
+  useEffect(() => {
+    if (!showLocationSheet || !selectedLocation) return
+    if (addressMode !== 'auto') return
+    if (!MAPBOX_TOKEN) {
+      setReverseGeoError('缺少 Mapbox Token，無法取得地址')
+      return
+    }
+
+    const { lat, lng } = selectedLocation
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?language=zh-Hant&limit=1&access_token=${MAPBOX_TOKEN}`
+
+    setReverseGeoError(null)
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        const place = data?.features?.[0]?.place_name ?? ''
+        // Only overwrite the input when the map is the source of truth.
+        if (addressMode === 'auto') {
+          if (place && place !== selectedAddress) setSelectedAddress(place)
+        }
+      })
+      .catch(() => {
+        setReverseGeoError('無法取得地址')
+      })
+  }, [selectedLocation, showLocationSheet, addressMode, selectedAddress])
+
+  useEffect(() => {
+    if (!showLocationSheet) return
+    if (isAddressClearing) return
+    if (!form.location.trim()) return
+    if (selectedLocation) return
+
+    // 只帶入使用者原本輸入的地址文字，不自動幫他重新定位
+    setSelectedAddress(form.location.trim())
+    setAddressMode('manual')
+    setAddressLookupPending(false)
+  }, [showLocationSheet, form.location, selectedLocation, isAddressClearing])
+
+  // 使用者輸入地址 3 秒後自動定位地圖，不覆寫輸入文字
+  useEffect(() => {
+    if (!showLocationSheet) return
+    if (addressMode !== 'manual') return
+    if (isAddressClearing) return
+    const address = selectedAddress.trim()
+    if (!address) return
+
+    const handle = setTimeout(async () => {
+      setAddressLookupPending(true)
+      const loc = await geocodeByAddress(address)
+      if (loc) {
+        setSelectedLocation(loc)
+        setReverseGeoError(null)
+      } else {
+        setReverseGeoError('無法定位，請再試一次或點地圖')
+      }
+      setAddressLookupPending(false)
+    }, 3000)
+
+    return () => clearTimeout(handle)
+  }, [selectedAddress, showLocationSheet, addressMode, isAddressClearing])
+
+  const geocodeByAddress = async (address: string) => {
+    if (!MAPBOX_TOKEN || !address.trim()) return null
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+      address.trim()
+    )}.json?language=zh-Hant&limit=1&access_token=${MAPBOX_TOKEN}`
+    const res = await fetch(url)
+    const data = await res.json()
+    const feature = data?.features?.[0]
+    if (!feature?.center) return null
+    return { lng: feature.center[0], lat: feature.center[1] } as LatLng
+  }
 
   const canSubmit = useMemo(() => {
     return Boolean(
       form.title.trim() &&
-      form.sport.trim() &&
+      form.sportKey.trim() &&
       form.startTime &&
       form.endTime &&
       Number(form.capacity) > 0 &&
@@ -92,11 +189,36 @@ export default function CreateEventPage() {
     setForm((prev) => ({ ...prev, skillLevel: level }))
   }
 
+  const handleGenderSelect = (value: 'mixed' | 'female' | 'male') => {
+    setForm((prev) => ({ ...prev, gender: value }))
+  }
+
+  const openLocationPicker = () => {
+    setReverseGeoError(null)
+    if (form.lat && form.lng) {
+      setSelectedLocation({ lat: Number(form.lat), lng: Number(form.lng) })
+      setSelectedAddress(form.location || '')
+      setAddressMode('manual')
+    } else {
+      // 不預設填入地址或強制 geocode，讓使用者自行選點或輸入
+      setSelectedLocation(null)
+      setSelectedAddress('')
+      setAddressMode('manual')
+    }
+    setShowLocationSheet(true)
+  }
+
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    const previewUrl = URL.createObjectURL(file)
-    setHeroPreview(previewUrl)
+    const files = Array.from(event.target.files ?? []).slice(0, 3)
+    if (!files.length) return
+    const previews = files.map((file) => URL.createObjectURL(file))
+    setHeroPreviews(previews)
+    event.target.value = ''
+  }
+
+  const handleSportSelect = (key: string, label: string) => {
+    setForm((prev) => ({ ...prev, sport: label, sportKey: key }))
+    setShowSportSheet(false)
   }
 
   const handleCancel = () => {
@@ -116,6 +238,8 @@ export default function CreateEventPage() {
     }
 
     const capacity = Number(form.capacity)
+    const latNum = form.lat ? Number(form.lat) : null
+    const lngNum = form.lng ? Number(form.lng) : null
     const startDate = new Date(form.startTime)
     const endDate = new Date(form.endTime)
 
@@ -144,25 +268,33 @@ export default function CreateEventPage() {
     setError(null)
     setIsSubmitting(true)
     try {
-      const event = await createEvent({
+      const payload = {
         title: form.title.trim(),
-        sport: form.sport.trim(),
+        sport: form.sportKey.trim(),
         description: form.description.trim() || undefined,
         skillLevel: form.skillLevel,
         startTime: startDate,
         duration: durationMinutes,
         maxAttendees: capacity,
         location: {
-          lat: null,
-          lng: null,
+          lat: latNum,
+          lng: lngNum,
           address: form.location.trim(),
           instructions:
             [form.priceNote.trim(), form.notes.trim()].filter(Boolean).join('\n\n') || undefined,
         },
         isFree: true,
-        tags: [],
+        tags: [
+          form.gender === 'female'
+            ? 'female-only'
+            : form.gender === 'male'
+              ? 'male-only'
+              : 'mixed-gender',
+        ],
         difficulty: SKILL_LEVEL_ORDER[form.skillLevel] ?? 2,
-      })
+      }
+      console.log('Submitting event payload:', payload)
+      const event = await createEvent(payload)
 
       navigate(`/event/${event.id}`)
     } catch (err) {
@@ -197,7 +329,7 @@ export default function CreateEventPage() {
           )}
 
           <section className="space-y-8 rounded-[32px] border border-slate-100 bg-white px-6 py-8 shadow-[0_24px_60px_rgba(15,41,77,0.12)] sm:px-8">
-            <CoverUploader previewUrl={heroPreview} onChange={handleImageChange} />
+            <CoverUploader previews={heroPreviews} onChange={handleImageChange} />
 
             <FieldSection title="活動基本資料" description="先填最重要的資訊，讓大家一眼看懂。">
               <FloatingField
@@ -211,10 +343,13 @@ export default function CreateEventPage() {
                 label="運動項目"
                 name="sport"
                 value={form.sport}
-                onChange={handleInputChange}
+                readOnly
+                onClick={() => setShowSportSheet(true)}
+                placeholder="選擇運動"
                 required
               />
               <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
+              <GenderSelector selected={form.gender} onSelect={handleGenderSelect} />
             </FieldSection>
 
             <FieldSection title="時間與地點" description="設定集合時間與地點。">
@@ -236,13 +371,30 @@ export default function CreateEventPage() {
                   required
                 />
               </div>
-              <FloatingField
-                label="地點"
-                name="location"
-                value={form.location}
-                onChange={handleInputChange}
-                required
-              />
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-slate-700">地點</p>
+                <button
+                  type="button"
+                  onClick={openLocationPicker}
+                  className="flex w-full items-center justify-between rounded-[14px] border-2 border-slate-300 bg-white px-4 py-4 text-left text-base text-slate-900 shadow-inner transition hover:border-blue-400 hover:shadow-[0_0_0_1px_rgba(59,130,246,0.25)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                      <MapPin className="h-5 w-5" />
+                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-slate-800">
+                        {form.location ? '場地位置' : '場地位置'}
+                      </span>
+                      <span className="text-sm text-slate-500">
+                        {form.location || '點擊選擇位置'}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-slate-400" />
+                </button>
+                {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FloatingField
                   label="Capacity"
@@ -286,6 +438,148 @@ export default function CreateEventPage() {
         onClose={() => setShowLoginPrompt(false)}
         onSignup={() => navigate('/signup')}
       />
+
+      <BottomSheet
+        open={showSportSheet}
+        onClose={() => setShowSportSheet(false)}
+        disableContainer
+        showHandle={false}
+      >
+        <SheetLayout
+          onClose={() => setShowSportSheet(false)}
+          title="選擇運動項目"
+          subtitle="從清單中選擇一項運動。"
+          height="tall"
+          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+          contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
+          primaryButton={{
+            label: '關閉',
+            onClick: () => setShowSportSheet(false),
+          }}
+          showHandle={false}
+        >
+          <input
+            value={sportSearch}
+            onChange={(e) => setSportSearch(e.target.value)}
+            placeholder="搜尋運動"
+            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
+          />
+          <div className="space-y-2">
+            {sportsCatalog
+              .filter((sport) => sport.label.toLowerCase().includes(sportSearch.toLowerCase()))
+              .map((sport) => {
+                const isActive = form.sportKey === sport.key
+                return (
+                  <button
+                    key={sport.key}
+                    type="button"
+                    onClick={() => handleSportSelect(sport.key, sport.label)}
+                    className={clsx(
+                      'w-full rounded-2xl border px-4 py-3 text-left text-base font-semibold shadow-sm transition',
+                      isActive
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300'
+                    )}
+                  >
+                    {sport.label}
+                  </button>
+                )
+              })}
+          </div>
+        </SheetLayout>
+      </BottomSheet>
+
+      <BottomSheet
+        open={showLocationSheet}
+        onClose={() => setShowLocationSheet(false)}
+        disableContainer
+        showHandle={false}
+      >
+        <SheetLayout
+          onClose={() => setShowLocationSheet(false)}
+          title="選擇位置"
+          subtitle="在地圖上點擊放置定位點"
+          height="tall"
+          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+          contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
+          primaryButton={{
+            label: locationConfirming ? '定位中...' : '確認',
+            onClick: async () => {
+              if (locationConfirming) return
+              setLocationConfirming(true)
+              let loc = selectedLocation
+              if (!loc && selectedAddress.trim()) {
+                loc = await geocodeByAddress(selectedAddress.trim())
+                if (loc) setSelectedLocation(loc)
+              }
+              if (loc) {
+                setForm((prev) => ({
+                  ...prev,
+                  lat: String(loc!.lat),
+                  lng: String(loc!.lng),
+                  location: selectedAddress.trim() || prev.location,
+                }))
+                setShowLocationSheet(false)
+              } else {
+                setReverseGeoError('無法定位，請再試一次或點地圖')
+              }
+              setLocationConfirming(false)
+            },
+            disabled: locationConfirming,
+          }}
+          showHandle={false}
+        >
+          <div className="space-y-2 rounded-2xl bg-slate-50 px-3 py-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-slate-600">場地地址</p>
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                value={selectedAddress}
+                onChange={(e) => {
+                  setSelectedAddress(e.target.value)
+                  setAddressMode('manual')
+                }}
+                placeholder="輸入地址，或點地圖放置定位點"
+                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
+              />
+              {selectedAddress.trim() && (
+                <button
+                  type="button"
+                  aria-label="Clear address"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 hover:bg-slate-200"
+                  onClick={() => {
+                    setIsAddressClearing(true)
+                    setSelectedAddress('')
+                    setSelectedLocation(null)
+                    setAddressMode('manual')
+                    setReverseGeoError(null)
+                    // allow user to type without the open-sheet initializer re-filling the input
+                    setTimeout(() => setIsAddressClearing(false), 0)
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
+          </div>
+
+          <div className="h-[56vh] overflow-hidden rounded-2xl border border-slate-200">
+            <MapPicker
+              value={selectedLocation ?? undefined}
+              variant="satellite"
+              onChange={(loc) => {
+                setSelectedLocation(loc)
+                setAddressMode('auto')
+              }}
+            />
+          </div>
+        </SheetLayout>
+      </BottomSheet>
     </>
   )
 }
@@ -346,7 +640,7 @@ function SkillSelector({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold tracking-wide text-slate-500">Skill level</p>
+      <p className="text-xs font-semibold tracking-wide text-slate-500">程度</p>
       <div className="flex flex-wrap gap-2">
         {Object.entries(SKILL_LEVEL_LABELS).map(([level, label]) => {
           const value = level as SkillLevelKey
@@ -372,31 +666,79 @@ function SkillSelector({
   )
 }
 
+function GenderSelector({
+  selected,
+  onSelect,
+}: {
+  selected: 'mixed' | 'female' | 'male'
+  onSelect: (value: 'mixed' | 'female' | 'male') => void
+}) {
+  const options: { id: 'mixed' | 'female' | 'male'; label: string; desc: string }[] = [
+    { id: 'mixed', label: '性別混合場', desc: '不限性別，歡迎一起來動。' },
+    { id: 'female', label: '女性專屬場', desc: '女性限定，讓夥伴更自在。' },
+    { id: 'male', label: '男性專屬場', desc: '男性限定，暢快對戰。' },
+  ]
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold tracking-wide text-slate-500">性別</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {options.map((opt) => {
+          const isActive = selected === opt.id
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => onSelect(opt.id)}
+              className={clsx(
+                'flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition',
+                isActive
+                  ? 'border-blue-500 bg-blue-50 text-blue-800 shadow-[0_6px_16px_rgba(30,64,175,0.18)]'
+                  : 'border-slate-200 bg-white text-slate-800 hover:border-blue-200'
+              )}
+            >
+              <span className="text-sm font-semibold">{opt.label}</span>
+              <span className="text-xs text-slate-500">{opt.desc}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function CoverUploader({
-  previewUrl,
+  previews,
   onChange,
 }: {
-  previewUrl?: string
+  previews?: string[]
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
 }) {
+  const hasImages = previews && previews.length > 0
   return (
     <div className="rounded-[28px] border border-slate-200 bg-slate-50/80 p-4">
-      <label className="flex h-52 cursor-pointer flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed border-slate-300 bg-white text-center text-sm text-slate-500 transition hover:border-blue-300">
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="Preview"
-            className="h-full w-full rounded-[20px] object-cover"
-          />
+      <label className="flex min-h-[220px] cursor-pointer flex-col gap-3 rounded-[24px] border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500 transition hover:border-blue-300">
+        {hasImages ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            {previews!.slice(0, 3).map((src, idx) => (
+              <div
+                key={src + idx}
+                className="relative h-40 overflow-hidden rounded-[20px] ring-1 ring-slate-200"
+              >
+                <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+              </div>
+            ))}
+          </div>
         ) : (
-          <>
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-6 text-center">
             <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-              Cover photo
+              Cover photos
             </div>
-            <p>Add an inviting photo (Airbnb-style). Drag or click to upload.</p>
-          </>
+            <p>場地或活動相關圖片</p>
+          </div>
         )}
-        <input type="file" accept="image/*" className="hidden" onChange={onChange} />
+        <div className="text-center text-xs text-slate-500">點擊或拖曳上傳（最多 3 張）</div>
+        <input type="file" accept="image/*" multiple className="hidden" onChange={onChange} />
       </label>
     </div>
   )
@@ -419,14 +761,14 @@ type CommonFloatingProps = {
 }
 
 function FloatingField(props: FloatingFieldProps) {
-  const { label, supportingText, characterLimit } = props
-  const as = props.as ?? 'input'
+  const { label, supportingText, characterLimit, ...domProps } = props as any
+  const as = domProps.as ?? 'input'
   const id = useId()
   const value =
-    'value' in props
-      ? (props.value ?? '')
-      : 'defaultValue' in props
-        ? ((props.defaultValue as string | number | readonly string[] | undefined) ?? '')
+    'value' in domProps
+      ? (domProps.value ?? '')
+      : 'defaultValue' in domProps
+        ? ((domProps.defaultValue as string | number | readonly string[] | undefined) ?? '')
         : ''
   const hasValue =
     typeof value === 'number'
@@ -449,7 +791,7 @@ function FloatingField(props: FloatingFieldProps) {
       className,
       rows = 4,
       ...rest
-    } = props as Extract<FloatingFieldProps, { as: 'textarea' }>
+    } = domProps as Extract<FloatingFieldProps, { as: 'textarea' }>
     return (
       <div className="space-y-1">
         <div className="relative">
@@ -475,7 +817,7 @@ function FloatingField(props: FloatingFieldProps) {
     className,
     type = 'text',
     ...rest
-  } = props as Extract<FloatingFieldProps, { as?: 'input' }>
+  } = domProps as Extract<FloatingFieldProps, { as?: 'input' }>
   return (
     <div className="space-y-1">
       <div className="relative">
