@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import clsx from 'clsx'
-import { MapPin } from 'lucide-react'
+import { MapPin, Sparkles, ArrowRight } from 'lucide-react'
 import { IntroSheet } from '@/components/IntroSheet'
 import { BottomSheet } from '@/components/BottomSheet'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
@@ -149,7 +148,7 @@ export function HomePage() {
     setActiveIndex(idx)
   }
 
-  const handleDraftClick = () => {
+  const handleIdentityClick = () => {
     if (!isAuthenticated) {
       setShowLoginPrompt(true)
       return
@@ -194,7 +193,7 @@ export function HomePage() {
   }, [activeIndex])
 
   return (
-    <div className="relative min-h-screen bg-white pb-24">
+    <div className="relative min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pt-4">
         <section className="-mb-2 space-y-4">
@@ -224,14 +223,29 @@ export function HomePage() {
         </section>
 
         <div className="">
+          <div className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <Sparkles className="h-4 w-4" />
+              Real-World First Sports Application
+            </div>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
+              你的運動，由你定義。
+              <br />
+              你的世界，等你探索。
+            </h1>
+            <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
+              透過找建立友好的連結。找到步調相近的人。 <br />
+              把運動變成日常裡最爽快的約定。
+            </p>
+          </div>
           <header className="flex flex-col gap-1.5 pb-4 pt-4 text-center">
             <h1 className="text-[26px] font-bold leading-tight tracking-tight text-slate-900">
               找到你的運動樣子
             </h1>
-            <p className="text-sm text-slate-600">從這裡開始，看看附近的氛圍與夥伴。</p>
+            <p className="text-sm text-slate-600">從這裡開始，找到志趣相投的運動夥伴。</p>
           </header>
 
-          <section className="pb-12">
+          {/* <section className="pb-12">
             <div
               ref={listRef}
               className="flex snap-x snap-mandatory gap-4 overflow-x-auto [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -254,19 +268,21 @@ export function HomePage() {
                 />
               ))}
             </div>
-          </section>
+          </section> */}
 
-          <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
-            <h2 className="text-lg font-semibold text-slate-900">建立你的運動身份卡</h2>
-            <p className="text-sm text-slate-600">分享你的氛圍與喜好的運動，找到步調相近的夥伴。</p>
-            <button
-              type="button"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition"
-              style={{ background: 'var(--gradient-secondary)' }}
-              onClick={handleDraftClick}
-            >
-              建立運動身份卡
-            </button>
+          <section className="space-y-3 rounded-2xl p-6 text-center">
+            {/* <h2 className="text-lg font-semibold text-slate-900">建立你的運動身份卡</h2>
+            <p className="text-sm text-slate-600">分享你的氛圍與喜好的運動，找到步調相近的夥伴。</p> */}
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                className="flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+                type="button"
+                onClick={handleIdentityClick}
+              >
+                加入 SportsMatch
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </button>
+            </div>
           </section>
         </div>
       </div>
@@ -297,9 +313,7 @@ export function HomePage() {
           </button>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900">先登入，建立你的運動身份</h2>
-            <p className="text-sm text-slate-600">
-              建立運動卡後，你會看到附近的氛圍與適合一起動的人。
-            </p>
+            <p className="text-sm text-slate-600">建立完運動卡後，開場活動認識新朋友吧</p>
           </div>
 
           <div className="space-y-3">

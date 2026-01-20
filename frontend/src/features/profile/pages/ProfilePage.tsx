@@ -22,6 +22,7 @@ import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
+import { ProfileOnboardingIntro } from '@/features/profile/components/ProfileOnboardingIntro'
 
 const arraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((v, i) => v === b[i])
@@ -82,6 +83,7 @@ export function ProfilePage() {
   const [draftUsername, setDraftUsername] = useState<string>((profileCache as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
@@ -234,10 +236,16 @@ export function ProfilePage() {
     if (!isAuthenticated) return
     let cancelled = false
     const fetchProfile = async () => {
+      const shouldFetchProfile = Boolean(onboardingStatus?.isComplete)
+      const profilePromise = shouldFetchProfile
+        ? onboardingService.getProfile()
+        : Promise.resolve(null)
+      const statsPromise = shouldFetchProfile ? onboardingService.getStats() : Promise.resolve(null)
+
       const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
-        onboardingService.getProfile(),
+        profilePromise,
         onboardingService.getPreferences(),
-        onboardingService.getStats(),
+        statsPromise,
       ])
 
       if (!cancelled && profileRes.status === 'fulfilled') {
@@ -311,6 +319,7 @@ export function ProfilePage() {
         const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
         setStats(statsPayload)
       }
+      if (!cancelled) setIsProfileLoaded(true)
     }
     fetchProfile()
     return () => {
@@ -460,6 +469,28 @@ export function ProfilePage() {
 
   if (isLoading) return null
   if (!isAuthenticated) return null
+
+  const isOnboardingIncomplete = isAuthenticated && !(onboardingStatus?.isComplete ?? false)
+  const showOnboardingIntro = isOnboardingIncomplete && isProfileLoaded && !resolvedProfile
+  if (showOnboardingIntro) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
+        <div className="mx-auto w-full max-w-4xl">
+          <div className="flex items-center justify-end bg-white px-4 py-4">
+            <Link
+              to="/settings"
+              aria-label="Menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+            >
+              <Menu className="h-6 w-6" />
+            </Link>
+          </div>
+        </div>
+        <ProfileOnboardingIntro onStart={handleOpenProfileEdit} />
+      </div>
+    )
+  }
+
   const displayProfile = resolvedProfile
   const displayGoal = goal
   const allowGoalEdit = true
@@ -469,7 +500,7 @@ export function ProfilePage() {
     sessionsTarget > 0 ? Math.min(100, Math.round((sessionsCompleted / sessionsTarget) * 100)) : 0
 
   return (
-    <div className="min-h-screen pb-[120px] overflow-y-auto">
+    <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">

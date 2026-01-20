@@ -385,12 +385,27 @@ export function OnboardingPage() {
       if (prefilled) return
       setLoadingProfile(true)
       try {
-        const [profileRes, prefsRes] = await Promise.all([
-          onboardingService.getProfile(),
-          onboardingService.getPreferences(),
-        ])
+        const prefsPromise = onboardingService.getPreferences()
+        let profilePayload: any = null
 
-        const profilePayload: any = (profileRes as any)?.data ?? profileRes
+        // 只有在推斷已建立過 profile 時才去讀取
+        const maybeHasProfile =
+          Boolean(onboardingStatus?.isComplete) || Boolean(user?.id && user?.username)
+        if (maybeHasProfile) {
+          try {
+            const profileRes = await onboardingService.getProfile()
+            profilePayload = (profileRes as any)?.data ?? profileRes ?? null
+          } catch (err: any) {
+            if ((err as any)?.status === 404 || (err as any)?.response?.status === 404) {
+              profilePayload = null
+            } else {
+              throw err
+            }
+          }
+        }
+
+        const prefsRes = await prefsPromise
+
         if (profilePayload) {
           const user = profilePayload.user ?? profilePayload
           const sportsRows = profilePayload.sports || []
@@ -423,6 +438,7 @@ export function OnboardingPage() {
         setPrefilled(true)
       } catch (err) {
         // ignore prefill errors, keep defaults
+        setPrefilled(true)
       } finally {
         setLoadingProfile(false)
       }
