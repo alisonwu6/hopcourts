@@ -32,6 +32,21 @@ const RequireAuth = ({ children }: { children: JSX.Element }) => {
 export default function App() {
   const { isAuthenticated, onboardingStatus } = useAuthStore()
   const isOnboardingComplete = onboardingStatus?.isComplete ?? false
+  const { isLoading } = useAuthStore()
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700">
+        <div className="flex items-center gap-3 rounded-full bg-white/80 px-5 py-3 shadow-[0_10px_40px_rgba(15,41,77,0.12)] ring-1 ring-slate-100">
+          <span className="relative inline-block h-4 w-4">
+            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
+            <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
+          </span>
+          <span className="text-sm font-semibold">載入中，請稍候…</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Routes>

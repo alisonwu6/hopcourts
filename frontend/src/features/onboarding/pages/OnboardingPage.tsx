@@ -447,11 +447,22 @@ export function OnboardingPage() {
     prefill()
   }, [prefilled, keyToVibeSafe])
 
+  if (loadingProfile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700">
+        <div className="flex items-center gap-3 rounded-full bg-white/80 px-5 py-3 shadow-[0_10px_40px_rgba(15,41,77,0.12)] ring-1 ring-slate-100">
+          <span className="relative inline-block h-4 w-4">
+            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
+            <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
+          </span>
+          <span className="text-sm font-semibold">載入中，請稍候…</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
-      {loadingProfile && (
-        <div className="bg-blue-50 px-4 py-3 text-sm text-blue-700">正在載入你的資料...</div>
-      )}
       {saveError && <div className="bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>}
       <ActionToolbar
         onBack={() => navigate(-1)}

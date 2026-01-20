@@ -72,7 +72,11 @@ export function ProfilePage() {
   const [vm, setVm] = useState<ProfileVM | null>(
     profileCache
       ? {
-          username: (profileCache as any)?.username || '',
+          username:
+            (profileCache as any)?.username ||
+            (user as any)?.username ||
+            (profileCache as any)?.display_name ||
+            '',
           card: profileCache,
           favoriteSportKeys: [],
           tryingSportKeys: [],
@@ -80,7 +84,13 @@ export function ProfilePage() {
       : null
   )
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
-  const [draftUsername, setDraftUsername] = useState<string>((profileCache as any)?.username || '')
+  const [draftUsername, setDraftUsername] = useState<string>(
+    (profileCache as any)?.username ||
+      (user as any)?.username ||
+      (profileCache as any)?.display_name ||
+      ''
+  )
+  const [profileNotFound, setProfileNotFound] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [isProfileLoaded, setIsProfileLoaded] = useState(false)
@@ -98,7 +108,6 @@ export function ProfilePage() {
   const { items: countriesCatalog } = useCountries('zh')
   const { items: citiesCatalog } = useCities(undefined, 'zh')
   const navigate = useNavigate()
-  const username = (user as any)?.username || vm?.username || 'undefined'
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
     const labelMap = new Map<string, string>()
@@ -230,96 +239,114 @@ export function ProfilePage() {
       vibe: vibeUnion,
     }
   }, [draftProfile, labelForCity, labelForCountry, vibeKeyToUnion])
+
+  const usernameFromVm = vm?.username
+  const usernameFromUser = (user as any)?.username
+  const username =
+    usernameFromVm ||
+    usernameFromUser ||
+    draftUsername ||
+    (resolvedProfile as any)?.username ||
+    (resolvedProfile as any)?.name ||
+    ''
   const hasCompletedCard = onboardingStatus?.isComplete ?? false
 
   useEffect(() => {
     if (!isAuthenticated) return
     let cancelled = false
     const fetchProfile = async () => {
-      const shouldFetchProfile = Boolean(onboardingStatus?.isComplete)
-      const profilePromise = shouldFetchProfile
-        ? onboardingService.getProfile()
-        : Promise.resolve(null)
-      const statsPromise = shouldFetchProfile ? onboardingService.getStats() : Promise.resolve(null)
+      setProfileNotFound(false)
+      try {
+        const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
+          onboardingService.getProfile(),
+          onboardingService.getPreferences(),
+          onboardingService.getStats(),
+        ])
 
-      const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
-        profilePromise,
-        onboardingService.getPreferences(),
-        statsPromise,
-      ])
+        if (!cancelled && profileRes.status === 'fulfilled') {
+          const payload: any = (profileRes.value as any)?.data ?? profileRes.value
+          if (payload) {
+            const data = payload.user ? payload.user : payload
+            const sportsRows = payload.sports || []
+            const favoriteKeys =
+              payload.favorite_sports ||
+              sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+            const tryingKeys =
+              payload.trying_sports ||
+              sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+            const vibeKey = data.vibe_key || null
+            const vibeUnion = vibeKey
+              ? vibeKeyToUnion.get(vibeKey) ||
+                vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+                vibeKeyToUnionFallback(vibeKey)
+              : null
 
-      if (!cancelled && profileRes.status === 'fulfilled') {
-        const payload: any = (profileRes.value as any)?.data ?? profileRes.value
-        if (payload) {
-          const data = payload.user ? payload.user : payload
-          const sportsRows = payload.sports || []
-          const favoriteKeys =
-            payload.favorite_sports ||
-            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
-          const tryingKeys =
-            payload.trying_sports ||
-            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-          const vibeKey = data.vibe_key || null
-          const vibeUnion = vibeKey
-            ? vibeKeyToUnion.get(vibeKey) ||
-              vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
-              vibeKeyToUnionFallback(vibeKey)
-            : null
-
-          const mapped: MateCardProps = {
-            name: data.display_name || data.username || '',
-            location: data.city_label || data.city || '',
-            cityKey: data.city_key || '',
-            flag: labelForCountry(data.country_key) || '',
-            countryKey: data.country_key || '',
-            vibe: vibeUnion,
-            vibeKey,
-            sports: (favoriteKeys || []).map(labelForSport),
-            trying: (tryingKeys || []).map(labelForSport),
-            blurb: data.bio || '',
-            avatar: data.avatar_url || userAvatar || '',
+            const mapped: MateCardProps = {
+              name: data.display_name || data.username || '',
+              location: data.city_label || data.city || '',
+              cityKey: data.city_key || '',
+              flag: labelForCountry(data.country_key) || '',
+              countryKey: data.country_key || '',
+              vibe: vibeUnion,
+              vibeKey,
+              sports: (favoriteKeys || []).map(labelForSport),
+              trying: (tryingKeys || []).map(labelForSport),
+              blurb: data.bio || '',
+              avatar: data.avatar_url || userAvatar || '',
+            }
+            const nextUsername = data.username || data.display_name || (user as any)?.username || ''
+            setVm({
+              username: nextUsername,
+              card: mapped,
+              favoriteSportKeys: favoriteKeys || [],
+              tryingSportKeys: tryingKeys || [],
+            })
+            setDraftProfile(mapped)
+            setDraftUsername(nextUsername)
+            setProfileCache(mapped)
           }
-          const nextUsername = data.username || ''
-          setVm({
-            username: nextUsername,
-            card: mapped,
-            favoriteSportKeys: favoriteKeys || [],
-            tryingSportKeys: tryingKeys || [],
+        } else if (!cancelled && profileRes.status === 'rejected') {
+          const err: any = profileRes.reason
+          const status = err?.status || err?.response?.status
+          if (status === 404) {
+            setProfileNotFound(true)
+          }
+          setVm(null)
+          setDraftProfile(emptyProfile)
+        }
+
+        if (!cancelled && preferencesRes.status === 'fulfilled') {
+          const preferencesPayload: any =
+            (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
+          const sessionsPerWeek = preferencesPayload.sessions_per_week
+          const preferredTime = preferencesPayload.preferred_time
+          const daySlots = preferencesPayload.day_slots || {}
+          setGoal({
+            sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
+            timeOfDay: preferredTime || '早上',
+            days: [],
           })
-          setDraftProfile(mapped)
-          setDraftUsername(nextUsername)
-          setProfileCache(mapped)
+          const mergedSlots: Record<string, string[]> = {
+            ...createDaySlots(),
+            ...daySlots,
+          }
+          setGoalDaySlots(mergedSlots)
+          setDraftDaySlots(mergedSlots)
+          if (preferredTime) setDraftPreferredTime(preferredTime)
         }
-      } else if (!cancelled && profileRes.status === 'rejected') {
-        setVm(null)
-        setDraftProfile(emptyProfile)
-      }
 
-      if (!cancelled && preferencesRes.status === 'fulfilled') {
-        const preferencesPayload: any =
-          (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
-        const sessionsPerWeek = preferencesPayload.sessions_per_week
-        const preferredTime = preferencesPayload.preferred_time
-        const daySlots = preferencesPayload.day_slots || {}
-        setGoal({
-          sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
-          timeOfDay: preferredTime || '早上',
-          days: [],
-        })
-        const mergedSlots: Record<string, string[]> = {
-          ...createDaySlots(),
-          ...daySlots,
+        if (!cancelled && statsRes.status === 'fulfilled') {
+          const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
+          setStats(statsPayload)
         }
-        setGoalDaySlots(mergedSlots)
-        setDraftDaySlots(mergedSlots)
-        if (preferredTime) setDraftPreferredTime(preferredTime)
+      } catch (err) {
+        if (!cancelled) {
+          setVm(null)
+          setDraftProfile(emptyProfile)
+        }
+      } finally {
+        if (!cancelled) setIsProfileLoaded(true)
       }
-
-      if (!cancelled && statsRes.status === 'fulfilled') {
-        const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
-        setStats(statsPayload)
-      }
-      if (!cancelled) setIsProfileLoaded(true)
     }
     fetchProfile()
     return () => {
@@ -471,22 +498,18 @@ export function ProfilePage() {
   if (!isAuthenticated) return null
 
   const isOnboardingIncomplete = isAuthenticated && !(onboardingStatus?.isComplete ?? false)
-  const showOnboardingIntro = isOnboardingIncomplete && isProfileLoaded && !resolvedProfile
-  if (showOnboardingIntro) {
+  const showOnboardingIntro =
+    (isOnboardingIncomplete || profileNotFound) && isProfileLoaded && !resolvedProfile
+  if (isOnboardingIncomplete && !isProfileLoaded) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
-        <div className="mx-auto w-full max-w-4xl">
-          <div className="flex items-center justify-end bg-white px-4 py-4">
-            <Link
-              to="/settings"
-              aria-label="Menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
-            >
-              <Menu className="h-6 w-6" />
-            </Link>
-          </div>
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700">
+        <div className="flex items-center gap-3 rounded-full bg-white/80 px-5 py-3 shadow-[0_10px_40px_rgba(15,41,77,0.12)] ring-1 ring-slate-100">
+          <span className="relative inline-block h-4 w-4">
+            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
+            <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
+          </span>
+          <span className="text-sm font-semibold">載入中，請稍候…</span>
         </div>
-        <ProfileOnboardingIntro onStart={handleOpenProfileEdit} />
       </div>
     )
   }
@@ -499,7 +522,22 @@ export function ProfilePage() {
   const completion =
     sessionsTarget > 0 ? Math.min(100, Math.round((sessionsCompleted / sessionsTarget) * 100)) : 0
 
-  return (
+  const pageContent = showOnboardingIntro ? (
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="flex items-center justify-end bg-white px-4 py-4">
+          <Link
+            to="/settings"
+            aria-label="Menu"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+          >
+            <Menu className="h-6 w-6" />
+          </Link>
+        </div>
+      </div>
+      <ProfileOnboardingIntro onStart={() => navigate('/onboarding')} />
+    </div>
+  ) : (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between bg-white px-4 py-4">
@@ -541,6 +579,12 @@ export function ProfilePage() {
           />
         </div>
       </div>
+    </div>
+  )
+
+  return (
+    <div className="min-h-screen">
+      {pageContent}
       <AvatarCropSheet
         open={showAvatarCropper}
         onClose={() => setShowAvatarCropper(false)}

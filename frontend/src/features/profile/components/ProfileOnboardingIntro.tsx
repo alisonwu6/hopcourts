@@ -1,8 +1,19 @@
+import { useNavigate } from 'react-router-dom'
+
 type Props = {
-  onStart: () => void
+  onStart?: () => void
 }
 
 export function ProfileOnboardingIntro({ onStart }: Props) {
+  const navigate = useNavigate()
+  const handleStart = () => {
+    if (onStart) {
+      onStart()
+      return
+    }
+    navigate('/onboarding')
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 pt-10">
@@ -18,7 +29,7 @@ export function ProfileOnboardingIntro({ onStart }: Props) {
             <button
               type="button"
               className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
-              onClick={onStart}
+              onClick={handleStart}
             >
               建立我的運動卡
             </button>
