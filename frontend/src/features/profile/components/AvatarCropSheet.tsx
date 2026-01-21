@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Cropper from 'react-easy-crop'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
@@ -33,13 +34,17 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
   ctx.drawImage(image, x, y, width, height, 0, 0, width, height)
 
   return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob((file) => {
-      if (!file) {
-        reject(new Error('Failed to crop image'))
-        return
-      }
-      resolve(file)
-    }, 'image/jpeg')
+    canvas.toBlob(
+      (file) => {
+        if (!file) {
+          reject(new Error('Failed to crop image'))
+          return
+        }
+        resolve(file)
+      },
+      'image/webp',
+      0.92
+    )
   })
 }
 
@@ -76,8 +81,8 @@ export function AvatarCropSheet({
 
   useEffect(() => {
     if (open) {
-      // 自動開啟檔案選擇
-      setTimeout(() => fileInputRef.current?.click(), 100)
+      // 自動開啟檔案選擇；未選擇直接關閉
+      setTimeout(() => fileInputRef.current?.click(), 50)
     } else {
       resetState()
     }
@@ -85,6 +90,8 @@ export function AvatarCropSheet({
 
   const handleFile = (file: File | null) => {
     if (!file) {
+      resetState()
+      onClose()
       return
     }
     const reader = new FileReader()
@@ -110,16 +117,33 @@ export function AvatarCropSheet({
     }
     setUploading(true)
     try {
+      const [{ data: supabaseUser, error: userError }, { data: sessionData }] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.auth.getSession(),
+      ])
+      console.log('[avatar] supabase auth.getUser()', { supabaseUser, userError })
+      console.log('[avatar] supabase auth.getSession()', { sessionData })
+      if (userError || !supabaseUser?.user) {
+        throw new Error('未取得 Supabase 使用者，請重新登入後再試')
+      }
+      const storageUserId = supabaseUser.user.id || userId
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels, rotation)
-      const path = `avatars/${userId}-${Date.now()}.jpg`
-      const { error } = await supabase.storage.from('avatars').upload(path, croppedBlob, {
+      const file = new File([croppedBlob], 'avatar.webp', { type: 'image/webp' })
+      const path = `${storageUserId}/avatar.webp`
+      console.log('[avatar] upload path', path, 'size', file.size, 'type', file.type)
+      const { error } = await supabase.storage.from('avatars').upload(path, file, {
         upsert: true,
-        contentType: 'image/jpeg',
+        contentType: 'image/webp',
+        cacheControl: '3600',
       })
-      if (error) throw error
+      if (error) {
+        console.error('[avatar] upload error', error)
+        throw error
+      }
       const { data: publicData } = supabase.storage.from('avatars').getPublicUrl(path)
       if (publicData?.publicUrl) {
-        onAvatarUpdated(publicData.publicUrl)
+        // 加上版本參數避免快取
+        onAvatarUpdated(`${publicData.publicUrl}?v=${Date.now()}`)
       }
       onClose()
     } catch (err) {
@@ -131,91 +155,88 @@ export function AvatarCropSheet({
     }
   }
 
-  return (
-    <BottomSheet open={open} onClose={onClose} showHandle={false} disableContainer>
-      <SheetLayout
-        onClose={onClose}
-        title="調整大頭貼"
-        subtitle="拖曳與縮放，讓頭像置中，保存後上傳。"
-        height="tall"
-        className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
-        contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-4"
-        primaryButton={{
-          label: uploading ? '上傳中...' : '套用',
-          onClick: handleSave,
-          disabled: uploading,
-        }}
-        showHandle={false}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => handleFile(e.target.files?.[0] || null)}
-        />
+  if (!open) return null
 
-        {imageSrc ? (
-          <div className="space-y-4">
-            <div className="relative h-[360px] w-full overflow-hidden rounded-2xl bg-slate-900/5">
-              <Cropper
-                image={imageSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                rotation={rotation}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onRotationChange={setRotation}
-                onCropComplete={onCropComplete}
-                cropShape="round"
-                showGrid={false}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                重新選擇
-              </button>
-              <div className="flex-1 space-y-2">
-                <label className="text-sm font-semibold text-slate-700">縮放</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={0.1}
-                  value={zoom}
-                  onChange={(e) => setZoom(Number(e.target.value))}
-                  className="w-full accent-blue-600"
+  const sheet =
+    open && imageSrc ? (
+      <BottomSheet
+        open={open}
+        onClose={onClose}
+        showHandle={false}
+        disableContainer
+        backdropClassName="z-[400]"
+        sheetClassName="z-[401]"
+      >
+        <SheetLayout
+          onClose={onClose}
+          title="調整大頭貼"
+          subtitle="拖曳與縮放，讓頭像置中，保存後上傳。"
+          height="tall"
+          className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
+          contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-4"
+          primaryButton={{
+            label: uploading ? '上傳中...' : '套用',
+            onClick: handleSave,
+            disabled: uploading,
+          }}
+          showHandle={false}
+        >
+          {imageSrc && (
+            <div className="space-y-4">
+              <div className="relative h-[360px] w-full overflow-hidden rounded-2xl bg-slate-900/5">
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  rotation={rotation}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onRotationChange={setRotation}
+                  onCropComplete={onCropComplete}
+                  cropShape="round"
+                  showGrid={false}
                 />
               </div>
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  重新選擇
+                </button>
+                <div className="flex-1 space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">縮放</label>
+                  <input
+                    type="range"
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    value={zoom}
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                    className="w-full accent-blue-600"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="space-y-3 text-center">
-            <p className="text-sm text-slate-600">請選擇要裁切的圖片</p>
-            <div className="flex justify-center">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-              >
-                選擇檔案
-              </button>
-            </div>
-            <div className="flex justify-center">
-              <img
-                src={defaultAvatar}
-                alt="預設頭貼"
-                className="h-24 w-24 rounded-full object-cover shadow-inner"
-              />
-            </div>
-          </div>
-        )}
-      </SheetLayout>
-    </BottomSheet>
+          )}
+        </SheetLayout>
+      </BottomSheet>
+    ) : null
+
+  const target = typeof document !== 'undefined' ? document.body : null
+
+  return (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0] || null)}
+      />
+      {target ? createPortal(sheet, target) : sheet}
+    </>
   )
 }
