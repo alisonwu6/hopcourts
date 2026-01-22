@@ -2,6 +2,7 @@ const countriesModel = require('../../../models/countries.model')
 const citiesModel = require('../../../models/cities.model')
 const vibesModel = require('../../../models/vibes.model')
 const ageRangesModel = require('../../../models/ageRanges.model')
+const sportsModel = require('../../../models/sports.model')
 const { query } = require('../../../db/client')
 
 function parseLang(query) {
@@ -34,17 +35,31 @@ async function listAgeRanges(query = {}) {
   return { items }
 }
 
+async function listSports(query = {}) {
+  const lang = parseLang(query)
+  const items = await sportsModel.listSports({ locale: lang })
+  return { items }
+}
+
 async function dictionaryMeta() {
   const meta = {}
-  // sports: use updated_at ；其他暫用 now()
-  const sportsRes = await query(
-    `select coalesce(to_char(max(updated_at), 'YYYY-MM-DD\"T\"HH24:MI:SSZ'), to_char(now(), 'YYYY-MM-DD\"T\"HH24:MI:SSZ')) as version from public.sports`
-  )
-  meta.sports = { version: sportsRes.rows[0]?.version || new Date().toISOString() }
   const now = new Date().toISOString()
+
+  // sports: use updated_at ；其他暫用 now()
+  try {
+    const sportsRes = await query(
+      `select coalesce(to_char(max(updated_at), 'YYYY-MM-DD"T"HH24:MI:SSZ'), to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SSZ')) as version from public.sports`
+    )
+    meta.sports = { version: sportsRes.rows[0]?.version || now }
+  } catch {
+    meta.sports = { version: now }
+  }
+
   meta.vibes = { version: now }
   meta.countries = { version: now }
   meta.age_ranges = { version: now }
+  meta.cities = { version: now }
+
   return meta
 }
 
@@ -53,5 +68,6 @@ module.exports = {
   listCities,
   listVibes,
   listAgeRanges,
+  listSports,
   dictionaryMeta,
 }

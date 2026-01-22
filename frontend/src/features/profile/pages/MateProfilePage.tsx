@@ -1,31 +1,209 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
-import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
-import { ProfileContent } from './ProfilePage'
+import { type MateCardProps } from '@/features/mates/components/MateCard'
+import { HeroCard } from '@/features/profile/components/HeroCard'
+import { ProfileContent } from '@/features/profile/components/ProfileContent'
+import { api } from '@/api/client'
+import type { ApiResponse } from '@/api/types'
+import { useVibes, useSports, useCities } from '@/features/dictionaries/hooks'
 
 export function MateProfilePage() {
   const navigate = useNavigate()
   const { username } = useParams<{ username: string }>()
   const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps> } }
   const mate = state?.mate
+  const { items: sportsDict } = useSports('zh')
+  const { items: vibesCatalog } = useVibes('zh')
+  const { items: citiesDict } = useCities(undefined, 'zh')
   const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const goalDaySlots = daysList.reduce<Record<string, string[]>>((acc, day) => {
     acc[day] = []
     return acc
   }, {})
 
-  const profile: MateCardProps = {
-    name: mate?.name ?? username ?? 'New mate',
-    flag: mate?.flag ?? '🏴',
-    vibe: (mate?.vibe as MateCardProps['vibe']) ?? 'Chill',
-    sports: mate?.sports ?? ['Basketball', 'Gym'],
-    trying: mate?.trying ?? ['Pickleball'],
-    location: mate?.location ?? '台北',
-    blurb: mate?.blurb ?? 'Let’s play soon!',
-    avatar:
-      mate?.avatar ??
-      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
-  }
+  const asStringArray = (items?: any[]) =>
+    Array.isArray(items)
+      ? items.map((i) => (typeof i === 'string' ? i : String(i?.label || i?.key || i)))
+      : []
+
+  const labelForSport = useMemo(() => {
+    const keyMap = new Map<string, string>()
+    const labelMap = new Map<string, string>()
+    sportsDict.forEach((s) => {
+      keyMap.set(s.key.toLowerCase(), s.label)
+      labelMap.set(s.label.toLowerCase(), s.label)
+    })
+    return (value: string) => {
+      if (!value) return value
+      const lower = String(value).toLowerCase()
+      return keyMap.get(lower) || labelMap.get(lower) || value
+    }
+  }, [sportsDict])
+
+  const vibeKeyToUnion = useMemo(() => {
+    const map = new Map<string, MateCardProps['vibe']>()
+    vibesCatalog.forEach((v) => {
+      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      map.set(v.key, union)
+      map.set(v.key.toLowerCase(), union)
+    })
+    return (key: string) => {
+      const hit = map.get(key) || map.get(key?.toLowerCase?.() || '')
+      if (hit) return hit
+      if (!key) return key as MateCardProps['vibe']
+      return (key.charAt(0) + key.slice(1).toLowerCase()) as MateCardProps['vibe']
+    }
+  }, [vibesCatalog])
+
+  const labelForVibe = useMemo(() => {
+    const map = new Map<string, string>()
+    vibesCatalog.forEach((v) => {
+      map.set(v.key, v.label)
+      map.set(v.key.toLowerCase(), v.label)
+    })
+    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
+  }, [vibesCatalog])
+
+  const labelForCity = useMemo(() => {
+    const keyMap = new Map<string, string>()
+    const labelMap = new Map<string, string>()
+    citiesDict.forEach((c) => {
+      keyMap.set(c.key.toLowerCase(), c.label)
+      labelMap.set(c.label.toLowerCase(), c.label)
+    })
+    return (value: string) => {
+      if (!value) return value
+      const lower = value.toLowerCase()
+      return keyMap.get(lower) || labelMap.get(lower) || value
+    }
+  }, [citiesDict])
+
+  const [profileData, setProfileData] = useState<MateCardProps | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const normalizeSports = (list: any[]) => {
+      const favorites: string[] = []
+      const trying: string[] = []
+      list.forEach((item) => {
+        const kind = (item?.kind || '').toUpperCase()
+        const key = item?.sport_key || item?.sportKey || item?.key || item?.label || item
+        if (!key) return
+        if (kind === 'TRYING') {
+          trying.push(String(key))
+        } else {
+          favorites.push(String(key))
+        }
+      })
+      return { favorites, trying }
+    }
+
+    const fetchProfile = async () => {
+      if (!username) return
+      setLoading(true)
+      setError(null)
+      try {
+        const res = (await api.profiles.getByUsername(username)) as ApiResponse<any>
+        const data = res?.data ?? {}
+        const user = data.user || {}
+        const sportsResp = Array.isArray(data.sports) ? data.sports : []
+        const { favorites, trying } = normalizeSports(sportsResp)
+        setProfileData({
+          name: data.name || user.display_name || user.username || mate?.name || username,
+          username: data.username || user.username || mate?.name || username,
+          flag: data.flag || mate?.flag || '',
+          vibe:
+            vibeKeyToUnion(data.vibe) ||
+            vibeKeyToUnion(user.vibe_key) ||
+            (mate?.vibe as MateCardProps['vibe']),
+          vibeLabel: labelForVibe(
+            (data.vibe as string) || (user.vibe_key as string) || (mate?.vibe as string) || ''
+          ),
+          sports: favorites.length ? favorites : asStringArray(data.sports) || [],
+          trying: trying.length ? trying : asStringArray(data.trying) || [],
+          location: data.location || user.city_key || mate?.location || '',
+          blurb: data.blurb || user.bio || mate?.blurb || '',
+          avatar:
+            data.avatar ||
+            user.avatar_url ||
+            mate?.avatar ||
+            'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+        })
+      } catch (err) {
+        console.error('load mate failed', err)
+        setError('無法載入運動卡')
+        if (mate) {
+          setProfileData({
+            name: mate.name || username || 'Mate',
+            username: mate.name || username || 'Mate',
+            flag: mate.flag || '🏴',
+            vibe: (mate.vibe as MateCardProps['vibe']) || 'Chill',
+            vibeLabel: labelForVibe(mate.vibe as string),
+            sports: asStringArray(mate.sports) || [],
+            trying: asStringArray(mate.trying) || [],
+            location: mate.location || '',
+            blurb: mate.blurb || '',
+            avatar:
+              mate.avatar ||
+              'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+          })
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (mate) {
+      setProfileData({
+        name: mate.name || username || 'Mate',
+        username: mate.name || username || 'Mate',
+        flag: mate.flag || '🏴',
+        vibe: (mate.vibe as MateCardProps['vibe']) || 'Chill',
+        vibeLabel: labelForVibe(mate.vibe as string),
+        sports: asStringArray(mate.sports) || [],
+        trying: asStringArray(mate.trying) || [],
+        location: mate.location || '',
+        blurb: mate.blurb || '',
+        avatar:
+          mate.avatar ||
+          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+      })
+    }
+    fetchProfile()
+  }, [username, mate, labelForSport, labelForVibe, vibeKeyToUnion])
+
+  const profile: MateCardProps = useMemo(() => {
+    const base: MateCardProps =
+      profileData ??
+      ({
+        name: mate?.name ?? username ?? 'New mate',
+        username: mate?.name ?? username ?? 'New mate',
+        flag: mate?.flag ?? '🏴',
+        vibe: (mate?.vibe as MateCardProps['vibe']) ?? 'Chill',
+        sports: asStringArray(mate?.sports) ?? [],
+        trying: asStringArray(mate?.trying) ?? [],
+        location: mate?.location ?? '台北',
+        blurb: mate?.blurb ?? '',
+        avatar:
+          mate?.avatar ??
+          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+      } as MateCardProps)
+
+    const vibeUnion = vibeKeyToUnion(base.vibe as unknown as string) as MateCardProps['vibe']
+
+    return {
+      ...base,
+      vibe: vibeUnion,
+      sports: (base.sports || []).map(labelForSport),
+      trying: (base.trying || []).map(labelForSport),
+      location: labelForCity(base.location || ''),
+      vibeLabel: labelForVibe(base.vibe as unknown as string),
+    }
+  }, [mate, profileData, labelForSport, labelForVibe, labelForCity, vibeKeyToUnion, username])
+
+  const headerName = profile?.username || profile?.name || username || ''
 
   return (
     <div className="min-h-screen">
@@ -39,11 +217,28 @@ export function MateProfilePage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <span className="text-2xl font-bold text-slate-900">{profile.name}</span>
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold text-slate-900">{headerName}</span>
+          </div>
+          <div className="ml-auto" />
         </div>
-        <div className="px-3 pt-4">
-          <MateCard {...profile} />
-        </div>
+
+        {error ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-600 shadow-sm">
+            {error}
+          </div>
+        ) : (
+          <HeroCard
+            profile={profile}
+            onEdit={() => {
+              // TODO: add follow action
+            }}
+            actionLabel="追蹤"
+            showShare={false}
+            actionDisabled={loading}
+          />
+        )}
+
         <div className="mt-4">
           <ProfileContent
             goal={{ sessionsPerWeek: '2', timeOfDay: 'Evenings', days: ['Mon', 'Wed'] }}

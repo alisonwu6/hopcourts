@@ -14,8 +14,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
 import { useSports } from '@/features/sports/hooks/useSports'
-import { useVibes } from '@/features/dictionaries/hooks'
-import { useCountries, useCities } from '@/features/dictionaries/hooks'
+import { useCountries, useCities, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { ProfileContent } from '@/features/profile/components/ProfileContent'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
@@ -508,7 +507,7 @@ export function ProfilePage() {
             <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
             <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
           </span>
-          <span className="text-sm font-semibold">載入中，請稍候…</span>
+          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中</span>
         </div>
       </div>
     )

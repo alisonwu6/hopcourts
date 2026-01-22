@@ -13,6 +13,7 @@ const withAlpha = (hex: string, alpha: number) => {
 
 export type MateCardProps = {
   name: string
+  username?: string
   flag: string
   countryKey?: string
   vibe: Vibe | null
@@ -52,8 +53,8 @@ export function MateCard({
       )}
       style={{ background: vibeColors.card }}
     >
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-white shadow-inner ring-2 ring-amber-100">
+      <div className="flex items-start gap-3">
+        <div className="h-26 w-26 mb-2 flex-shrink-0 overflow-hidden rounded-full bg-white">
           <img
             src={avatar}
             alt={`${name} avatar`}
@@ -62,7 +63,7 @@ export function MateCard({
           />
         </div>
         <div className="flex flex-1 items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-slate-900">{name}</span>
               <span className="text-sm" aria-hidden="true">
@@ -87,7 +88,7 @@ export function MateCard({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 text-[12px] font-medium text-slate-700">
+      <div className="-mt-2 flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
           <span className="uppercase tracking-wide text-slate-500">我的最愛：</span>
           <div className="mt-1 flex flex-wrap gap-2">
@@ -124,9 +125,10 @@ export function MateCard({
             ))}
           </div>
         </div>
+
         <div className="flex items-start gap-2 pt-1 text-[12px] text-slate-600">
           <span
-            className="block min-h-[32px] w-1 self-stretch rounded"
+            className="block min-h-[32px] w-[3px] rounded"
             style={{ background: vibeColors.ring }}
             aria-hidden="true"
           />

@@ -23,6 +23,13 @@ async function getProfile(userId) {
   }
 }
 
+async function getProfileByUsername(username) {
+  const user = await usersModel.getUserByUsername(username)
+  if (!user) throw Errors.notFound('User not found')
+  const sports = await userSportsModel.listUserSports(user.id)
+  return { user, sports }
+}
+
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
@@ -121,6 +128,7 @@ async function getStats(userId) {
 module.exports = {
   resolveUserId,
   getProfile,
+  getProfileByUsername,
   upsertProfile,
   getPreferences,
   upsertPreferences,

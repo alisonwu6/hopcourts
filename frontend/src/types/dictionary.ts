@@ -15,3 +15,7 @@ export type City = DictionaryItem & {
 export type Vibe = DictionaryItem
 
 export type AgeRange = DictionaryItem
+
+export type Sport = DictionaryItem & {
+  category?: string
+}

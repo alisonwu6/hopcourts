@@ -1,6 +1,7 @@
 const {
   resolveUserId,
   getProfile,
+  getProfileByUsername,
   upsertProfile,
   getPreferences,
   upsertPreferences,
@@ -8,12 +9,13 @@ const {
   getStats,
 } = require('./profile.service')
 const { ok } = require('../../lib/respond')
+const { mapUserProfile } = require('./profile.mapper')
 
 async function handleGetMeProfile(req, res, next) {
   try {
     const userId = resolveUserId(req)
     const data = await getProfile(userId)
-    return ok(res, data)
+    return ok(res, mapUserProfile(data))
   } catch (err) {
     next(err)
   }
@@ -69,8 +71,19 @@ async function handleGetStats(req, res, next) {
   }
 }
 
+async function handleGetProfileByUsername(req, res, next) {
+  try {
+    const { username } = req.params
+    const data = await getProfileByUsername(username)
+    return ok(res, mapUserProfile(data))
+  } catch (err) {
+    next(err)
+  }
+}
+
 module.exports = {
   handleGetMeProfile,
+  handleGetProfileByUsername,
   handlePutMeProfile,
   handleGetPreferences,
   handlePutPreferences,
