@@ -499,19 +499,7 @@ export function ProfilePage() {
   const isOnboardingIncomplete = isAuthenticated && !(onboardingStatus?.isComplete ?? false)
   const showOnboardingIntro =
     (isOnboardingIncomplete || profileNotFound) && isProfileLoaded && !resolvedProfile
-  if (isOnboardingIncomplete && !isProfileLoaded) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700">
-        <div className="flex items-center gap-3 rounded-full bg-white/80 px-5 py-3 shadow-[0_10px_40px_rgba(15,41,77,0.12)] ring-1 ring-slate-100">
-          <span className="relative inline-block h-4 w-4">
-            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
-            <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
-          </span>
-          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中</span>
-        </div>
-      </div>
-    )
-  }
+  if (isOnboardingIncomplete && !isProfileLoaded) return null
 
   const displayProfile = resolvedProfile
   const displayGoal = goal

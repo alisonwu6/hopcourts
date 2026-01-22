@@ -455,7 +455,7 @@ export function OnboardingPage() {
             <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
             <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
           </span>
-          <span className="text-sm font-semibold">載入中，請稍候…</span>
+          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中</span>
         </div>
       </div>
     )

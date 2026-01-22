@@ -226,7 +226,7 @@ export function HomePage() {
           <div className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
               <Sparkles className="h-4 w-4" />
-              Real-World First Sports Application
+              Real-World First Application
             </div>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
               你的運動，由你定義。

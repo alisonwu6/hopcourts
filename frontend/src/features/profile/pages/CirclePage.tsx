@@ -63,7 +63,7 @@ function PeopleContent() {
   const playmates: Array<any> = []
   const goToMate = (mate: { name: string; vibe: string; username?: string }) => {
     const handle = mate.username || mate.name
-    navigate(`/${encodeURIComponent(handle)}`, { state: { mate } })
+    navigate(`/mate/${encodeURIComponent(handle)}`, { state: { mate } })
   }
 
   return (

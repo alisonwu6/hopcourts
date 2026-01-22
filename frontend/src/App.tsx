@@ -25,7 +25,7 @@ import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 
 const RequireAuth = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuthStore()
-  if (isLoading) return <div className="p-4 text-center text-sm text-slate-600">🏃🏻‍➡️ 加速中…</div>
+  if (isLoading) return null
   if (!isAuthenticated) return <Navigate to="/login" replace />
   return children
 }
@@ -43,7 +43,7 @@ export default function App() {
             <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
             <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
           </span>
-          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中…</span>
+          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中</span>
         </div>
       </div>
     )
