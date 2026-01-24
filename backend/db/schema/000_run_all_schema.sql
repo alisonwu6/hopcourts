@@ -23,5 +23,9 @@
 \ir 090_users.sql
 \ir 100_user_sports.sql
 \ir 110_user_preferences.sql
+\ir 115_session_photos_bucket.sql
+\ir 116_fix_storage_policies.sql
+\ir 120_add_session_fields.sql
+\ir 121_add_session_price.sql
 
 \echo '==> Schema applied.'

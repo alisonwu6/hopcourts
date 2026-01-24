@@ -49,9 +49,9 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       }
 
   const handleCardClick = () => onViewDetails?.(event.id)
-  const handleCardKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
+  const handleCardKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
       onViewDetails?.(event.id)
     }
   }
@@ -108,6 +108,9 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             {skillLabel}
           </span>
           <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold tracking-wide text-blue-700">
+            {event.gender === 'female_only' ? '女' : event.gender === 'male_only' ? '男' : '混合'}
+          </span>
+          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
             {sportLabel}
           </span>
         </div>

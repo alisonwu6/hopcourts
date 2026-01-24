@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { MySessions } from '@/features/events/components/MySessions'
 import { Menu, PlusSquare, Lock } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -550,20 +551,22 @@ export function ProfilePage() {
             </Link>
           </div>
         </div>
+
         <HeroCard
           profile={resolvedProfile}
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
         />
-        <div className="mt-4 space-y-4">
-          <ProfileContent
+        <div className="mt-4 space-y-4 px-3">
+          {/* <ProfileContent
             goal={displayGoal}
             goalDaySlots={goalDaySlots}
             completion={completion}
             sessionsCompleted={sessionsCompleted}
             onOpenGoalSheet={handleOpenGoal}
             showEdit={allowGoalEdit || hasCompletedCard}
-          />
+          /> */}
+          <MySessions />
         </div>
       </div>
     </div>

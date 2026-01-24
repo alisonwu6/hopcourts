@@ -112,22 +112,9 @@ export function DiscoverEventsPage() {
       >
         <div className="mx-auto w-full max-w-4xl space-y-3 px-4 py-3">
           <div className="flex justify-center">
-            <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
-              <button
-                type="button"
-                className="flex-1 rounded-full bg-white px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm"
-                aria-current="page"
-              >
-                即將到來的活動
-              </button>
-              <button
-                type="button"
-                onClick={goToMySessions}
-                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
-              >
-                我的場次
-              </button>
-            </div>
+             <div className="flex w-full max-w-sm items-center justify-center p-1">
+               <h1 className="text-lg font-bold text-slate-900">即將到來的活動</h1>
+             </div>
           </div>
 
           <div className="flex w-full gap-3">
