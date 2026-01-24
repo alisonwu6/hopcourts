@@ -11,6 +11,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { eventsService } from '@/features/events/services/eventsService'
+import { useSports } from '@/features/dictionaries/hooks'
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
@@ -32,6 +33,7 @@ export function EventDetailPage() {
     currentUserId: state.user?.id,
   }))
   const { selectedEvent: event, fetchEventById, isLoading, joinEvent, leaveEvent } = useEventsStore()
+  const { items: sports } = useSports('zh')
 
   useEffect(() => {
     if (id) {
@@ -96,6 +98,8 @@ export function EventDetailPage() {
   const genderLabel = 
     event.gender === 'female_only' ? '女性專屬' :
     event.gender === 'male_only' ? '男性專屬' : '性別混合'
+  
+  const sportLabel = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
 
   // Photos: using heroImage as main, maybe carousel later?
   // Current UI only shows one hero image.
@@ -159,7 +163,7 @@ export function EventDetailPage() {
 
             <div className="mt-6 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-                {event.sport}
+                {sportLabel}
               </span>
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
                 {skillLabel}

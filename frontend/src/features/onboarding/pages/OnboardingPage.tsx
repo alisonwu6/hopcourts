@@ -4,7 +4,8 @@ import clsx from 'clsx'
 import { ChevronLeft, ChevronRight, Lock, IdCard } from 'lucide-react'
 import { MateCard } from '@/features/mates/components/MateCard'
 import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
-import { useSports } from '@/features/sports/hooks/useSports'
+import { useSports } from '@/features/dictionaries/hooks'
+import { useOnboardingStore } from '@/stores/onboarding.store'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
@@ -78,7 +79,7 @@ export function OnboardingPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [prefilled, setPrefilled] = useState(false)
   const [initialized, setInitialized] = useState(true)
-  const { sports: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('zh')
   const { items: countries } = useCountries('zh')
   const { items: cities } = useCities(country, 'zh')
   const { items: vibes } = useVibes('zh')

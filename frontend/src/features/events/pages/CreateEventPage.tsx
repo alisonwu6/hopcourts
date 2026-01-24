@@ -16,7 +16,8 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
-import { useSports } from '@/features/sports/hooks/useSports'
+import { useSports } from '@/features/dictionaries/hooks'
+import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { MapPicker, type LatLng } from '@/components/map/MapPicker'
 import { httpPost } from '@/api/http'
 import { uploadService } from '@/features/events/services/uploadService'
@@ -79,7 +80,7 @@ export default function CreateEventPage() {
   const editId = searchParams.get('id')
   
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const { sports: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('zh')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)

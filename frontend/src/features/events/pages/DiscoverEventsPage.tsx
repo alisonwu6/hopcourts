@@ -21,7 +21,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { useSports } from '@/features/sports/hooks/useSports'
+import { useSports } from '@/features/dictionaries/hooks'
 import { useAuthStore } from '@/hooks'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
@@ -40,7 +40,7 @@ export function DiscoverEventsPage() {
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
-  const { sports: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
+  const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const goToMySessions = () => navigate('/my-events')

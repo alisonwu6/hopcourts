@@ -14,7 +14,7 @@ import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
-import { useSports } from '@/features/sports/hooks/useSports'
+import { useSports } from '@/features/dictionaries/hooks'
 import { useCountries, useCities, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { ProfileContent } from '@/features/profile/components/ProfileContent'
@@ -103,7 +103,7 @@ export function ProfilePage() {
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const { sports: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('zh')
   const { items: vibesCatalog } = useVibes('zh')
   const { items: countriesCatalog } = useCountries('zh')
   const { items: citiesCatalog } = useCities(undefined, 'zh')

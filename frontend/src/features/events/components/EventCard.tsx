@@ -10,6 +10,7 @@ import {
   UserRoundPlus,
 } from 'lucide-react'
 import { PlayerEvent } from '@/types'
+import { useSports } from '@/features/dictionaries/hooks'
 
 const ACCENT = {
   primary: '#2563EB',
@@ -31,7 +32,8 @@ function getFlagEmoji(countryCode: string) {
 }
 
 export function EventCard({ event, onViewDetails }: EventCardProps) {
-  const sportLabel = formatSportName(event.sport)
+  const { items: sports } = useSports('zh')
+  const sportLabel = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
   const locationLabel = event.location.name && event.location.name !== event.location.address 
