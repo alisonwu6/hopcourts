@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import clsx from 'clsx'
-import { MapPin } from 'lucide-react'
+import { MapPin, Sparkles, ArrowRight } from 'lucide-react'
 import { IntroSheet } from '@/components/IntroSheet'
 import { BottomSheet } from '@/components/BottomSheet'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
@@ -18,7 +17,7 @@ const mates: MateCardProps[] = [
     sports: ['慢跑', '瑜珈', '伸展'],
     trying: ['太極', '徒步登山'],
     location: '台北 · 松山',
-    blurb: '運動不是拼命，是讓心跟身體慢慢對齊。🧘‍♂️',
+    blurb: '運動不是拼命，是讓心跟身體慢慢對齊。',
     avatar:
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-sky-50 via-white to-white',
@@ -30,7 +29,7 @@ const mates: MateCardProps[] = [
     sports: ['羽球', '瑜珈', '健身房團課'],
     trying: ['皮拉提斯', '攀岩'],
     location: '台北 · 中山',
-    blurb: '我運動是為了遇到夥伴，累了也有人一起笑。🤝',
+    blurb: '我運動是為了遇到夥伴，累了也有人一起笑。',
     avatar:
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-amber-50 via-white to-white',
@@ -42,7 +41,7 @@ const mates: MateCardProps[] = [
     sports: ['健身房', '跑步機', '瑜珈'],
     trying: ['皮拉提斯', '間歇跑'],
     location: '台北 · 南港',
-    blurb: '每天動一點，不知不覺就變成自己的節奏。👣',
+    blurb: '每天動一點，不知不覺就變成自己的節奏。',
     avatar:
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-pink-50 via-white to-white',
@@ -54,7 +53,7 @@ const mates: MateCardProps[] = [
     sports: ['登山', '騎車', '路跑'],
     trying: ['溯溪', '攀岩', 'SUP'],
     location: '台北 · 士林',
-    blurb: '我就是喜歡說走就走的那種快感。✨',
+    blurb: '我就是喜歡說走就走的那種快感。',
     avatar:
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-cyan-50 via-white to-white',
@@ -66,7 +65,7 @@ const mates: MateCardProps[] = [
     sports: ['羽球', '網球', '核心訓練'],
     trying: ['鐵人三項', '壁球'],
     location: '台北 · 文山',
-    blurb: '我喜歡學新動作的瞬間——那是我真的在進步。⚙️',
+    blurb: '我喜歡學新動作的瞬間——那是我真的在進步。',
     avatar:
       'https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-purple-50 via-white to-white',
@@ -78,7 +77,7 @@ const mates: MateCardProps[] = [
     sports: ['慢跑', '健走', '輕鬆羽球'],
     trying: ['游泳', '攀岩'],
     location: '台北 · 內湖',
-    blurb: '我喜歡陪朋友一起動，就算慢一點也沒關係。💛',
+    blurb: '我喜歡陪朋友一起動，就算慢一點也沒關係。',
     avatar:
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-lime-50 via-white to-white',
@@ -90,7 +89,7 @@ const mates: MateCardProps[] = [
     sports: ['健身房', '跑步機', '瑜珈'],
     trying: ['皮拉提斯', '間歇跑'],
     location: '台北 · 南港',
-    blurb: '每天動一點，不知不覺就變成自己的節奏。👣',
+    blurb: '每天動一點，不知不覺就變成自己的節奏。',
     avatar:
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=320&q=80',
     accentClassName: 'bg-gradient-to-br from-pink-50 via-white to-white',
@@ -98,7 +97,7 @@ const mates: MateCardProps[] = [
 ]
 
 export function HomePage() {
-  const city = '台北'
+  const city = '大台北'
   const [showIntroSheet, setShowIntroSheet] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const listRef = useRef<HTMLDivElement | null>(null)
@@ -107,7 +106,6 @@ export function HomePage() {
     isAuthenticated: state.isAuthenticated,
     onboardingStatus: state.onboardingStatus,
   }))
-  const showRecommendations = isAuthenticated && (onboardingStatus?.isComplete ?? false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -150,7 +148,7 @@ export function HomePage() {
     setActiveIndex(idx)
   }
 
-  const handleDraftClick = () => {
+  const handleIdentityClick = () => {
     if (!isAuthenticated) {
       setShowLoginPrompt(true)
       return
@@ -195,7 +193,7 @@ export function HomePage() {
   }, [activeIndex])
 
   return (
-    <div className="relative min-h-screen bg-white pb-24">
+    <div className="relative min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pt-4">
         <section className="-mb-2 space-y-4">
@@ -225,14 +223,29 @@ export function HomePage() {
         </section>
 
         <div className="">
+          <div className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6">
+            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <Sparkles className="h-4 w-4" />
+              Real-World First Application
+            </div>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
+              你的運動，由你定義。
+              <br />
+              你的世界，等你探索。
+            </h1>
+            <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
+              透過建立友好的連結。找到步調相近的人。 <br />
+              把運動變成日常裡最爽快的約定。
+            </p>
+          </div>
           <header className="flex flex-col gap-1.5 pb-4 pt-4 text-center">
             <h1 className="text-[26px] font-bold leading-tight tracking-tight text-slate-900">
               找到你的運動樣子
             </h1>
-            <p className="text-sm text-slate-600">從這裡開始，看看附近的氛圍與夥伴。</p>
+            <p className="text-sm text-slate-600">從這裡開始，找到志趣相投的運動夥伴。</p>
           </header>
 
-          <section className="pb-12">
+          {/* <section className="pb-12">
             <div
               ref={listRef}
               className="flex snap-x snap-mandatory gap-4 overflow-x-auto [-ms-overflow-style:'none'] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -255,19 +268,21 @@ export function HomePage() {
                 />
               ))}
             </div>
-          </section>
+          </section> */}
 
-          <section className="space-y-3 rounded-2xl border border-slate-100 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
-            <h2 className="text-lg font-semibold text-slate-900">建立你的運動身份</h2>
-            <p className="text-sm text-slate-600">分享你的氛圍與喜好的運動，找到步調相近的夥伴。</p>
-            <button
-              type="button"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition"
-              style={{ background: 'var(--gradient-secondary)' }}
-              onClick={handleDraftClick}
-            >
-              建立你的運動卡
-            </button>
+          <section className="space-y-3 rounded-2xl p-6 text-center">
+            {/* <h2 className="text-lg font-semibold text-slate-900">建立你的運動身份卡</h2>
+            <p className="text-sm text-slate-600">分享你的氛圍與喜好的運動，找到步調相近的夥伴。</p> */}
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                className="flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+                type="button"
+                onClick={handleIdentityClick}
+              >
+                加入 SportsMatch
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </button>
+            </div>
           </section>
         </div>
       </div>
@@ -275,7 +290,7 @@ export function HomePage() {
       <IntroSheet
         open={showIntroSheet}
         onClose={handleCloseIntro}
-        description={'SportsMatch 幫你找到步調相近的夥伴，不只是活動。'}
+        description={'SportsMatch 讓你用運動身份找到步調相近的人，不只是報名活動。'}
         dismissLabel={null}
       />
 
@@ -297,8 +312,8 @@ export function HomePage() {
             ×
           </button>
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-slate-900">登入建立你的運動身份</h2>
-            <p className="text-sm text-slate-600">一起會探索城市裡的運動氛圍，找到步調相近的夥伴</p>
+            <h2 className="text-2xl font-bold text-slate-900">先登入，建立你的運動身份</h2>
+            <p className="text-sm text-slate-600">建立完運動卡後，開場活動認識新朋友吧</p>
           </div>
 
           <div className="space-y-3">

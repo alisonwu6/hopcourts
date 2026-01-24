@@ -9,6 +9,15 @@ async function getUserById(id) {
   return rows[0] || null
 }
 
+async function getUserByUsername(username) {
+  const { rows } = await query(
+    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, vibe_key, bio, avatar_url, created_at, updated_at
+     from public.users where username = $1`,
+    [username]
+  )
+  return rows[0] || null
+}
+
 async function upsertUser(user) {
   const sql = `
     insert into public.users (
@@ -44,4 +53,4 @@ async function upsertUser(user) {
   return rows[0]
 }
 
-module.exports = { getUserById, upsertUser }
+module.exports = { getUserById, getUserByUsername, upsertUser }

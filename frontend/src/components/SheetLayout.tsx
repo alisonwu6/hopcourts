@@ -14,7 +14,8 @@ type ButtonConfig = {
   label: string
   onClick: () => void
   disabled?: boolean
-  variant?: 'primary' | 'ghost' | 'dark'
+  variant?: 'primary' | 'ghost' | 'dark' | 'danger'
+  isLoading?: boolean
 }
 
 type SheetLayoutProps = {
@@ -55,15 +56,17 @@ export function SheetLayout({
         ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
         : btn.variant === 'dark'
           ? 'bg-slate-900 text-white hover:bg-slate-800'
-          : 'bg-blue-600 text-white hover:bg-blue-500'
+          : btn.variant === 'danger'
+            ? 'bg-red-600 text-white hover:bg-red-500'
+            : 'bg-blue-600 text-white hover:bg-blue-500'
     return (
       <button
         type="button"
         onClick={btn.onClick}
-        disabled={btn.disabled}
-        className={clsx(base, styles, { 'w-full': fullWidth })}
+        disabled={btn.disabled || btn.isLoading}
+        className={clsx(base, styles, { 'w-full': fullWidth, 'opacity-70 cursor-not-allowed': btn.isLoading })}
       >
-        {btn.label}
+        {btn.isLoading ? '請稍候...' : btn.label}
       </button>
     )
   }

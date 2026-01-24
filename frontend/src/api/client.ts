@@ -21,10 +21,20 @@ export const api = {
   },
   dictionaries: {
     meta: () =>
-      httpGet<ApiResponse<{ sports: any; vibes: any; countries: any; age_ranges: any }>>(
-        '/meta/dictionaries',
-        { auth: false }
-      ),
+      httpGet<
+        ApiResponse<{
+          sports?: any
+          vibes?: any
+          countries?: any
+          age_ranges?: any
+          cities?: any
+        }>
+      >('/meta/dictionaries', { auth: false }),
+    sports: (lang: 'zh' | 'en' = 'zh') =>
+      httpGet<ApiResponse<{ items: any[] }>>('/sports', {
+        auth: false,
+        params: { lang },
+      }),
     countries: (lang: 'zh' | 'en' = 'zh') =>
       httpGet<ApiResponse<{ items: Country[] }>>('/countries', {
         auth: false,
@@ -73,5 +83,9 @@ export const api = {
     },
     onboarding: () => httpGet<ApiResponse<any>>('/me/onboarding'),
     stats: () => httpGet<ApiResponse<any>>('/me/stats'),
+  },
+  profiles: {
+    getByUsername: (username: string) =>
+      httpGet<ApiResponse<any>>(`/profiles/${encodeURIComponent(username)}`, { auth: false }),
   },
 }

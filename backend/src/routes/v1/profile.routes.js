@@ -6,6 +6,7 @@ const {
   handlePutPreferences,
   handleGetOnboarding,
   handleGetStats,
+  handleGetProfileByUsername,
 } = require('../../modules/profile/profile.controller')
 
 const router = express.Router()
@@ -18,5 +19,6 @@ router.put('/me/preferences', handlePutPreferences)
 router.patch('/me/preferences', handlePutPreferences)
 router.get('/me/onboarding', handleGetOnboarding)
 router.get('/me/stats', handleGetStats)
+router.get('/profiles/:username', handleGetProfileByUsername)
 
 module.exports = { profileRouter: router }

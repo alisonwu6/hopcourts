@@ -2,6 +2,7 @@ const { Errors } = require('../../lib/errors')
 const sessionsModel = require('../../../models/sessions.model')
 const participantsModel = require('../../../models/participants.model')
 const checkinsModel = require('../../../models/checkins.model')
+const usersModel = require('../../../models/users.model')
 const { createSession: createSessionModel } = require('../../../models/sessions.model')
 
 function parseNumber(value, fallback) {
@@ -46,6 +47,28 @@ async function listSessions(params = {}) {
   }
 }
 
+async function listMySessions({ userId, type = 'upcoming', limit, offset }) {
+  try {
+    let sessions = []
+    if (type === 'history') {
+      sessions = await sessionsModel.listMyHistorySessions({ userId, limit, offset })
+    } else {
+      sessions = await sessionsModel.listMyUpcomingSessions({ userId, limit, offset })
+    }
+    
+    return {
+      items: sessions,
+      page: {
+        limit,
+        offset,
+        has_more: sessions.length === limit,
+      },
+    }
+  } catch (err) {
+    throw Errors.internal('Failed to list my sessions', { message: err.message })
+  }
+}
+
 async function getSessionById(sessionId) {
   try {
     return await sessionsModel.getSessionById(sessionId)
@@ -60,9 +83,24 @@ async function getSessionDetail(sessionId, userId) {
     throw Errors.notFound('Session not found')
   }
 
-  const meta = await buildSessionMeta({ sessionId, session, userId })
+  const [meta, host, participants] = await Promise.all([
+    buildSessionMeta({ sessionId, session, userId }),
+    usersModel.getUserById(session.host_user_id),
+    participantsModel.listParticipantsWithDetails(sessionId)
+  ])
 
-  return { session, meta }
+  return { 
+    session, 
+    meta, 
+    host: host ? {
+      id: host.id,
+      display_name: host.display_name,
+      username: host.username,
+      avatar_url: host.avatar_url,
+      bio: host.bio
+    } : null, 
+    participants 
+  }
 }
 
 async function buildSessionMeta({ sessionId, session, userId } = {}) {
@@ -132,6 +170,19 @@ async function createSession(input) {
   if (!input.startAt) throw Errors.validation('starts_at is required')
   if (!input.placeName) throw Errors.validation('place_name is required')
 
+  const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
+  const allowedGender = ['mixed', 'female_only', 'male_only']
+
+  if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
+    throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })
+  }
+  if (input.gender && !allowedGender.includes(input.gender)) {
+    throw Errors.validation('invalid gender', { gender: input.gender })
+  }
+  if (input.photos && (!Array.isArray(input.photos) || input.photos.length > 3)) {
+    throw Errors.validation('photos must be an array with at most 3 items')
+  }
+
   const payload = {
     hostUserId: input.userId,
     sportKey: input.sportKey,
@@ -150,9 +201,81 @@ async function createSession(input) {
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',
     visibility: input.visibility ?? 'public',
+    skillLevel: input.skillLevel ?? 'any',
+    gender: input.gender ?? 'mixed',
+    photos: input.photos ?? null,
+    isFree: input.isFree ?? true,
+    price: input.price ?? null,
   }
 
-  return createSessionModel(payload)
+  const session = await createSessionModel(payload)
+  
+  // Auto-join the creator
+  if (session && session.id) {
+    await participantsModel.joinSession({ sessionId: session.id, userId: input.userId })
+  }
+
+  return session
+}
+
+async function updateSession(sessionId, input) {
+  if (!input.userId) throw Errors.unauthenticated('User id is required')
+  
+  const existing = await getSessionById(sessionId)
+  if (!existing) throw Errors.notFound('Session not found')
+  if (existing.host_user_id !== input.userId) {
+    throw Errors.forbidden('Only host can update session')
+  }
+
+  const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
+  const allowedGender = ['mixed', 'female_only', 'male_only']
+
+  if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
+    throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })
+  }
+  if (input.gender && !allowedGender.includes(input.gender)) {
+    throw Errors.validation('invalid gender', { gender: input.gender })
+  }
+  if (input.photos && (!Array.isArray(input.photos) || input.photos.length > 3)) {
+    throw Errors.validation('photos must be an array with at most 3 items')
+  }
+
+  const patch = {
+    title: input.title,
+    notes: input.notes,
+    startAt: input.startAt ? new Date(input.startAt) : undefined,
+    endAt: input.endAt ? new Date(input.endAt) : undefined,
+    locationName: input.placeName,
+    address: input.address,
+    lat: input.lat,
+    lng: input.lng,
+    checkinRadiusM: input.checkinRadiusM,
+    checkinOpenMinsBefore: input.checkinOpenMinsBefore,
+    checkinCloseMinsAfter: input.checkinCloseMinsAfter,
+    minPeople: input.minPeople,
+    maxPeople: input.maxPeople ?? input.capacity,
+    status: input.status,
+    visibility: input.visibility,
+    skillLevel: input.skillLevel,
+    gender: input.gender,
+    photos: input.photos,
+    isFree: input.isFree,
+    price: input.price,
+  }
+
+  return sessionsModel.updateSession(sessionId, patch)
+}
+
+async function deleteSession(sessionId, userId) {
+  if (!userId) throw Errors.unauthenticated('User id is required')
+
+  const existing = await getSessionById(sessionId)
+  if (!existing) throw Errors.notFound('Session not found')
+  if (existing.host_user_id !== userId) {
+    throw Errors.forbidden('Only host can delete session')
+  }
+
+  return sessionsModel.deleteSession(sessionId)
 }
 
 module.exports = {
@@ -160,7 +283,10 @@ module.exports = {
   getSessionById,
   getSessionDetail,
   buildListParams,
+  listMySessions,
   joinSession,
   leaveSession,
   createSession,
+  updateSession,
+  deleteSession,
 }

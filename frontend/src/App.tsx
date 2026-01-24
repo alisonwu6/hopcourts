@@ -21,10 +21,11 @@ import { AboutPage } from '@/features/profile/pages/AboutPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { HomePage } from '@/features/home/pages/HomePage'
+import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 
 const RequireAuth = ({ children }: { children: JSX.Element }) => {
   const { isAuthenticated, isLoading } = useAuthStore()
-  if (isLoading) return <div className="p-4 text-center text-sm text-slate-600">載入中…</div>
+  if (isLoading) return null
   if (!isAuthenticated) return <Navigate to="/login" replace />
   return children
 }
@@ -32,6 +33,21 @@ const RequireAuth = ({ children }: { children: JSX.Element }) => {
 export default function App() {
   const { isAuthenticated, onboardingStatus } = useAuthStore()
   const isOnboardingComplete = onboardingStatus?.isComplete ?? false
+  const { isLoading } = useAuthStore()
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700">
+        <div className="flex items-center gap-3 rounded-full bg-white/80 px-5 py-3 shadow-[0_10px_40px_rgba(15,41,77,0.12)] ring-1 ring-slate-100">
+          <span className="relative inline-block h-4 w-4">
+            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
+            <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
+          </span>
+          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Routes>
@@ -90,6 +106,14 @@ export default function App() {
         element={
           <AppChrome showActions={false} showHeader={false} showNav={false}>
             <AboutPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/mate/:username"
+        element={
+          <AppChrome showHeader={false}>
+            <MateProfilePage />
           </AppChrome>
         }
       />
@@ -163,6 +187,14 @@ function AuthenticatedApp() {
         element={
           <AppChrome>
             <EventDetailPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/mate/:username"
+        element={
+          <AppChrome showHeader={false}>
+            <MateProfilePage />
           </AppChrome>
         }
       />

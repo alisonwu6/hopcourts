@@ -4,7 +4,8 @@ import clsx from 'clsx'
 import { ChevronLeft, ChevronRight, Lock, IdCard } from 'lucide-react'
 import { MateCard } from '@/features/mates/components/MateCard'
 import { vibeTokens, type Vibe, vibeList } from '@/constants/vibeTokens'
-import { useSports } from '@/features/sports/hooks/useSports'
+import { useSports } from '@/features/dictionaries/hooks'
+import { useOnboardingStore } from '@/stores/onboarding.store'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
@@ -78,7 +79,7 @@ export function OnboardingPage() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [prefilled, setPrefilled] = useState(false)
   const [initialized, setInitialized] = useState(true)
-  const { sports: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('zh')
   const { items: countries } = useCountries('zh')
   const { items: cities } = useCities(country, 'zh')
   const { items: vibes } = useVibes('zh')
@@ -385,12 +386,27 @@ export function OnboardingPage() {
       if (prefilled) return
       setLoadingProfile(true)
       try {
-        const [profileRes, prefsRes] = await Promise.all([
-          onboardingService.getProfile(),
-          onboardingService.getPreferences(),
-        ])
+        const prefsPromise = onboardingService.getPreferences()
+        let profilePayload: any = null
 
-        const profilePayload: any = (profileRes as any)?.data ?? profileRes
+        // 只有在推斷已建立過 profile 時才去讀取
+        const maybeHasProfile =
+          Boolean(onboardingStatus?.isComplete) || Boolean(user?.id && user?.username)
+        if (maybeHasProfile) {
+          try {
+            const profileRes = await onboardingService.getProfile()
+            profilePayload = (profileRes as any)?.data ?? profileRes ?? null
+          } catch (err: any) {
+            if ((err as any)?.status === 404 || (err as any)?.response?.status === 404) {
+              profilePayload = null
+            } else {
+              throw err
+            }
+          }
+        }
+
+        const prefsRes = await prefsPromise
+
         if (profilePayload) {
           const user = profilePayload.user ?? profilePayload
           const sportsRows = profilePayload.sports || []
@@ -423,6 +439,7 @@ export function OnboardingPage() {
         setPrefilled(true)
       } catch (err) {
         // ignore prefill errors, keep defaults
+        setPrefilled(true)
       } finally {
         setLoadingProfile(false)
       }
@@ -431,11 +448,22 @@ export function OnboardingPage() {
     prefill()
   }, [prefilled, keyToVibeSafe])
 
+  if (loadingProfile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700">
+        <div className="flex items-center gap-3 rounded-full bg-white/80 px-5 py-3 shadow-[0_10px_40px_rgba(15,41,77,0.12)] ring-1 ring-slate-100">
+          <span className="relative inline-block h-4 w-4">
+            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
+            <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
+          </span>
+          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div>
-      {loadingProfile && (
-        <div className="bg-blue-50 px-4 py-3 text-sm text-blue-700">正在載入你的資料...</div>
-      )}
       {saveError && <div className="bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</div>}
       <ActionToolbar
         onBack={() => navigate(-1)}

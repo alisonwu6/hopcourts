@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { dictionaryService } from './dict.service'
-import type { Country, City, Vibe, AgeRange } from '@/types/dictionary'
+import type { Country, City, Vibe, AgeRange, Sport } from '@/types/dictionary'
 
 type Status<T> = {
   items: T[]
@@ -45,7 +45,8 @@ const getVersionCache = () => {
 
 const setVersionCache = (meta: DictionaryMeta) => {
   try {
-    localStorage.setItem(VERSION_KEY, JSON.stringify(meta))
+    const current = getVersionCache()
+    localStorage.setItem(VERSION_KEY, JSON.stringify({ ...current, ...meta }))
   } catch {
     // ignore
   }
@@ -78,6 +79,9 @@ const useDictionary = <T>(
 
       try {
         const meta = await dictionaryService.meta()
+        if (meta) {
+          setVersionCache(meta as DictionaryMeta)
+        }
         const remoteVersion = meta?.[type]?.version
         const localVersion = versionMap[type]?.version
 
@@ -134,4 +138,8 @@ export function useAgeRanges(lang: 'zh' | 'en' = 'zh') {
   return useDictionary<AgeRange>('age_ranges', lang, () => dictionaryService.listAgeRanges(lang), [
     lang,
   ])
+}
+
+export function useSports(lang: 'zh' | 'en' = 'zh') {
+  return useDictionary<Sport>('sports', lang, () => dictionaryService.listSports(lang), [lang])
 }

@@ -21,7 +21,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { useSports } from '@/features/sports/hooks/useSports'
+import { useSports } from '@/features/dictionaries/hooks'
 import { useAuthStore } from '@/hooks'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
@@ -40,7 +40,7 @@ export function DiscoverEventsPage() {
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
-  const { sports: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
+  const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const goToMySessions = () => navigate('/my-events')
@@ -112,22 +112,9 @@ export function DiscoverEventsPage() {
       >
         <div className="mx-auto w-full max-w-4xl space-y-3 px-4 py-3">
           <div className="flex justify-center">
-            <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100 p-1">
-              <button
-                type="button"
-                className="flex-1 rounded-full bg-white px-4 py-2 text-center text-sm font-semibold text-blue-600 shadow-sm"
-                aria-current="page"
-              >
-                即將到來的活動
-              </button>
-              <button
-                type="button"
-                onClick={goToMySessions}
-                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
-              >
-                我的場次
-              </button>
-            </div>
+             <div className="flex w-full max-w-sm items-center justify-center p-1">
+               <h1 className="text-lg font-bold text-slate-900">即將到來的活動</h1>
+             </div>
           </div>
 
           <div className="flex w-full gap-3">
@@ -165,7 +152,7 @@ export function DiscoverEventsPage() {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[200px]">
+      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[130px]">
         {error && (
           <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}

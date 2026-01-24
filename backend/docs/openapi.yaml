@@ -517,6 +517,15 @@ components:
         visibility:
           type: string
           enum: [public, unlisted]
+        skill_level:
+          type: string
+          enum: [any, beginner, intermediate, advanced]
+        gender:
+          type: string
+          enum: [mixed, female_only, male_only]
+        photos:
+          type: array
+          items: { type: string, description: "URL" }
     SessionMeta:
       type: object
       properties:

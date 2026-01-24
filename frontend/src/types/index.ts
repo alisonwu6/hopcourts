@@ -136,7 +136,7 @@ export interface VenueFilter {
 // PLAYER-FACING ENTITIES
 // ============================================================================
 
-type SkillLevelDTO = 'all' | 'beginner' | 'intermediate' | 'advanced'
+type SkillLevelDTO = 'all' | 'any' | 'beginner' | 'intermediate' | 'advanced' | 'mixed'
 type PriceTypeDTO = 'free' | 'pay_on_site' | 'fixed'
 type EventStatusDTO = 'draft' | 'published' | 'cancelled' | 'completed'
 
@@ -244,13 +244,17 @@ export interface PlayerEvent {
   sport: string
   heroImageUrl?: string
   vibeIcon: string
-  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed'
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed' | 'any'
+  gender?: 'mixed' | 'female_only' | 'male_only'
+  photos?: string[]
   startTime: Date | string
   endTime: Date | string
   location: {
     name: string
     address: string
     city: string
+    lat?: number
+    lng?: number
   }
   host: {
     id: string
@@ -259,6 +263,10 @@ export interface PlayerEvent {
     rating?: number
     distanceKm?: number
     level?: string
+    username?: string
+    cityKey?: string
+    cityName?: string
+    countryKey?: string
   }
   highFives: number
   joined: boolean
@@ -269,8 +277,11 @@ export interface PlayerEvent {
   price?: number
   priceRange?: string
   description?: string
-  participants: Array<{ id: string; name: string; avatarUrl?: string }>
+  participants: Array<{ id: string; name: string; avatarUrl?: string; username?: string }>
+  status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date
+  visibility?: 'public' | 'private'
+  updatedAt?: string | Date
   detail?: {
     description?: string
     lookingFor?: {
@@ -329,6 +340,8 @@ export interface EventApi {
   currency?: string | null
   status?: string | null
   cancel_reason?: string | null
+  gender?: string | null
+  photos?: string[] | null
   hero_image_url?: string | null
   host_name?: string | null
   host_avatar?: string | null
@@ -360,7 +373,7 @@ export interface CreateEventInput {
   title: string
   description?: string
   sport: string
-  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed'
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed' | 'any'
   startTime: Date
   duration: number
   maxAttendees: number
@@ -383,4 +396,5 @@ export interface CreateEventInput {
   recurringPattern?: RecurringPatternInput
   tags?: string[]
   difficulty?: 1 | 2 | 3 | 4 | 5
+  gender?: 'mixed' | 'female_only' | 'male_only'
 }
