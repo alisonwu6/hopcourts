@@ -279,8 +279,8 @@ export default function CreateEventPage() {
     }
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>, status: 'draft' | 'published') => {
-    event.preventDefault()
+  const handleSubmit = async (event?: FormEvent<HTMLFormElement>, status: 'draft' | 'published' = 'published') => {
+    event?.preventDefault?.()
     if (isSubmitting) return
     
     if (!form.title.trim()) {
@@ -615,8 +615,8 @@ export default function CreateEventPage() {
         <ActionBar
           canSubmit={canSubmit}
           isSubmitting={isSubmitting}
-          onDraft={() => handleSubmit(undefined as any, 'draft')}
-          onPublish={() => handleSubmit(undefined as any, 'published')}
+          onDraft={() => handleSubmit(undefined, 'draft')}
+          onPublish={() => handleSubmit(undefined, 'published')}
         />
       </div>
       <LoginPromptSheet
