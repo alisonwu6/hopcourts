@@ -67,6 +67,7 @@ export function ActionToolbar({
         </div>
 
         <div className="flex items-center gap-3">
+          {rightContent}
           {showShare && onShare && (
             <button
               type="button"
@@ -92,7 +93,6 @@ export function ActionToolbar({
               />
             </button>
           )}
-          {rightContent ? rightContent : <span className="h-10 w-10" aria-hidden="true" />}
         </div>
       </div>
     </div>

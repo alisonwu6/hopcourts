@@ -5,9 +5,6 @@ import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
 import { BottomSheet } from '@/components/BottomSheet'
 import { LoginPanel } from '@/components/LoginPanel'
-import { Trash2 } from 'lucide-react'
-import { eventsService } from '@/features/events/services/eventsService'
-import { SheetLayout } from '@/components/SheetLayout'
 
 type TabKey = 'upcoming' | 'history'
 
@@ -19,10 +16,6 @@ function groupByDate(events: PlayerEvent[]) {
   })
   const map = new Map<string, PlayerEvent[]>()
   events.forEach((event) => {
-    // For drafts or invalid dates, group under 'Drafts' or similar?
-    // Or just filter them out if invalid.
-    // If status is draft, maybe we want a special label.
-    // But for now, let's just group by startTime or updated_at if no startTime.
     const date = event.startTime ? new Date(event.startTime) : new Date(event.updatedAt || Date.now())
     const label = formatter.format(date)
     map.set(label, [...(map.get(label) ?? []), event])
@@ -30,15 +23,14 @@ function groupByDate(events: PlayerEvent[]) {
   return Array.from(map.entries())
 }
 
-const sportIcons: Record<string, string> = {
-  running: '🏃',
-  basketball: '🏀',
-  climbing: '🧗',
-  tennis: '🎾',
-  bouldering: '🧗',
-}
-
 function resolveSportIcon(sport: string) {
+  const sportIcons: Record<string, string> = {
+    running: '🏃',
+    basketball: '🏀',
+    climbing: '🧗',
+    tennis: '🎾',
+    bouldering: '🧗',
+  }
   return sportIcons[sport.toLowerCase()] ?? '⚽'
 }
 
@@ -54,8 +46,6 @@ export function MySessions() {
     currentUserId: state.user?.id,
   }))
   const [showLoginSheet, setShowLoginSheet] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -64,8 +54,6 @@ export function MySessions() {
   }, [fetchMyEvents, isAuthenticated])
 
   const upcomingEvents = useMemo(() => events.filter((event) => {
-    // If it's a draft, check updatedAt or startTime? 
-    // Usually, if it's upcoming, it's either published & in future, or a draft we are working on for future.
     return new Date(event.endTime) >= new Date()
   }), [events])
 
@@ -140,59 +128,20 @@ export function MySessions() {
           <EventGroupList
             groups={groupByDate(upcomingEvents)}
             currentUserId={currentUserId}
-            onDelete={setDeletingId}
             emptyState={
-              <EmptyState icon="📭" title="目前沒有場次" description="去看看其他活動並加入吧" />
+               <EmptyState icon="📭" title="目前沒有場次" description="去看看其他活動並加入吧" />
             }
           />
         ) : (
           <EventGroupList
             groups={groupByDate(historyEvents)}
             currentUserId={currentUserId}
-            onDelete={setDeletingId}
             emptyState={
               <EmptyState icon="📜" title="尚無歷史紀錄" description="完成的活動和草稿會顯示在這裡" />
             }
           />
         )}
       </div>
-
-      <BottomSheet
-        open={!!deletingId}
-        onClose={() => setDeletingId(null)}
-      >
-        <SheetLayout
-          onClose={() => setDeletingId(null)}
-          title="確定要刪除活動嗎？"
-          subtitle="一旦刪除，活動資訊將無法恢復。"
-          primaryButton={{
-            label: isDeleting ? '刪除中...' : '確定刪除',
-            onClick: async () => {
-              if (!deletingId) return
-              setIsDeleting(true)
-              try {
-                const res = await eventsService.deleteEvent(deletingId)
-                if (res.success) {
-                  await fetchMyEvents()
-                  setDeletingId(null)
-                }
-              } catch (err) {
-                console.error('Delete failed', err)
-              } finally {
-                setIsDeleting(false)
-              }
-            },
-            variant: 'danger',
-            isLoading: isDeleting
-          }}
-          secondaryButton={{
-            label: '取消',
-            onClick: () => setDeletingId(null),
-          }}
-        >
-          <div className="py-2 text-slate-500 text-sm">此操作無法復原。</div>
-        </SheetLayout>
-      </BottomSheet>
     </div>
   )
 }
@@ -201,12 +150,10 @@ function EventGroupList({
   groups,
   emptyState,
   currentUserId,
-  onDelete,
 }: {
   groups: Array<[string, PlayerEvent[]]>
   emptyState: React.ReactNode
   currentUserId?: string
-  onDelete: (id: string) => void
 }) {
   const navigate = useNavigate()
 
@@ -236,7 +183,7 @@ function EventGroupList({
                       navigate(`/event/${event.id}`)
                     }
                   }}
-                  className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md hover:border-blue-300 pr-12"
+                  className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md hover:border-blue-300"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
@@ -250,16 +197,22 @@ function EventGroupList({
                       </h4>
                       <div className="mt-1 flex flex-col gap-1 text-xs text-slate-500">
                         <span>
-                          {new Date(event.startTime).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} {' '}
+                          {new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}-
+                          {new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}
                         </span>
-                        <span className="truncate">📍 {event.location.name}</span>
+                        <span className="truncate">
+                          📍 {event.location.name && event.location.name !== event.location.address 
+                              ? `${event.location.name} (${event.location.address})` 
+                              : (event.location.name || event.location.address)}
+                        </span>
                       </div>
                       <div className="mt-3 flex items-center gap-2">
                         <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
                           {event.attendeeCount}/{event.maxAttendees} 人
+                        </span>
+                        <span className="text-xs text-slate-500 font-medium">
+                          剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
                         </span>
                       </div>
                     </div>
@@ -268,19 +221,6 @@ function EventGroupList({
                     </div>
                   </div>
                 </button>
-                {currentUserId === event.host?.id && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onDelete(event.id)
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center rounded-full text-red-500 hover:bg-red-50 transition"
-                    aria-label="Delete event"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
             ))}
           </div>

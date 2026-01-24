@@ -152,7 +152,7 @@ export function DiscoverEventsPage() {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[200px]">
+      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[130px]">
         {error && (
           <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}

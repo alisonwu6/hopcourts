@@ -2,6 +2,7 @@ const { Errors } = require('../../lib/errors')
 const sessionsModel = require('../../../models/sessions.model')
 const participantsModel = require('../../../models/participants.model')
 const checkinsModel = require('../../../models/checkins.model')
+const usersModel = require('../../../models/users.model')
 const { createSession: createSessionModel } = require('../../../models/sessions.model')
 
 function parseNumber(value, fallback) {
@@ -82,9 +83,24 @@ async function getSessionDetail(sessionId, userId) {
     throw Errors.notFound('Session not found')
   }
 
-  const meta = await buildSessionMeta({ sessionId, session, userId })
+  const [meta, host, participants] = await Promise.all([
+    buildSessionMeta({ sessionId, session, userId }),
+    usersModel.getUserById(session.host_user_id),
+    participantsModel.listParticipantsWithDetails(sessionId)
+  ])
 
-  return { session, meta }
+  return { 
+    session, 
+    meta, 
+    host: host ? {
+      id: host.id,
+      display_name: host.display_name,
+      username: host.username,
+      avatar_url: host.avatar_url,
+      bio: host.bio
+    } : null, 
+    participants 
+  }
 }
 
 async function buildSessionMeta({ sessionId, session, userId } = {}) {

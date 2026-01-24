@@ -23,18 +23,27 @@ type EventCardProps = {
   onViewDetails?: (eventId: string) => void
 }
 
+function getFlagEmoji(countryCode: string) {
+  if (!countryCode || countryCode.length !== 2) return ''
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
+}
+
 export function EventCard({ event, onViewDetails }: EventCardProps) {
   const sportLabel = formatSportName(event.sport)
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
-  const locationLabel = event.location?.address ?? event.location?.name ?? '地點待確認'
+  const locationLabel = event.location.name && event.location.name !== event.location.address 
+    ? `${event.location.name} (${event.location.address})` 
+    : (event.location.name || event.location.address || '地點待確認')
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
   const priceLabel = event.priceRange ?? (event.isFree ? '免費參加' : '付費活動')
-  const cityLabel = locationCity ?? '城市待確認'
+  const cityLabel = event.host.cityName || (locationCity || '城市待確認')
 
   const attendeeCount = event.attendeeCount
   const participantPreview = event.participants.slice(0, 4)
-  const remaining = Math.max(attendeeCount - participantPreview.length, 0)
+  const remaining = Math.max(event.maxAttendees - attendeeCount, 0)
   const isClickable = Boolean(onViewDetails)
   const heroImage =
     (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
@@ -70,7 +79,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
     <article
       {...interactionHandlers}
       className={clsx(
-        'relative mb-6 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)] transition-all hover:shadow-[0_24px_60px_rgba(15,41,77,0.12)]',
+        'relative mb-3 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)] transition-all hover:shadow-[0_24px_60px_rgba(15,41,77,0.12)]',
         isClickable &&
           'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500'
       )}
@@ -84,9 +93,11 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           <div className="flex items-start gap-3">
             <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
             <div>
-              <p className="text-base font-semibold text-slate-900">{event.host.name}</p>
-              <div className="flex items-center gap-1.5 text-sm text-slate-500">
-                <Earth className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+              <p className="text-base font-semibold text-slate-900">
+                {event.host.name} {event.host.countryKey && getFlagEmoji(event.host.countryKey)}
+              </p>
+              <div className="flex items-center text-sm text-slate-500">
+                <MapPin className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 <span>{cityLabel}</span>
               </div>
             </div>
@@ -223,17 +234,15 @@ function formatTimeRange(start: Date | string, end: Date | string) {
 
 function formatSchedule(start: Date | string, end: Date | string) {
   const startDate = toDate(start)
-  const dateLabel = startDate.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  })
-  return `${dateLabel} ${formatTimeRange(start, end)}`
+  const endDate = toDate(end)
+  const dateStr = startDate.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  const startTimeStr = startDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })
+  const endTimeStr = endDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return `${dateStr} ${startTimeStr}-${endTimeStr}`
 }
 
 function summaryText(attending: number, max: number, remaining: number) {
   const base = `${attending}/${max} 已報名`
-  if (remaining <= 0) return base
   return `${base} · 還有${remaining}位`
 }
 

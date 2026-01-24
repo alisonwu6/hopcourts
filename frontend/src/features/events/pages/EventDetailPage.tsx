@@ -3,19 +3,34 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { BottomSheet } from '@/components/BottomSheet'
+import { SheetLayout } from '@/components/SheetLayout'
 import clsx from 'clsx'
-import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding, Users } from 'lucide-react'
+import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
+import { eventsService } from '@/features/events/services/eventsService'
+
+function getFlagEmoji(countryCode: string) {
+  if (!countryCode || countryCode.length !== 2) return ''
+  return countryCode
+    .toUpperCase()
+    .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
+}
 
 export function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [isFavorite, setIsFavorite] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
+    isAuthenticated: state.isAuthenticated,
+    currentUserId: state.user?.id,
+  }))
   const { selectedEvent: event, fetchEventById, isLoading, joinEvent, leaveEvent } = useEventsStore()
 
   useEffect(() => {
@@ -51,6 +66,21 @@ export function EventDetailPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!id) return
+    setIsDeleting(true)
+    try {
+      const res = await eventsService.deleteEvent(id)
+      if (res.success) {
+        navigate(-1)
+      }
+    } catch (err) {
+      console.error('Delete failed', err)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   if (isLoading || !event) {
     return <div className="flex h-screen items-center justify-center text-slate-500">載入中...</div>
   }
@@ -80,6 +110,18 @@ export function EventDetailPage() {
         showShare
         showFavorite
         contentClassName="w-full max-w-[400px] px-4"
+        rightContent={
+          event.host.id === currentUserId && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="p-2 text-red-500 transition hover:text-red-600"
+              aria-label="Delete event"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          )
+        }
       />
       <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
         <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
@@ -93,13 +135,23 @@ export function EventDetailPage() {
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="px-5 pb-6 pt-6">
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition"
+              onClick={() => {
+                if (event.host.username) {
+                  navigate(`/mate/${event.host.username}`)
+                }
+              }}
+            >
               <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
               <div>
                 <p className="text-sm font-semibold text-slate-900">
-                  由 {event.host.name} 主辦
+                  {event.host.name} {event.host.countryKey && getFlagEmoji(event.host.countryKey)}
                 </p>
-                <p className="text-xs text-slate-500">Host</p>
+                <div className="flex items-center gap-1 text-xs text-slate-500">
+                  <MapPin className="h-3 w-3" />
+                  <span>{event.host.cityName || '地點待確認'}</span>
+                </div>
               </div>
             </div>
 
@@ -115,6 +167,11 @@ export function EventDetailPage() {
               <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
                 {genderLabel}
               </span>
+              {event.visibility === 'public' && (
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700">
+                  公開場次
+                </span>
+              )}
             </div>
 
             <div className="mt-4">
@@ -124,7 +181,7 @@ export function EventDetailPage() {
             <div className="mt-6 space-y-3">
               <InfoRow 
                 icon={Calendar} 
-                label={`${new Date(event.startTime).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`} 
+                label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`} 
               />
               <InfoRow 
                 icon={MapPin} 
@@ -147,7 +204,15 @@ export function EventDetailPage() {
               
               {event.participants.length > 0 ? (
                 event.participants.map(p => (
-                  <div key={p.id} className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
+                  <div 
+                    key={p.id} 
+                    className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-100 transition"
+                    onClick={() => {
+                      if (p.username) {
+                        navigate(`/mate/${p.username}`)
+                      }
+                    }}
+                  >
                     <AvatarCircle
                       name={p.name}
                       src={p.avatarUrl}
@@ -183,6 +248,30 @@ export function EventDetailPage() {
         </div>
       </div>
       <JoinBar isJoined={isJoined} onClick={handleJoinClick} event={event} />
+      
+      <BottomSheet
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+      >
+        <SheetLayout
+          onClose={() => setShowDeleteConfirm(false)}
+          title="確定要刪除活動嗎？"
+          subtitle="一旦刪除，活動資訊將無法恢復。"
+          primaryButton={{
+            label: isDeleting ? '刪除中...' : '確定刪除',
+            onClick: handleDelete,
+            variant: 'danger',
+            isLoading: isDeleting
+          }}
+          secondaryButton={{
+            label: '取消',
+            onClick: () => setShowDeleteConfirm(false),
+          }}
+        >
+          <div className="py-2 text-slate-500 text-sm">此操作無法復原。</div>
+        </SheetLayout>
+      </BottomSheet>
+
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
@@ -195,7 +284,7 @@ export function EventDetailPage() {
 function AvatarCircle({ name, src }: { name: string; src?: string }) {
   return (
     <div
-      className="flex h-12 w-12 items-center justify-center rounded-full border-4 border-[#FBEFD6] bg-[#FFE7B6] text-lg font-semibold text-slate-700"
+      className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-slate-700"
       style={
         src
           ? {

@@ -63,10 +63,19 @@ async function listUpcomingSessions({
 
   params.push(limit, offset)
   const sql = `
-    select ${BASE_FIELDS.join(', ')}
-    from public.sessions
-    where ${conditions.join(' AND ')}
-    order by starts_at asc
+    select ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
+      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      h.display_name as host_display_name,
+      h.avatar_url as host_avatar_url,
+      h.username as host_username,
+      h.country_key as host_country_key,
+      h.city_key as host_city_key,
+      c.name_zh as host_city_name
+    from public.sessions s
+    left join public.users h on s.host_user_id = h.id
+    left join public.cities c on h.city_key = c.key
+    where ${conditions.map(c => `s.${c}`).join(' AND ')}
+    order by s.starts_at asc
     limit $${idx + 1}
     offset $${idx + 2}
   `
@@ -90,9 +99,18 @@ async function listMyUpcomingSessions({ userId, from, to } = {}) {
   }
 
   const sql = `
-    select DISTINCT ${BASE_FIELDS.map((f) => `s.${f}`).join(', ')}
+    select DISTINCT ${BASE_FIELDS.map((f) => `s.${f}`).join(', ')},
+      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      h.display_name as host_display_name,
+      h.avatar_url as host_avatar_url,
+      h.username as host_username,
+      h.country_key as host_country_key,
+      h.city_key as host_city_key,
+      c.name_zh as host_city_name
     from public.sessions s
     left join public.session_participants sp on sp.session_id = s.id
+    left join public.users h on s.host_user_id = h.id
+    left join public.cities c on h.city_key = c.key
     where ${conditions.join(' AND ')}
     order by s.starts_at asc
   `
@@ -132,12 +150,21 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
   const params = [userId, now, limit, offset] // $1=userId, $2=now, $3=limit, $4=offset
   
   const sql = `
-    SELECT ${BASE_FIELDS.map((f) => `sub.${f}`).join(', ')}
+    SELECT ${BASE_FIELDS.map((f) => `sub.${f}`).join(', ')},
+      (select count(*) from public.session_participants where session_id = sub.id) as participant_count
     FROM (
       -- 1. My Past Participation (Joined & Ended)
-      SELECT s.*
+      SELECT s.*,
+        h.display_name as host_display_name,
+        h.avatar_url as host_avatar_url,
+        h.username as host_username,
+        h.country_key as host_country_key,
+        h.city_key as host_city_key,
+        c.name_zh as host_city_name
       FROM public.sessions s
       LEFT JOIN public.session_participants sp ON sp.session_id = s.id
+      LEFT JOIN public.users h ON s.host_user_id = h.id
+      LEFT JOIN public.cities c ON h.city_key = c.key
       WHERE (sp.user_id = $1 OR s.host_user_id = $1)
         AND s.ends_at IS NOT NULL
         AND s.ends_at < $2
@@ -145,8 +172,16 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
       UNION
       
       -- 2. My Drafts (Hosted by me & Status = 'draft')
-      SELECT s.*
+      SELECT s.*,
+        h.display_name as host_display_name,
+        h.avatar_url as host_avatar_url,
+        h.username as host_username,
+        h.country_key as host_country_key,
+        h.city_key as host_city_key,
+        c.name_zh as host_city_name
       FROM public.sessions s
+      LEFT JOIN public.users h ON s.host_user_id = h.id
+      LEFT JOIN public.cities c ON h.city_key = c.key
       WHERE s.host_user_id = $1
         AND s.status = 'draft'
     ) sub
@@ -169,7 +204,17 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
 
 async function getSessionById(sessionId) {
   const { rows } = await query(
-    `select ${BASE_FIELDS.join(', ')} from public.sessions where id = $1`,
+    `select s.*,
+       h.display_name as host_display_name,
+       h.avatar_url as host_avatar_url,
+       h.username as host_username,
+       h.country_key as host_country_key,
+       h.city_key as host_city_key,
+       c.name_zh as host_city_name
+     from public.sessions s
+     left join public.users h on s.host_user_id = h.id
+     left join public.cities c on h.city_key = c.key
+     where s.id = $1`,
     [sessionId]
   )
   return rows[0] || null

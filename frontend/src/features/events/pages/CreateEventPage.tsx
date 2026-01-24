@@ -50,6 +50,7 @@ type FormState = {
   gender: 'mixed' | 'female_only' | 'male_only'
   description: string
   notes: string
+  placeName: string
 }
 
 const initialState: FormState = {
@@ -69,6 +70,7 @@ const initialState: FormState = {
   gender: 'mixed',
   description: '',
   notes: '',
+  placeName: '',
 }
 
 export default function CreateEventPage() {
@@ -133,6 +135,7 @@ export default function CreateEventPage() {
             gender: draft.gender || 'mixed',
             description: draft.detail?.description || '',
             notes: '', 
+            placeName: draft.location.name || '',
           })
           
           if (draft.location.name) {
@@ -355,61 +358,47 @@ export default function CreateEventPage() {
         uploadedPhotoUrls = heroPreviews.filter(url => url.startsWith('http'))
       }
 
+      const commonPayload = {
+        title: form.title.trim(),
+        sport: form.sportKey.trim(),
+        description: form.description.trim(),
+        notesForAttendees: form.notes.trim(),
+        startTime: startDate,
+        duration: durationMinutes,
+        maxAttendees: capacity,
+        location: {
+          name: form.placeName.trim(),
+          address: form.location.trim(),
+          lat: latNum ?? undefined,
+          lng: lngNum ?? undefined,
+        },
+        isFree: form.isFree,
+        pricePerPerson: form.price ? parseFloat(form.price) : undefined,
+        skillLevel: form.skillLevel,
+        gender: form.gender,
+        coverPhotoUrl: uploadedPhotoUrls[0],
+        status,
+      }
+
       if (editId) {
         // Update existing event
-        const updatePayload = {
-          title: form.title.trim(),
-          sport: form.sportKey.trim(),
-          description: form.description.trim(),
-          notesForAttendees: form.notes.trim(),
-          startTime: startDate,
-          duration: durationMinutes,
-          maxAttendees: capacity,
-          location: {
-            name: form.location.trim(),
-            address: form.location.trim(),
-            lat: latNum ?? undefined,
-            lng: lngNum ?? undefined,
-          },
-          isFree: form.isFree,
-          pricePerPerson: form.price ? parseFloat(form.price) : undefined,
-          skillLevel: form.skillLevel,
-          gender: form.gender,
-          coverPhotoUrl: uploadedPhotoUrls[0],
-          status,
+        const res = await eventsService.updateEvent(editId, commonPayload)
+        if (res.success) {
+          navigate(`/event/${editId}`)
+        } else {
+          setError(res.error?.message || '更新活動失敗。')
         }
-        await eventsService.updateEvent(editId, updatePayload)
-        navigate(`/event/${editId}`)
       } else {
         // Create new event
-        const payload = {
-          title: form.title.trim(),
-          sport_key: form.sportKey.trim(),
-          notes:
-            [form.description.trim(), form.notes.trim()].filter(Boolean).join('\n\n') || undefined,
-          starts_at: startDate.toISOString(),
-          ends_at: endDate.toISOString(),
-          place_name: form.location.trim(),
-          address: form.location.trim(),
-          lat: latNum ?? 0,
-          lng: lngNum ?? 0,
-          min_people: 1,
-          max_people: capacity,
-          status,
-          visibility: 'public',
-          skill_level: form.skillLevel,
-          gender: form.gender,
-          is_free: form.isFree,
-          price: form.price ? parseFloat(form.price) : null,
-          photos: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls : undefined,
+        const res = await eventsService.createEvent(commonPayload)
+        if (res.success && res.data) {
+          navigate(`/event/${res.data.id}`)
+        } else {
+          setError(res.error?.message || '發佈活動失敗。')
         }
-        const res = await httpPost<{ session: any }>('/sessions', { body: payload })
-        const session = (res as any)?.session ?? (res as any)?.data?.session ?? (res as any)?.data
-        navigate(`/event/${session?.id ?? ''}`)
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : '儲存活動失敗。'
-      setError(message)
+    } catch (err: any) {
+      setError(err?.message || '儲存活動時發生錯誤。')
     } finally {
       setIsSubmitting(false)
     }
@@ -464,7 +453,7 @@ export default function CreateEventPage() {
           onSubmit={(e) => handleSubmit(e, 'published')}
         >
           {error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm">
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm sticky top-4 z-50">
               {error}
             </div>
           )}
@@ -513,19 +502,27 @@ export default function CreateEventPage() {
                 />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-700">地點</p>
+                <div className="space-y-4">
+                <FloatingField
+                  label="場地名稱 (非必填)"
+                  name="placeName"
+                  placeholder="例如：大安運動中心"
+                  value={form.placeName}
+                  onChange={handleInputChange}
+                  supportingText="若知道場地具體名稱，請填寫於此。"
+                />
                 <button
                   type="button"
                   onClick={openLocationPicker}
-                  className="flex w-full items-center justify-between rounded-[14px] border-2 border-slate-300 bg-white px-4 py-4 text-left text-base text-slate-900 shadow-inner transition hover:border-blue-400 hover:shadow-[0_0_0_1px_rgba(59,130,246,0.25)]"
+                  className="w-full flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
                       <MapPin className="h-5 w-5" />
-                    </span>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-slate-800">
-                        {form.location ? '場地位置' : '場地位置'}
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        地址/點地圖選擇
                       </span>
                       <span className="text-sm text-slate-500">
                         {form.location || '點擊選擇位置'}
@@ -535,6 +532,7 @@ export default function CreateEventPage() {
                   <ChevronRight className="h-5 w-5 text-slate-400" />
                 </button>
                 {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
+                </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FloatingField

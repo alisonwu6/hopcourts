@@ -110,19 +110,24 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     },
     host: {
       id: session.host_user_id,
-      name: 'Host', // API doesn't return host name yet? check Session model
-      // avatarUrl: ... 
+      name: session.host_display_name || 'Host',
+      avatarUrl: session.host_avatar_url || undefined,
+      username: session.host_username || undefined,
+      cityKey: session.host_city_key || undefined,
+      cityName: session.host_city_name || undefined,
+      countryKey: session.host_country_key || undefined,
     },
     highFives: 0,
     joined: false, // need to check participation
-    attendeeCount: session.min_people ?? 0, // TODO: Use real count
+    attendeeCount: Number(session.participant_count ?? 0),
     maxAttendees: session.max_people ?? 10,
     difficulty: 2,
     isFree: session.is_free ?? true,
     price: session.price,
     priceRange: session.is_free ? '免費參加' : (session.price ? `$${session.price}` : '收費活動'),
     participants: [],
-    status: session.status,
+    status: session.status as any,
+    visibility: session.visibility as any,
     updatedAt: session.updated_at ? new Date(session.updated_at) : undefined,
     detail: {
       description: session.notes,
@@ -184,8 +189,28 @@ export const eventsService = {
       if (metaData) {
         event.joined = metaData.is_joined ?? false
         event.attendeeCount = metaData.participant_count ?? event.attendeeCount
-        // event.dist = metaData.dist
-        // event.maxAttendees = metaData.spots_left + metaData.participant_count // Optional consistency check
+      }
+
+      if (responseData.host) {
+        event.host = {
+          id: responseData.host.id,
+          name: responseData.host.display_name || 'User',
+          avatarUrl: responseData.host.avatar_url || undefined,
+          username: responseData.host.username || undefined,
+          cityKey: responseData.host.city_key || undefined,
+          cityName: responseData.host.city_name || undefined,
+          countryKey: responseData.host.country_key || undefined,
+          // rating: responseData.host.rating
+        }
+      }
+
+      if (Array.isArray(responseData.participants)) {
+        event.participants = responseData.participants.map((p: any) => ({
+          id: p.id,
+          name: p.display_name || 'Participant',
+          avatarUrl: p.avatar_url || undefined,
+          username: p.username || undefined,
+        }))
       }
 
       return wrapSuccess(event)

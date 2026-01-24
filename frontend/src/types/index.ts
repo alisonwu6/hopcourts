@@ -263,6 +263,10 @@ export interface PlayerEvent {
     rating?: number
     distanceKm?: number
     level?: string
+    username?: string
+    cityKey?: string
+    cityName?: string
+    countryKey?: string
   }
   highFives: number
   joined: boolean
@@ -273,9 +277,10 @@ export interface PlayerEvent {
   price?: number
   priceRange?: string
   description?: string
-  participants: Array<{ id: string; name: string; avatarUrl?: string }>
+  participants: Array<{ id: string; name: string; avatarUrl?: string; username?: string }>
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date
+  visibility?: 'public' | 'private'
   updatedAt?: string | Date
   detail?: {
     description?: string
