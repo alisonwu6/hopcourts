@@ -147,14 +147,13 @@ export function EventDetailPage() {
                 }
               }}
             >
-              <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
-              <div>
-                <p className="text-sm font-semibold text-slate-900">
-                  {event.host.name} {event.host.countryKey && getFlagEmoji(event.host.countryKey)}
-                </p>
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <MapPin className="h-3 w-3" />
-                  <span>{event.host.cityName || '地點待確認'}</span>
+              <div className="flex items-center gap-3">
+                <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {event.host.name}
+                  </p>
+                  <p className="text-xs text-slate-500">發動發起人</p>
                 </div>
               </div>
             </div>
