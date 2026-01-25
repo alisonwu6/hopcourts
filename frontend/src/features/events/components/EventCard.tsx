@@ -116,16 +116,21 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between">
-          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
-            {skillLabel}
-          </span>
-          <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold tracking-wide text-blue-700">
-            {event.gender === 'female_only' ? '女' : event.gender === 'male_only' ? '男' : '混合'}
-          </span>
-          <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
             {sportLabel}
           </span>
+          <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold tracking-wide text-blue-700">
+            {skillLabel}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-semibold tracking-wide text-pink-700">
+            {event.gender === 'female_only' ? '女性專屬' : event.gender === 'male_only' ? '男性專屬' : '性別混合'}
+          </span>
+          {event.visibility === 'public' && (
+            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold tracking-wide text-emerald-700">
+              公開場次
+            </span>
+          )}
         </div>
 
         <div className="space-y-1">
