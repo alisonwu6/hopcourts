@@ -20,7 +20,12 @@ const getBaseUrl = () => {
 
 const buildUrl = (path: string, params?: RequestOptions['params']) => {
   const cleanedPath = path.replace(/^\//, '')
-  const url = new URL(`${API_PREFIX.replace(/\/$/, '')}/${cleanedPath}`, `${getBaseUrl()}/`)
+  const base = getBaseUrl()
+  // If base is empty (relative path), use current origin to satisfy URL constructor
+  const urlBase = base || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
+  
+  const url = new URL(`${API_PREFIX.replace(/\/$/, '')}/${cleanedPath}`, urlBase)
+  
   if (params) {
     const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
@@ -30,6 +35,10 @@ const buildUrl = (path: string, params?: RequestOptions['params']) => {
     const qs = searchParams.toString()
     if (qs) url.search = qs
   }
+
+  // If we used a fallback origin but the config was meant to be relative, 
+  // we could return url.pathname + url.search. 
+  // But returning the full URL with current origin is also fine for fetch().
   return url.toString()
 }
 
