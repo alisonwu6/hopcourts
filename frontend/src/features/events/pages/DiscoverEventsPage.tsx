@@ -18,24 +18,25 @@ import {
 } from 'date-fns'
 import { BottomSheet } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
-import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { EventCard } from '@/features/events/components/EventCard'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/dictionaries/hooks'
 import { useAuthStore } from '@/hooks'
+import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
 
 export function DiscoverEventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
+  
+  // Search State
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  
+  // Filter State (Shared with Sheet)
   const [selectedSports, setSelectedSports] = useState<string[]>(['all'])
-  const [pendingSports, setPendingSports] = useState<string[]>(['all'])
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [pendingDate, setPendingDate] = useState<Date | null>(null)
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(today))
+  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null })
+
   const events = useEventsStore((state) => state.events)
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
@@ -43,7 +44,7 @@ export function DiscoverEventsPage() {
   const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const goToMySessions = () => navigate('/my-events')
+  
   const sports = useMemo<SportFilterOption[]>(
     () => [
       { key: 'all', label: '全部', icon: '全' },
@@ -55,22 +56,11 @@ export function DiscoverEventsPage() {
     ],
     [sportsCatalog]
   )
-  const sportsLabelMap = useMemo(
-    () => new Map(sportsCatalog.map((sport) => [sport.key, sport.label])),
-    [sportsCatalog]
-  )
 
   // Fetch events once on mount.
   useEffect(() => {
     void fetchEvents()
   }, [fetchEvents])
-
-  // Keep calendar month in sync with selected day.
-  useEffect(() => {
-    if (!isCalendarOpen && selectedDate) {
-      setCalendarMonth(startOfMonth(selectedDate))
-    }
-  }, [isCalendarOpen, selectedDate])
 
   const handleCreateClick = () => {
     if (isAuthenticated) navigate('/create-event')
@@ -89,70 +79,103 @@ export function DiscoverEventsPage() {
   )
 
   const filteredEvents = useMemo(() => {
-    const dateFiltered = selectedDate
-      ? events.filter((event) => isSameDay(new Date(event.startTime), selectedDate))
-      : events.filter((event) => new Date(event.startTime) >= today)
+    let filtered = events.filter((event) => new Date(event.startTime) >= today)
+    
+    if (dateRange.start) {
+      if (dateRange.end) {
+        // Range filter
+        const start = startOfDay(dateRange.start)
+        const end = dateTimeEndOfDay(dateRange.end)
+        filtered = events.filter((event) => {
+           const time = new Date(event.startTime)
+           return time >= start && time <= end
+        })
+      } else {
+        // Single day filter
+        filtered = events.filter((event) => isSameDay(new Date(event.startTime), dateRange.start!))
+      }
+    }
 
-    if (selectedSports.includes('all')) return dateFiltered
-    return dateFiltered.filter((event) =>
+    if (selectedSports.includes('all')) return filtered
+    return filtered.filter((event) =>
       selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
     )
-  }, [events, selectedSports, selectedDate])
+  }, [events, selectedSports, dateRange, today])
 
-  const dateLabel = selectedDate ? format(selectedDate, 'EEE, dd MMM') : '選擇日期'
-  const showTodayLabel = Boolean(selectedDate && isSameDay(selectedDate, today))
-  const selectedSportLabels = selectedSports
-    .filter((sport) => sport !== 'all')
-    .map((sport) => sportsLabelMap.get(sport) ?? sport)
+  // Header Label Logic
+  const dateLabel = dateRange.start 
+    ? (dateRange.end 
+        ? `${format(dateRange.start, 'yyyy/MM/dd')} - ${format(dateRange.end, 'yyyy/MM/dd')}`
+        : format(dateRange.start, 'yyyy/MM/dd')) 
+    : '任何時間'
+
+  const sportLabel = useMemo(() => {
+    if (selectedSports.includes('all')) return '任何運動'
+    
+    // Map keys to labels
+    const names = selectedSports
+      .map(key => sports.find(s => s.key === key)?.label)
+      .filter(Boolean) as string[]
+
+    if (names.length === 0) return '運動'
+    if (names.length <= 3) return names.join('、')
+    return `${names[0]}、${names[1]}、${names[2]} +${names.length - 3}`
+  }, [selectedSports, sports])
+
+  const hasFilter = Boolean(dateRange.start || !selectedSports.includes('all'))
+
   return (
     <div className="min-h-screen bg-[#f4f6fb] pb-24">
+      {/* Airbnb-style Header */}
       <div
-        className="fixed left-0 right-0 z-40 border-b border-slate-200 bg-[#f4f6fb]/95 shadow-sm backdrop-blur"
+        className="fixed left-0 right-0 z-40 bg-[#f4f6fb]/95 p-4 backdrop-blur transition-all duration-300"
         style={{ top: '0px' }}
       >
-        <div className="mx-auto w-full max-w-4xl space-y-3 px-4 py-3">
-          <div className="flex justify-center">
-             <div className="flex w-full max-w-sm items-center justify-center p-1">
-               <h1 className="text-lg font-bold text-slate-900">即將到來的活動</h1>
-             </div>
-          </div>
-
-          <div className="flex w-full gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                const baseDate = selectedDate ?? today
-                setPendingDate(selectedDate)
-                setCalendarMonth(startOfMonth(baseDate))
-                setIsCalendarOpen(true)
-              }}
-              className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
-            >
-              <CalendarIcon className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <div className="flex flex-col text-left">
-                <span className="text-sm font-semibold text-slate-700">{dateLabel}</span>
-                {showTodayLabel && <span className="text-xs font-medium text-blue-500">Today</span>}
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsFilterOpen(true)}
-              className="flex flex-1 items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-left text-sm font-semibold text-slate-600 shadow-sm transition hover:border-slate-300"
-            >
-              <Search className="h-4 w-4 text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <span className="flex-1 truncate">
-                {isSportsLoading
-                  ? '載入運動中…'
-                  : selectedSports.includes('all')
-                    ? '選擇運動'
-                    : selectedSportLabels.join(', ')}
-              </span>
-            </button>
-          </div>
+        <div className="mx-auto w-full max-w-4xl">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition active:scale-[0.98] sm:mx-auto sm:w-[400px]"
+          >
+            <Search className="ml-2 h-5 w-5 text-slate-800" strokeWidth={2.5} />
+            <div className="flex flex-col items-start px-1">
+              {!hasFilter ? (
+                <>
+                  <span className="text-sm font-bold text-slate-900">開始搜尋</span>
+                  <span className="text-xs font-medium text-slate-500">
+                    {dateLabel} • {sportLabel}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-xs font-medium text-slate-500">{dateLabel}</span>
+                  <span className="text-xs font-medium text-slate-500">{sportLabel}</span>
+                </>
+              )}
+            </div>
+            {(dateRange.start || !selectedSports.includes('all')) && (
+              <>
+                <span className="ml-auto mr-3 text-sm font-semibold text-slate-600">
+                  {filteredEvents.length} 個結果
+                </span>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition hover:bg-slate-200"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDateRange({ start: null, end: null })
+                    setSelectedSports(['all'])
+                  }}
+                >
+                  <X className="h-4 w-4 text-slate-500" />
+                </div>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[130px]">
+      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">
         {error && (
           <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
@@ -162,15 +185,23 @@ export function DiscoverEventsPage() {
         {isLoading ? (
           <div className="flex justify-center py-10 text-slate-500">載入活動中…</div>
         ) : filteredEvents.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 py-10 text-center text-slate-500">
-            <div>沒有找到活動</div>
-            <button
-              type="button"
-              onClick={handleCreateClick}
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
-            >
-              新增活動
-            </button>
+          <div className="flex justify-center">
+            <div className="flex w-full flex-col items-center justify-center rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
+                <span className="text-4xl">🏟️</span>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">Oops! 怎麼沒有活動...</h3>
+              <p className="mt-2 max-w-xs text-sm text-slate-500">
+                你就自己來吧! 開啟一場你喜歡的活動，生活也許會因此變得不同！
+              </p>
+              <button
+                type="button"
+                onClick={handleCreateClick}
+                className="mt-8 rounded-2xl bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg transition hover:bg-blue-700 active:scale-[0.98]"
+              >
+                發起活動
+              </button>
+            </div>
           </div>
         ) : (
           filteredEvents.map((event) => (
@@ -189,45 +220,20 @@ export function DiscoverEventsPage() {
         )}
       </div>
 
-      <SportFilterSheet
-        open={isFilterOpen}
-        selected={pendingSports}
-        options={sports}
-        loading={isSportsLoading}
-        errorText={sportsError ? '運動清單載入失敗，請稍後再試。' : undefined}
-        onClose={() => setIsFilterOpen(false)}
-        onReset={() => setPendingSports(['all'])}
-        onToggle={(value) => {
-          setPendingSports((prev) => {
-            if (value === 'all') return ['all']
-            const next = prev.filter((item) => item !== value && item !== 'all')
-            const exists = prev.includes(value)
-            return exists ? next : [...next, value]
-          })
-        }}
-        onApply={() => {
-          setSelectedSports(pendingSports.length ? pendingSports : ['all'])
-          setIsFilterOpen(false)
+      <SearchSheet
+        open={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        initialDateRange={dateRange}
+        initialSports={selectedSports}
+        sportsOptions={sports}
+        eventsByDay={eventsByDay}
+        onApply={(range, sports) => {
+          setDateRange(range)
+          setSelectedSports(sports)
+          setIsSearchOpen(false)
         }}
       />
-      <CalendarSheet
-        open={isCalendarOpen}
-        month={calendarMonth}
-        selectedDate={selectedDate}
-        pendingDate={pendingDate}
-        onSelect={setPendingDate}
-        onMonthChange={(date) => setCalendarMonth(startOfMonth(date))}
-        onClose={() => {
-          setPendingDate(selectedDate)
-          setIsCalendarOpen(false)
-        }}
-        onClear={() => setPendingDate(null)}
-        onApply={() => {
-          setSelectedDate(pendingDate)
-          setIsCalendarOpen(false)
-        }}
-        counts={eventsByDay}
-      />
+      
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
@@ -237,141 +243,181 @@ export function DiscoverEventsPage() {
   )
 }
 
-type SportFilterSheetProps = {
-  /** Controls the sheet visibility */
-  open: boolean
-  /** Selected sports keys */
-  selected: string[]
-  /** All available sport options */
-  options: SportFilterOption[]
-  /** Loading state for options */
-  loading?: boolean
-  /** Error message shown in header */
-  errorText?: string
-  /** Toggle a sport option */
-  onToggle: (sport: string) => void
-  /** Reset all selections */
-  onReset: () => void
-  /** Apply current selections */
-  onApply: () => void
-  /** Close sheet callback */
-  onClose: () => void
+function dateTimeEndOfDay(date: Date) {
+  const d = new Date(date)
+  d.setHours(23, 59, 59, 999)
+  return d
 }
 
-function SportFilterSheet({
-  open,
-  selected,
-  options,
-  loading,
-  errorText,
-  onToggle,
-  onReset,
-  onApply,
-  onClose,
-}: SportFilterSheetProps) {
+// --- Search Sheet Components ---
+
+type SearchSheetProps = {
+  open: boolean
+  onClose: () => void
+  initialDateRange: { start: Date | null; end: Date | null }
+  initialSports: string[]
+  sportsOptions: SportFilterOption[]
+  eventsByDay: Record<string, number>
+  onApply: (range: { start: Date | null; end: Date | null }, sports: string[]) => void
+}
+
+function SearchSheet({ 
+  open, 
+  onClose, 
+  initialDateRange, 
+  initialSports, 
+  sportsOptions, 
+  eventsByDay, 
+  onApply 
+}: SearchSheetProps) {
+  const [pendingRange, setPendingRange] = useState(initialDateRange)
+  const [pendingSports, setPendingSports] = useState<string[]>(initialSports)
+  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfMonth(new Date()))
+  const [activeTab, setActiveTab] = useState<'date' | 'sport'>('date')
+
+  // Sync when opening
+  useEffect(() => {
+    if (open) {
+      setPendingRange(initialDateRange)
+      setPendingSports(initialSports)
+      if (initialDateRange.start) setCalendarMonth(startOfMonth(initialDateRange.start))
+      else setCalendarMonth(startOfMonth(new Date()))
+      setActiveTab('date')
+    }
+  }, [open, initialDateRange, initialSports])
+
+  const handleClear = () => {
+    setPendingRange({ start: null, end: null })
+    setPendingSports(['all'])
+  }
+
+  const handleApply = () => {
+    onApply(pendingRange, pendingSports)
+  }
+
+  if (!open) return null
+
   return (
-    <BottomSheet open={open} onClose={onClose} showHandle disableContainer>
+    <BottomSheet 
+      open={open} 
+      onClose={onClose} 
+      showHandle 
+      disableContainer
+      sheetClassName="h-[92vh] flex flex-col"
+      contentClassName="flex-1 flex flex-col"
+      maxWidthClassName="max-w-[480px]"
+    >
       <SheetLayout
         onClose={onClose}
-        title="想找什麼運動？"
-        subtitle="運動篩選"
+        title="搜尋篩選"
+        subtitle="自訂你的搜尋條件"
         height="tall"
-        className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)]"
-        contentClassName="px-6"
+        className="w-full h-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)] flex flex-col"
+        contentClassName="flex-1 overflow-y-auto px-5 pb-6 pt-4 space-y-6"
         primaryButton={{
           label: '套用',
-          onClick: onApply,
-          disabled: loading,
+          onClick: handleApply,
         }}
         secondaryButton={{
           label: '全部清除',
-          onClick: onReset,
+          onClick: handleClear,
           variant: 'ghost',
         }}
-        headerRight={
-          loading ? (
-            <p className="text-xs font-medium text-blue-500">運動清單載入中…</p>
-          ) : errorText ? (
-            <p className="text-xs font-medium text-rose-500">{errorText}</p>
-          ) : null
-        }
       >
-        <div className="space-y-6">
-          <div className="flex flex-col gap-3">
-            {options.map((sport) => {
-              const isActive =
-                selected.includes(sport.key) || (sport.key === 'all' && selected.includes('all'))
-              return (
-                <button
-                  key={sport.key}
-                  type="button"
-                  onClick={() => onToggle(sport.key)}
-                  className={clsx(
-                    'flex h-16 items-center gap-3 rounded-[24px] border px-4 text-left text-sm font-semibold transition',
-                    isActive
-                      ? 'border-blue-400 bg-blue-50 text-blue-700 shadow-[0_12px_28px_rgba(37,99,235,0.12)]'
-                      : 'border-slate-200 bg-white text-slate-900 hover:border-blue-200 hover:bg-blue-50/60'
-                  )}
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-lg">
-                    {sport.icon || '🏀'}
-                  </div>
-                  <span className="flex-1">{sport.label}</span>
-                  {isActive && <span className="text-xs font-semibold text-blue-500">已選</span>}
-                </button>
-              )
-            })}
-          </div>
+        {/* Tab Switcher */}
+        <div className="flex w-full rounded-full bg-slate-100 p-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab('date')}
+            className={clsx(
+              'flex-1 rounded-full py-2 text-sm font-bold transition-all',
+              activeTab === 'date'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            )}
+          >
+            日期
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('sport')}
+            className={clsx(
+              'flex-1 rounded-full py-2 text-sm font-bold transition-all',
+              activeTab === 'sport'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            )}
+          >
+            運動
+          </button>
+        </div>
 
-          <div className="h-16" />
+        {/* Tab Content */}
+        <div className="mt-4">
+          {activeTab === 'date' ? (
+            <div className="p-2"> 
+              {/* Removed border/shadow container, just padding */}
+              <CalendarContent 
+                 month={calendarMonth}
+                 onMonthChange={setCalendarMonth}
+                 range={pendingRange}
+                 onSelectRange={setPendingRange}
+                 counts={eventsByDay}
+              />
+            </div>
+          ) : (
+            <div>
+               <div className="flex flex-wrap gap-2">
+                {sportsOptions.map((sport) => {
+                  const active = pendingSports.includes(sport.key) || (sport.key === 'all' && pendingSports.includes('all'))
+                  return (
+                    <button
+                      key={sport.key}
+                      onClick={() => {
+                        setPendingSports(prev => {
+                          if (sport.key === 'all') return ['all']
+                          const next = prev.filter(p => p !== 'all' && p !== sport.key)
+                          if (prev.includes(sport.key)) return next.length ? next : ['all']
+                          return [...next, sport.key]
+                        })
+                      }}
+                      className={clsx(
+                        'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition active:scale-[0.97]',
+                        active 
+                          ? 'border-black bg-neutral-900 text-white shadow-sm' 
+                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                      )}
+                    >
+                      <span className="text-base">{sport.icon || ''}</span>
+                      <span>{sport.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </SheetLayout>
     </BottomSheet>
   )
 }
 
-type CalendarSheetProps = {
-  /** Controls visibility of the calendar sheet */
-  open: boolean
-  /** Current month displayed */
+// --- Calendar Component ---
+
+type CalendarContentProps = {
   month: Date
-  /** Already selected date (applied) */
-  selectedDate: Date | null
-  /** Pending date (not yet applied) */
-  pendingDate: Date | null
-  /** Choose a date in the calendar */
-  onSelect: (date: Date) => void
-  /** Change month (also handles year change) */
   onMonthChange: (date: Date) => void
-  /** Close the sheet */
-  onClose: () => void
-  /** Clear pending selection */
-  onClear: () => void
-  /** Apply pending selection */
-  onApply: () => void
-  /** Optional per-day count for dot indicators */
+  range: { start: Date | null; end: Date | null }
+  onSelectRange: (range: { start: Date | null; end: Date | null }) => void
   counts: Record<string, number>
 }
 
-function CalendarSheet({
-  open,
-  month,
-  selectedDate,
-  pendingDate,
-  onSelect,
-  onMonthChange,
-  onClose,
-  onClear,
-  onApply,
-  counts = {},
-}: CalendarSheetProps) {
-  if (!open) return null
-
+function CalendarContent({ month, onMonthChange, range, onSelectRange, counts }: CalendarContentProps) {
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)
   const start = startOfWeek(monthStart, { weekStartsOn: 1 })
   const end = endOfWeek(monthEnd, { weekStartsOn: 1 })
-
+  
   const days: Date[] = []
   let current = start
   while (current <= end) {
@@ -379,88 +425,95 @@ function CalendarSheet({
     current = addDays(current, 1)
   }
 
-  const currentYear = getYear(month)
-  const years = Array.from({ length: 7 }, (_, index) => currentYear - 3 + index)
+  const handleDayClick = (day: Date) => {
+    if (!range.start || (range.start && range.end)) {
+      // Start new selection (if previously complete or empty)
+      onSelectRange({ start: day, end: null })
+    } else {
+      // Have start, selection end
+      if (isSameDay(day, range.start)) {
+         // Click same day -> just that day
+         onSelectRange({ start: day, end: null }) 
+      } else if (day < range.start) {
+         // Click before start -> new start
+         onSelectRange({ start: day, end: null })
+      } else {
+         // Valid end
+         onSelectRange({ start: range.start, end: day })
+      }
+    }
+  }
 
   return (
-    <BottomSheet
-      open={open}
-      onClose={onClose}
-      showHandle={false}
-      maxWidthClassName="max-w-[420px]"
-      contentClassName="px-0 pb-0"
-      disableContainer
-    >
-      <SheetLayout
-        onClose={onClose}
-        title={format(month, 'yyyy 年 MM 月')}
-        height="medium"
-        contentClassName="px-6"
-        className="w-full rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.18)]"
-        headerRight={
+    <div>
+      <div className="mb-6 flex items-center justify-between px-2">
           <div className="flex items-center gap-2">
-            <select
-              value={currentYear}
-              onChange={(event) => onMonthChange(setYear(monthStart, Number(event.target.value)))}
-              className="rounded-full border border-slate-200 px-3 py-1 text-sm font-semibold text-slate-600 focus:outline-none"
-            >
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={() => onMonthChange(addMonths(month, -1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-              aria-label="上一個月"
-            >
-              <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onMonthChange(addMonths(month, 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200"
-              aria-label="下一個月"
-            >
-              <ChevronRight className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-            </button>
+            <span className="text-lg font-bold text-slate-900">{format(month, 'yyyy 年 M 月')}</span>
           </div>
-        }
-        primaryButton={{ label: '套用', onClick: onApply }}
-        secondaryButton={{ label: '清除', onClick: onClear, variant: 'ghost' }}
-      >
-        <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-          {['一', '二', '三', '四', '五', '六', '日'].map((label) => (
-            <span key={label}>週{label}</span>
-          ))}
-        </div>
-        <div className="mt-2 grid grid-cols-7 gap-2">
+          <div className="flex gap-2">
+             <button
+               type="button"
+               onClick={() => onMonthChange(addMonths(month, -1))}
+               className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 hover:bg-slate-50 transition"
+             >
+               <ChevronLeft className="h-5 w-5 text-slate-600" />
+             </button>
+             <button
+               type="button"
+               onClick={() => onMonthChange(addMonths(month, 1))}
+               className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 hover:bg-slate-50 transition"
+             >
+               <ChevronRight className="h-5 w-5 text-slate-600" />
+             </button>
+          </div>
+      </div>
+
+      <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">
+        {['一', '二', '三', '四', '五', '六', '日'].map((label) => (
+          <span key={label}>週{label}</span>
+        ))}
+      </div>
+      
+      <div className="grid grid-cols-7 gap-y-2">
           {days.map((day) => {
-            const inactive = !isSameMonth(day, month)
-            const active = pendingDate ? isSameDay(day, pendingDate) : false
-            const key = startOfDay(day).toISOString()
+            const isMonth = isSameMonth(day, month)
+            const dayStart = startOfDay(day)
+            
+            // Range logic
+            const isStart = range.start && isSameDay(day, range.start)
+            const isEnd = range.end && isSameDay(day, range.end)
+            const inRange = range.start && range.end && day > range.start && day < range.end
+            
+            const isSelected = isStart || isEnd
+            const isToday = isSameDay(day, new Date())
+            const key = dayStart.toISOString()
             const hasEvents = Boolean(counts?.[key])
+            
+            if (!isMonth) return <span key={day.toISOString()} />
+
             return (
               <button
                 key={day.toISOString()}
                 type="button"
-                onClick={() => onSelect(day)}
+                onClick={() => handleDayClick(day)}
                 className={clsx(
-                  'flex h-12 flex-col items-center justify-center rounded-full border text-sm font-semibold transition',
-                  inactive && 'border-transparent text-slate-300',
-                  !inactive && 'border-transparent',
-                  active && '!border-blue-500 bg-blue-50 text-blue-700'
+                  'relative mx-auto flex h-10 w-10 items-center justify-center text-sm font-semibold transition',
+                  isSelected 
+                    ? 'z-10 rounded-full bg-blue-600 text-white shadow-md' 
+                    : 'rounded-full text-slate-700 hover:bg-slate-100',
+                  inRange && !isSelected && 'rounded-none bg-blue-50 text-blue-900 w-full max-w-none mx-0', // Connect range
+                  // Add rounded corners for range ends visually if needed, but simplified here
+                  isToday && !isSelected && !inRange && 'text-blue-600 bg-blue-50'
                 )}
               >
                 <span>{format(day, 'd')}</span>
-                {hasEvents && <span className="mt-1 h-1 w-1 rounded-full bg-blue-500" />}
+                {hasEvents && !isSelected && !inRange && (
+                   <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-blue-400" />
+                )}
               </button>
             )
           })}
-        </div>
-      </SheetLayout>
-    </BottomSheet>
+      </div>
+    </div>
   )
 }
