@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
@@ -27,12 +27,14 @@ export function EventDetailPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isCheckingIn, setIsCheckingIn] = useState(false)
+  const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
   
   const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
     currentUserId: state.user?.id,
   }))
-  const { selectedEvent: event, fetchEventById, isLoading, joinEvent, leaveEvent } = useEventsStore()
+  const { selectedEvent: event, fetchEventById, isLoading, joinEvent, leaveEvent, checkInToEvent } = useEventsStore()
   const { items: sports } = useSports('zh')
 
   useEffect(() => {
@@ -66,6 +68,41 @@ export function EventDetailPage() {
     } else {
       await joinEvent(id)
     }
+  }
+
+  const handleCheckIn = async () => {
+    if (!id || isCheckingIn) return
+    setIsCheckingIn(true)
+
+    if (!navigator.geolocation) {
+      window.alert('您的裝置不支援 GPS 定位，無法報到')
+      setIsCheckingIn(false)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          await checkInToEvent(id, {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          })
+          setHasCheckedIn(true)
+          window.alert('報到成功！🎉')
+        } catch (err: any) {
+          console.error(err)
+          window.alert(err.message || '報到失敗，請確認您已抵達活動地點')
+        } finally {
+          setIsCheckingIn(false)
+        }
+      },
+      (err) => {
+        console.error(err)
+        window.alert('無法取得您的位置，請確認已開啟 GPS 權限')
+        setIsCheckingIn(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
   }
 
   const handleDelete = async () => {
@@ -206,27 +243,47 @@ export function EventDetailPage() {
               </div>
               
               {event.participants.length > 0 ? (
-                event.participants.map(p => (
-                  <div 
-                    key={p.id} 
-                    className="flex items-center gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-100 transition"
-                    onClick={() => {
-                      if (p.username) {
-                        navigate(`/mate/${p.username}`)
-                      }
-                    }}
-                  >
-                    <AvatarCircle
-                      name={p.name}
-                      src={p.avatarUrl}
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">
-                        {p.name}
-                      </p>
+                event.participants.map(p => {
+                  const isCheckedIn = !!p.checkedInAt
+                  const endTime = new Date(event.endTime)
+                  const closeMins = event.checkinCloseMinsAfter ?? 60
+                  const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+                  const now = new Date()
+                  const isAbsent = !isCheckedIn && now > closeTime
+
+                  return (
+                    <div 
+                      key={p.id} 
+                      className="flex items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-100 transition"
+                      onClick={() => {
+                        if (p.username) {
+                          navigate(`/mate/${p.username}`)
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <AvatarCircle
+                          name={p.name}
+                          src={p.avatarUrl}
+                        />
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {p.name}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="pr-1">
+                        {isCheckedIn ? (
+                          <span className="text-xs font-bold text-emerald-600">已報到</span>
+                        ) : isAbsent ? (
+                          <span className="text-xs font-bold text-red-500">缺席</span>
+                        ) : (
+                          <span className="text-xs font-medium text-slate-400">尚未報到</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <p className="text-sm text-slate-500 pl-14">還沒有人報名，快來搶頭香！</p>
               )}
@@ -250,7 +307,14 @@ export function EventDetailPage() {
           </div>
         </div>
       </div>
-      <JoinBar isJoined={isJoined} onClick={handleJoinClick} event={event} />
+      <JoinBar
+        isJoined={isJoined}
+        event={event}
+        onJoin={handleJoinClick}
+        onCheckIn={handleCheckIn}
+        isCheckingIn={isCheckingIn}
+        hasCheckedIn={hasCheckedIn}
+      />
       
       <BottomSheet
         open={showDeleteConfirm}
@@ -314,39 +378,114 @@ function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   )
 }
 
-function JoinBar({ isJoined, onClick, event }: { isJoined: boolean; onClick: () => void; event: any }) {
-  const isFull = event.attendeeCount >= event.maxAttendees;
-  const isPast = new Date(event.endTime) < new Date();
+type JoinBarProps = {
+  isJoined: boolean
+  event: any // Replace 'any' with PlayerEvent type if possible
+  onJoin: () => void
+  onCheckIn: () => void
+  isCheckingIn: boolean
+  hasCheckedIn: boolean
+}
 
-  let buttonText = '加入活動';
-  let disabled = false;
+function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedIn }: JoinBarProps) {
+  const isFull = event.attendeeCount >= event.maxAttendees
+  const now = new Date()
+  const startTime = new Date(event.startTime)
+  const endTime = new Date(event.endTime)
+  const isPast = endTime < now
+  
+  // Check-in window logic
+  // Use event configuration or defaults (30m before, 60m after)
+  const openMins = event.checkinOpenMinsBefore ?? 30
+  const closeMins = event.checkinCloseMinsAfter ?? 60
+  
+  const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
+  const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+  const isCheckInOpen = now >= openTime && now <= closeTime
 
-  if (isJoined) {
-    buttonText = '已加入';
+  const formatTime = (date: Date) => 
+    date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+  let mainButton = (
+    <Button
+      onClick={onJoin}
+      className="bg-blue-600 text-white hover:bg-blue-700"
+    >
+      加入活動
+    </Button>
+  )
+
+  let statusText: React.ReactNode = null
+
+  if (hasCheckedIn) {
+    mainButton = (
+      <Button disabled className="bg-emerald-500 text-white opacity-100">
+        已報到 ✓
+      </Button>
+    )
+  } else if (isJoined) {
+    if (isCheckInOpen) {
+      mainButton = (
+        <Button
+          onClick={onCheckIn}
+          disabled={isCheckingIn}
+          className="bg-emerald-600 text-white hover:bg-emerald-700"
+        >
+          {isCheckingIn ? '定位中...' : '📍 我到了！馬上報到'}
+        </Button>
+      )
+      statusText = (
+        <p className="text-center text-xs font-medium text-red-500">
+          最晚報到時間為 {formatTime(closeTime)}
+        </p>
+      )
+    } else if (now > closeTime) {
+      mainButton = (
+        <Button disabled className="bg-slate-400 text-white opacity-80 cursor-not-allowed">
+          缺席
+        </Button>
+      )
+    } else {
+      // Joined but not yet time to check in (now < openTime)
+      mainButton = (
+        <Button 
+          disabled={false} 
+          onClick={onJoin} 
+          className="bg-player-600 text-white hover:bg-player-700 shadow-sm"
+        >
+          已加入
+        </Button>
+      )
+      statusText = (
+        <p className="text-center text-xs font-medium text-slate-500">
+          將於 {formatTime(openTime)} 開放報到
+        </p>
+      )
+    }
   } else if (isPast) {
-    buttonText = '活動已結束';
-    disabled = true;
+    mainButton = (
+      <Button disabled className="bg-slate-300 text-slate-500 opacity-80 cursor-not-allowed">
+        活動已結束
+      </Button>
+    )
   } else if (isFull) {
-    buttonText = '已額滿';
-    disabled = true;
+    mainButton = (
+      <Button disabled className="bg-slate-300 text-slate-500 opacity-80 cursor-not-allowed">
+        已額滿
+      </Button>
+    )
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 overflow-hidden pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.2)]">
-      <div className="absolute inset-0 bg-gradient-to-br from-player-50/95 via-white/95 to-player-200/95" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,199,44,0.25),_transparent_60%)]" />
-      <div className="relative mx-auto w-full max-w-[420px] px-4">
-        <Button
-          onClick={onClick}
-          disabled={disabled}
-          className={clsx(
+    <div className="fixed inset-x-0 bottom-0 z-30 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+      <div className="relative mx-auto flex w-full max-w-[420px] flex-col gap-2 px-4">
+        {statusText}
+        {React.cloneElement(mainButton as React.ReactElement, {
+          className: clsx(
             'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-            isJoined ? 'bg-player-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700',
-            disabled && 'opacity-60 cursor-not-allowed'
-          )}
-        >
-          {buttonText}
-        </Button>
+            (mainButton as React.ReactElement).props.className
+          ),
+        })}
       </div>
     </div>
   )

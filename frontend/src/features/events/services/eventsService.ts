@@ -129,6 +129,8 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     status: session.status as any,
     visibility: session.visibility as any,
     updatedAt: session.updated_at ? new Date(session.updated_at) : undefined,
+    checkinOpenMinsBefore: session.checkin_open_mins_before,
+    checkinCloseMinsAfter: session.checkin_close_mins_after,
     detail: {
       description: session.notes,
       heroImageUrl: session.photos?.[0],
@@ -210,6 +212,7 @@ export const eventsService = {
           name: p.display_name || 'Participant',
           avatarUrl: p.avatar_url || undefined,
           username: p.username || undefined,
+          checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
         }))
       }
 
@@ -367,6 +370,20 @@ export const eventsService = {
         success: false,
         data: undefined as any,
         error: { code: 'DELETE_FAILED', message: err?.message || 'Failed to delete event' },
+        timestamp: new Date(),
+      }
+    }
+  },
+
+  async checkIn(eventId: string, coords: { lat: number; lng: number }): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpPost<any>(`/sessions/${eventId}/check-in`, { body: coords })
+      return wrapSuccess(res.data ?? res)
+    } catch (err: any) {
+      return {
+        success: false,
+        data: undefined as any,
+        error: { code: 'CHECKIN_FAILED', message: err?.message || 'Check-in failed' },
         timestamp: new Date(),
       }
     }

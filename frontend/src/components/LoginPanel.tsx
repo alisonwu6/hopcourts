@@ -16,6 +16,7 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
   const { login, isLoading, error, clearError } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showEmailForm, setShowEmailForm] = useState(variant !== 'sheet')
 
   const containerClass = clsx(
     'rounded-[32px] border border-slate-100 bg-white shadow-[0_25px_70px_rgba(15,41,77,0.08)] px-6 py-6 sm:px-8',
@@ -44,6 +45,34 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
       return
     }
     if (data?.url) window.location.href = data.url
+  }
+
+  if (!showEmailForm && variant === 'sheet') {
+    return (
+      <section className={containerClass}>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-slate-900">先登入，建立你的運動身份</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            建立完運動卡後，開場活動認識新朋友吧
+          </p>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-3">
+          <GoogleLoginButton loginGoogle={loginGoogle} />
+          <AppleLoginButton loginApple={loginApple} />
+        </div>
+
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => setShowEmailForm(true)}
+            className="font-semibold text-blue-600 transition hover:text-blue-700"
+          >
+            改用 Email 登入
+          </button>
+        </div>
+      </section>
+    )
   }
 
   return (

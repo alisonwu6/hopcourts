@@ -277,11 +277,19 @@ export interface PlayerEvent {
   price?: number
   priceRange?: string
   description?: string
-  participants: Array<{ id: string; name: string; avatarUrl?: string; username?: string }>
+  participants: Array<{
+    id: string
+    name: string
+    avatarUrl?: string
+    username?: string
+    checkedInAt?: string | Date
+  }>
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date
   visibility?: 'public' | 'private'
   updatedAt?: string | Date
+  checkinOpenMinsBefore?: number
+  checkinCloseMinsAfter?: number
   detail?: {
     description?: string
     lookingFor?: {
