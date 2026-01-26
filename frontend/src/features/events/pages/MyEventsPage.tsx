@@ -5,12 +5,19 @@ import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
 import { BottomSheet } from '@/components/BottomSheet'
 import { LoginPanel } from '@/components/LoginPanel'
+import { Calendar, MapPin, PersonStanding, type LucideIcon } from 'lucide-react'
 
 type TabKey = 'upcoming' | 'completed'
 
 function isCompleted(event: PlayerEvent) {
-  if (event.completedDate) {
-    return new Date(event.completedDate) < new Date()
+  const now = new Date()
+  
+  if (event.completedDate && new Date(event.completedDate) < now) {
+    return true
+  }
+  // Also check if endTime has passed
+  if (event.endTime && new Date(event.endTime) < now) {
+    return true
   }
   return false
 }
@@ -23,7 +30,7 @@ function groupByDate(events: PlayerEvent[]) {
   })
   const map = new Map<string, PlayerEvent[]>()
   events.forEach((event) => {
-    const label = formatter.format(event.startTime)
+    const label = formatter.format(new Date(event.startTime))
     map.set(label, [...(map.get(label) ?? []), event])
   })
   return Array.from(map.entries())
@@ -224,6 +231,22 @@ function EventGroupList({
     return emptyState
   }
 
+  const formatTimeRange = (start: Date | string, end: Date | string) => {
+    const s = new Date(start)
+    const e = new Date(end)
+    const date = s.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    const startStr = s.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })
+    const endStr = e.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })
+    return `${date} ${startStr}-${startStr !== endStr ? endStr : ''}`
+  }
+
+  const isOngoing = (event: PlayerEvent) => {
+    const now = new Date()
+    const start = new Date(event.startTime)
+    const end = event.endTime ? new Date(event.endTime) : start
+    return now >= start && now <= end
+  }
+
   return (
     <div className="space-y-6">
       {groups.map(([dateLabel, groupedEvents]) => (
@@ -237,28 +260,40 @@ function EventGroupList({
                 key={event.id}
                 type="button"
                 onClick={() => navigate(`/event/${event.id}`)}
-                className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md"
+                className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-slate-900">{event.title}</h4>
-                    <p className="mt-2 text-xs text-gray-600">
-                      {new Date(event.startTime).toLocaleDateString()} ·{' '}
-                      {new Date(event.startTime).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                    <p className="mt-1 text-xs text-gray-600">📍 {event.location.name}</p>
-                    <p className="mt-2 text-xs font-semibold text-blue-600">
-                      {isCompleted(event)
-                        ? '⭐⭐⭐⭐⭐ Leave review →'
-                        : `✓ 已加入 (${event.attendeeCount}/${event.maxAttendees})`}
-                    </p>
-                  </div>
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xl text-white">
-                    {resolveSportIcon(event.sport)}
-                  </div>
+                <div className="mb-3 flex items-start justify-between">
+                  <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
+                  {isOngoing(event) && (
+                    <span className="animate-pulse rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                      進行中
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                   <CardInfoRow 
+                     icon={Calendar} 
+                     label={formatTimeRange(event.startTime, event.endTime)} 
+                   />
+                   <CardInfoRow 
+                     icon={MapPin} 
+                     label={`${event.location.name} (${event.location.address || ''})`} 
+                   />
+                </div>
+
+                <div className="mt-4 flex items-center gap-3">
+                   <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+                     <PersonStanding className="h-5 w-5" strokeWidth={2} />
+                   </div>
+                   <div className="flex items-center gap-2">
+                     <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
+                       {event.attendeeCount}/{event.maxAttendees} 人
+                     </span>
+                     <span className="text-xs font-medium text-slate-500">
+                       剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
+                     </span>
+                   </div>
                 </div>
               </button>
             ))}
@@ -287,13 +322,15 @@ function EmptyState({
   )
 }
 
-const sportIcons: Record<string, string> = {
-  running: '🏃',
-  basketball: '🏀',
-  climbing: '🧗',
-  tennis: '🎾',
-}
-
-function resolveSportIcon(sport: string) {
-  return sportIcons[sport.toLowerCase()] ?? '⚽'
+function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon, label: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+        <Icon className="h-5 w-5" strokeWidth={2} />
+      </div>
+      <div className="text-sm font-medium text-slate-600 leading-tight">
+        {label}
+      </div>
+    </div>
+  )
 }

@@ -89,7 +89,7 @@ async function listMyUpcomingSessions({ userId, from, to } = {}) {
   let idx = params.length
   const conditions = [
     '(sp.user_id = $1 OR s.host_user_id = $1)',
-    's.starts_at >= $2',
+    '(s.ends_at IS NULL OR s.ends_at >= $2)',
     "s.status = 'published'",
   ]
 
@@ -270,8 +270,8 @@ async function createSession(input) {
     input.lat ?? 0,
     input.lng ?? 0,
     input.checkinRadiusM ?? 100,
-    input.checkinOpenMinsBefore ?? 20,
-    input.checkinCloseMinsAfter ?? 20,
+    input.checkinOpenMinsBefore ?? 15,
+    input.checkinCloseMinsAfter ?? 10,
     input.minPeople ?? 2,
     input.capacity ?? input.maxPeople ?? null,
     input.status ?? 'published',

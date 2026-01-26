@@ -5,6 +5,7 @@ import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
 import { BottomSheet } from '@/components/BottomSheet'
 import { LoginPanel } from '@/components/LoginPanel'
+import { Calendar, MapPin, PersonStanding, type LucideIcon } from 'lucide-react'
 
 type TabKey = 'upcoming' | 'history'
 
@@ -23,15 +24,17 @@ function groupByDate(events: PlayerEvent[]) {
   return Array.from(map.entries())
 }
 
-function resolveSportIcon(sport: string) {
-  const sportIcons: Record<string, string> = {
-    running: '🏃',
-    basketball: '🏀',
-    climbing: '🧗',
-    tennis: '🎾',
-    bouldering: '🧗',
-  }
-  return sportIcons[sport.toLowerCase()] ?? '⚽'
+function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon, label: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+        <Icon className="h-5 w-5" strokeWidth={2} />
+      </div>
+      <div className="text-sm font-medium text-slate-600 leading-tight">
+        {label}
+      </div>
+    </div>
+  )
 }
 
 export function MySessions() {
@@ -161,67 +164,84 @@ function EventGroupList({
     return emptyState
   }
 
+  const formatTimeRange = (start: Date | string, end: Date | string) => {
+    const s = new Date(start)
+    const e = new Date(end)
+    const date = s.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    const startStr = s.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })
+    const endStr = e.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })
+    return `${date} ${startStr}-${startStr !== endStr ? endStr : ''}`
+  }
+
+  const isOngoing = (event: PlayerEvent) => {
+    const now = new Date()
+    const start = new Date(event.startTime)
+    const end = event.endTime ? new Date(event.endTime) : start
+    return now >= start && now <= end
+  }
+
   return (
     <div className="space-y-6">
       {groups.map(([dateLabel, groupedEvents]) => (
         <div key={dateLabel}>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500 pl-1">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500 pl-1">
             {dateLabel}
           </h3>
           <div className="space-y-3">
             {groupedEvents.map((event) => (
-              <div
+              <button
                 key={event.id}
-                className="group relative flex items-stretch"
+                type="button"
+                onClick={() => {
+                  if (event.status === 'draft') {
+                    navigate(`/create-event?id=${event.id}`)
+                  } else {
+                    navigate(`/event/${event.id}`)
+                  }
+                }}
+                className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (event.status === 'draft') {
-                      navigate(`/create-event?id=${event.id}`)
-                    } else {
-                      navigate(`/event/${event.id}`)
-                    }
-                  }}
-                  className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:shadow-md hover:border-blue-300"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-slate-900 truncate">
-                        {event.status === 'draft' && (
-                          <span className="mr-2 inline-flex items-center rounded-md bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
-                            草稿
-                          </span>
-                        )}
-                        {event.title}
-                      </h4>
-                      <div className="mt-1 flex flex-col gap-1 text-xs text-slate-500">
-                        <span>
-                          {new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} {' '}
-                          {new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}-
-                          {new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}
-                        </span>
-                        <span className="truncate">
-                          📍 {event.location.name && event.location.name !== event.location.address 
-                              ? `${event.location.name} (${event.location.address})` 
-                              : (event.location.name || event.location.address)}
-                        </span>
-                      </div>
-                      <div className="mt-3 flex items-center gap-2">
-                        <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                          {event.attendeeCount}/{event.maxAttendees} 人
-                        </span>
-                        <span className="text-xs text-slate-500 font-medium">
-                          剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-2xl shadow-inner">
-                      {resolveSportIcon(event.sport)}
-                    </div>
+                <div className="mb-3 flex items-start justify-between">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
+                    {event.status === 'draft' && (
+                      <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-800">
+                        草稿
+                      </span>
+                    )}
                   </div>
-                </button>
-              </div>
+                  {isOngoing(event) && (
+                    <span className="animate-pulse flex-shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                      進行中
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                   <CardInfoRow 
+                     icon={Calendar} 
+                     label={formatTimeRange(event.startTime, event.endTime)} 
+                   />
+                   <CardInfoRow 
+                     icon={MapPin} 
+                     label={`${event.location.name} (${event.location.address || ''})`} 
+                   />
+                </div>
+
+                <div className="mt-4 flex items-center gap-3">
+                   <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+                     <PersonStanding className="h-5 w-5" strokeWidth={2} />
+                   </div>
+                   <div className="flex items-center gap-2">
+                     <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
+                       {event.attendeeCount}/{event.maxAttendees} 人
+                     </span>
+                     <span className="text-xs font-medium text-slate-500">
+                       剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
+                     </span>
+                   </div>
+                </div>
+              </button>
             ))}
           </div>
         </div>

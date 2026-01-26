@@ -3,10 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
-import { BottomSheet } from '@/components/BottomSheet'
+import { BottomSheet, AlertDialog } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
 import clsx from 'clsx'
-import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding, Trash2 } from 'lucide-react'
+import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding, Trash2, LandPlot } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
@@ -70,12 +70,23 @@ export function EventDetailPage() {
     }
   }
 
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean
+    title: string
+    description: React.ReactNode
+    type: 'success' | 'error' | 'info' | 'warning'
+  }>({ open: false, title: '', description: '', type: 'info' })
+
+  const showAlert = (title: string, description: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    setAlertDialog({ open: true, title, description, type })
+  }
+
   const handleCheckIn = async () => {
     if (!id || isCheckingIn) return
     setIsCheckingIn(true)
 
     if (!navigator.geolocation) {
-      window.alert('您的裝置不支援 GPS 定位，無法報到')
+      showAlert('不支援定位', '您的裝置不支援 GPS 定位，無法進行報到。', 'error')
       setIsCheckingIn(false)
       return
     }
@@ -88,17 +99,44 @@ export function EventDetailPage() {
             lng: position.coords.longitude,
           })
           setHasCheckedIn(true)
-          window.alert('報到成功！🎉')
+          // Refresh event data so participant list updates
+          void fetchEventById(id)
+          
+          showAlert('報到成功！', '您已成功完成報到，祝您活動愉快！🎉', 'success')
         } catch (err: any) {
-          console.error(err)
-          window.alert(err.message || '報到失敗，請確認您已抵達活動地點')
+          console.error('Check-in error full object:', err)
+          
+          // Try to extract the backend error object
+          const backendError = err.response?.data?.error 
+            || err.response?.data 
+            || err
+            
+          console.log('Parsed backend error:', backendError)
+          
+          const code = backendError.code
+          const details = backendError.details
+
+          if (code === 'CHECKIN_OUTSIDE_RADIUS') {
+             const dist = details?.distance_m
+             const radius = details?.radius_m
+             const gap = Math.max(0, dist - radius) // Gap required to move
+             
+             const distStr = dist >= 1000 ? `${(dist/1000).toFixed(1)}km` : `${dist}m`
+             const gapStr = gap >= 1000 ? `${(gap/1000).toFixed(1)}km` : `${gap}m`
+             
+             showAlert('再靠近一點點就到了！', `目前距離場地約 ${distStr}。請再往場地移動約 ${gapStr}，進入 ${radius}m 範圍內即可進行報到！`, 'warning')
+          } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
+             showAlert('非報到時間', '目前不在開放報到的時間範圍內。', 'warning')
+          } else {
+             showAlert('報到失敗', backendError.message || err.message || '請確認您已抵達活動地點並開啟定位。', 'error')
+          }
         } finally {
           setIsCheckingIn(false)
         }
       },
       (err) => {
         console.error(err)
-        window.alert('無法取得您的位置，請確認已開啟 GPS 權限')
+        showAlert('定位失敗', '無法取得您的位置，請確認瀏覽器或裝置已開啟 GPS 權限。', 'error')
         setIsCheckingIn(false)
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -120,12 +158,22 @@ export function EventDetailPage() {
     }
   }
 
+  const isJoined = event?.joined ?? false
+  const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
+  
+  // Check if current user is checked in based on event data
+  const isCheckedInFromServer = React.useMemo(() => {
+    if (!event || !currentUserId) return false
+    const me = event.participants.find(p => p.id === currentUserId)
+    return !!me?.checkedInAt
+  }, [event, currentUserId])
+
+  const effectiveCheckedIn = hasCheckedIn || isCheckedInFromServer
+
   if (isLoading || !event) {
     return <div className="flex h-screen items-center justify-center text-slate-500">載入中...</div>
   }
 
-  const isJoined = event.joined
-  const spotsRemaining = Math.max(0, event.maxAttendees - event.attendeeCount)
   const heroImage = (event.photos && event.photos.length > 0) ? event.photos[0] : (event.heroImageUrl || event.detail?.heroImageUrl)
   const skillLabel = 
     event.skillLevel === 'beginner' ? '初階' :
@@ -142,7 +190,7 @@ export function EventDetailPage() {
   // Current UI only shows one hero image.
 
   return (
-    <div className="min-h-screen bg-[#f3f5f8] pb-12">
+    <div className="min-h-screen bg-[#f3f5f8] pb-40">
       <ActionToolbar
         onBack={() => navigate(-1)}
         onShare={handleShare}
@@ -313,7 +361,7 @@ export function EventDetailPage() {
         onJoin={handleJoinClick}
         onCheckIn={handleCheckIn}
         isCheckingIn={isCheckingIn}
-        hasCheckedIn={hasCheckedIn}
+        hasCheckedIn={effectiveCheckedIn}
       />
       
       <BottomSheet
@@ -343,6 +391,14 @@ export function EventDetailPage() {
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
         onSignup={() => navigate('/signup')}
+      />
+
+      <AlertDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog(prev => ({ ...prev, open: false }))}
+        title={alertDialog.title}
+        description={alertDialog.description}
+        type={alertDialog.type}
       />
     </div>
   )
@@ -397,10 +453,10 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   // Check-in window logic
   // Use event configuration or defaults (30m before, 60m after)
   const openMins = event.checkinOpenMinsBefore ?? 30
-  const closeMins = event.checkinCloseMinsAfter ?? 60
+  const closeMins = event.checkinCloseMinsAfter ?? 10 // Match backend default
   
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
-  const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+  const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time
   const isCheckInOpen = now >= openTime && now <= closeTime
 
   const formatTime = (date: Date) => 
@@ -431,12 +487,17 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
           disabled={isCheckingIn}
           className="bg-emerald-600 text-white hover:bg-emerald-700"
         >
-          {isCheckingIn ? '定位中...' : '📍 我到了！馬上報到'}
+          {isCheckingIn ? '定位中...' : (
+            <span className="flex items-center justify-center gap-2">
+              <LandPlot className="h-5 w-5" strokeWidth={2} />
+              點我報到
+            </span>
+          )}
         </Button>
       )
       statusText = (
-        <p className="text-center text-xs font-medium text-red-500">
-          最晚報到時間為 {formatTime(closeTime)}
+        <p className="text-center text-xs font-medium text-slate-500 px-4 leading-relaxed">
+          請於 {formatTime(closeTime)} 分前完成報到，讓你的同場夥伴知道你到了。
         </p>
       )
     } else if (now > closeTime) {

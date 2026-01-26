@@ -380,10 +380,18 @@ export const eventsService = {
       const res = await httpPost<any>(`/sessions/${eventId}/check-in`, { body: coords })
       return wrapSuccess(res.data ?? res)
     } catch (err: any) {
+      // 'http' utility attaches parsed JSON response to err.details
+      const jsonResponse = err.details || {}
+      const backendErr = jsonResponse.error || jsonResponse
+
       return {
         success: false,
         data: undefined as any,
-        error: { code: 'CHECKIN_FAILED', message: err?.message || 'Check-in failed' },
+        error: { 
+          code: backendErr.code || 'CHECKIN_FAILED', 
+          message: backendErr.message || err?.message || 'Check-in failed',
+          details: backendErr.details
+        } as any,
         timestamp: new Date(),
       }
     }
