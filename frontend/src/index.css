@@ -62,10 +62,8 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background-color: #f4f6fb; /* User preferred background */
     color: var(--color-text-primary);
-    background-image: linear-gradient(135deg, rgba(26, 188, 156, 0.05) 0%, rgba(26, 69, 120, 0.04) 100%);
-    background-repeat: no-repeat;
   }
 }
 

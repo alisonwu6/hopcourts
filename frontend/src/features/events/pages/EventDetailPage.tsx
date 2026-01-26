@@ -190,7 +190,7 @@ export function EventDetailPage() {
   // Current UI only shows one hero image.
 
   return (
-    <div className="min-h-screen bg-[#f3f5f8] pb-40">
+    <div className="min-h-screen pb-40">
       <ActionToolbar
         onBack={() => navigate(-1)}
         onShare={handleShare}

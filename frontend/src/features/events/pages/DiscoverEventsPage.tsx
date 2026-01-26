@@ -148,10 +148,10 @@ export function DiscoverEventsPage() {
   const hasFilter = Boolean(dateRange.start || !selectedSports.includes('all'))
 
   return (
-    <div className="min-h-screen bg-[#f4f6fb] pb-24">
+    <div className="min-h-screen pb-24">
       {/* Airbnb-style Header */}
       <div
-        className="fixed left-0 right-0 z-40 bg-[#f4f6fb]/95 p-4 backdrop-blur transition-all duration-300"
+        className="fixed left-0 right-0 z-40 bg-[#f4f6fb]/80 p-4 backdrop-blur transition-all duration-300"
         style={{ top: '0px' }}
       >
         <div className="mx-auto flex w-full max-w-4xl items-center gap-3">

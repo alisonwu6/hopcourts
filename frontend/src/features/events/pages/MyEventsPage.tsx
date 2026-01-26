@@ -59,7 +59,7 @@ export function MyEventsPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#f4f6fb] px-4 pb-24 pt-4">
+      <div className="min-h-screen px-4 pb-24 pt-4">
         <div className="mx-auto w-full max-w-4xl space-y-4">
           <div className="flex justify-center">
             <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100">
@@ -112,8 +112,8 @@ export function MyEventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f6fb] pb-24">
-      <div className="sticky top-0 z-20 border-b border-blue-200 bg-[#f4f6fb]/95 px-4 py-3 shadow-sm backdrop-blur">
+    <div className="min-h-screen pb-24">
+      <div className="sticky top-0 z-20 border-b border-blue-200 bg-[#f4f6fb]/80 px-4 py-3 shadow-sm backdrop-blur">
         <div className="flex justify-center">
           <div className="flex w-full max-w-sm items-center rounded-full bg-slate-100">
             <button
