@@ -100,7 +100,10 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
 
       {/* Bottom Floating Card */}
       {selectedEvent && (
-        <div className="absolute bottom-20 left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300">
+        <div 
+          className="fixed left-4 right-4 z-50 animate-in slide-in-from-bottom-4 duration-300"
+          style={{ bottom: 'calc(68px + env(safe-area-inset-bottom, 0px) + 10px)' }}
+        >
           <Link 
             to={`/event/${selectedEvent.id}`}
             className="block"
