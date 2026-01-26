@@ -256,19 +256,18 @@ function EventGroupList({
                         icon={MapPin}
                         label={`${event.location.name} (${event.location.address || ''})`}
                       />
-                    </div>
-
-                    <div className="mt-4 flex items-center gap-3">
-                      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
-                        <PersonStanding className="h-5 w-5" strokeWidth={2} />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
-                          {event.attendeeCount}/{event.maxAttendees} 人
-                        </span>
-                        <span className="text-xs font-medium text-slate-500">
-                          剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+                          <PersonStanding className="h-5 w-5" strokeWidth={2} />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
+                            {event.attendeeCount}/{event.maxAttendees} 人
+                          </span>
+                          <span className="text-xs font-medium text-slate-500">
+                            剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </button>

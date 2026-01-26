@@ -3,11 +3,9 @@ import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
 import {
   Calendar,
-  CircleDollarSign,
-  Earth,
   MapPin,
   MapPinPlusInside,
-  UserRoundPlus,
+  PersonStanding,
 } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { useSports } from '@/features/dictionaries/hooks'
@@ -98,8 +96,8 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
               <p className="text-base font-semibold text-slate-900">
                 {event.host.name} {event.host.countryKey && getFlagEmoji(event.host.countryKey)}
               </p>
-              <div className="flex items-center text-sm text-slate-500">
-                <MapPin className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+              <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
+                <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
                 <span>{cityLabel}</span>
               </div>
             </div>
@@ -126,37 +124,47 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           <span className="inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-semibold tracking-wide text-pink-700">
             {event.gender === 'female_only' ? '女性專屬' : event.gender === 'male_only' ? '男性專屬' : '性別混合'}
           </span>
-          {event.visibility === 'public' && (
-            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold tracking-wide text-emerald-700">
-              公開場次
+          {event.visibility !== 'public' && (
+            <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
+              私人場次
             </span>
           )}
+          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
+            {event.isFree ? '免費參加' : event.priceRange || '收費活動'}
+          </span>
         </div>
 
-        <div className="space-y-1">
-          <h3 className="text-xl font-semibold leading-snug text-slate-900">{event.title}</h3>
+        <div className="space-y-3">
+          <h3 className="text-xl font-bold leading-snug text-slate-900">{event.title}</h3>
 
-          <div className="flex flex-col text-sm text-slate-600">
+          <div className="space-y-3">
             <InfoRow icon={Calendar} label={scheduleLabel} />
             <InfoRow icon={MapPin} label={locationLabel} />
-            <div className="flex flex-wrap items-center">
-              <IconBadge icon={UserRoundPlus} />
-              <div className="flex -space-x-2">
-                {participantPreview.map((participant) => (
-                  <AvatarCircle
-                    key={participant.id}
-                    name={participant.name}
-                    src={participant.avatarUrl}
-                    size="sm"
-                    ring
-                  />
-                ))}
+            
+            <div className="flex items-center gap-3">
+              <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+                <PersonStanding className="h-5 w-5" strokeWidth={2} />
               </div>
-              <span className="text-sm text-slate-600">
-                {summaryText(attendeeCount, event.maxAttendees, remaining)}
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
+                  {attendeeCount}/{event.maxAttendees} 人
+                </span>
+                <span className="text-xs font-medium text-slate-500">
+                  剩餘名額 {remaining} 人
+                </span>
+                <div className="flex -space-x-2 ml-1">
+                  {participantPreview.map((participant) => (
+                    <AvatarCircle
+                      key={participant.id}
+                      name={participant.name}
+                      src={participant.avatarUrl}
+                      size="sm"
+                      ring
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
-            <InfoRow icon={CircleDollarSign} label={priceLabel} />
           </div>
         </div>
       </div>
@@ -198,19 +206,15 @@ function AvatarCircle({
   )
 }
 
-function IconBadge({ icon: Icon }: { icon: LucideIcon }) {
+function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
-    <span className="inline-flex h-8 w-8 items-center justify-center text-slate-500">
-      <Icon className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-    </span>
-  )
-}
-
-function InfoRow({ icon, label }: { icon: LucideIcon; label: string }) {
-  return (
-    <div className="flex items-center">
-      <IconBadge icon={icon} />
-      <span>{label}</span>
+    <div className="flex items-start gap-3">
+      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+        <Icon className="h-5 w-5" strokeWidth={2} />
+      </div>
+      <div className="text-sm font-medium text-slate-600 leading-tight">
+        {label}
+      </div>
     </div>
   )
 }
