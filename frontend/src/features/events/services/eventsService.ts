@@ -256,7 +256,7 @@ export const eventsService = {
      }
   },
 
-  async createEvent(input: CreateEventInput): Promise<ApiResponse<PlayerEvent>> {
+  async createEvent(input: CreateEventInput & { status?: string }): Promise<ApiResponse<PlayerEvent>> {
     try {
       const payload = {
         title: input.title,
@@ -270,7 +270,7 @@ export const eventsService = {
         lng: input.location?.lng ?? 0,
         min_people: 1,
         max_people: input.maxAttendees,
-        status: 'published',
+        status: input.status || 'published',
         visibility: 'public',
         skill_level: (input.skillLevel as any) ?? 'any',
         gender: input.gender ?? 'mixed',

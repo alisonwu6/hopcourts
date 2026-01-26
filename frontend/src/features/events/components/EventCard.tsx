@@ -208,11 +208,11 @@ function AvatarCircle({
 
 function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+    <div className="flex items-center gap-3">
+      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
         <Icon className="h-5 w-5" strokeWidth={2} />
       </div>
-      <div className="text-sm font-medium text-slate-600 leading-tight">
+      <div className="text-sm font-medium text-slate-600">
         {label}
       </div>
     </div>

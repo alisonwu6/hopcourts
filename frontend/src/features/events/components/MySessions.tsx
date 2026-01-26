@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { PlayerEvent } from '@/types'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
@@ -26,11 +26,11 @@ function groupByDate(events: PlayerEvent[]) {
 
 function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon, label: string }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+    <div className="flex items-center gap-3">
+      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
         <Icon className="h-5 w-5" strokeWidth={2} />
       </div>
-      <div className="text-sm font-medium text-slate-600 leading-tight">
+      <div className="text-sm font-medium text-slate-600">
         {label}
       </div>
     </div>
@@ -39,7 +39,19 @@ function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon, label: string })
 
 export function MySessions() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState<TabKey>('upcoming')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const tab = (searchParams.get('tab') as TabKey) || 'upcoming'
+
+  const setTab = (newTab: TabKey) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.set('tab', newTab)
+        return next
+      },
+      { replace: true }
+    )
+  }
   const events = useEventsStore((state) => state.events)
   const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const isLoading = useEventsStore((state) => state.isLoading)
@@ -184,12 +196,15 @@ function EventGroupList({
     const checkInStart = new Date(start.getTime() - openMins * 60000)
     const checkInEnd = new Date(start.getTime() + closeMins * 60000)
     
-    if (now >= checkInStart && now <= checkInEnd) {
-      return 'check-in-open'
-    }
-    
+    // Drafts don't have active statuses like check-in or ongoing
+    if (event.status === 'draft') return null
+
     if (now >= start && now <= end) {
       return 'ongoing'
+    }
+
+    if (now >= checkInStart && now < start) {
+      return 'check-in-open'
     }
     
     return null
@@ -229,12 +244,12 @@ function EventGroupList({
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
-                        {event.status === 'draft' && (
-                          <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-800">
-                            草稿
-                          </span>
-                        )}
                       </div>
+                      {event.status === 'draft' && (
+                        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-800">
+                          草稿
+                        </span>
+                      )}
                       {status === 'check-in-open' && (
                         <span className="flex-shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
                           開放報到中
@@ -257,7 +272,7 @@ function EventGroupList({
                         label={`${event.location.name} (${event.location.address || ''})`}
                       />
                       <div className="flex items-center gap-3">
-                        <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+                        <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
                           <PersonStanding className="h-5 w-5" strokeWidth={2} />
                         </div>
                         <div className="flex items-center gap-2">

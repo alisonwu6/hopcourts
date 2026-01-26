@@ -12,6 +12,7 @@ import { useAuthStore } from '@/hooks'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { eventsService } from '@/features/events/services/eventsService'
 import { useSports } from '@/features/dictionaries/hooks'
+import { PageLoading } from '@/components/PageLoading'
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
@@ -102,7 +103,7 @@ export function EventDetailPage() {
           // Refresh event data so participant list updates
           void fetchEventById(id)
           
-          showAlert('報到成功！', '您已成功完成報到，祝您活動愉快！🎉', 'success')
+          showAlert('報到成功', '好好享受運動帶來的樂趣吧！', 'success')
         } catch (err: any) {
           console.error('Check-in error full object:', err)
           
@@ -136,7 +137,7 @@ export function EventDetailPage() {
       },
       (err) => {
         console.error(err)
-        showAlert('定位失敗', '無法取得您的位置，請確認瀏覽器或裝置已開啟 GPS 權限。', 'error')
+        showAlert('你在哪？', '請開啟位置功能，讓我們知道你是否已進入到報告範圍。', 'warning')
         setIsCheckingIn(false)
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -171,7 +172,7 @@ export function EventDetailPage() {
   const effectiveCheckedIn = hasCheckedIn || isCheckedInFromServer
 
   if (isLoading || !event) {
-    return <div className="flex h-screen items-center justify-center text-slate-500">載入中...</div>
+    return <PageLoading />
   }
 
   const heroImage = (event.photos && event.photos.length > 0) ? event.photos[0] : (event.heroImageUrl || event.detail?.heroImageUrl)

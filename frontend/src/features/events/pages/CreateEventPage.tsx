@@ -23,6 +23,7 @@ import { httpPost } from '@/api/http'
 import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
+import { PageLoading } from '@/components/PageLoading'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const SKILL_LEVEL_LABELS = {
@@ -83,7 +84,8 @@ export default function CreateEventPage() {
   const { items: sportsCatalog } = useSports('zh')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submittingStatus, setSubmittingStatus] = useState<'draft' | 'published' | null>(null)
+  const isSubmitting = submittingStatus !== null
   const [isFavorite, setIsFavorite] = useState(false)
   const [heroPreviews, setHeroPreviews] = useState<string[]>([])
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
@@ -99,15 +101,18 @@ export default function CreateEventPage() {
   const [isAddressClearing, setIsAddressClearing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDraftLoading, setIsDraftLoading] = useState(false)
   
   useEffect(() => {
     if (!editId) return
+    setIsDraftLoading(true)
     const fetchDraft = async () => {
       try {
         const res = await eventsService.getEventById(editId)
         if (res.success && res.data) {
           const draft = res.data
           const toLocalISO = (d: Date | string) => {
+             if (!d) return ''
              const dateObj = typeof d === 'string' ? new Date(d) : d
              const offset = dateObj.getTimezoneOffset() * 60000
              return new Date(dateObj.getTime() - offset).toISOString().slice(0, 16)
@@ -134,8 +139,8 @@ export default function CreateEventPage() {
             priceNote: '現場收費',
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
             gender: draft.gender || 'mixed',
-            description: draft.detail?.description || '',
-            notes: '', 
+            description: draft.detail?.description || draft.description || '',
+            notes: (draft as any).notesForAttendees || draft.detail?.lookingFor?.notes || '',  
             placeName: draft.location.name || '',
           })
           
@@ -149,9 +154,14 @@ export default function CreateEventPage() {
           if (draft.photos && draft.photos.length > 0) {
              setHeroPreviews(draft.photos)
           }
+        } else {
+             setError('無法載入草稿，找不到此活動。')
         }
       } catch (err) {
         console.error('Failed to load draft', err)
+        setError('載入草稿時發生錯誤。')
+      } finally {
+        setIsDraftLoading(false)
       }
     }
     fetchDraft()
@@ -317,6 +327,7 @@ export default function CreateEventPage() {
       return
     }
 
+    // Capacity & Time Logic
     const capacity = Number(form.capacity)
     const latNum = form.lat ? Number(form.lat) : null
     const lngNum = form.lng ? Number(form.lng) : null
@@ -346,7 +357,7 @@ export default function CreateEventPage() {
     }
 
     setError(null)
-    setIsSubmitting(true)
+    setSubmittingStatus(status)
     try {
       // 1. Upload Images or use existing
       let uploadedPhotoUrls: string[] = []
@@ -401,7 +412,7 @@ export default function CreateEventPage() {
     } catch (err: any) {
       setError(err?.message || '儲存活動時發生錯誤。')
     } finally {
-      setIsSubmitting(false)
+      setSubmittingStatus(null)
     }
   }
 
@@ -448,6 +459,7 @@ export default function CreateEventPage() {
             )
           }
         />
+        {isDraftLoading && <PageLoading />}
         <form
           id="event-form"
           className="mx-auto mt-6 w-full max-w-3xl space-y-4 px-4 pb-8 sm:px-6"
@@ -613,7 +625,7 @@ export default function CreateEventPage() {
 
         <ActionBar
           canSubmit={canSubmit}
-          isSubmitting={isSubmitting}
+          submittingStatus={submittingStatus}
           onDraft={() => handleSubmit(undefined, 'draft')}
           onPublish={() => handleSubmit(undefined, 'published')}
         />
@@ -794,15 +806,16 @@ export default function CreateEventPage() {
 
 function ActionBar({
   canSubmit,
-  isSubmitting,
+  submittingStatus,
   onDraft,
   onPublish,
 }: {
   canSubmit: boolean
-  isSubmitting: boolean
+  submittingStatus: 'draft' | 'published' | null
   onDraft: () => void
   onPublish: () => void
 }) {
+  const isSubmitting = submittingStatus !== null
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 bg-blue-50/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(30,64,175,0.12)] backdrop-blur">
       <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 sm:px-6">
@@ -814,7 +827,7 @@ function ActionBar({
           className="flex-1 rounded-full border-blue-200 text-blue-500 hover:bg-blue-50"
           disabled={!canSubmit || isSubmitting}
         >
-          草稿
+          {submittingStatus === 'draft' ? '儲存中...' : '草稿'}
         </Button>
         <Button
           size="sm"
@@ -823,10 +836,10 @@ function ActionBar({
           disabled={isSubmitting}
           className={clsx(
             "flex-1 rounded-full px-6",
-            !canSubmit && "opacity-50" // Visual cue but clickable
+            !canSubmit && "opacity-50"
           )}
         >
-          {isSubmitting ? '發布中…' : '發佈'}
+          {submittingStatus === 'published' ? '發布中…' : '發佈'}
         </Button>
       </div>
     </div>

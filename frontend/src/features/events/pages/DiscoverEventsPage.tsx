@@ -17,6 +17,7 @@ import {
   setYear,
 } from 'date-fns'
 import { BottomSheet } from '@/components'
+import { PageLoading } from '@/components/PageLoading'
 import { SheetLayout } from '@/components/SheetLayout'
 import { EventCard } from '@/features/events/components/EventCard'
 import { EventMap } from '@/features/events/components/EventMap'
@@ -231,7 +232,7 @@ export function DiscoverEventsPage() {
           )}
   
           {isLoading ? (
-            <div className="flex justify-center py-10 text-slate-500">載入活動中…</div>
+            <PageLoading fullScreen={false} className="py-20" />
           ) : filteredEvents.length === 0 ? (
             <div className="flex justify-center">
               <div className="flex w-full flex-col items-center justify-center rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
