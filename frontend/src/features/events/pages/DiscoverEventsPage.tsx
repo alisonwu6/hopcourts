@@ -71,7 +71,6 @@ export function DiscoverEventsPage() {
   
   const sports = useMemo<SportFilterOption[]>(
     () => [
-      { key: 'all', label: '全部', icon: '全' },
       ...sportsCatalog.map((sport) => ({
         key: sport.key,
         label: sport.label,
