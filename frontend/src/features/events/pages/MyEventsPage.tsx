@@ -23,10 +23,10 @@ function isCompleted(event: PlayerEvent) {
 }
 
 function groupByDate(events: PlayerEvent[]) {
-  const formatter = new Intl.DateTimeFormat(undefined, {
-    weekday: 'long',
-    month: 'short',
+  const formatter = new Intl.DateTimeFormat('zh-TW', {
+    month: 'numeric',
     day: 'numeric',
+    weekday: 'long',
   })
   const map = new Map<string, PlayerEvent[]>()
   events.forEach((event) => {
@@ -240,63 +240,95 @@ function EventGroupList({
     return `${date} ${startStr}-${startStr !== endStr ? endStr : ''}`
   }
 
-  const isOngoing = (event: PlayerEvent) => {
+  const getEventStatus = (event: PlayerEvent): 'check-in-open' | 'ongoing' | null => {
     const now = new Date()
     const start = new Date(event.startTime)
     const end = event.endTime ? new Date(event.endTime) : start
-    return now >= start && now <= end
+    
+    // Check-in logic: 30 mins before start, 10 mins after start (default)
+    const openMins = event.checkinOpenMinsBefore ?? 30
+    const closeMins = event.checkinCloseMinsAfter ?? 10
+    const checkInStart = new Date(start.getTime() - openMins * 60000)
+    const checkInEnd = new Date(start.getTime() + closeMins * 60000)
+    
+    if (now >= checkInStart && now <= checkInEnd) {
+      return 'check-in-open'
+    }
+    
+    if (now >= start && now <= end) {
+      return 'ongoing'
+    }
+    
+    return null
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {groups.map(([dateLabel, groupedEvents]) => (
         <div key={dateLabel}>
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
+          <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-gray-500 pl-1">
             {dateLabel}
           </h3>
-          <div className="space-y-3">
-            {groupedEvents.map((event) => (
-              <button
-                key={event.id}
-                type="button"
-                onClick={() => navigate(`/event/${event.id}`)}
-                className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
-              >
-                <div className="mb-3 flex items-start justify-between">
-                  <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
-                  {isOngoing(event) && (
-                    <span className="animate-pulse rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                      進行中
-                    </span>
-                  )}
-                </div>
+          <div className="relative border-l border-slate-200 ml-3 space-y-6 pb-2">
+            {groupedEvents.map((event) => {
+              const status = getEventStatus(event)
+              const active = status !== null
+              return (
+                <div key={event.id} className="relative pl-6">
+                  <span
+                    className={`absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full border-2 border-white ring-1 ${
+                      status === 'check-in-open' ? 'bg-emerald-500 ring-emerald-300 scale-125' :
+                      status === 'ongoing' ? 'bg-amber-500 ring-amber-300 scale-125' :
+                      'bg-slate-200 ring-slate-200'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/event/${event.id}`)}
+                    className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
+                  >
+                    <div className="mb-3 flex items-start justify-between">
+                      <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
+                      {status === 'check-in-open' && (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                          開放報到
+                        </span>
+                      )}
+                      {status === 'ongoing' && (
+                        <span className="animate-pulse rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                          進行中
+                        </span>
+                      )}
+                    </div>
 
-                <div className="space-y-3">
-                   <CardInfoRow 
-                     icon={Calendar} 
-                     label={formatTimeRange(event.startTime, event.endTime)} 
-                   />
-                   <CardInfoRow 
-                     icon={MapPin} 
-                     label={`${event.location.name} (${event.location.address || ''})`} 
-                   />
-                </div>
+                    <div className="space-y-3">
+                      <CardInfoRow
+                        icon={Calendar}
+                        label={formatTimeRange(event.startTime, event.endTime)}
+                      />
+                      <CardInfoRow
+                        icon={MapPin}
+                        label={`${event.location.name} (${event.location.address || ''})`}
+                      />
+                    </div>
 
-                <div className="mt-4 flex items-center gap-3">
-                   <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
-                     <PersonStanding className="h-5 w-5" strokeWidth={2} />
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
-                       {event.attendeeCount}/{event.maxAttendees} 人
-                     </span>
-                     <span className="text-xs font-medium text-slate-500">
-                       剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
-                     </span>
-                   </div>
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+                        <PersonStanding className="h-5 w-5" strokeWidth={2} />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
+                          {event.attendeeCount}/{event.maxAttendees} 人
+                        </span>
+                        <span className="text-xs font-medium text-slate-500">
+                          剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
+                        </span>
+                      </div>
+                    </div>
+                  </button>
                 </div>
-              </button>
-            ))}
+              )
+            })}
           </div>
         </div>
       ))}
