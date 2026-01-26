@@ -68,3 +68,15 @@
     background-repeat: no-repeat;
   }
 }
+
+/* Custom Mapbox Popup Style */
+.mapboxgl-popup-content {
+  border-radius: 20px !important;
+  padding: 0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.mapboxgl-popup-close-button {
+  display: none !important;
+}

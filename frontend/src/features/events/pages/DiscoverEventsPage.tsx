@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Map as MapIcon, List as ListIcon } from 'lucide-react'
 import {
   addDays,
   format,
@@ -19,6 +19,7 @@ import {
 import { BottomSheet } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
 import { EventCard } from '@/features/events/components/EventCard'
+import { EventMap } from '@/features/events/components/EventMap'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/dictionaries/hooks'
 import { useAuthStore } from '@/hooks'
@@ -32,10 +33,32 @@ export function DiscoverEventsPage() {
   
   // Search State
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const showMap = searchParams.get('view') === 'map'
+  const selectedEventId = searchParams.get('event')
+
+  const toggleMap = () => {
+    setSearchParams((prev) => {
+      if (showMap) prev.delete('view')
+      else prev.set('view', 'map')
+      return prev
+    }, { replace: true })
+  }
   
-  // Filter State (Shared with Sheet)
-  const [selectedSports, setSelectedSports] = useState<string[]>(['all'])
-  const [dateRange, setDateRange] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null })
+  // Filter State (Sync with URL)
+  const sportsParam = searchParams.get('sports')
+  const startParam = searchParams.get('startDate')
+  const endParam = searchParams.get('endDate')
+
+  const selectedSports = useMemo(() => {
+    if (!sportsParam) return ['all']
+    return sportsParam.split(',')
+  }, [sportsParam])
+
+  const dateRange = useMemo(() => ({
+    start: startParam ? new Date(startParam) : null,
+    end: endParam ? new Date(endParam) : null
+  }), [startParam, endParam])
 
   const events = useEventsStore((state) => state.events)
   const isLoading = useEventsStore((state) => state.isLoading)
@@ -55,7 +78,7 @@ export function DiscoverEventsPage() {
       })),
     ],
     [sportsCatalog]
-  )
+  ) 
 
   // Fetch events once on mount.
   useEffect(() => {
@@ -105,8 +128,8 @@ export function DiscoverEventsPage() {
   // Header Label Logic
   const dateLabel = dateRange.start 
     ? (dateRange.end 
-        ? `${format(dateRange.start, 'yyyy/MM/dd')} - ${format(dateRange.end, 'yyyy/MM/dd')}`
-        : format(dateRange.start, 'yyyy/MM/dd')) 
+        ? `${format(dateRange.start, 'MM/dd')} - ${format(dateRange.end, 'MM/dd')}`
+        : format(dateRange.start, 'MM/dd')) 
     : '任何時間'
 
   const sportLabel = useMemo(() => {
@@ -118,8 +141,8 @@ export function DiscoverEventsPage() {
       .filter(Boolean) as string[]
 
     if (names.length === 0) return '運動'
-    if (names.length <= 3) return names.join('、')
-    return `${names[0]}、${names[1]}、${names[2]} +${names.length - 3}`
+    if (names.length <= 2) return names.join('、')
+    return `${names[0]}、${names[1]} +${names.length - 2}`
   }, [selectedSports, sports])
 
   const hasFilter = Boolean(dateRange.start || !selectedSports.includes('all'))
@@ -131,10 +154,10 @@ export function DiscoverEventsPage() {
         className="fixed left-0 right-0 z-40 bg-[#f4f6fb]/95 p-4 backdrop-blur transition-all duration-300"
         style={{ top: '0px' }}
       >
-        <div className="mx-auto w-full max-w-4xl">
+        <div className="mx-auto flex w-full max-w-4xl items-center gap-3">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition active:scale-[0.98] sm:mx-auto sm:w-[400px]"
+            className="flex flex-1 items-center gap-1 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition active:scale-[0.98]"
           >
             <Search className="ml-2 h-5 w-5 text-slate-800" strokeWidth={2.5} />
             <div className="flex flex-col items-start px-1">
@@ -147,24 +170,28 @@ export function DiscoverEventsPage() {
                 </>
               ) : (
                 <>
-                  <span className="text-xs font-medium text-slate-500">{dateLabel}</span>
-                  <span className="text-xs font-medium text-slate-500">{sportLabel}</span>
+                  <span className="text-sm font-bold text-slate-900 leading-tight">{dateLabel}</span>
+                  <span className="text-sm font-bold text-slate-900 leading-tight">{sportLabel}</span>
                 </>
               )}
             </div>
             {(dateRange.start || !selectedSports.includes('all')) && (
               <>
-                <span className="ml-auto mr-3 text-sm font-semibold text-slate-600">
-                  {filteredEvents.length} 個結果
-                </span>
+                <div className="ml-auto mr-2 flex h-6 min-w-[24px] items-center justify-center rounded-full border border-slate-200 bg-transparent px-1.5 text-xs font-bold text-slate-600">
+                  {filteredEvents.length}
+                </div>
                 <div
                   role="button"
                   tabIndex={0}
                   className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition hover:bg-slate-200"
                   onClick={(e) => {
                     e.stopPropagation()
-                    setDateRange({ start: null, end: null })
-                    setSelectedSports(['all'])
+                    setSearchParams((prev) => {
+                      prev.delete('startDate')
+                      prev.delete('endDate')
+                      prev.delete('sports')
+                      return prev
+                    }, { replace: true })
                   }}
                 >
                   <X className="h-4 w-4 text-slate-500" />
@@ -172,53 +199,75 @@ export function DiscoverEventsPage() {
               </>
             )}
           </button>
+          
+          <button
+            onClick={toggleMap}
+            className="flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition active:scale-[0.95] hover:bg-slate-50"
+          >
+             {showMap ? <ListIcon className="h-6 w-6 text-slate-700" /> : <MapIcon className="h-6 w-6 text-slate-700" />}
+          </button>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
-
-        {isLoading ? (
-          <div className="flex justify-center py-10 text-slate-500">載入活動中…</div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="flex justify-center">
-            <div className="flex w-full flex-col items-center justify-center rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
-              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
-                <span className="text-4xl">🏟️</span>
-              </div>
-              <h3 className="text-xl font-bold text-slate-900">Oops! 怎麼沒有活動...</h3>
-              <p className="mt-2 max-w-xs text-sm text-slate-500">
-                你就自己來吧! 開啟一場你喜歡的活動，生活也許會因此變得不同！
-              </p>
-              <button
-                type="button"
-                onClick={handleCreateClick}
-                className="mt-8 rounded-2xl bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg transition hover:bg-blue-700 active:scale-[0.98]"
-              >
-                發起活動
-              </button>
+      {showMap ? (
+        <EventMap 
+          events={filteredEvents} 
+          sports={sportsCatalog}
+          selectedEventId={selectedEventId}
+          onSelectEvent={(e) => {
+            setSearchParams((prev) => {
+              if (e) prev.set('event', e.id)
+              else prev.delete('event')
+              return prev
+            }, { replace: true })
+          }}
+        />
+      ) : (
+        <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">
+          {error && (
+            <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
             </div>
-          </div>
-        ) : (
-          filteredEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              onViewDetails={() => {
-                if (isAuthenticated) {
-                  navigate(`/event/${event.id}`)
-                } else {
-                  setShowLoginPrompt(true)
-                }
-              }}
-            />
-          ))
-        )}
-      </div>
+          )}
+  
+          {isLoading ? (
+            <div className="flex justify-center py-10 text-slate-500">載入活動中…</div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="flex justify-center">
+              <div className="flex w-full flex-col items-center justify-center rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
+                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
+                  <span className="text-4xl">🏟️</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Oops! 怎麼沒有活動...</h3>
+                <p className="mt-2 max-w-xs text-sm text-slate-500">
+                  你就自己來吧! 開啟一場你喜歡的活動，生活也許會因此變得不同！
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCreateClick}
+                  className="mt-8 rounded-2xl bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg transition hover:bg-blue-700 active:scale-[0.98]"
+                >
+                  發起活動
+                </button>
+              </div>
+            </div>
+          ) : (
+            filteredEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onViewDetails={() => {
+                  if (isAuthenticated) {
+                    navigate(`/event/${event.id}`)
+                  } else {
+                    setShowLoginPrompt(true)
+                  }
+                }}
+              />
+            ))
+          )}
+        </div>
+      )}
 
       <SearchSheet
         open={isSearchOpen}
@@ -228,8 +277,20 @@ export function DiscoverEventsPage() {
         sportsOptions={sports}
         eventsByDay={eventsByDay}
         onApply={(range, sports) => {
-          setDateRange(range)
-          setSelectedSports(sports)
+          setSearchParams((prev) => {
+            if (range.start) prev.set('startDate', range.start.toISOString())
+            else prev.delete('startDate')
+
+            if (range.end) prev.set('endDate', range.end.toISOString())
+            else prev.delete('endDate')
+
+            if (sports.length && !sports.includes('all')) {
+              prev.set('sports', sports.join(','))
+            } else {
+              prev.delete('sports')
+            }
+            return prev
+          }, { replace: true })
           setIsSearchOpen(false)
         }}
       />

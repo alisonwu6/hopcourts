@@ -4,6 +4,7 @@ export type DictionaryItem = {
   subtitle?: string
   sort?: number
   is_active?: boolean
+  icon?: string | null
 }
 
 export type Country = DictionaryItem
