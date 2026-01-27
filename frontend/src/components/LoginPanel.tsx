@@ -51,15 +51,17 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
     return (
       <section className={containerClass}>
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-900">先登入，建立你的運動身份</h1>
+          <h1 className="text-2xl font-bold text-slate-900">建立一張屬於你的運動卡</h1>
           <p className="mt-2 text-sm text-slate-600">
-            建立完運動卡後，開場活動認識新朋友吧
+            開場運動認識新朋友吧
           </p>
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
-          <GoogleLoginButton loginGoogle={loginGoogle} />
-          <AppleLoginButton loginApple={loginApple} />
+          <div className="flex flex-col gap-3 w-full max-w-[320px] mx-auto">
+            <GoogleLoginButton loginGoogle={loginGoogle} />
+            <AppleLoginButton loginApple={loginApple} />
+          </div>
         </div>
 
         <div className="mt-6 text-center">
@@ -114,9 +116,11 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
           autoComplete="current-password"
         />
 
-        <Button type="submit" className="w-full rounded-2xl text-base" disabled={isLoading}>
-          {isLoading ? '登入中…' : '用 Email 繼續'}
-        </Button>
+        <div className="w-full max-w-[320px] mx-auto">
+          <Button type="submit" className="w-full rounded-2xl text-base" disabled={isLoading}>
+            {isLoading ? '登入中…' : '用 Email 繼續'}
+          </Button>
+        </div>
 
         <div className="text-center text-sm">
           <Link to="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700">
@@ -131,7 +135,7 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
         <div className="flex-1 border-t border-slate-200" />
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 w-full max-w-[320px] mx-auto">
         <GoogleLoginButton loginGoogle={loginGoogle} />
         <AppleLoginButton loginApple={loginApple} />
       </div>
