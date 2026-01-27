@@ -6,7 +6,15 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { BottomSheet, AlertDialog } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
 import clsx from 'clsx'
-import { Calendar, CircleDollarSign, MapPin, MessageCircle, PersonStanding, Trash2, LandPlot } from 'lucide-react'
+import {
+  Calendar,
+  CircleDollarSign,
+  MapPin,
+  MessageCircle,
+  PersonStanding,
+  Trash2,
+  LandPlot,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
@@ -30,12 +38,19 @@ export function EventDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
-  
+
   const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
     currentUserId: state.user?.id,
   }))
-  const { selectedEvent: event, fetchEventById, isLoading, joinEvent, leaveEvent, checkInToEvent } = useEventsStore()
+  const {
+    selectedEvent: event,
+    fetchEventById,
+    isLoading,
+    joinEvent,
+    leaveEvent,
+    checkInToEvent,
+  } = useEventsStore()
   const { items: sports } = useSports('zh')
 
   useEffect(() => {
@@ -47,11 +62,13 @@ export function EventDetailPage() {
   const handleShare = () => {
     // navigator.share usually requires HTTPS
     if (navigator.share) {
-      navigator.share({
-        title: event?.title,
-        text: 'Come join this event!',
-        url: window.location.href,
-      }).catch(console.error)
+      navigator
+        .share({
+          title: event?.title,
+          text: 'Come join this event!',
+          url: window.location.href,
+        })
+        .catch(console.error)
     } else {
       window.alert('分享功能即將推出')
     }
@@ -63,7 +80,7 @@ export function EventDetailPage() {
       return
     }
     if (!event || !id) return
-    
+
     if (event.joined) {
       await leaveEvent(id)
     } else {
@@ -78,7 +95,11 @@ export function EventDetailPage() {
     type: 'success' | 'error' | 'info' | 'warning'
   }>({ open: false, title: '', description: '', type: 'info' })
 
-  const showAlert = (title: string, description: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+  const showAlert = (
+    title: string,
+    description: string,
+    type: 'success' | 'error' | 'info' | 'warning' = 'info'
+  ) => {
     setAlertDialog({ open: true, title, description, type })
   }
 
@@ -102,34 +123,40 @@ export function EventDetailPage() {
           setHasCheckedIn(true)
           // Refresh event data so participant list updates
           void fetchEventById(id)
-          
+
           showAlert('報到成功', '好好享受運動帶來的樂趣吧！', 'success')
         } catch (err: any) {
           console.error('Check-in error full object:', err)
-          
+
           // Try to extract the backend error object
-          const backendError = err.response?.data?.error 
-            || err.response?.data 
-            || err
-            
+          const backendError = err.response?.data?.error || err.response?.data || err
+
           console.log('Parsed backend error:', backendError)
-          
+
           const code = backendError.code
           const details = backendError.details
 
           if (code === 'CHECKIN_OUTSIDE_RADIUS') {
-             const dist = details?.distance_m
-             const radius = details?.radius_m
-             const gap = Math.max(0, dist - radius) // Gap required to move
-             
-             const distStr = dist >= 1000 ? `${(dist/1000).toFixed(1)}km` : `${dist}m`
-             const gapStr = gap >= 1000 ? `${(gap/1000).toFixed(1)}km` : `${gap}m`
-             
-             showAlert('再靠近一點點就到了！', `目前距離場地約 ${distStr}。請再往場地移動約 ${gapStr}，進入 ${radius}m 範圍內即可進行報到！`, 'warning')
+            const dist = details?.distance_m
+            const radius = details?.radius_m
+            const gap = Math.max(0, dist - radius) // Gap required to move
+
+            const distStr = dist >= 1000 ? `${(dist / 1000).toFixed(1)}km` : `${dist}m`
+            const gapStr = gap >= 1000 ? `${(gap / 1000).toFixed(1)}km` : `${gap}m`
+
+            showAlert(
+              '再靠近一點點就到了！',
+              `目前距離場地約 ${distStr}。請再往場地移動約 ${gapStr}，進入 ${radius}m 範圍內即可進行報到！`,
+              'warning'
+            )
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
-             showAlert('非報到時間', '目前不在開放報到的時間範圍內。', 'warning')
+            showAlert('非報到時間', '目前不在開放報到的時間範圍內。', 'warning')
           } else {
-             showAlert('報到失敗', backendError.message || err.message || '請確認您已抵達活動地點並開啟定位。', 'error')
+            showAlert(
+              '報到失敗',
+              backendError.message || err.message || '請確認您已抵達活動地點並開啟定位。',
+              'error'
+            )
           }
         } finally {
           setIsCheckingIn(false)
@@ -161,11 +188,11 @@ export function EventDetailPage() {
 
   const isJoined = event?.joined ?? false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
-  
+
   // Check if current user is checked in based on event data
   const isCheckedInFromServer = React.useMemo(() => {
     if (!event || !currentUserId) return false
-    const me = event.participants.find(p => p.id === currentUserId)
+    const me = event.participants.find((p) => p.id === currentUserId)
     return !!me?.checkedInAt
   }, [event, currentUserId])
 
@@ -175,17 +202,28 @@ export function EventDetailPage() {
     return <PageLoading />
   }
 
-  const heroImage = (event.photos && event.photos.length > 0) ? event.photos[0] : (event.heroImageUrl || event.detail?.heroImageUrl)
-  const skillLabel = 
-    event.skillLevel === 'beginner' ? '初階' :
-    event.skillLevel === 'intermediate' ? '中階' :
-    event.skillLevel === 'advanced' ? '進階' : '不限程度'
-    
-  const genderLabel = 
-    event.gender === 'female_only' ? '女性專屬' :
-    event.gender === 'male_only' ? '男性專屬' : '性別混合'
-  
-  const sportLabel = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
+  const heroImage =
+    event.photos && event.photos.length > 0
+      ? event.photos[0]
+      : event.heroImageUrl || event.detail?.heroImageUrl
+  const skillLabel =
+    event.skillLevel === 'beginner'
+      ? '初階'
+      : event.skillLevel === 'intermediate'
+        ? '中階'
+        : event.skillLevel === 'advanced'
+          ? '進階'
+          : '不限程度'
+
+  const genderLabel =
+    event.gender === 'female_only'
+      ? '女性專屬'
+      : event.gender === 'male_only'
+        ? '男性專屬'
+        : '性別混合'
+
+  const sportLabel =
+    sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
 
   // Photos: using heroImage as main, maybe carousel later?
   // Current UI only shows one hero image.
@@ -215,18 +253,20 @@ export function EventDetailPage() {
       />
       <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
         <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div 
-             className="h-[230px] w-full bg-cover bg-center"
-             style={{ 
-               backgroundImage: heroImage ? `url(${heroImage})` : 'linear-gradient(135deg, #DBEAFE, #2563EB)',
-             }}
+          <div
+            className="h-[230px] w-full bg-cover bg-center"
+            style={{
+              backgroundImage: heroImage
+                ? `url(${heroImage})`
+                : 'linear-gradient(135deg, #DBEAFE, #2563EB)',
+            }}
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="px-5 pb-6 pt-6">
-            <div 
-              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition"
+            <div
+              className="flex cursor-pointer items-center gap-3 transition hover:opacity-80"
               onClick={() => {
                 if (event.host.username) {
                   navigate(`/mate/${event.host.username}`)
@@ -236,9 +276,7 @@ export function EventDetailPage() {
               <div className="flex items-center gap-3">
                 <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {event.host.name}
-                  </p>
+                  <p className="text-sm font-semibold text-slate-900">{event.host.name}</p>
                   <p className="text-xs text-slate-500">發動發起人</p>
                 </div>
               </div>
@@ -268,17 +306,22 @@ export function EventDetailPage() {
             </div>
 
             <div className="mt-6 space-y-3">
-              <InfoRow 
-                icon={Calendar} 
-                label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`} 
+              <InfoRow
+                icon={Calendar}
+                label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
               />
-              <InfoRow 
-                icon={MapPin} 
-                label={event.location.name && event.location.name !== event.location.address 
-                  ? `${event.location.name} (${event.location.address})` 
-                  : event.location.address} 
+              <InfoRow
+                icon={MapPin}
+                label={
+                  event.location.name && event.location.name !== event.location.address
+                    ? `${event.location.name} (${event.location.address})`
+                    : event.location.address
+                }
               />
-              <InfoRow icon={CircleDollarSign} label={event.priceRange || (event.isFree ? '免費' : 'Paid')} />
+              <InfoRow
+                icon={CircleDollarSign}
+                label={event.priceRange || (event.isFree ? '免費' : 'Paid')}
+              />
             </div>
 
             <hr className="my-6 border-slate-200" />
@@ -290,9 +333,9 @@ export function EventDetailPage() {
                 </span>
                 <span>目前報名（剩 {spotsRemaining} 位）</span>
               </div>
-              
+
               {event.participants.length > 0 ? (
-                event.participants.map(p => {
+                event.participants.map((p) => {
                   const isCheckedIn = !!p.checkedInAt
                   const endTime = new Date(event.endTime)
                   const closeMins = event.checkinCloseMinsAfter ?? 60
@@ -301,9 +344,9 @@ export function EventDetailPage() {
                   const isAbsent = !isCheckedIn && now > closeTime
 
                   return (
-                    <div 
-                      key={p.id} 
-                      className="flex items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-100 transition"
+                    <div
+                      key={p.id}
+                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition hover:bg-slate-100"
                       onClick={() => {
                         if (p.username) {
                           navigate(`/mate/${p.username}`)
@@ -311,14 +354,9 @@ export function EventDetailPage() {
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        <AvatarCircle
-                          name={p.name}
-                          src={p.avatarUrl}
-                        />
+                        <AvatarCircle name={p.name} src={p.avatarUrl} />
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">
-                            {p.name}
-                          </p>
+                          <p className="text-sm font-semibold text-slate-900">{p.name}</p>
                         </div>
                       </div>
                       <div className="pr-1">
@@ -334,7 +372,7 @@ export function EventDetailPage() {
                   )
                 })
               ) : (
-                <p className="text-sm text-slate-500 pl-14">還沒有人報名，快來搶頭香！</p>
+                <p className="pl-14 text-sm text-slate-500">還沒有人報名，快來搶頭香！</p>
               )}
             </div>
 
@@ -347,12 +385,12 @@ export function EventDetailPage() {
                 </span>
                 <span>主辦想說</span>
               </div>
-              <p className="text-sm leading-relaxed text-slate-700">{event.detail?.description || event.description || '沒有描述'}</p>
+              <p className="text-sm leading-relaxed text-slate-700">
+                {event.detail?.description || event.description || '沒有描述'}
+              </p>
             </div>
-            
+
             {/* Photos Section if multiple */}
-
-
           </div>
         </div>
       </div>
@@ -364,11 +402,8 @@ export function EventDetailPage() {
         isCheckingIn={isCheckingIn}
         hasCheckedIn={effectiveCheckedIn}
       />
-      
-      <BottomSheet
-        open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-      >
+
+      <BottomSheet open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
         <SheetLayout
           onClose={() => setShowDeleteConfirm(false)}
           title="確定要刪除活動嗎？"
@@ -377,14 +412,14 @@ export function EventDetailPage() {
             label: isDeleting ? '刪除中...' : '確定刪除',
             onClick: handleDelete,
             variant: 'danger',
-            isLoading: isDeleting
+            isLoading: isDeleting,
           }}
           secondaryButton={{
             label: '取消',
             onClick: () => setShowDeleteConfirm(false),
           }}
         >
-          <div className="py-2 text-slate-500 text-sm">此操作無法復原。</div>
+          <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
         </SheetLayout>
       </BottomSheet>
 
@@ -396,7 +431,7 @@ export function EventDetailPage() {
 
       <AlertDialog
         open={alertDialog.open}
-        onClose={() => setAlertDialog(prev => ({ ...prev, open: false }))}
+        onClose={() => setAlertDialog((prev) => ({ ...prev, open: false }))}
         title={alertDialog.title}
         description={alertDialog.description}
         type={alertDialog.type}
@@ -450,24 +485,21 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   const startTime = new Date(event.startTime)
   const endTime = new Date(event.endTime)
   const isPast = endTime < now
-  
+
   // Check-in window logic
   // Use event configuration or defaults (30m before, 60m after)
   const openMins = event.checkinOpenMinsBefore ?? 30
   const closeMins = event.checkinCloseMinsAfter ?? 10 // Match backend default
-  
+
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time
   const isCheckInOpen = now >= openTime && now <= closeTime
 
-  const formatTime = (date: Date) => 
+  const formatTime = (date: Date) =>
     date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })
 
   let mainButton = (
-    <Button
-      onClick={onJoin}
-      className="bg-blue-600 text-white hover:bg-blue-700"
-    >
+    <Button onClick={onJoin} className="bg-blue-600 text-white hover:bg-blue-700">
       加入活動
     </Button>
   )
@@ -488,7 +520,9 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
           disabled={isCheckingIn}
           className="bg-emerald-600 text-white hover:bg-emerald-700"
         >
-          {isCheckingIn ? '定位中...' : (
+          {isCheckingIn ? (
+            '定位中...'
+          ) : (
             <span className="flex items-center justify-center gap-2">
               <LandPlot className="h-5 w-5" strokeWidth={2} />
               點我報到
@@ -497,23 +531,23 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         </Button>
       )
       statusText = (
-        <p className="text-center text-xs font-medium text-slate-500 px-4 leading-relaxed">
+        <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
           請於 {formatTime(closeTime)} 分前完成報到，讓你的同場夥伴知道你到了。
         </p>
       )
     } else if (now > closeTime) {
       mainButton = (
-        <Button disabled className="bg-slate-400 text-white opacity-80 cursor-not-allowed">
+        <Button disabled className="cursor-not-allowed bg-slate-400 text-white opacity-80">
           缺席
         </Button>
       )
     } else {
       // Joined but not yet time to check in (now < openTime)
       mainButton = (
-        <Button 
-          disabled={false} 
-          onClick={onJoin} 
-          className="bg-player-600 text-white hover:bg-player-700 shadow-sm"
+        <Button
+          disabled={false}
+          onClick={onJoin}
+          className="bg-player-600 text-white shadow-sm hover:bg-player-700"
         >
           已加入
         </Button>
@@ -526,13 +560,13 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
     }
   } else if (isPast) {
     mainButton = (
-      <Button disabled className="bg-slate-300 text-slate-500 opacity-80 cursor-not-allowed">
+      <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">
         活動已結束
       </Button>
     )
   } else if (isFull) {
     mainButton = (
-      <Button disabled className="bg-slate-300 text-slate-500 opacity-80 cursor-not-allowed">
+      <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">
         已額滿
       </Button>
     )
