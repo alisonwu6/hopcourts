@@ -124,7 +124,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     difficulty: 2,
     isFree: session.is_free ?? true,
     price: session.price,
-    priceRange: session.is_free ? '免費參加' : (session.price ? `$${session.price}` : '收費活動'),
+    priceRange: session.is_free ? '免費參加' : session.price ? `$${session.price}` : '收費活動',
     participants: [],
     status: session.status as any,
     visibility: session.visibility as any,
@@ -144,24 +144,23 @@ export const eventsService = {
       // Map filters to backend params if needed
       const queryParams: Record<string, any> = {}
       if (filters?.sport) queryParams.sportKey = filters.sport
-      
+
       const response = await httpGet<any>('/sessions', { params: queryParams })
       // Backend returns { success: true, data: { data: [...], ... } } or just { success: true, data: [...] } ?
       // Based on typical pattern: response.data should have the list.
       // Wait, look closely: httpGet returns `T`. If wrapper is { ok: true, data: ... }
       // Then `response` is { ok: true, data: ... }.
-      
-      const sessions = Array.isArray(response) 
-        ? response 
-        : (response.data && Array.isArray(response.data))
-          ? response.data 
-          : (response.data?.items && Array.isArray(response.data.items))
+
+      const sessions = Array.isArray(response)
+        ? response
+        : response.data && Array.isArray(response.data)
+          ? response.data
+          : response.data?.items && Array.isArray(response.data.items)
             ? response.data.items
             : []
 
-      
       const events = sessions.map(mapSessionToEvent)
-      
+
       return wrapSuccess({
         data: events,
         total: events.length,
@@ -184,9 +183,9 @@ export const eventsService = {
       const metaData = responseData.meta || {}
 
       if (!sessionData) throw new Error('Session not found')
-      
+
       const event = mapSessionToEvent(sessionData)
-      
+
       // Merge meta info
       if (metaData) {
         event.joined = metaData.is_joined ?? false
@@ -228,40 +227,43 @@ export const eventsService = {
   },
 
   async getMyEvents(): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
-     try {
-       const [upcomingRes, historyRes] = await Promise.all([
-         httpGet<any>('/sessions/my?type=upcoming'),
-         httpGet<any>('/sessions/my?type=history'),
-       ])
-       
-       const upcomingItems = (upcomingRes.data?.items ?? upcomingRes.items ?? [])
-       const historyItems = (historyRes.data?.items ?? historyRes.items ?? [])
-       
-       const allItems = [...upcomingItems, ...historyItems]
-       // Deduplicate by ID just in case
-       const uniqueItems = Array.from(new Map(allItems.map(item => [item.id, item])).values())
-       
-       const events = uniqueItems.map(mapSessionToEvent)
-       
-       return wrapSuccess({
-         data: events,
-         total: events.length,
-         page: 1,
-         pageSize: events.length,
-         hasMore: false,
-       })
-     } catch (err: any) {
-       console.error('getMyEvents error', err)
-       return wrapEmptyEvents()
-     }
+    try {
+      const [upcomingRes, historyRes] = await Promise.all([
+        httpGet<any>('/sessions/my?type=upcoming'),
+        httpGet<any>('/sessions/my?type=history'),
+      ])
+
+      const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
+      const historyItems = historyRes.data?.items ?? historyRes.items ?? []
+
+      const allItems = [...upcomingItems, ...historyItems]
+      // Deduplicate by ID just in case
+      const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
+
+      const events = uniqueItems.map(mapSessionToEvent)
+
+      return wrapSuccess({
+        data: events,
+        total: events.length,
+        page: 1,
+        pageSize: events.length,
+        hasMore: false,
+      })
+    } catch (err: any) {
+      console.error('getMyEvents error', err)
+      return wrapEmptyEvents()
+    }
   },
 
-  async createEvent(input: CreateEventInput & { status?: string }): Promise<ApiResponse<PlayerEvent>> {
+  async createEvent(
+    input: CreateEventInput & { status?: string }
+  ): Promise<ApiResponse<PlayerEvent>> {
     try {
       const payload = {
         title: input.title,
         sport_key: input.sport,
-        notes: [input.description, input.notesForAttendees].filter(Boolean).join('\n\n') || undefined,
+        notes:
+          [input.description, input.notesForAttendees].filter(Boolean).join('\n\n') || undefined,
         starts_at: input.startTime.toISOString(),
         ends_at: new Date(input.startTime.getTime() + input.duration * 60000).toISOString(),
         place_name: input.location?.name || input.location?.address || '',
@@ -281,7 +283,7 @@ export const eventsService = {
 
       const res = await httpPost<{ session: any }>('/sessions', { body: payload })
       const session = (res as any)?.session ?? (res as any)?.data?.session ?? (res as any)?.data
-      
+
       return wrapSuccess(mapSessionToEvent(session))
     } catch (err: any) {
       return {
@@ -293,7 +295,10 @@ export const eventsService = {
     }
   },
 
-  async updateEvent(id: string, input: Partial<CreateEventInput> & { status?: string }): Promise<ApiResponse<PlayerEvent>> {
+  async updateEvent(
+    id: string,
+    input: Partial<CreateEventInput> & { status?: string }
+  ): Promise<ApiResponse<PlayerEvent>> {
     try {
       // Map input to backend payload
       // Reuse logic from createEvent but handle partial updates if necessary
@@ -302,11 +307,12 @@ export const eventsService = {
       const startTime = input.startTime ? input.startTime : new Date()
       // If startTime not provided, duration calc might fail if we rely on it.
       // But usually we pass full form state.
-      
+
       const payload: any = {
         title: input.title,
         sport_key: input.sport,
-        notes: [input.description, input.notesForAttendees].filter(Boolean).join('\n\n') || undefined,
+        notes:
+          [input.description, input.notesForAttendees].filter(Boolean).join('\n\n') || undefined,
         place_name: input.location?.name || input.location?.address || undefined,
         address: input.location?.address || undefined,
         lat: input.location?.lat,
@@ -320,18 +326,18 @@ export const eventsService = {
         price: input.pricePerPerson,
         photos: input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
       }
-      
+
       if (input.startTime) {
         payload.starts_at = input.startTime.toISOString()
         payload.ends_at = new Date(input.startTime.getTime() + duration * 60000).toISOString()
       }
 
       // Remove undefined keys
-      Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key])
+      Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key])
 
       const res = await httpPut<{ session: any }>(`/sessions/${id}`, { body: payload })
       const session = (res as any)?.session ?? (res as any)?.data?.session ?? (res as any)?.data
-      
+
       return wrapSuccess(mapSessionToEvent(session))
     } catch (err: any) {
       return {
@@ -344,23 +350,23 @@ export const eventsService = {
   },
 
   async joinEvent(eventId: string): Promise<ApiResponse<PlayerEvent>> {
-     try {
-       await httpPost(`/sessions/${eventId}/join`)
-       return this.getEventById(eventId)
-     } catch (err: any) {
-        return { success: false, error: err, timestamp: new Date() } as any
-     }
+    try {
+      await httpPost(`/sessions/${eventId}/join`)
+      return this.getEventById(eventId)
+    } catch (err: any) {
+      return { success: false, error: err, timestamp: new Date() } as any
+    }
   },
 
   async leaveEvent(eventId: string): Promise<ApiResponse<PlayerEvent>> {
-     try {
-       await httpPost(`/sessions/${eventId}/leave`)
-       return this.getEventById(eventId)
-     } catch (err: any) {
-        return { success: false, error: err, timestamp: new Date() } as any
-     }
+    try {
+      await httpPost(`/sessions/${eventId}/leave`)
+      return this.getEventById(eventId)
+    } catch (err: any) {
+      return { success: false, error: err, timestamp: new Date() } as any
+    }
   },
-  
+
   async deleteEvent(eventId: string): Promise<ApiResponse<{ deleted: boolean }>> {
     try {
       const res = await httpDelete<any>(`/sessions/${eventId}`)
@@ -387,10 +393,10 @@ export const eventsService = {
       return {
         success: false,
         data: undefined as any,
-        error: { 
-          code: backendErr.code || 'CHECKIN_FAILED', 
+        error: {
+          code: backendErr.code || 'CHECKIN_FAILED',
           message: backendErr.message || err?.message || 'Check-in failed',
-          details: backendErr.details
+          details: backendErr.details,
         } as any,
         timestamp: new Date(),
       }

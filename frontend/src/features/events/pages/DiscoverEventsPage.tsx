@@ -1,7 +1,15 @@
 import clsx from 'clsx'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Search, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Map as MapIcon, List as ListIcon } from 'lucide-react'
+import {
+  Search,
+  X,
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Map as MapIcon,
+  List as ListIcon,
+} from 'lucide-react'
 import {
   addDays,
   format,
@@ -31,7 +39,7 @@ type SportFilterOption = { key: string; label: string; icon?: string | null }
 export function DiscoverEventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
-  
+
   // Search State
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -39,13 +47,16 @@ export function DiscoverEventsPage() {
   const selectedEventId = searchParams.get('event')
 
   const toggleMap = () => {
-    setSearchParams((prev) => {
-      if (showMap) prev.delete('view')
-      else prev.set('view', 'map')
-      return prev
-    }, { replace: true })
+    setSearchParams(
+      (prev) => {
+        if (showMap) prev.delete('view')
+        else prev.set('view', 'map')
+        return prev
+      },
+      { replace: true }
+    )
   }
-  
+
   // Filter State (Sync with URL)
   const sportsParam = searchParams.get('sports')
   const startParam = searchParams.get('startDate')
@@ -56,10 +67,13 @@ export function DiscoverEventsPage() {
     return sportsParam.split(',')
   }, [sportsParam])
 
-  const dateRange = useMemo(() => ({
-    start: startParam ? new Date(startParam) : null,
-    end: endParam ? new Date(endParam) : null
-  }), [startParam, endParam])
+  const dateRange = useMemo(
+    () => ({
+      start: startParam ? new Date(startParam) : null,
+      end: endParam ? new Date(endParam) : null,
+    }),
+    [startParam, endParam]
+  )
 
   const events = useEventsStore((state) => state.events)
   const isLoading = useEventsStore((state) => state.isLoading)
@@ -68,7 +82,7 @@ export function DiscoverEventsPage() {
   const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  
+
   const sports = useMemo<SportFilterOption[]>(
     () => [
       ...sportsCatalog.map((sport) => ({
@@ -78,7 +92,7 @@ export function DiscoverEventsPage() {
       })),
     ],
     [sportsCatalog]
-  ) 
+  )
 
   // Fetch events once on mount.
   useEffect(() => {
@@ -103,15 +117,15 @@ export function DiscoverEventsPage() {
 
   const filteredEvents = useMemo(() => {
     let filtered = events.filter((event) => new Date(event.startTime) >= today)
-    
+
     if (dateRange.start) {
       if (dateRange.end) {
         // Range filter
         const start = startOfDay(dateRange.start)
         const end = dateTimeEndOfDay(dateRange.end)
         filtered = events.filter((event) => {
-           const time = new Date(event.startTime)
-           return time >= start && time <= end
+          const time = new Date(event.startTime)
+          return time >= start && time <= end
         })
       } else {
         // Single day filter
@@ -126,18 +140,18 @@ export function DiscoverEventsPage() {
   }, [events, selectedSports, dateRange, today])
 
   // Header Label Logic
-  const dateLabel = dateRange.start 
-    ? (dateRange.end 
-        ? `${format(dateRange.start, 'MM/dd')} - ${format(dateRange.end, 'MM/dd')}`
-        : format(dateRange.start, 'MM/dd')) 
+  const dateLabel = dateRange.start
+    ? dateRange.end
+      ? `${format(dateRange.start, 'MM/dd')} - ${format(dateRange.end, 'MM/dd')}`
+      : format(dateRange.start, 'MM/dd')
     : '任何時間'
 
   const sportLabel = useMemo(() => {
     if (selectedSports.includes('all')) return '任何運動'
-    
+
     // Map keys to labels
     const names = selectedSports
-      .map(key => sports.find(s => s.key === key)?.label)
+      .map((key) => sports.find((s) => s.key === key)?.label)
       .filter(Boolean) as string[]
 
     if (names.length === 0) return '運動'
@@ -170,8 +184,12 @@ export function DiscoverEventsPage() {
                 </>
               ) : (
                 <>
-                  <span className="text-sm font-bold text-slate-900 leading-tight">{dateLabel}</span>
-                  <span className="text-sm font-bold text-slate-900 leading-tight">{sportLabel}</span>
+                  <span className="text-sm font-bold leading-tight text-slate-900">
+                    {dateLabel}
+                  </span>
+                  <span className="text-sm font-bold leading-tight text-slate-900">
+                    {sportLabel}
+                  </span>
                 </>
               )}
             </div>
@@ -186,12 +204,15 @@ export function DiscoverEventsPage() {
                   className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition hover:bg-slate-200"
                   onClick={(e) => {
                     e.stopPropagation()
-                    setSearchParams((prev) => {
-                      prev.delete('startDate')
-                      prev.delete('endDate')
-                      prev.delete('sports')
-                      return prev
-                    }, { replace: true })
+                    setSearchParams(
+                      (prev) => {
+                        prev.delete('startDate')
+                        prev.delete('endDate')
+                        prev.delete('sports')
+                        return prev
+                      },
+                      { replace: true }
+                    )
                   }}
                 >
                   <X className="h-4 w-4 text-slate-500" />
@@ -199,27 +220,34 @@ export function DiscoverEventsPage() {
               </>
             )}
           </button>
-          
+
           <button
             onClick={toggleMap}
-            className="flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition active:scale-[0.95] hover:bg-slate-50"
+            className="flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-[0.95]"
           >
-             {showMap ? <ListIcon className="h-6 w-6 text-slate-700" /> : <MapIcon className="h-6 w-6 text-slate-700" />}
+            {showMap ? (
+              <ListIcon className="h-6 w-6 text-slate-700" />
+            ) : (
+              <MapIcon className="h-6 w-6 text-slate-700" />
+            )}
           </button>
         </div>
       </div>
 
       {showMap ? (
-        <EventMap 
-          events={filteredEvents} 
+        <EventMap
+          events={filteredEvents}
           sports={sportsCatalog}
           selectedEventId={selectedEventId}
           onSelectEvent={(e) => {
-            setSearchParams((prev) => {
-              if (e) prev.set('event', e.id)
-              else prev.delete('event')
-              return prev
-            }, { replace: true })
+            setSearchParams(
+              (prev) => {
+                if (e) prev.set('event', e.id)
+                else prev.delete('event')
+                return prev
+              },
+              { replace: true }
+            )
           }}
         />
       ) : (
@@ -229,7 +257,7 @@ export function DiscoverEventsPage() {
               {error}
             </div>
           )}
-  
+
           {isLoading ? (
             <PageLoading fullScreen={false} className="py-20" />
           ) : filteredEvents.length === 0 ? (
@@ -277,24 +305,27 @@ export function DiscoverEventsPage() {
         sportsOptions={sports}
         eventsByDay={eventsByDay}
         onApply={(range, sports) => {
-          setSearchParams((prev) => {
-            if (range.start) prev.set('startDate', range.start.toISOString())
-            else prev.delete('startDate')
+          setSearchParams(
+            (prev) => {
+              if (range.start) prev.set('startDate', range.start.toISOString())
+              else prev.delete('startDate')
 
-            if (range.end) prev.set('endDate', range.end.toISOString())
-            else prev.delete('endDate')
+              if (range.end) prev.set('endDate', range.end.toISOString())
+              else prev.delete('endDate')
 
-            if (sports.length && !sports.includes('all')) {
-              prev.set('sports', sports.join(','))
-            } else {
-              prev.delete('sports')
-            }
-            return prev
-          }, { replace: true })
+              if (sports.length && !sports.includes('all')) {
+                prev.set('sports', sports.join(','))
+              } else {
+                prev.delete('sports')
+              }
+              return prev
+            },
+            { replace: true }
+          )
           setIsSearchOpen(false)
         }}
       />
-      
+
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
@@ -322,14 +353,14 @@ type SearchSheetProps = {
   onApply: (range: { start: Date | null; end: Date | null }, sports: string[]) => void
 }
 
-function SearchSheet({ 
-  open, 
-  onClose, 
-  initialDateRange, 
-  initialSports, 
-  sportsOptions, 
-  eventsByDay, 
-  onApply 
+function SearchSheet({
+  open,
+  onClose,
+  initialDateRange,
+  initialSports,
+  sportsOptions,
+  eventsByDay,
+  onApply,
 }: SearchSheetProps) {
   const [pendingRange, setPendingRange] = useState(initialDateRange)
   const [pendingSports, setPendingSports] = useState<string[]>(initialSports)
@@ -359,10 +390,10 @@ function SearchSheet({
   if (!open) return null
 
   return (
-    <BottomSheet 
-      open={open} 
-      onClose={onClose} 
-      showHandle 
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      showHandle
       disableContainer
       sheetClassName="h-[92vh] flex flex-col"
       contentClassName="flex-1 flex flex-col"
@@ -373,7 +404,7 @@ function SearchSheet({
         title="搜尋篩選"
         subtitle="自訂你的搜尋條件"
         height="tall"
-        className="w-full h-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)] flex flex-col"
+        className="flex h-full w-full flex-col rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
         contentClassName="flex-1 overflow-y-auto px-5 pb-6 pt-4 space-y-6"
         primaryButton={{
           label: '套用',
@@ -416,36 +447,38 @@ function SearchSheet({
         {/* Tab Content */}
         <div className="mt-4">
           {activeTab === 'date' ? (
-            <div className="p-2"> 
+            <div className="p-2">
               {/* Removed border/shadow container, just padding */}
-              <CalendarContent 
-                 month={calendarMonth}
-                 onMonthChange={setCalendarMonth}
-                 range={pendingRange}
-                 onSelectRange={setPendingRange}
-                 counts={eventsByDay}
+              <CalendarContent
+                month={calendarMonth}
+                onMonthChange={setCalendarMonth}
+                range={pendingRange}
+                onSelectRange={setPendingRange}
+                counts={eventsByDay}
               />
             </div>
           ) : (
             <div>
-               <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 {sportsOptions.map((sport) => {
-                  const active = pendingSports.includes(sport.key) || (sport.key === 'all' && pendingSports.includes('all'))
+                  const active =
+                    pendingSports.includes(sport.key) ||
+                    (sport.key === 'all' && pendingSports.includes('all'))
                   return (
                     <button
                       key={sport.key}
                       onClick={() => {
-                        setPendingSports(prev => {
+                        setPendingSports((prev) => {
                           if (sport.key === 'all') return ['all']
-                          const next = prev.filter(p => p !== 'all' && p !== sport.key)
+                          const next = prev.filter((p) => p !== 'all' && p !== sport.key)
                           if (prev.includes(sport.key)) return next.length ? next : ['all']
                           return [...next, sport.key]
                         })
                       }}
                       className={clsx(
                         'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition active:scale-[0.97]',
-                        active 
-                          ? 'border-black bg-neutral-900 text-white shadow-sm' 
+                        active
+                          ? 'border-black bg-neutral-900 text-white shadow-sm'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                       )}
                     >
@@ -473,12 +506,18 @@ type CalendarContentProps = {
   counts: Record<string, number>
 }
 
-function CalendarContent({ month, onMonthChange, range, onSelectRange, counts }: CalendarContentProps) {
+function CalendarContent({
+  month,
+  onMonthChange,
+  range,
+  onSelectRange,
+  counts,
+}: CalendarContentProps) {
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)
   const start = startOfWeek(monthStart, { weekStartsOn: 1 })
   const end = endOfWeek(monthEnd, { weekStartsOn: 1 })
-  
+
   const days: Date[] = []
   let current = start
   while (current <= end) {
@@ -493,14 +532,14 @@ function CalendarContent({ month, onMonthChange, range, onSelectRange, counts }:
     } else {
       // Have start, selection end
       if (isSameDay(day, range.start)) {
-         // Click same day -> just that day
-         onSelectRange({ start: day, end: null }) 
+        // Click same day -> just that day
+        onSelectRange({ start: day, end: null })
       } else if (day < range.start) {
-         // Click before start -> new start
-         onSelectRange({ start: day, end: null })
+        // Click before start -> new start
+        onSelectRange({ start: day, end: null })
       } else {
-         // Valid end
-         onSelectRange({ start: range.start, end: day })
+        // Valid end
+        onSelectRange({ start: range.start, end: day })
       }
     }
   }
@@ -508,72 +547,74 @@ function CalendarContent({ month, onMonthChange, range, onSelectRange, counts }:
   return (
     <div>
       <div className="mb-6 flex items-center justify-between px-2">
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-slate-900">{format(month, 'yyyy 年 M 月')}</span>
-          </div>
-          <div className="flex gap-2">
-             <button
-               type="button"
-               onClick={() => onMonthChange(addMonths(month, -1))}
-               className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 hover:bg-slate-50 transition"
-             >
-               <ChevronLeft className="h-5 w-5 text-slate-600" />
-             </button>
-             <button
-               type="button"
-               onClick={() => onMonthChange(addMonths(month, 1))}
-               className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 hover:bg-slate-50 transition"
-             >
-               <ChevronRight className="h-5 w-5 text-slate-600" />
-             </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-slate-900">{format(month, 'yyyy 年 M 月')}</span>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onMonthChange(addMonths(month, -1))}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition hover:bg-slate-50"
+          >
+            <ChevronLeft className="h-5 w-5 text-slate-600" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onMonthChange(addMonths(month, 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition hover:bg-slate-50"
+          >
+            <ChevronRight className="h-5 w-5 text-slate-600" />
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400 mb-4">
+      <div className="mb-4 grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
         {['一', '二', '三', '四', '五', '六', '日'].map((label) => (
           <span key={label}>週{label}</span>
         ))}
       </div>
-      
-      <div className="grid grid-cols-7 gap-y-2">
-          {days.map((day) => {
-            const isMonth = isSameMonth(day, month)
-            const dayStart = startOfDay(day)
-            
-            // Range logic
-            const isStart = range.start && isSameDay(day, range.start)
-            const isEnd = range.end && isSameDay(day, range.end)
-            const inRange = range.start && range.end && day > range.start && day < range.end
-            
-            const isSelected = isStart || isEnd
-            const isToday = isSameDay(day, new Date())
-            const key = dayStart.toISOString()
-            const hasEvents = Boolean(counts?.[key])
-            
-            if (!isMonth) return <span key={day.toISOString()} />
 
-            return (
-              <button
-                key={day.toISOString()}
-                type="button"
-                onClick={() => handleDayClick(day)}
-                className={clsx(
-                  'relative mx-auto flex h-10 w-10 items-center justify-center text-sm font-semibold transition',
-                  isSelected 
-                    ? 'z-10 rounded-full bg-blue-600 text-white shadow-md' 
-                    : 'rounded-full text-slate-700 hover:bg-slate-100',
-                  inRange && !isSelected && 'rounded-none bg-blue-50 text-blue-900 w-full max-w-none mx-0', // Connect range
-                  // Add rounded corners for range ends visually if needed, but simplified here
-                  isToday && !isSelected && !inRange && 'text-blue-600 bg-blue-50'
-                )}
-              >
-                <span>{format(day, 'd')}</span>
-                {hasEvents && !isSelected && !inRange && (
-                   <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-blue-400" />
-                )}
-              </button>
-            )
-          })}
+      <div className="grid grid-cols-7 gap-y-2">
+        {days.map((day) => {
+          const isMonth = isSameMonth(day, month)
+          const dayStart = startOfDay(day)
+
+          // Range logic
+          const isStart = range.start && isSameDay(day, range.start)
+          const isEnd = range.end && isSameDay(day, range.end)
+          const inRange = range.start && range.end && day > range.start && day < range.end
+
+          const isSelected = isStart || isEnd
+          const isToday = isSameDay(day, new Date())
+          const key = dayStart.toISOString()
+          const hasEvents = Boolean(counts?.[key])
+
+          if (!isMonth) return <span key={day.toISOString()} />
+
+          return (
+            <button
+              key={day.toISOString()}
+              type="button"
+              onClick={() => handleDayClick(day)}
+              className={clsx(
+                'relative mx-auto flex h-10 w-10 items-center justify-center text-sm font-semibold transition',
+                isSelected
+                  ? 'z-10 rounded-full bg-blue-600 text-white shadow-md'
+                  : 'rounded-full text-slate-700 hover:bg-slate-100',
+                inRange &&
+                  !isSelected &&
+                  'mx-0 w-full max-w-none rounded-none bg-blue-50 text-blue-900', // Connect range
+                // Add rounded corners for range ends visually if needed, but simplified here
+                isToday && !isSelected && !inRange && 'bg-blue-50 text-blue-600'
+              )}
+            >
+              <span>{format(day, 'd')}</span>
+              {hasEvents && !isSelected && !inRange && (
+                <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-blue-400" />
+              )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

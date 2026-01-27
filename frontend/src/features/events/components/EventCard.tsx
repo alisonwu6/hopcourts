@@ -1,12 +1,7 @@
 import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
-import {
-  Calendar,
-  MapPin,
-  MapPinPlusInside,
-  PersonStanding,
-} from 'lucide-react'
+import { Calendar, MapPin, MapPinPlusInside, PersonStanding } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { useSports } from '@/features/dictionaries/hooks'
 
@@ -31,15 +26,17 @@ function getFlagEmoji(countryCode: string) {
 
 export function EventCard({ event, onViewDetails }: EventCardProps) {
   const { items: sports } = useSports('zh')
-  const sportLabel = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
+  const sportLabel =
+    sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
-  const locationLabel = event.location.name && event.location.name !== event.location.address 
-    ? `${event.location.name} (${event.location.address})` 
-    : (event.location.name || event.location.address || '地點待確認')
+  const locationLabel =
+    event.location.name && event.location.name !== event.location.address
+      ? `${event.location.name} (${event.location.address})`
+      : event.location.name || event.location.address || '地點待確認'
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
   const priceLabel = event.priceRange ?? (event.isFree ? '免費參加' : '付費活動')
-  const cityLabel = event.host.cityName || (locationCity || '城市待確認')
+  const cityLabel = event.host.cityName || locationCity || '城市待確認'
 
   const attendeeCount = event.attendeeCount
   const participantPreview = event.participants.slice(0, 4)
@@ -122,7 +119,11 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             {skillLabel}
           </span>
           <span className="inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-semibold tracking-wide text-pink-700">
-            {event.gender === 'female_only' ? '女性專屬' : event.gender === 'male_only' ? '男性專屬' : '性別混合'}
+            {event.gender === 'female_only'
+              ? '女性專屬'
+              : event.gender === 'male_only'
+                ? '男性專屬'
+                : '性別混合'}
           </span>
           {event.visibility !== 'public' && (
             <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold tracking-wide text-slate-600">
@@ -140,19 +141,17 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           <div className="space-y-3">
             <InfoRow icon={Calendar} label={scheduleLabel} />
             <InfoRow icon={MapPin} label={locationLabel} />
-            
+
             <div className="flex items-center gap-3">
-              <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+              <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
                 <PersonStanding className="h-5 w-5" strokeWidth={2} />
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
                   {attendeeCount}/{event.maxAttendees} 人
                 </span>
-                <span className="text-xs font-medium text-slate-500">
-                  剩餘名額 {remaining} 人
-                </span>
-                <div className="flex -space-x-2 ml-1">
+                <span className="text-xs font-medium text-slate-500">剩餘名額 {remaining} 人</span>
+                <div className="ml-1 flex -space-x-2">
                   {participantPreview.map((participant) => (
                     <AvatarCircle
                       key={participant.id}
@@ -212,9 +211,7 @@ function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
       <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
         <Icon className="h-5 w-5" strokeWidth={2} />
       </div>
-      <div className="text-sm font-medium text-slate-600">
-        {label}
-      </div>
+      <div className="text-sm font-medium text-slate-600">{label}</div>
     </div>
   )
 }
@@ -246,9 +243,21 @@ function formatTimeRange(start: Date | string, end: Date | string) {
 function formatSchedule(start: Date | string, end: Date | string) {
   const startDate = toDate(start)
   const endDate = toDate(end)
-  const dateStr = startDate.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
-  const startTimeStr = startDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })
-  const endTimeStr = endDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })
+  const dateStr = startDate.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+  const startTimeStr = startDate.toLocaleTimeString('zh-TW', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+  const endTimeStr = endDate.toLocaleTimeString('zh-TW', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
   return `${dateStr} ${startTimeStr}-${endTimeStr}`
 }
 

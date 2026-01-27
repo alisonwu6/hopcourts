@@ -11,7 +11,7 @@ type TabKey = 'upcoming' | 'completed'
 
 function isCompleted(event: PlayerEvent) {
   const now = new Date()
-  
+
   if (event.completedDate && new Date(event.completedDate) < now) {
     return true
   }
@@ -234,9 +234,21 @@ function EventGroupList({
   const formatTimeRange = (start: Date | string, end: Date | string) => {
     const s = new Date(start)
     const e = new Date(end)
-    const date = s.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })
-    const startStr = s.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })
-    const endStr = e.toLocaleTimeString('zh-TW', { hour12: false, hour: '2-digit', minute: '2-digit' })
+    const date = s.toLocaleDateString('zh-TW', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+    const startStr = s.toLocaleTimeString('zh-TW', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    const endStr = e.toLocaleTimeString('zh-TW', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+    })
     return `${date} ${startStr}-${startStr !== endStr ? endStr : ''}`
   }
 
@@ -244,21 +256,21 @@ function EventGroupList({
     const now = new Date()
     const start = new Date(event.startTime)
     const end = event.endTime ? new Date(event.endTime) : start
-    
+
     // Check-in logic: 30 mins before start, 10 mins after start (default)
     const openMins = event.checkinOpenMinsBefore ?? 30
     const closeMins = event.checkinCloseMinsAfter ?? 10
     const checkInStart = new Date(start.getTime() - openMins * 60000)
     const checkInEnd = new Date(start.getTime() + closeMins * 60000)
-    
+
     if (now >= checkInStart && now <= checkInEnd) {
       return 'check-in-open'
     }
-    
+
     if (now >= start && now <= end) {
       return 'ongoing'
     }
-    
+
     return null
   }
 
@@ -266,10 +278,10 @@ function EventGroupList({
     <div className="space-y-8">
       {groups.map(([dateLabel, groupedEvents]) => (
         <div key={dateLabel}>
-          <h3 className="mb-4 text-xs font-bold uppercase tracking-wide text-gray-500 pl-1">
+          <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">
             {dateLabel}
           </h3>
-          <div className="relative border-l border-slate-200 ml-3 space-y-6 pb-2">
+          <div className="relative ml-3 space-y-6 border-l border-slate-200 pb-2">
             {groupedEvents.map((event) => {
               const status = getEventStatus(event)
               const active = status !== null
@@ -277,9 +289,11 @@ function EventGroupList({
                 <div key={event.id} className="relative pl-6">
                   <span
                     className={`absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full border-2 border-white ring-1 ${
-                      status === 'check-in-open' ? 'bg-emerald-500 ring-emerald-300 scale-125' :
-                      status === 'ongoing' ? 'bg-amber-500 ring-amber-300 scale-125' :
-                      'bg-slate-200 ring-slate-200'
+                      status === 'check-in-open'
+                        ? 'scale-125 bg-emerald-500 ring-emerald-300'
+                        : status === 'ongoing'
+                          ? 'scale-125 bg-amber-500 ring-amber-300'
+                          : 'bg-slate-200 ring-slate-200'
                     }`}
                   />
                   <button
@@ -313,7 +327,7 @@ function EventGroupList({
                     </div>
 
                     <div className="mt-4 flex items-center gap-3">
-                      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+                      <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
                         <PersonStanding className="h-5 w-5" strokeWidth={2} />
                       </div>
                       <div className="flex items-center gap-2">
@@ -354,15 +368,13 @@ function EmptyState({
   )
 }
 
-function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon, label: string }) {
+function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600 mt-0.5">
+      <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
         <Icon className="h-5 w-5" strokeWidth={2} />
       </div>
-      <div className="text-sm font-medium text-slate-600 leading-tight">
-        {label}
-      </div>
+      <div className="text-sm font-medium leading-tight text-slate-600">{label}</div>
     </div>
   )
 }

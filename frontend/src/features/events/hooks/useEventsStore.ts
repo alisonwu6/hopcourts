@@ -155,7 +155,7 @@ export const useEventsStore = create<EventsStore>((set) => ({
     } catch (err: any) {
       // If it's the object we threw above, just rethrow it
       if (err?.code) throw err
-      
+
       const message = err?.message || 'Check-in failed'
       set({ error: message })
       throw err

@@ -79,7 +79,7 @@ export default function CreateEventPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('id')
-  
+
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const { items: sportsCatalog } = useSports('zh')
   const [form, setForm] = useState<FormState>(initialState)
@@ -102,7 +102,7 @@ export default function CreateEventPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDraftLoading, setIsDraftLoading] = useState(false)
-  
+
   useEffect(() => {
     if (!editId) return
     setIsDraftLoading(true)
@@ -112,16 +112,16 @@ export default function CreateEventPage() {
         if (res.success && res.data) {
           const draft = res.data
           const toLocalISO = (d: Date | string) => {
-             if (!d) return ''
-             const dateObj = typeof d === 'string' ? new Date(d) : d
-             const offset = dateObj.getTimezoneOffset() * 60000
-             return new Date(dateObj.getTime() - offset).toISOString().slice(0, 16)
+            if (!d) return ''
+            const dateObj = typeof d === 'string' ? new Date(d) : d
+            const offset = dateObj.getTimezoneOffset() * 60000
+            return new Date(dateObj.getTime() - offset).toISOString().slice(0, 16)
           }
-          
+
           let sportLabel = ''
           if (draft.sport) {
-             const found = sportsCatalog.find(s => s.key === draft.sport)
-             sportLabel = found?.label || draft.sport
+            const found = sportsCatalog.find((s) => s.key === draft.sport)
+            sportLabel = found?.label || draft.sport
           }
 
           setForm({
@@ -140,22 +140,22 @@ export default function CreateEventPage() {
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
             gender: draft.gender || 'mixed',
             description: draft.detail?.description || draft.description || '',
-            notes: (draft as any).notesForAttendees || draft.detail?.lookingFor?.notes || '',  
+            notes: (draft as any).notesForAttendees || draft.detail?.lookingFor?.notes || '',
             placeName: draft.location.name || '',
           })
-          
+
           if (draft.location.name) {
-             setSelectedAddress(draft.location.name)
-             if (draft.location.lat && draft.location.lng) {
-                setSelectedLocation({ lat: draft.location.lat, lng: draft.location.lng })
-             }
+            setSelectedAddress(draft.location.name)
+            if (draft.location.lat && draft.location.lng) {
+              setSelectedLocation({ lat: draft.location.lat, lng: draft.location.lng })
+            }
           }
-          
+
           if (draft.photos && draft.photos.length > 0) {
-             setHeroPreviews(draft.photos)
+            setHeroPreviews(draft.photos)
           }
         } else {
-             setError('無法載入草稿，找不到此活動。')
+          setError('無法載入草稿，找不到此活動。')
         }
       } catch (err) {
         console.error('Failed to load draft', err)
@@ -259,8 +259,6 @@ export default function CreateEventPage() {
     setShowLocationSheet(true)
   }
 
-
-
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
   const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -293,10 +291,13 @@ export default function CreateEventPage() {
     }
   }
 
-  const handleSubmit = async (event?: FormEvent<HTMLFormElement>, status: 'draft' | 'published' = 'published') => {
+  const handleSubmit = async (
+    event?: FormEvent<HTMLFormElement>,
+    status: 'draft' | 'published' = 'published'
+  ) => {
     event?.preventDefault?.()
     if (isSubmitting) return
-    
+
     if (!form.title.trim()) {
       setError('請輸入標題')
       return
@@ -318,8 +319,8 @@ export default function CreateEventPage() {
       return
     }
     if (!canSubmit) {
-       setError('請確認所有必填欄位')
-       return
+      setError('請確認所有必填欄位')
+      return
     }
 
     if (!isAuthenticated) {
@@ -363,11 +364,11 @@ export default function CreateEventPage() {
       let uploadedPhotoUrls: string[] = []
       if (selectedFiles.length > 0) {
         uploadedPhotoUrls = await Promise.all(
-          selectedFiles.map(file => uploadService.uploadSessionPhoto(file))
+          selectedFiles.map((file) => uploadService.uploadSessionPhoto(file))
         )
       } else if (editId && heroPreviews.length > 0) {
         // Keep existing photos if they are remote URLs
-        uploadedPhotoUrls = heroPreviews.filter(url => url.startsWith('http'))
+        uploadedPhotoUrls = heroPreviews.filter((url) => url.startsWith('http'))
       }
 
       const commonPayload = {
@@ -451,7 +452,7 @@ export default function CreateEventPage() {
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex h-10 w-10 items-center justify-center text-red-500 transition hover:bg-red-50 hover:text-red-600 rounded-full"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-red-500 transition hover:bg-red-50 hover:text-red-600"
                 aria-label="Delete Event"
               >
                 <Trash2 className="h-5 w-5" strokeWidth={2} />
@@ -466,7 +467,7 @@ export default function CreateEventPage() {
           onSubmit={(e) => handleSubmit(e, 'published')}
         >
           {error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm sticky top-4 z-50">
+            <div className="sticky top-4 z-50 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm">
               {error}
             </div>
           )}
@@ -516,35 +517,35 @@ export default function CreateEventPage() {
               </div>
               <div className="space-y-1">
                 <div className="space-y-4">
-                <FloatingField
-                  label="場地名稱 (非必填)"
-                  name="placeName"
-                  placeholder="例如：大安運動中心"
-                  value={form.placeName}
-                  onChange={handleInputChange}
-                  supportingText="若知道場地具體名稱，請填寫於此。"
-                />
-                <button
-                  type="button"
-                  onClick={openLocationPicker}
-                  className="w-full flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
-                      <MapPin className="h-5 w-5" />
+                  <FloatingField
+                    label="場地名稱 (非必填)"
+                    name="placeName"
+                    placeholder="例如：大安運動中心"
+                    value={form.placeName}
+                    onChange={handleInputChange}
+                    supportingText="若知道場地具體名稱，請填寫於此。"
+                  />
+                  <button
+                    type="button"
+                    onClick={openLocationPicker}
+                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
+                        <MapPin className="h-5 w-5" />
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          地址/點地圖選擇
+                        </span>
+                        <span className="text-sm text-slate-500">
+                          {form.location || '點擊選擇位置'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col text-left">
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        地址/點地圖選擇
-                      </span>
-                      <span className="text-sm text-slate-500">
-                        {form.location || '點擊選擇位置'}
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-slate-400" />
-                </button>
-                {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
+                    <ChevronRight className="h-5 w-5 text-slate-400" />
+                  </button>
+                  {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -563,21 +564,21 @@ export default function CreateEventPage() {
             <FieldSection title="費用" description="設定活動的費用資訊。">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200">
-                   <input
-                     id="is-free-checkbox"
-                     type="checkbox"
-                     checked={form.isFree}
-                     onChange={(e) => setForm(prev => ({ ...prev, isFree: e.target.checked }))}
-                     className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                   />
-                   <label htmlFor="is-free-checkbox" className="flex flex-1 flex-col">
-                     <span className="text-sm font-semibold text-slate-800">免費活動</span>
-                     <span className="text-xs text-slate-500">參加者不需要付費。</span>
-                   </label>
+                  <input
+                    id="is-free-checkbox"
+                    type="checkbox"
+                    checked={form.isFree}
+                    onChange={(e) => setForm((prev) => ({ ...prev, isFree: e.target.checked }))}
+                    className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="is-free-checkbox" className="flex flex-1 flex-col">
+                    <span className="text-sm font-semibold text-slate-800">免費活動</span>
+                    <span className="text-xs text-slate-500">參加者不需要付費。</span>
+                  </label>
                 </div>
-                
+
                 {!form.isFree && (
-                  <div className="grid gap-4 sm:grid-cols-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="grid gap-4 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
                     <FloatingField
                       label="每人費用 (TWD)"
                       name="price"
@@ -777,11 +778,8 @@ export default function CreateEventPage() {
           </div>
         </SheetLayout>
       </BottomSheet>
-      
-      <BottomSheet
-        open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-      >
+
+      <BottomSheet open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
         <SheetLayout
           onClose={() => setShowDeleteConfirm(false)}
           title="確定要刪除活動嗎？"
@@ -790,14 +788,14 @@ export default function CreateEventPage() {
             label: isDeleting ? '刪除中...' : '確定刪除',
             onClick: handleDelete,
             variant: 'danger',
-            isLoading: isDeleting
+            isLoading: isDeleting,
           }}
           secondaryButton={{
             label: '取消',
             onClick: () => setShowDeleteConfirm(false),
           }}
         >
-          <div className="py-2 text-slate-500 text-sm">此操作無法復原。</div>
+          <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
         </SheetLayout>
       </BottomSheet>
     </>
@@ -834,10 +832,7 @@ function ActionBar({
           type="button"
           onClick={onPublish}
           disabled={isSubmitting}
-          className={clsx(
-            "flex-1 rounded-full px-6",
-            !canSubmit && "opacity-50"
-          )}
+          className={clsx('flex-1 rounded-full px-6', !canSubmit && 'opacity-50')}
         >
           {submittingStatus === 'published' ? '發布中…' : '發佈'}
         </Button>
