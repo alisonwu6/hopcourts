@@ -125,6 +125,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     isFree: session.is_free ?? true,
     price: session.price,
     priceRange: session.is_free ? '免費參加' : session.price ? `$${session.price}` : '收費活動',
+    description: session.description ?? '',
     participants: [],
     status: session.status as any,
     visibility: session.visibility as any,
@@ -132,7 +133,8 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     checkinOpenMinsBefore: session.checkin_open_mins_before,
     checkinCloseMinsAfter: session.checkin_close_mins_after,
     detail: {
-      description: session.notes,
+      description: session.description ?? '',
+      lookingFor: {},
       heroImageUrl: session.photos?.[0],
     },
   }
@@ -262,8 +264,7 @@ export const eventsService = {
       const payload = {
         title: input.title,
         sport_key: input.sport,
-        notes:
-          [input.description, input.notesForAttendees].filter(Boolean).join('\n\n') || undefined,
+        description: input.description,
         starts_at: input.startTime.toISOString(),
         ends_at: new Date(input.startTime.getTime() + input.duration * 60000).toISOString(),
         place_name: input.location?.name || input.location?.address || '',
@@ -278,7 +279,7 @@ export const eventsService = {
         gender: input.gender ?? 'mixed',
         is_free: input.isFree ?? true,
         price: input.pricePerPerson ?? undefined,
-        photos: input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
+        photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
       }
 
       const res = await httpPost<{ session: any }>('/sessions', { body: payload })
@@ -311,9 +312,7 @@ export const eventsService = {
       const payload: any = {
         title: input.title,
         sport_key: input.sport,
-        notes:
-          [input.description, input.notesForAttendees].filter(Boolean).join('\n\n') || undefined,
-        place_name: input.location?.name || input.location?.address || undefined,
+        description: input.description,
         address: input.location?.address || undefined,
         lat: input.location?.lat,
         lng: input.location?.lng,
@@ -324,7 +323,7 @@ export const eventsService = {
         gender: input.gender,
         is_free: input.isFree,
         price: input.pricePerPerson,
-        photos: input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
+        photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
       }
 
       if (input.startTime) {

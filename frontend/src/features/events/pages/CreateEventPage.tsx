@@ -2,14 +2,13 @@ import clsx from 'clsx'
 import type {
   ChangeEvent,
   FormEvent,
-  MouseEvent,
   InputHTMLAttributes,
   ReactNode,
   TextareaHTMLAttributes,
 } from 'react'
-import { useMemo, useState, useId, useEffect } from 'react'
+import { useMemo, useState, useId, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MapPin, ChevronRight, Trash2 } from 'lucide-react'
+import { MapPin, ChevronRight, Trash2, ImagePlus, X } from 'lucide-react'
 import { Button } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -17,13 +16,13 @@ import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { useSports } from '@/features/dictionaries/hooks'
-import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { MapPicker, type LatLng } from '@/components/map/MapPicker'
-import { httpPost } from '@/api/http'
 import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
 import { PageLoading } from '@/components/PageLoading'
+import { format, addDays, startOfDay, addHours } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const SKILL_LEVEL_LABELS = {
@@ -59,12 +58,12 @@ const initialState: FormState = {
   title: '',
   sport: '',
   sportKey: '',
-  startTime: '',
-  endTime: '',
+  startTime: format(startOfDay(addDays(new Date(), 1)), "yyyy-MM-dd'T'HH:mm"),
+  endTime: format(addHours(startOfDay(addDays(new Date(), 1)), 2), "yyyy-MM-dd'T'HH:mm"),
   location: '',
   lat: '',
   lng: '',
-  capacity: '3',
+  capacity: '',
   isFree: true,
   price: '',
   priceNote: '現場收費',
@@ -135,7 +134,7 @@ export default function CreateEventPage() {
             lng: draft.location.lng ? String(draft.location.lng) : '',
             capacity: String(draft.maxAttendees || 3),
             isFree: draft.isFree ?? true,
-            price: draft.price ? String(draft.price) : '',
+            price: draft.price && draft.maxAttendees ? String(draft.price * draft.maxAttendees) : '',
             priceNote: '現場收費',
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
             gender: draft.gender || 'mixed',
@@ -262,16 +261,26 @@ export default function CreateEventPage() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
 
   const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const rawFiles = Array.from(event.target.files ?? []).slice(0, 3)
+    const rawFiles = Array.from(event.target.files ?? [])
     if (!rawFiles.length) return
+
+    const currentCount = heroPreviews.length
+    if (currentCount >= 3) {
+      alert('最多只能上傳 3 張照片')
+      event.target.value = ''
+      return
+    }
+
+    const remaining = 3 - currentCount
+    const filesToProcess = rawFiles.slice(0, remaining)
 
     try {
       const processedFiles = await Promise.all(
-        rawFiles.map((file: File) => convertFileToWebP(file))
+        filesToProcess.map((file: File) => convertFileToWebP(file))
       )
-      const previews = processedFiles.map((file) => URL.createObjectURL(file))
-      setHeroPreviews(previews)
-      setSelectedFiles(processedFiles)
+      const newPreviews = processedFiles.map((file) => URL.createObjectURL(file))
+      setHeroPreviews((prev) => [...prev, ...newPreviews])
+      setSelectedFiles((prev) => [...prev, ...processedFiles])
     } catch (err) {
       console.error('Image processing failed:', err)
     }
@@ -357,19 +366,31 @@ export default function CreateEventPage() {
       return
     }
 
+    // Calculate per-person price from total price
+    let pricePerPerson: number | undefined
+    if (!form.isFree && form.price) {
+      const totalPrice = parseFloat(form.price)
+      if (!Number.isNaN(totalPrice) && capacity > 0) {
+        pricePerPerson = Math.round(totalPrice / capacity)
+      }
+    }
+
     setError(null)
     setSubmittingStatus(status)
     try {
       // 1. Upload Images or use existing
       let uploadedPhotoUrls: string[] = []
-      if (selectedFiles.length > 0) {
-        uploadedPhotoUrls = await Promise.all(
-          selectedFiles.map((file) => uploadService.uploadSessionPhoto(file))
-        )
-      } else if (editId && heroPreviews.length > 0) {
-        // Keep existing photos if they are remote URLs
-        uploadedPhotoUrls = heroPreviews.filter((url) => url.startsWith('http'))
-      }
+
+      // Upload new files
+      const newPhotoUrls = await Promise.all(
+        selectedFiles.map((file) => uploadService.uploadSessionPhoto(file))
+      )
+
+      // Get existing remote URLs
+      const existingPhotoUrls = heroPreviews.filter((url) => url.startsWith('http'))
+
+      // Combine: Existing first, then new
+      uploadedPhotoUrls = [...existingPhotoUrls, ...newPhotoUrls]
 
       const commonPayload = {
         title: form.title.trim(),
@@ -386,10 +407,11 @@ export default function CreateEventPage() {
           lng: lngNum ?? undefined,
         },
         isFree: form.isFree,
-        pricePerPerson: form.price ? parseFloat(form.price) : undefined,
+        pricePerPerson,
         skillLevel: form.skillLevel,
         gender: form.gender,
         coverPhotoUrl: uploadedPhotoUrls[0],
+        photos: uploadedPhotoUrls,
         status,
       }
 
@@ -397,7 +419,11 @@ export default function CreateEventPage() {
         // Update existing event
         const res = await eventsService.updateEvent(editId, commonPayload)
         if (res.success) {
-          navigate(`/event/${editId}`)
+          if (status === 'draft') {
+            navigate('/profile', { state: { tab: 'upcoming' }, replace: true })
+          } else {
+            navigate(`/event/${editId}`, { state: { from: 'create-event' }, replace: true })
+          }
         } else {
           setError(res.error?.message || '更新活動失敗。')
         }
@@ -405,7 +431,11 @@ export default function CreateEventPage() {
         // Create new event
         const res = await eventsService.createEvent(commonPayload)
         if (res.success && res.data) {
-          navigate(`/event/${res.data.id}`)
+          if (status === 'draft') {
+            navigate('/profile', { state: { tab: 'upcoming' }, replace: true })
+          } else {
+            navigate(`/event/${res.data.id}`, { state: { from: 'create-event' }, replace: true })
+          }
         } else {
           setError(res.error?.message || '發佈活動失敗。')
         }
@@ -416,7 +446,7 @@ export default function CreateEventPage() {
       setSubmittingStatus(null)
     }
   }
-
+  
   const handleDelete = async () => {
     if (!editId) return
     setIsDeleting(true)
@@ -437,22 +467,53 @@ export default function CreateEventPage() {
     }
   }
 
+  const handleRemoveImage = (index: number) => {
+    const targetUrl = heroPreviews[index]
+    const isBlob = targetUrl.startsWith('blob:')
+    
+    if (isBlob) {
+        // Find which selectedFile index this corresponds to
+        // Count how many blobs are before this index in heroPreviews
+        let blobIndex = 0
+        for (let i = 0; i < index; i++) {
+            if (heroPreviews[i].startsWith('blob:')) {
+                blobIndex++
+            }
+        }
+        setSelectedFiles((prev) => prev.filter((_, i) => i !== blobIndex))
+    }
+    
+    setHeroPreviews((prev) => prev.filter((_, i) => i !== index))
+  }
+
   return (
     <>
-      <div className="min-h-screen bg-blue-50 pb-16">
+      <div className="min-h-screen bg-white pb-24">
         <ActionToolbar
+          showBack={false}
           onBack={handleCancel}
           onToggleFavorite={() => setIsFavorite((prev) => !prev)}
           isFavorite={isFavorite}
           showFavorite={false}
           showShare={false}
-          contentClassName="w-full max-w-3xl px-4 sm:px-6"
+          title={editId ? '編輯活動' : '建立活動'}
+          contentClassName="w-full max-w-md px-4"
+          leftContent={
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex h-10 w-10 items-center justify-center text-slate-500"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" strokeWidth={2} />
+            </button>
+          }
           rightContent={
             editId && (
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-red-500 transition hover:bg-red-50 hover:text-red-600"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
                 aria-label="Delete Event"
               >
                 <Trash2 className="h-5 w-5" strokeWidth={2} />
@@ -463,7 +524,7 @@ export default function CreateEventPage() {
         {isDraftLoading && <PageLoading />}
         <form
           id="event-form"
-          className="mx-auto mt-6 w-full max-w-3xl space-y-4 px-4 pb-8 sm:px-6"
+          className="mx-auto mt-2 w-full max-w-md space-y-6 px-4 pb-8"
           onSubmit={(e) => handleSubmit(e, 'published')}
         >
           {error && (
@@ -472,12 +533,18 @@ export default function CreateEventPage() {
             </div>
           )}
 
-          <section className="space-y-8 rounded-[32px] border border-slate-100 bg-white px-6 py-8 shadow-[0_24px_60px_rgba(15,41,77,0.12)] sm:px-8">
-            <CoverUploader previews={heroPreviews} onChange={handleImageChange} />
+          <div className="space-y-8">
+            <FieldSection title="活動相關照片" description="最多3張">
+              <CoverUploader 
+                previews={heroPreviews} 
+                onChange={handleImageChange} 
+                onRemove={handleRemoveImage}
+              />
+            </FieldSection>
 
-            <FieldSection title="活動基本資料" description="先填最重要的資訊，讓大家一眼看懂。">
+            <FieldSection title="活動基本資料" description="">
               <FloatingField
-                label="標題"
+                label="活動名稱"
                 name="title"
                 value={form.title}
                 onChange={handleInputChange}
@@ -492,40 +559,22 @@ export default function CreateEventPage() {
                 placeholder="選擇運動"
                 required
               />
+              <FloatingField
+                  label="人數上限"
+                  name="capacity"
+                  type="number"
+                  min={1}
+                  value={form.capacity}
+                  onChange={handleInputChange}
+                  required
+                />
               <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
               <GenderSelector selected={form.gender} onSelect={handleGenderSelect} />
             </FieldSection>
 
-            <FieldSection title="時間與地點" description="設定集合時間與地點。">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FloatingField
-                  label="開始時間"
-                  name="startTime"
-                  type="datetime-local"
-                  value={form.startTime}
-                  onChange={handleInputChange}
-                  required
-                />
-                <FloatingField
-                  label="結束時間"
-                  name="endTime"
-                  type="datetime-local"
-                  value={form.endTime}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <div className="space-y-4">
-                  <FloatingField
-                    label="場地名稱 (非必填)"
-                    name="placeName"
-                    placeholder="例如：大安運動中心"
-                    value={form.placeName}
-                    onChange={handleInputChange}
-                    supportingText="若知道場地具體名稱，請填寫於此。"
-                  />
-                  <button
+            <FieldSection title="地點與時間" description="">
+              <div className="space-y-4">
+                 <button
                     type="button"
                     onClick={openLocationPicker}
                     className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200"
@@ -546,15 +595,28 @@ export default function CreateEventPage() {
                     <ChevronRight className="h-5 w-5 text-slate-400" />
                   </button>
                   {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
-                </div>
+                  
+                  <FloatingField
+                    label="場地名稱 (非必填)"
+                    name="placeName"
+                    placeholder="若知道場地具體名稱，請填寫於此。"
+                    value={form.placeName}
+                    onChange={handleInputChange}
+                  />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <FloatingField
-                  label="Capacity"
-                  name="capacity"
-                  type="number"
-                  min={1}
-                  value={form.capacity}
+
+              <div className="space-y-4">
+                <DateTimeField
+                  label="開始時間"
+                  name="startTime"
+                  value={form.startTime}
+                  onChange={handleInputChange}
+                  required
+                />
+                <DateTimeField
+                  label="結束時間"
+                  name="endTime"
+                  value={form.endTime}
                   onChange={handleInputChange}
                   required
                 />
@@ -573,21 +635,25 @@ export default function CreateEventPage() {
                   />
                   <label htmlFor="is-free-checkbox" className="flex flex-1 flex-col">
                     <span className="text-sm font-semibold text-slate-800">免費活動</span>
-                    <span className="text-xs text-slate-500">參加者不需要付費。</span>
                   </label>
                 </div>
 
                 {!form.isFree && (
                   <div className="grid gap-4 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
                     <FloatingField
-                      label="每人費用 (TWD)"
+                      label="總費用 (TWD)"
                       name="price"
                       type="number"
                       min={0}
                       value={form.price}
                       onChange={handleInputChange}
-                      placeholder="例如: 200"
+                      placeholder="例如: 2000"
                       required={!form.isFree}
+                      supportingText={
+                        form.price && Number(form.capacity) > 0
+                          ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
+                          : undefined
+                      }
                     />
                     <FloatingField
                       label="收費說明"
@@ -601,27 +667,18 @@ export default function CreateEventPage() {
               </div>
             </FieldSection>
 
-            <FieldSection title="告訴大家期待什麼" description="描述氛圍、目標，或注意事項。">
+            <FieldSection title="活動說明" description="描述氛圍、期待，或注意事項。">
               <FloatingField
                 as="textarea"
-                label="描述"
+                label="活動說明"
                 name="description"
-                rows={4}
+                rows={5}
                 value={form.description}
                 onChange={handleInputChange}
-                supportingText="說明活動的氛圍、步調，讓參加者知道會遇到什麼。"
               />
-              <FloatingField
-                as="textarea"
-                label="給參加者的小提醒"
-                name="notes"
-                rows={3}
-                value={form.notes}
-                onChange={handleInputChange}
-                supportingText="只給已報名者的最新通知或重要細節。"
-              />
+
             </FieldSection>
-          </section>
+          </div>
         </form>
 
         <ActionBar
@@ -696,7 +753,7 @@ export default function CreateEventPage() {
         <SheetLayout
           onClose={() => setShowLocationSheet(false)}
           title="選擇位置"
-          subtitle="在地圖上點擊放置定位點"
+          subtitle="將根據你給的地址放置定位點"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
@@ -815,14 +872,14 @@ function ActionBar({
 }) {
   const isSubmitting = submittingStatus !== null
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 bg-blue-50/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(30,64,175,0.12)] backdrop-blur">
-      <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 sm:px-6">
+    <div className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md bg-white/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(15,41,77,0.1)] backdrop-blur">
+      <div className="flex w-full items-center gap-3 px-4">
         <Button
           variant="secondary"
           size="sm"
           type="button"
           onClick={onDraft}
-          className="flex-1 rounded-full border-blue-200 text-blue-500 hover:bg-blue-50"
+          className="flex-1 rounded-full border-slate-200 text-slate-600 hover:bg-slate-50"
           disabled={!canSubmit || isSubmitting}
         >
           {submittingStatus === 'draft' ? '儲存中...' : '草稿'}
@@ -851,10 +908,10 @@ function FieldSection({
   children: ReactNode
 }) {
   return (
-    <div className="space-y-4 rounded-[28px] border border-slate-100 bg-slate-50/60 p-4 sm:p-6">
+    <div className="space-y-4 py-2">
       <div className="space-y-1">
         <p className="text-sm font-semibold uppercase tracking-wide text-slate-600">{title}</p>
-        <p className="text-sm text-slate-500">{description}</p>
+        <p className="text-xs text-slate-400">{description}</p>
       </div>
       <div className="space-y-4">{children}</div>
     </div>
@@ -903,16 +960,16 @@ function GenderSelector({
   selected: 'mixed' | 'female_only' | 'male_only'
   onSelect: (value: 'mixed' | 'female_only' | 'male_only') => void
 }) {
-  const options: { id: 'mixed' | 'female_only' | 'male_only'; label: string; desc: string }[] = [
-    { id: 'mixed', label: '性別混合場', desc: '不限性別，歡迎一起來動。' },
-    { id: 'female_only', label: '女性專屬場', desc: '女性限定，讓夥伴更自在。' },
-    { id: 'male_only', label: '男性專屬場', desc: '男性限定，暢快對戰。' },
+  const options: { id: 'mixed' | 'female_only' | 'male_only'; label: string }[] = [
+    { id: 'mixed', label: '不限性別' },
+    { id: 'female_only', label: '女孩專屬' },
+    { id: 'male_only', label: '男孩專屬' },
   ]
 
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold tracking-wide text-slate-500">性別</p>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const isActive = selected === opt.id
           return (
@@ -921,14 +978,13 @@ function GenderSelector({
               type="button"
               onClick={() => onSelect(opt.id)}
               className={clsx(
-                'flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition',
+                'rounded-full border px-4 py-1.5 text-sm font-medium transition',
                 isActive
-                  ? 'border-blue-500 bg-blue-50 text-blue-800 shadow-[0_6px_16px_rgba(30,64,175,0.18)]'
-                  : 'border-slate-200 bg-white text-slate-800 hover:border-blue-200'
+                  ? 'border-blue-500 bg-blue-600 text-white shadow-[0_6px_16px_rgba(30,64,175,0.25)]'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-600'
               )}
             >
-              <span className="text-sm font-semibold">{opt.label}</span>
-              <span className="text-xs text-slate-500">{opt.desc}</span>
+              {opt.label}
             </button>
           )
         })}
@@ -940,39 +996,58 @@ function GenderSelector({
 function CoverUploader({
   previews,
   onChange,
+  onRemove,
 }: {
   previews?: string[]
   onChange: (event: ChangeEvent<HTMLInputElement>) => void
+  onRemove?: (index: number) => void
 }) {
   const hasImages = previews && previews.length > 0
+  const isFull = previews && previews.length >= 3
+
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-slate-50/80 p-4">
-      <label className="flex min-h-[220px] cursor-pointer flex-col gap-3 rounded-[24px] border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500 transition hover:border-blue-300">
-        {hasImages ? (
-          <div className="grid gap-3 sm:grid-cols-3">
-            {previews!.slice(0, 3).map((src, idx) => (
-              <div
-                key={src + idx}
-                className="relative h-40 overflow-hidden rounded-[20px] ring-1 ring-slate-200"
+    <div className="rounded-[24px] border border-slate-200 bg-slate-50/50 p-2">
+      <div className="grid grid-cols-3 gap-2">
+        {/* Existing Previews */}
+        {previews?.slice(0, 3).map((src, idx) => (
+          <div
+            key={src + idx}
+            className="relative aspect-square w-full overflow-hidden rounded-xl border border-slate-100 shadow-sm"
+          >
+            <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+            {onRemove && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onRemove(idx)
+                }}
+                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-red-500"
               >
-                <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
-              </div>
-            ))}
+                <X className="h-3 w-3" />
+              </button>
+            )}
           </div>
-        ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-6 text-center">
-            <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
-              Cover photos
+        ))}
+
+        {/* Upload Button */}
+        {!isFull && (
+          <label className="group relative box-border flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 transition hover:border-blue-300 hover:bg-slate-50">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100">
+              <ImagePlus className="h-4 w-4" />
             </div>
-            <p>場地或活動相關圖片</p>
-          </div>
+            <p className="text-[10px] font-semibold text-slate-500 group-hover:text-blue-600">
+              上傳照片
+            </p>
+            <input type="file" accept="image/*" multiple className="hidden" onChange={onChange} />
+          </label>
         )}
-        <div className="text-center text-xs text-slate-500">點擊或拖曳上傳（最多 3 張）</div>
-        <input type="file" accept="image/*" multiple className="hidden" onChange={onChange} />
-      </label>
+      </div>
     </div>
   )
 }
+
 
 type FloatingFieldProps =
   | ({
@@ -1007,7 +1082,7 @@ function FloatingField(props: FloatingFieldProps) {
         ? value.length > 0
         : Boolean(value && String(value).trim().length > 0)
   const baseClasses =
-    'peer block w-full rounded-[14px] border-2 border-slate-300 bg-white px-4 pt-7 pb-3 text-base text-slate-900 transition focus:border-slate-900 focus:shadow-[0_0_0_1px_rgba(0,0,0,0.2)] focus:outline-none disabled:opacity-60'
+    'peer block w-full appearance-none min-h-[3.5rem] rounded-[14px] border-2 border-slate-300 bg-white px-4 pt-7 pb-3 text-base text-slate-900 transition focus:border-slate-900 focus:shadow-[0_0_0_1px_rgba(0,0,0,0.2)] focus:outline-none disabled:opacity-60'
   const labelClasses =
     'pointer-events-none absolute left-4 top-2 text-sm font-semibold text-slate-600 bg-white px-1'
   const infoText =
@@ -1064,6 +1139,71 @@ function FloatingField(props: FloatingFieldProps) {
         </label>
       </div>
       {infoText && <p className="text-xs text-slate-500">{infoText}</p>}
+    </div>
+  )
+}
+
+function DateTimeField({
+  label,
+  value,
+  name,
+  onChange,
+  required,
+}: {
+  label: string
+  value: string
+  name: string
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void
+  required?: boolean
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  const displayValue = useMemo(() => {
+    if (!value) return ''
+    try {
+      const date = new Date(value)
+      return format(date, 'yyyy/MM/dd HH:mm', { locale: zhTW })
+    } catch {
+      return ''
+    }
+  }, [value])
+
+  const handleClick = () => {
+    if (inputRef.current) {
+      if ('showPicker' in inputRef.current) {
+        try {
+          (inputRef.current as any).showPicker()
+        } catch (err) {
+          // Fallback or ignore if not supported/allowed
+          inputRef.current.focus()
+        }
+      } else {
+        inputRef.current.focus()
+      }
+    }
+  }
+
+  return (
+    <div 
+      onClick={handleClick}
+      className="relative w-full rounded-[14px] border-2 border-slate-300 bg-white px-4 pt-7 pb-3 transition focus-within:border-slate-900 focus-within:shadow-[0_0_0_1px_rgba(0,0,0,0.2)]"
+    >
+      <label className="pointer-events-none absolute left-4 top-2 text-sm font-semibold text-slate-600 bg-white px-1">
+        {label}
+      </label>
+      <div className={clsx('min-h-[1.5rem] w-full text-base', !displayValue && 'text-slate-400')}>
+        {displayValue || '請選擇時間'}
+      </div>
+      <input
+        ref={inputRef}
+        type="datetime-local"
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
+        lang="zh-TW"
+      />
     </div>
   )
 }

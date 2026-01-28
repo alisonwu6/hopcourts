@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -14,6 +14,7 @@ import {
   PersonStanding,
   Trash2,
   LandPlot,
+  NotebookPen,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -21,6 +22,8 @@ import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { eventsService } from '@/features/events/services/eventsService'
 import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
+import { format } from 'date-fns'
+import { zhTW } from 'date-fns/locale'
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
@@ -32,6 +35,7 @@ function getFlagEmoji(countryCode: string) {
 export function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const [isFavorite, setIsFavorite] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -231,19 +235,25 @@ export function EventDetailPage() {
   return (
     <div className="min-h-screen pb-40">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => {
+          if (location.state?.from === 'create-event') {
+            navigate('/events')
+          } else {
+            navigate(-1)
+          }
+        }}
         onShare={handleShare}
         onToggleFavorite={() => setIsFavorite((prev) => !prev)}
         isFavorite={isFavorite}
         showShare
-        showFavorite
-        contentClassName="w-full max-w-[400px] px-4"
+        showFavorite={false}
+        contentClassName="w-full"
         rightContent={
           event.host.id === currentUserId && (
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 text-red-500 transition hover:text-red-600"
+              className="p-2 text-slate-400 transition hover:text-slate-500"
               aria-label="Delete event"
             >
               <Trash2 className="h-5 w-5" />
@@ -251,20 +261,19 @@ export function EventDetailPage() {
           )
         }
       />
-      <div className="mx-auto w-full max-w-[400px] space-y-6 pb-8">
+      <div className="w-full space-y-6">
         <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div
-            className="h-[230px] w-full bg-cover bg-center"
-            style={{
-              backgroundImage: heroImage
-                ? `url(${heroImage})`
-                : 'linear-gradient(135deg, #DBEAFE, #2563EB)',
-            }}
+          <ImageCarousel
+            images={
+              event.photos && event.photos.length > 0
+                ? event.photos
+                : [event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[]
+            }
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div className="px-5 pb-6 pt-6">
+          <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6 pb-20">
             <div
               className="flex cursor-pointer items-center gap-3 transition hover:opacity-80"
               onClick={() => {
@@ -277,7 +286,7 @@ export function EventDetailPage() {
                 <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
                 <div>
                   <p className="text-sm font-semibold text-slate-900">{event.host.name}</p>
-                  <p className="text-xs text-slate-500">發動發起人</p>
+                  <p className="text-xs text-slate-500">活動發起人</p>
                 </div>
               </div>
             </div>
@@ -320,7 +329,13 @@ export function EventDetailPage() {
               />
               <InfoRow
                 icon={CircleDollarSign}
-                label={event.priceRange || (event.isFree ? '免費' : 'Paid')}
+                label={
+                  event.isFree
+                    ? '免費'
+                    : event.price
+                      ? `若達人數上限，每人$${event.price}`
+                      : '收費活動'
+                }
               />
             </div>
 
@@ -383,12 +398,14 @@ export function EventDetailPage() {
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
                   <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
-                <span>主辦想說</span>
+                <span>活動說明</span>
               </div>
-              <p className="text-sm leading-relaxed text-slate-700">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
                 {event.detail?.description || event.description || '沒有描述'}
               </p>
             </div>
+
+
 
             {/* Photos Section if multiple */}
           </div>
@@ -496,7 +513,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   const isCheckInOpen = now >= openTime && now <= closeTime
 
   const formatTime = (date: Date) =>
-    date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })
+    format(date, 'MM/dd HH:mm', { locale: zhTW })
 
   let mainButton = (
     <Button onClick={onJoin} className="bg-blue-600 text-white hover:bg-blue-700">
@@ -532,7 +549,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       )
       statusText = (
         <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          請於 {formatTime(closeTime)} 分前完成報到，讓你的同場夥伴知道你到了。
+          請於 {formatTime(closeTime)} 分前完成報到，讓同場的夥伴知道你到了。
         </p>
       )
     } else if (now > closeTime) {
@@ -573,16 +590,83 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
-      <div className="relative mx-auto flex w-full max-w-[420px] flex-col gap-2 px-4">
+    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+      <div className="relative flex w-full flex-col gap-2 px-4">
         {statusText}
-        {React.cloneElement(mainButton as React.ReactElement, {
+        {React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
           className: clsx(
             'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-            (mainButton as React.ReactElement).props.className
+            (mainButton as React.ReactElement<{ className?: string }>).props.className
           ),
         })}
       </div>
+    </div>
+  )
+}
+
+function ImageCarousel({ images }: { images: string[] }) {
+  const [currentIndex, setCurrentIndex] = React.useState(0)
+  const containerRef = React.useRef<HTMLDivElement>(null)
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft
+    const width = e.currentTarget.clientWidth
+    if (width > 0) {
+      const newIndex = Math.round(scrollLeft / width)
+      setCurrentIndex(newIndex)
+    }
+  }
+
+  // Auto-play effect
+  React.useEffect(() => {
+    if (images.length <= 1) return
+
+    const timer = setInterval(() => {
+      if (containerRef.current) {
+        const nextIndex = (currentIndex + 1) % images.length
+        const width = containerRef.current.clientWidth
+        containerRef.current.scrollTo({
+          left: nextIndex * width,
+          behavior: 'smooth',
+        })
+      }
+    }, 5000)
+
+    return () => clearInterval(timer)
+  }, [currentIndex, images.length])
+
+  if (images.length === 0) {
+    return (
+      <div
+        className="h-[230px] w-full bg-cover bg-center"
+        style={{
+          backgroundImage: 'linear-gradient(135deg, #DBEAFE, #2563EB)',
+        }}
+      />
+    )
+  }
+
+  return (
+    <div className="relative h-[230px] w-full">
+      <div
+        ref={containerRef}
+        className="flex h-full w-full snap-x snap-mandatory overflow-x-auto [&::-webkit-scrollbar]:hidden"
+        onScroll={handleScroll}
+      >
+        {images.map((src, idx) => (
+          <div
+            key={idx}
+            className="h-full min-w-full snap-center bg-cover bg-center"
+            style={{ backgroundImage: `url(${src})` }}
+          />
+        ))}
+      </div>
+
+      {images.length > 1 && (
+        <div className="absolute bottom-10 right-4 rounded-full bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
+          {currentIndex + 1} / {images.length}
+        </div>
+      )}
     </div>
   )
 }

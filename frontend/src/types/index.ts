@@ -405,4 +405,5 @@ export interface CreateEventInput {
   tags?: string[]
   difficulty?: 1 | 2 | 3 | 4 | 5
   gender?: 'mixed' | 'female_only' | 'male_only'
+  photos?: string[]
 }

@@ -165,13 +165,16 @@ export function DiscoverEventsPage() {
     <div className="min-h-screen pb-24">
       {/* Airbnb-style Header */}
       <div
-        className="fixed left-0 right-0 z-40 bg-[#f4f6fb]/80 p-4 backdrop-blur transition-all duration-300"
+        className={clsx(
+          'fixed left-0 right-0 z-40 mx-auto w-full max-w-md p-4 transition-all duration-300',
+          showMap ? 'bg-transparent pointer-events-none' : 'bg-white/95 backdrop-blur'
+        )}
         style={{ top: '0px' }}
       >
-        <div className="mx-auto flex w-full max-w-4xl items-center gap-3">
+        <div className="flex w-full items-center gap-3">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="flex flex-1 items-center gap-1 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition active:scale-[0.98]"
+            className="flex flex-1 items-center gap-1 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition active:scale-[0.98] pointer-events-auto"
           >
             <Search className="ml-2 h-5 w-5 text-slate-800" strokeWidth={2.5} />
             <div className="flex flex-col items-start px-1">
@@ -223,7 +226,7 @@ export function DiscoverEventsPage() {
 
           <button
             onClick={toggleMap}
-            className="flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-[0.95]"
+            className="flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-[0.95] pointer-events-auto"
           >
             {showMap ? (
               <ListIcon className="h-6 w-6 text-slate-700" />
@@ -261,23 +264,22 @@ export function DiscoverEventsPage() {
           {isLoading ? (
             <PageLoading fullScreen={false} className="py-20" />
           ) : filteredEvents.length === 0 ? (
-            <div className="flex justify-center">
-              <div className="flex w-full flex-col items-center justify-center rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50 py-16 text-center">
-                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-sm">
-                  <span className="text-4xl">🏟️</span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">Oops! 怎麼沒有活動...</h3>
-                <p className="mt-2 max-w-xs text-sm text-slate-500">
-                  你就自己來吧! 開啟一場你喜歡的活動，生活也許會因此變得不同！
-                </p>
-                <button
-                  type="button"
-                  onClick={handleCreateClick}
-                  className="mt-8 rounded-2xl bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg transition hover:bg-blue-700 active:scale-[0.98]"
-                >
-                  發起活動
-                </button>
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
+                <span className="text-5xl">😮</span>
               </div>
+              <h3 className="text-xl font-bold text-slate-900">Opps! 沒有活動?</h3>
+              <p className="mt-2 text-sm text-slate-500">
+                Hey! 成為第一個發起活動的人，<br />
+                一起在路上遇見新夥伴！
+              </p>
+              <button
+                type="button"
+                onClick={handleCreateClick}
+                className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-200 transition active:scale-[0.98]"
+              >
+                發起活動
+              </button>
             </div>
           ) : (
             filteredEvents.map((event) => (

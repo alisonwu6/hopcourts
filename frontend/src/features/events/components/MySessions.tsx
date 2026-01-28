@@ -270,7 +270,7 @@ function EventGroupList({
                         <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
                       </div>
                       {event.status === 'draft' && (
-                        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-800">
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
                           草稿
                         </span>
                       )}

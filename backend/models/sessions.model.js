@@ -7,7 +7,7 @@ const BASE_FIELDS = [
   'host_user_id',
   'sport_key',
   'title',
-  'notes',
+  'notes as description',
   'starts_at',
   'ends_at',
   'place_name',
@@ -204,7 +204,7 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
 
 async function getSessionById(sessionId) {
   const { rows } = await query(
-    `select s.*,
+    `select ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
        h.display_name as host_display_name,
        h.avatar_url as host_avatar_url,
        h.username as host_username,
@@ -262,7 +262,7 @@ async function createSession(input) {
     input.hostUserId,
     input.sportKey,
     input.title ?? null,
-    input.notes ?? null,
+    input.description ?? null,
     input.startAt,
     input.endAt ?? null,
     input.locationName,
@@ -290,7 +290,7 @@ async function createSession(input) {
 async function updateSession(sessionId, patch = {}) {
   const entries = Object.entries({
     title: patch.title,
-    notes: patch.notes,
+    notes: patch.description,
     starts_at: patch.startAt,
     ends_at: patch.endAt,
     place_name: patch.locationName,

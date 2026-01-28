@@ -187,7 +187,7 @@ async function createSession(input) {
     hostUserId: input.userId,
     sportKey: input.sportKey,
     title: input.title ?? null,
-    notes: input.notes ?? null,
+    description: input.description ?? null,
     startAt: new Date(input.startAt),
     endAt: input.endAt ? new Date(input.endAt) : null,
     locationName: input.placeName,
@@ -242,7 +242,7 @@ async function updateSession(sessionId, input) {
 
   const patch = {
     title: input.title,
-    notes: input.notes,
+    description: input.description,
     startAt: input.startAt ? new Date(input.startAt) : undefined,
     endAt: input.endAt ? new Date(input.endAt) : undefined,
     locationName: input.placeName,

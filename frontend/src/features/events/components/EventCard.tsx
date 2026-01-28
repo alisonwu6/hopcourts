@@ -81,10 +81,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500'
       )}
     >
-      <div className="absolute left-6 top-6 hidden h-12 w-12 items-center justify-center rounded-2xl bg-player-600 text-white sm:flex">
-        <MapPinPlusInside className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
-      </div>
-
+      
       <div className="space-y-2 px-3 py-3 sm:px-8 sm:py-7">
         <header className="flex flex-wrap items-start justify-between">
           <div className="flex items-start gap-3">

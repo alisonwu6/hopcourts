@@ -65,7 +65,7 @@ export function BottomSheet({
       <button type="button" className="flex-1" onClick={onClose} aria-label="Close sheet overlay" />
       <div
         className={clsx(
-          'relative w-full animate-[sheetIn_0.25s_ease-out] rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.2)]',
+          'relative mx-auto w-full max-w-md animate-[sheetIn_0.25s_ease-out] rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.2)]',
           sheetClassName
         )}
       >

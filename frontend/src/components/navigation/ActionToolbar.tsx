@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
-import { ArrowLeft, Heart, Share2 } from 'lucide-react'
+import { ArrowLeft, Heart, Share } from 'lucide-react'
 
 type ActionToolbarProps = {
   onBack?: () => void
@@ -75,7 +75,7 @@ export function ActionToolbar({
               className="p-2 text-blue-600 transition hover:text-blue-700"
               aria-label="Share"
             >
-              <Share2 className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+              <Share className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </button>
           )}
           {showFavorite && onToggleFavorite && (
