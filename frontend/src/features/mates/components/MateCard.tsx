@@ -80,7 +80,6 @@ export function MateCard({
             style={{
               background: vibeColors.bg,
               color: vibeColors.text,
-              boxShadow: `0 6px 14px ${vibeColors.ring}33, inset 0 1px 0 rgba(255,255,255,0.8)`,
             }}
           >
             {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
