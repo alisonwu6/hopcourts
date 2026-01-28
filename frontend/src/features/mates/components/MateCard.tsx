@@ -38,7 +38,7 @@ export function MateCard({
   avatar,
   accentClassName,
 }: MateCardProps) {
-  const vibeColors = vibeTokens[vibe] ?? {
+  const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
     bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',
     text: '#1E293B',
     ring: '#CBD5E1',
@@ -48,10 +48,9 @@ export function MateCard({
   return (
     <article
       className={clsx(
-        'flex w-full min-w-[calc(100vw-4.25rem)] max-w-[520px] snap-start flex-col gap-3 rounded-[24px] px-4 py-4 transition sm:min-w-[420px]',
+        'flex w-full min-w-[calc(100vw-4.25rem)] max-w-[520px] snap-start flex-col gap-3 rounded-[24px] bg-slate-200 px-4 py-4 transition sm:min-w-[420px]',
         accentClassName
       )}
-      style={{ background: vibeColors.card }}
     >
       <div className="flex items-start gap-3">
         <div className="h-26 w-26 mb-2 flex-shrink-0 overflow-hidden rounded-full bg-white">
@@ -98,7 +97,6 @@ export function MateCard({
                 style={{
                   background: withAlpha(vibeColors.ring, 0.7),
                   color: vibeColors.text,
-                  boxShadow: `0 0 0 1px ${withAlpha(vibeColors.ring, 0.25)}`,
                 }}
               >
                 {sport}
@@ -114,9 +112,8 @@ export function MateCard({
                 key={item}
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
                 style={{
-                  background: withAlpha(vibeColors.ring, 0.5),
+                  background: withAlpha(vibeColors.ring, 0.7),
                   color: vibeColors.text,
-                  boxShadow: `0 0 0 1px ${withAlpha(vibeColors.ring, 0.2)}`,
                 }}
               >
                 {item}
@@ -127,12 +124,12 @@ export function MateCard({
 
         <div className="flex items-start gap-2 pt-1 text-[12px] text-slate-600">
           <span
-            className="block min-h-[32px] w-[3px] rounded"
+            className="flex w-[3px] shrink-0 self-stretch rounded"
             style={{ background: vibeColors.ring }}
             aria-hidden="true"
           />
           {blurb?.trim() ? (
-            <span className="italic">{blurb}</span>
+            <span className="whitespace-pre-wrap italic">{blurb}</span>
           ) : (
             <span className="not-italic text-slate-400">這位夥伴還沒寫一句話。</span>
           )}
