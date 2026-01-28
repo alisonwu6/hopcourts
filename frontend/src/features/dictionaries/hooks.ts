@@ -72,10 +72,10 @@ const useDictionary = <T>(
 
     const bootstrap = async () => {
       const versionMap = getVersionCache()
-      // 如果已有快取且有版本資訊，直接返回，不打 API
-      if (cachedItems && cachedItems.length && versionMap[type]?.version) {
-        return
-      }
+      // 移除快取與版本檢查的阻擋，確保總是會去驗證後端版本
+      // if (cachedItems && cachedItems.length && versionMap[type]?.version) {
+      //   return
+      // }
 
       try {
         const meta = await dictionaryService.meta()

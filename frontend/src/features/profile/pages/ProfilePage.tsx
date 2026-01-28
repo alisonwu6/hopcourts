@@ -922,7 +922,10 @@ export function ProfilePage() {
                       disabled && !selected && 'cursor-not-allowed opacity-50'
                     )}
                   >
-                    <span>{sport.label}</span>
+                    <span className="flex items-center gap-2">
+                      {sport.icon && <span className="text-xl">{sport.icon}</span>}
+                      <span>{sport.label}</span>
+                    </span>
                     <input
                       type="checkbox"
                       checked={selected}
@@ -1016,7 +1019,10 @@ export function ProfilePage() {
                       disabled && !selected && 'cursor-not-allowed opacity-50'
                     )}
                   >
-                    <span>{sport.label}</span>
+                    <span className="flex items-center gap-2">
+                      {sport.icon && <span className="text-xl">{sport.icon}</span>}
+                      <span>{sport.label}</span>
+                    </span>
                     <input
                       type="checkbox"
                       checked={selected}
