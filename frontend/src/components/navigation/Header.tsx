@@ -3,6 +3,8 @@ import { Bell, MapPin, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
 
+const logoUrl = '/vite.svg'
+
 type Props = {
   sticky?: boolean
   showBorder?: boolean

@@ -11,6 +11,8 @@ import { ResetPasswordPage } from '@/features/auth/pages/ResetPassword'
 import { OnboardingPage } from '@/features/onboarding/pages/OnboardingPage'
 import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
+import { VenuePage } from '@/features/events/pages/VenuePage'
+import { VenueListPage } from '@/features/events/pages/VenueListPage'
 import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { CirclePage } from '@/features/profile/pages/CirclePage'
@@ -55,6 +57,30 @@ export default function App() {
         element={
           <AppChrome showActions={isAuthenticated}>
             <DiscoverEventsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues"
+        element={
+          <AppChrome showActions={isAuthenticated} showHeader={false}>
+            <VenueListPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venue/:venueId"
+        element={
+          <AppChrome showActions={isAuthenticated} showNav={false} showHeader={false}>
+            <VenuePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venue/:venueId"
+        element={
+          <AppChrome showActions={isAuthenticated} showNav={false}>
+            <VenuePage />
           </AppChrome>
         }
       />
