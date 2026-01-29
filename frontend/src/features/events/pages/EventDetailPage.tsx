@@ -253,7 +253,7 @@ export function EventDetailPage() {
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 text-slate-400 transition hover:text-slate-500"
+              className="p-2 text-slate-400 transition "
               aria-label="Delete event"
             >
               <Trash2 className="h-5 w-5" />
@@ -275,7 +275,7 @@ export function EventDetailPage() {
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6 pb-20">
             <div
-              className="flex cursor-pointer items-center gap-3 transition hover:opacity-80"
+              className="flex cursor-pointer items-center gap-3 transition "
               onClick={() => {
                 if (event.host.username) {
                   navigate(`/mate/${event.host.username}`)
@@ -361,7 +361,7 @@ export function EventDetailPage() {
                   return (
                     <div
                       key={p.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition hover:bg-slate-100"
+                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition "
                       onClick={() => {
                         if (p.username) {
                           navigate(`/mate/${p.username}`)
@@ -516,7 +516,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
     format(date, 'MM/dd HH:mm', { locale: zhTW })
 
   let mainButton = (
-    <Button onClick={onJoin} className="bg-blue-600 text-white hover:bg-blue-700">
+    <Button onClick={onJoin} className="bg-blue-600 text-white ">
       加入活動
     </Button>
   )
@@ -535,7 +535,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         <Button
           onClick={onCheckIn}
           disabled={isCheckingIn}
-          className="bg-emerald-600 text-white hover:bg-emerald-700"
+          className="bg-emerald-600 text-white "
         >
           {isCheckingIn ? (
             '定位中...'
@@ -564,7 +564,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         <Button
           disabled={false}
           onClick={onJoin}
-          className="bg-player-600 text-white shadow-sm hover:bg-player-700"
+          className="bg-player-600 text-white shadow-sm "
         >
           已加入
         </Button>

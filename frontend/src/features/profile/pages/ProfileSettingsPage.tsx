@@ -44,7 +44,7 @@ export function ProfileSettingsPage() {
           {items.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
-              className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+              className="flex w-full items-center justify-between px-4 py-4 text-left "
               onClick={() => {
                 if (key === 'about') {
                   navigate('/about')
@@ -65,7 +65,7 @@ export function ProfileSettingsPage() {
         </div>
         <div className="mt-3 rounded-2xl bg-slate-50 shadow-sm ring-1 ring-slate-200/60">
           <button
-            className="flex w-full items-center justify-between px-4 py-4 text-left text-slate-500 transition hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex w-full items-center justify-between px-4 py-4 text-left text-slate-500 transition  disabled:cursor-not-allowed disabled:opacity-60"
             onClick={handleLogout}
             disabled={isLoggingOut}
           >

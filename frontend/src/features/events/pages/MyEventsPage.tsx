@@ -66,7 +66,7 @@ export function MyEventsPage() {
               <button
                 type="button"
                 onClick={() => navigate('/events')}
-                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
+                className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition "
               >
                 即將到來的活動
               </button>
@@ -119,7 +119,7 @@ export function MyEventsPage() {
             <button
               type="button"
               onClick={() => navigate('/events')}
-              className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition hover:text-slate-800"
+              className="flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold text-slate-600 transition "
             >
               即將到來的活動
             </button>
@@ -299,7 +299,7 @@ function EventGroupList({
                   <button
                     type="button"
                     onClick={() => navigate(`/event/${event.id}`)}
-                    className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
+                    className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition  "
                   >
                     <div className="mb-3 flex items-start justify-between">
                       <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>

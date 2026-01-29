@@ -662,7 +662,7 @@ export function ProfilePage() {
                     }
                     className={clsx(
                       'flex w-full items-center justify-between px-4 py-4 text-left',
-                      isReadOnly ? 'bg-slate-100' : 'hover:bg-slate-50'
+                      isReadOnly ? 'bg-slate-100' : ''
                     )}
                   >
                     <div className="space-y-1">
@@ -692,7 +692,7 @@ export function ProfilePage() {
                       ''
                   )
                 }
-                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">運動氛圍</p>
@@ -709,7 +709,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowSportsSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">我的最愛</p>
@@ -722,7 +722,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowTryingSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">想嘗試</p>
@@ -741,7 +741,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
-                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">自我介紹</p>
@@ -817,7 +817,7 @@ export function ProfilePage() {
                         onClick={() => setFieldValue(v.key)}
                         className={clsx(
                           'flex flex-col items-start rounded-2xl border px-4 py-4 text-left shadow-sm transition',
-                          !active && 'border-slate-200 bg-white text-slate-900 hover:border-blue-300'
+                          !active && 'border-slate-200 bg-white text-slate-900'
                         )}
                         style={
                           active && tokens
@@ -928,7 +928,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 hover:text-slate-600"
+                    className="text-slate-400 "
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -963,7 +963,7 @@ export function ProfilePage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-base font-semibold shadow-sm transition',
                       selected
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300',
+                        : 'border-slate-200 bg-white text-slate-800',
                       disabled && !selected && 'cursor-not-allowed opacity-50'
                     )}
                   >
@@ -1025,7 +1025,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 hover:text-slate-600"
+                    className="text-slate-400 "
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -1060,7 +1060,7 @@ export function ProfilePage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-base font-semibold shadow-sm transition',
                       selected
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300',
+                        : 'border-slate-200 bg-white text-slate-800',
                       disabled && !selected && 'cursor-not-allowed opacity-50'
                     )}
                   >
@@ -1104,7 +1104,7 @@ export function ProfilePage() {
             <button
               type="button"
               aria-label="Close"
-              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500 hover:text-slate-700"
+              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500 "
               onClick={() => setShowGoalSheet(false)}
             >
               ×
@@ -1151,7 +1151,7 @@ export function ProfilePage() {
                       'rounded-full border px-4 py-2 text-sm font-semibold',
                       active
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        : 'border-slate-200 bg-white text-slate-700'
                     )}
                   >
                     {slot}
@@ -1196,7 +1196,7 @@ export function ProfilePage() {
                                 'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
                                 active
                                   ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                  : 'border-slate-200 bg-white text-slate-700'
                               )}
                             >
                               {slot}
@@ -1219,7 +1219,7 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={() => setShowGoalSheet(false)}
-              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300"
+              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 "
             >
               取消
             </button>
@@ -1227,7 +1227,7 @@ export function ProfilePage() {
               type="button"
               onClick={handleSaveGoal}
               disabled={isSavingGoal}
-              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
+              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition  disabled:cursor-not-allowed disabled:bg-blue-300"
             >
               {isSavingGoal ? '儲存中...' : '儲存'}
             </button>

@@ -530,7 +530,7 @@ export function OnboardingPage() {
                     'w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition',
                     selected
                       ? 'border-transparent shadow-[0_12px_30px_-18px_rgba(0,0,0,0.3)]'
-                      : 'border-slate-200 bg-white/90 hover:bg-white'
+                      : 'border-slate-200 bg-white/90'
                   )}
                   style={selected ? { background: withAlpha(accent.ring, 0.16) } : undefined}
                 >
@@ -557,7 +557,7 @@ export function OnboardingPage() {
                       {label}
                       <button
                         type="button"
-                        className="text-slate-500 hover:text-slate-700"
+                        className="text-slate-500 "
                         onClick={() => toggleSport(sportId)}
                         aria-label={`Remove ${label}`}
                       >
@@ -589,7 +589,7 @@ export function OnboardingPage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                       selected
                         ? 'border-transparent shadow-sm'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-white'
                     )}
                     style={
                       selected
@@ -624,7 +624,7 @@ export function OnboardingPage() {
                       {label}
                       <button
                         type="button"
-                        className="text-slate-500 hover:text-slate-700"
+                        className="text-slate-500 "
                         onClick={() => toggleTrying(itemId)}
                         aria-label={`Remove ${label}`}
                       >
@@ -656,7 +656,7 @@ export function OnboardingPage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                       selected
                         ? 'border-transparent shadow-sm'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-white'
                     )}
                     style={
                       selected
@@ -702,7 +702,7 @@ export function OnboardingPage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                       selected
                         ? 'border-transparent shadow-sm'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-white'
                     )}
                     style={
                       selected
@@ -746,7 +746,7 @@ export function OnboardingPage() {
                       'rounded-full border px-4 py-2 text-sm font-semibold transition',
                       active
                         ? 'border-transparent'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        : 'border-slate-200 bg-white text-slate-700'
                     )}
                     style={
                       active
@@ -859,7 +859,7 @@ export function OnboardingPage() {
                         'rounded-full border px-4 py-2 text-sm font-semibold transition',
                         active
                           ? 'border-transparent'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          : 'border-slate-200 bg-white text-slate-700'
                       )}
                       style={
                         active
@@ -910,7 +910,7 @@ export function OnboardingPage() {
                                 'min-w-[60px] rounded-full border px-4 py-2 text-sm font-semibold transition',
                                 active
                                   ? 'border-transparent'
-                                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                  : 'border-slate-200 bg-white text-slate-700'
                               )}
                               style={
                                 active
@@ -974,7 +974,7 @@ export function OnboardingPage() {
               <button
                 type="button"
                 onClick={goBack}
-                className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+                className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition  disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
                 上一步

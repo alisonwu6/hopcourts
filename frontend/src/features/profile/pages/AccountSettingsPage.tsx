@@ -26,7 +26,7 @@ export function AccountSettingsPage() {
 
         <Section title="密碼" icon={<Lock className="h-5 w-5 text-slate-500" />}>
           {method === 'email' ? (
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+            <button className="text-sm font-semibold text-blue-600 ">
               重設密碼
             </button>
           ) : (

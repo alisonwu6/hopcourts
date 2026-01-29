@@ -76,7 +76,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
     <article
       {...interactionHandlers}
       className={clsx(
-        'relative mb-3 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)] transition-all hover:shadow-[0_24px_60px_rgba(15,41,77,0.12)]',
+        'relative mb-3 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_20px_45px_rgba(15,41,77,0.08)] transition-all', 
         isClickable &&
           'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500'
       )}

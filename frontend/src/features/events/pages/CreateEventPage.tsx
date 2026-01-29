@@ -513,7 +513,7 @@ export default function CreateEventPage() {
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition  "
                 aria-label="Delete Event"
               >
                 <Trash2 className="h-5 w-5" strokeWidth={2} />
@@ -577,7 +577,7 @@ export default function CreateEventPage() {
                  <button
                     type="button"
                     onClick={openLocationPicker}
-                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200"
+                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition "
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
@@ -625,7 +625,7 @@ export default function CreateEventPage() {
 
             <FieldSection title="費用" description="設定活動的費用資訊。">
               <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200">
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition ">
                   <input
                     id="is-free-checkbox"
                     type="checkbox"
@@ -733,7 +733,7 @@ export default function CreateEventPage() {
                       'w-full rounded-2xl border px-4 py-3 text-left text-base font-semibold shadow-sm transition',
                       isActive
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300'
+                        : 'border-slate-200 bg-white text-slate-800'
                     )}
                   >
                     {sport.label}
@@ -804,7 +804,7 @@ export default function CreateEventPage() {
                 <button
                   type="button"
                   aria-label="Clear address"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 hover:bg-slate-200"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 "
                   onClick={() => {
                     setIsAddressClearing(true)
                     setSelectedAddress('')
@@ -879,7 +879,7 @@ function ActionBar({
           size="sm"
           type="button"
           onClick={onDraft}
-          className="flex-1 rounded-full border-slate-200 text-slate-600 hover:bg-slate-50"
+          className="flex-1 rounded-full border-slate-200 text-slate-600 "
           disabled={!canSubmit || isSubmitting}
         >
           {submittingStatus === 'draft' ? '儲存中...' : '草稿'}
@@ -941,7 +941,7 @@ function SkillSelector({
                 'rounded-full border px-4 py-1.5 text-sm font-medium transition',
                 isActive
                   ? 'border-blue-500 bg-blue-600 text-white shadow-[0_6px_16px_rgba(30,64,175,0.25)]'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-600'
+                  : 'border-slate-200 bg-white text-slate-600'
               )}
             >
               {label}
@@ -981,7 +981,7 @@ function GenderSelector({
                 'rounded-full border px-4 py-1.5 text-sm font-medium transition',
                 isActive
                   ? 'border-blue-500 bg-blue-600 text-white shadow-[0_6px_16px_rgba(30,64,175,0.25)]'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-600'
+                  : 'border-slate-200 bg-white text-slate-600'
               )}
             >
               {opt.label}
@@ -1023,7 +1023,7 @@ function CoverUploader({
                   e.stopPropagation()
                   onRemove(idx)
                 }}
-                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-red-500"
+                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition "
               >
                 <X className="h-3 w-3" />
               </button>
@@ -1033,11 +1033,11 @@ function CoverUploader({
 
         {/* Upload Button */}
         {!isFull && (
-          <label className="group relative box-border flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 transition hover:border-blue-300 hover:bg-slate-50">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 group-hover:bg-blue-100">
+          <label className="group relative box-border flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 transition  ">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 group-">
               <ImagePlus className="h-4 w-4" />
             </div>
-            <p className="text-[10px] font-semibold text-slate-500 group-hover:text-blue-600">
+            <p className="text-[10px] font-semibold text-slate-500 group-">
               上傳照片
             </p>
             <input type="file" accept="image/*" multiple className="hidden" onChange={onChange} />

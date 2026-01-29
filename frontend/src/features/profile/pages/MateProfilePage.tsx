@@ -213,7 +213,7 @@ export function MateProfilePage() {
             type="button"
             aria-label="Go back"
             onClick={() => navigate(-1)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 hover:bg-slate-100"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 "
           >
             <ArrowLeft className="h-5 w-5" />
           </button>

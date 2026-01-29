@@ -88,7 +88,7 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
               }}
             >
               <div
-                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform hover:scale-110 ${isSelected ? 'z-10 scale-110 bg-slate-900' : 'bg-white'}`}
+                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform  ${isSelected ? 'z-10 scale-110 bg-slate-900' : 'bg-white'}`}
               >
                 <span className="text-xl leading-none">{sportIcon}</span>
               </div>
@@ -104,7 +104,7 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
           style={{ bottom: 'calc(68px + env(safe-area-inset-bottom, 0px) + 10px)' }}
         >
           <Link to={`/event/${selectedEvent.id}`} className="block">
-            <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-[0_8px_30px_rgba(0,0,0,0.12)] ring-1 ring-black/5 transition-transform active:scale-[0.98]">
+            <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-[0_8px_30px_rgba(0,0,0,0.12)] ring-1 ring-black/5 transition-transform ">
               {/* Image / Icon Placeholder */}
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
                 {selectedEvent.heroImageUrl ? (

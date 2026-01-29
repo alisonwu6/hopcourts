@@ -92,7 +92,7 @@ export function MySessions() {
         <button
           type="button"
           onClick={() => setShowLoginSheet(true)}
-          className="mt-4 inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+          className="mt-4 inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-sm "
         >
           登入
         </button>
@@ -119,7 +119,7 @@ export function MySessions() {
           className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
             tab === 'upcoming'
               ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-slate-600 hover:text-slate-800'
+              : 'text-slate-600'
           }`}
         >
           即將到來 ({upcomingEvents.length})
@@ -130,7 +130,7 @@ export function MySessions() {
           className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
             tab === 'history'
               ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-slate-600 hover:text-slate-800'
+              : 'text-slate-600'
           }`}
         >
           歷史紀錄 ({historyEvents.length})
@@ -263,7 +263,7 @@ function EventGroupList({
                         navigate(`/event/${event.id}`)
                       }
                     }}
-                    className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:shadow-md active:scale-[0.99]"
+                    className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition  "
                   >
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex flex-wrap items-center gap-2">
