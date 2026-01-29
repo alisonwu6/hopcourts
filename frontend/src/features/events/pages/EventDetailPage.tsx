@@ -656,9 +656,21 @@ function ImageCarousel({ images }: { images: string[] }) {
         {images.map((src, idx) => (
           <div
             key={idx}
-            className="h-full min-w-full snap-center bg-cover bg-center"
-            style={{ backgroundImage: `url(${src})` }}
-          />
+            className="relative h-full min-w-full snap-center overflow-hidden bg-slate-100"
+          >
+            {/* Blurred Background Layer (Atmosphere) */}
+            <div
+              className="absolute inset-0 bg-cover bg-center blur-xl opacity-60 scale-110"
+              style={{ backgroundImage: `url(${src})` }}
+            />
+            
+            {/* Main Image Layer (Content) */}
+            <img
+              src={src}
+              alt={`Event photo ${idx + 1}`}
+              className="relative h-full w-full object-contain object-center z-10"
+            />
+          </div>
         ))}
       </div>
 

@@ -98,6 +98,7 @@ export default function CreateEventPage() {
   const [locationConfirming, setLocationConfirming] = useState(false)
   const [addressLookupPending, setAddressLookupPending] = useState(false)
   const [isAddressClearing, setIsAddressClearing] = useState(false)
+  const [costMode, setCostMode] = useState<'total' | 'person'>('total')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDraftLoading, setIsDraftLoading] = useState(false)
@@ -366,12 +367,16 @@ export default function CreateEventPage() {
       return
     }
 
-    // Calculate per-person price from total price
+    // Calculate per-person price
     let pricePerPerson: number | undefined
     if (!form.isFree && form.price) {
-      const totalPrice = parseFloat(form.price)
-      if (!Number.isNaN(totalPrice) && capacity > 0) {
-        pricePerPerson = Math.round(totalPrice / capacity)
+      const priceVal = parseFloat(form.price)
+      if (!Number.isNaN(priceVal) && capacity > 0) {
+        if (costMode === 'total') {
+          pricePerPerson = Math.round(priceVal / capacity)
+        } else {
+          pricePerPerson = priceVal
+        }
       }
     }
 
@@ -640,18 +645,48 @@ export default function CreateEventPage() {
 
                 {!form.isFree && (
                   <div className="grid gap-4 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
+                    <div className="flex items-center gap-2 sm:col-span-2">
+                      <div className="flex rounded-lg bg-slate-100 p-1">
+                        {[
+                          { key: 'total', label: '總費用' },
+                          { key: 'person', label: '每人費用' },
+                        ].map((mode) => (
+                          <button
+                            key={mode.key}
+                            type="button"
+                            onClick={() => setCostMode(mode.key as any)}
+                            className={clsx(
+                              'rounded-md px-3 py-1.5 text-xs font-semibold transition-all',
+                              costMode === mode.key
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700'
+                            )}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
+                      <span className="text-xs text-slate-400">
+                        {costMode === 'total'
+                          ? '輸入總金額，系統自動計算每人均攤。'
+                          : '輸入單人金額，直接設定每人費用。'}
+                      </span>
+                    </div>
+
                     <FloatingField
-                      label="總費用 (TWD)"
+                      label={costMode === 'total' ? '總費用 (TWD)' : '每人費用 (TWD)'}
                       name="price"
                       type="number"
                       min={0}
                       value={form.price}
                       onChange={handleInputChange}
-                      placeholder="例如: 2000"
+                      placeholder={costMode === 'total' ? '例如: 2000' : '例如: 200'}
                       required={!form.isFree}
                       supportingText={
                         form.price && Number(form.capacity) > 0
-                          ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
+                          ? costMode === 'total'
+                            ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
+                            : `總計預估 : $${Number(form.price) * Number(form.capacity)}`
                           : undefined
                       }
                     />
@@ -736,6 +771,7 @@ export default function CreateEventPage() {
                         : 'border-slate-200 bg-white text-slate-800'
                     )}
                   >
+                    {sport.icon && <span className="mr-2 text-xl">{sport.icon}</span>}
                     {sport.label}
                   </button>
                 )
