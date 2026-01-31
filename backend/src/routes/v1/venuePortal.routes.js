@@ -1,5 +1,6 @@
 const express = require('express')
 const venuesModel = require('../../../models/venues.model')
+const sessionsModel = require('../../../models/sessions.model')
 const { verifyToken } = require('../../middleware/verifyToken')
 
 const router = express.Router()
@@ -93,6 +94,36 @@ router.patch('/venues/:id/profile', async (req, res, next) => {
     res.json({ success: true, data: result })
   } catch (err) {
     next(err)
+  }
+})
+
+// POST /venues/:id/sessions - Create Official Session
+router.post('/venues/:id/sessions', async (req, res, next) => {
+  try {
+    const userId = req.userId
+    const venueId = req.params.id
+
+    // Authorization: User must manage this venue
+    const claim = await venuesModel.getApprovedClaimByUser(venueId, userId)
+    if (!claim) {
+      return res.status(403).json({ success: false, error: 'Unauthorized: You do not manage this venue.' })
+    }
+
+    // Prepare Payload
+    const input = {
+      ...req.body,
+      hostUserId: userId, // Force host to be the logged-in owner
+      venueId: venueId,   // Force venue to be the current portal venue
+      status: 'published',
+      isOfficial: true    // Force Official Flag
+    }
+
+    const session = await sessionsModel.createSession(input)
+    res.json({ success: true, data: session })
+
+  } catch (err) {
+    console.error('Create Session Error:', err)
+    res.status(500).json({ success: false, error: err.message, stack: err.stack, details: err })
   }
 })
 

@@ -139,7 +139,10 @@ export function VenueDashboardPage() {
                 {/* Actions */}
                 <h3 className="text-lg font-bold text-slate-800 mt-8 mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl p-6 text-white overflow-hidden relative group cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all duration-300">
+                    <div 
+                        onClick={() => selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/sessions/new`)}
+                        className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl p-6 text-white overflow-hidden relative group cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all duration-300"
+                    >
                         <div className="absolute right-0 top-0 p-8 opacity-10 text-9xl leading-none font-black select-none pointer-events-none">
                             +
                         </div>

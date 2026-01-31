@@ -140,7 +140,11 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
       lookingFor: {},
       heroImageUrl: session.photos?.[0],
     },
-  }
+    // Extended properties for Official Events
+    isOfficial: session.is_official,
+    venueNameDisplay: session.venue_name_display,
+    venueLogoUrl: session.venue_logo_url,
+  } as PlayerEvent
 }
 
 export const eventsService = {

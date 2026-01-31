@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/types'
-import { httpGet, httpPatch } from '@/api/http'
+import { httpGet, httpPatch, httpPost } from '@/api/http'
 
 const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   success: true,
@@ -84,6 +84,22 @@ export const venuePortalService = {
        return {
         success: false,
         error: { code: 'UPDATE_PROFILE_FAILED', message: err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  /**
+   * Create an official session for the venue.
+   */
+  async createOfficialSession(venueId: string, payload: any): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpPost<any>(`/venue-portal/venues/${venueId}/sessions`, { body: payload })
+      return wrapSuccess(res.data)
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'CREATE_SESSION_FAILED', message: err.message },
         timestamp: new Date(),
       } as any
     }

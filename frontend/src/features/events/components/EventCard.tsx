@@ -1,7 +1,7 @@
 import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
-import { Calendar, MapPin, MapPinPlusInside, PersonStanding } from 'lucide-react'
+import { Calendar, MapPin, MapPinPlusInside, PersonStanding, BadgeCheck } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { useSports } from '@/features/dictionaries/hooks'
 
@@ -26,6 +26,19 @@ function getFlagEmoji(countryCode: string) {
 
 export function EventCard({ event, onViewDetails }: EventCardProps) {
   const { items: sports } = useSports('zh')
+  
+  // Official Event Logic
+  const raw = event as any
+  const isOfficial = raw.isOfficial || raw.is_official
+  const venueName = raw.venueNameDisplay || raw.venue_name_display
+  const venueLogo = raw.venueLogoUrl || raw.venue_logo_url
+  
+  const displayHost = {
+    name: isOfficial && venueName ? venueName : event.host.name,
+    avatarUrl: isOfficial && venueLogo ? venueLogo : event.host.avatarUrl,
+    isOfficial: Boolean(isOfficial)
+  }
+
   const sportLabel =
     sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
   const skillLabel = friendlySkill(event.skillLevel)
@@ -85,10 +98,18 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       <div className="space-y-2 px-3 py-3 sm:px-8 sm:py-7">
         <header className="flex flex-wrap items-start justify-between">
           <div className="flex items-start gap-3">
-            <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
+            <AvatarCircle name={displayHost.name} src={displayHost.avatarUrl} />
             <div>
-              <p className="text-base font-semibold text-slate-900">
-                {event.host.name} {event.host.countryKey && getFlagEmoji(event.host.countryKey)}
+              <p className="text-base font-semibold text-slate-900 flex items-center gap-1">
+                {displayHost.name} 
+                {displayHost.isOfficial ? (
+                   <span className="inline-flex items-center gap-0.5 rounded bg-green-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-green-700 leading-none tracking-wide">
+                     <BadgeCheck className="w-3 h-3" strokeWidth={3} />
+                     官方認證
+                   </span>
+                ) : (
+                  event.host.countryKey && getFlagEmoji(event.host.countryKey)
+                )}
               </p>
               <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
                 <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />

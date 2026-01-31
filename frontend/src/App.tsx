@@ -30,6 +30,7 @@ import { AdminLoginPage } from '@/features/admin/pages/AdminLoginPage'
 import { AdminRouteGuard } from '@/features/admin/components/AdminRouteGuard'
 import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
 import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
+import { VenueSessionCreatePage } from '@/features/venue-portal/pages/VenueSessionCreatePage'
 import { VenuePortalRouteGuard } from '@/features/venue-portal/VenuePortalRouteGuard'
 import { PageLoading } from '@/components/PageLoading'
 
@@ -93,6 +94,14 @@ export default function App() {
         element={
           <VenuePortalRouteGuard>
              <VenueProfilePage />
+          </VenuePortalRouteGuard>
+        }
+      />
+      <Route
+        path="/venue-portal/:venueId/sessions/new"
+        element={
+          <VenuePortalRouteGuard>
+             <VenueSessionCreatePage />
           </VenuePortalRouteGuard>
         }
       />

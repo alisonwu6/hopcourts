@@ -28,6 +28,7 @@ const BASE_FIELDS = [
   'price',
   'venue_id',
   'location_source',
+  'is_official', // New Field
 ]
 
 async function listUpcomingSessions({
@@ -80,11 +81,13 @@ async function listUpcomingSessions({
       h.city_key as host_city_key,
       c.name_zh as host_city_name,
       v.status as venue_status,
-      v.logo_url as venue_logo_url
+      COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
+      v.name_display as venue_name_display
     from public.sessions s
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
     left join public.venues v on s.venue_id = v.id
+    left join public.venue_profiles vp on v.id = vp.venue_id
     where ${conditions.map(c => `s.${c}`).join(' AND ')}
     order by s.starts_at asc
     limit $${idx + 1}
@@ -268,9 +271,10 @@ async function createSession(input) {
       photos,
       is_free,
       price,
-      location_source
+      location_source,
+      is_official
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
     )
     returning ${BASE_FIELDS.join(', ')}
   `
@@ -299,6 +303,7 @@ async function createSession(input) {
     input.isFree ?? true,
     input.price ?? null,
     input.locationSource ?? null,
+    input.isOfficial ?? false,
   ]
 
   const { rows } = await query(sql, params)
@@ -328,6 +333,7 @@ async function updateSession(sessionId, patch = {}) {
     photos: patch.photos,
     is_free: patch.isFree,
     price: patch.price,
+    is_official: patch.isOfficial,
   }).filter(([, value]) => value !== undefined)
 
   if (!entries.length) return getSessionById(sessionId)
