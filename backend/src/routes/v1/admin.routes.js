@@ -1,12 +1,13 @@
 const express = require('express')
 const venuesService = require('../../modules/venues/venues.service')
 const { verifyToken } = require('../../middleware/verifyToken')
+const { verifyAdmin } = require('../../middleware/verifyAdmin')
 
 const router = express.Router()
 
-// Protection: Admin role only (Simplified for MVP, usually checks req.user.role)
-// For now, we reuse verifyToken to ensure user is logged in
+// Protection: Authentication AND Admin Role (Hard Guard)
 router.use(verifyToken)
+router.use(verifyAdmin)
 
 // GET /admin/venues - List all venues for governance
 router.get('/venues', async (req, res, next) => {
@@ -23,12 +24,20 @@ router.get('/venues', async (req, res, next) => {
   }
 })
 
-// POST /admin/venue-claims/:id/revoke - Revoke an approved claim
+// POST /admin/venue-claims/:id/revoke - Revoke an approved claim (Audit Reason Required)
 router.post('/venue-claims/:id/revoke', async (req, res, next) => {
   try {
     const adminId = req.userId
-    const reason = req.body.reason || 'No reason provided'
-    const result = await venuesService.revokeVenueClaim(req.params.id, adminId, reason)
+    const reason = req.body.reason
+    
+    if (!reason || reason.trim().length < 5) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Audit reason is mandatory and must be at least 5 characters.' 
+      })
+    }
+    
+    const result = await venuesService.revokeVenueClaim(req.params.id, adminId, reason.trim())
     res.json({ success: true, data: result })
   } catch (err) {
     next(err)

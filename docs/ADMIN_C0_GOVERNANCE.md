@@ -23,7 +23,8 @@ Admin Venue 管理頁是「城市資料治理工具」，不是產品功能。
 
 ### 3. 三大治理動作 (Governance Actions)
 - **仲裁 (Revoke)**: `POST /admin/venue-claims/:id/revoke`
-    - 強制將領申請設定為 `revoked`。
+    - 強制將申請設定為 `revoked`。
+    - **強制理由 (Mandatory Reason)**: 必須提供理由，並記錄於 Audit Log。
     - 場館狀態重置為 `unclaimed`。
 - **糾錯 (Patch)**: `PATCH /admin/venues/:id`
     - 僅限 `name_display` 與 `address_display`。
@@ -37,7 +38,9 @@ Admin Venue 管理頁是「城市資料治理工具」，不是產品功能。
 ### 1. Backend 治理層
 - **Router**: `backend/src/routes/v1/admin.routes.js` (前綴 `/api/v1/admin`)
 - **Model**: `venues.model.js` 擴充了 `getAdminVenues`, `revokeVenueClaim`, `patchVenueDisplay`, `writeAuditLog`。
-- **Middleware**: `verifyToken` (目前作為基本防禦，待擴充角色權限檢查)。
+- **Middleware**: 
+    - `verifyToken`: 身份驗證。
+    - `verifyAdmin`: **硬性角色檢查** (檢查 `admin` 角色或內部 email)。
 
 ### 2. Frontend 治理層
 - **Feature**: `features/admin/` (獨立於 `features/venues/`，實現物理隔離)。
@@ -59,6 +62,11 @@ Admin Venue 管理頁是「城市資料治理工具」，不是產品功能。
 - [x] 具備撤銷 (Revoke) 權與修正 (Patch) 權。
 - [x] 具備寫入動作的自動審計機制。
 - [x] 成功守住「不提供營運功能」的紅線。
+
+---
+
+## 六、定錨宣言 (Finality)
+C0 是治理層，不會再增加功能。任何新需求都不應該進入 C0。C0 的完成是為了確保系統具備基本的糾錯與仲裁機制。
 
 ---
 **Status: Phase C0 COMPLETED.**

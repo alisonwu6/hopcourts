@@ -41,13 +41,15 @@ export function AdminVenueManagementPage() {
   }
 
   const handleRevoke = async (claimId: string) => {
-    if (!window.confirm('確定要撤銷此場館的官方認領權限嗎？這是一個高風險操作。')) return
-    if (!revokeReason) {
-      alert('請填寫撤銷原因')
+    const reason = revokeReason.trim()
+    if (!reason) {
+      alert('⚠️ 撤銷原因為必填項目，請填寫撤銷理由以備審計所需。')
       return
     }
 
-    const res = await adminVenuesService.revokeVenueClaim(claimId, revokeReason)
+    if (!window.confirm(`確定要撤銷此場館的官方認領權限嗎？\n\n原因：${reason}\n\n這是一個高風險操作，且會被記錄。`)) return
+
+    const res = await adminVenuesService.revokeVenueClaim(claimId, reason)
     if (res.success) {
       alert('權限已撤銷')
       setRevokeReason('')
