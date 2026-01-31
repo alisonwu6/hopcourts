@@ -228,6 +228,7 @@ async function createSession(input) {
     photos: input.photos ?? null,
     isFree: input.isFree ?? true,
     price: input.price ?? null,
+    locationSource: input.locationSource,
   }
 
   const session = await createSessionModel(payload)

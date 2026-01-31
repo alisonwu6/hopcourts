@@ -319,14 +319,28 @@ export function EventDetailPage() {
                 icon={Calendar}
                 label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
               />
-              <InfoRow
-                icon={MapPin}
-                label={
-                  event.location.name && event.location.name !== event.location.address
-                    ? `${event.location.name} (${event.location.address})`
-                    : event.location.address
-                }
-              />
+              <div 
+                className={clsx(
+                  "cursor-pointer active:opacity-70 transition group",
+                  event.venueId ? "hover:text-blue-600" : "hover:text-slate-900"
+                )}
+                onClick={() => {
+                  if (event.venueId) {
+                    navigate(`/venues/${event.venueId}`)
+                  } else if (event.location.name) {
+                    navigate(`/venue/${encodeURIComponent(event.location.name)}`)
+                  }
+                }}
+              >
+                <InfoRow
+                  icon={MapPin}
+                  label={
+                    event.location.name && event.location.name !== event.location.address
+                      ? `${event.location.name} (${event.location.address})`
+                      : event.location.address
+                  }
+                />
+              </div>
               <InfoRow
                 icon={CircleDollarSign}
                 label={

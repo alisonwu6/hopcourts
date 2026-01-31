@@ -73,7 +73,8 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
         {/* Move controls up to avoid overlap with card */}
 
         {validEvents.map((event) => {
-          const sportIcon = sports.find((s) => s.key === event.sport)?.icon || '🏅'
+          const isClaimed = event.location?.status === 'claimed'
+          const logoUrl = event.location?.logo_url
           const isSelected = selectedEvent?.id === event.id
 
           return (
@@ -87,10 +88,19 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
                 onSelectEvent(event)
               }}
             >
-              <div
-                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform  ${isSelected ? 'z-10 scale-110 bg-slate-900' : 'bg-white'}`}
-              >
-                <span className="text-xl leading-none">{sportIcon}</span>
+              <div className="flex flex-col items-center">
+                <div
+                  className={`flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-white shadow-lg transition-transform ${isSelected ? 'z-10 scale-110 bg-slate-900' : 'bg-white'}`}
+                >
+                  {isClaimed && logoUrl ? (
+                    <img src={logoUrl} alt={event.location.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xl leading-none">🏟️</span>
+                  )}
+                </div>
+                <div className="mt-1 max-w-[120px] truncate rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 shadow-sm backdrop-blur-sm">
+                  {event.location.name}
+                </div>
               </div>
             </Marker>
           )
@@ -103,7 +113,13 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
           className="fixed left-4 right-4 z-50 duration-300 animate-in slide-in-from-bottom-4"
           style={{ bottom: 'calc(68px + env(safe-area-inset-bottom, 0px) + 10px)' }}
         >
-          <Link to={`/event/${selectedEvent.id}`} className="block">
+          <Link 
+            to={selectedEvent.venueId && selectedEvent.id.startsWith('venue-') 
+              ? `/venues/${selectedEvent.venueId}` 
+              : `/event/${selectedEvent.id}`
+            } 
+            className="block"
+          >
             <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-[0_8px_30px_rgba(0,0,0,0.12)] ring-1 ring-black/5 transition-transform ">
               {/* Image / Icon Placeholder */}
               <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">

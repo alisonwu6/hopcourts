@@ -45,7 +45,7 @@ async function resolveVenue({ lat, lng, name, address, source }) {
   
   // 2. Evaluate Candidates with STRICT RULES to avoid incorrect merges
   for (const venue of candidates) {
-    if (isNameSimilar(venue.name, name)) {
+    if (isNameSimilar(venue.name_display, name)) {
       // High confidence match
       // TODO: Check aliases here when implemented
       return venue.id
@@ -65,6 +65,47 @@ async function resolveVenue({ lat, lng, name, address, source }) {
   return newVenue.id
 }
 
+async function listVenues(params) {
+  return venuesModel.listVenues(params)
+}
+
+async function getVenue(id) {
+  return venuesModel.getVenueById(id)
+}
+
+async function requestVenueClaim(venueId, userId) {
+  const venue = await venuesModel.getVenueById(venueId)
+  if (!venue) throw new Error('Venue not found')
+  if (venue.status === 'claimed') throw new Error('Venue already claimed')
+
+  const existingClaim = await venuesModel.getPendingClaim(venueId, userId)
+  if (existingClaim) throw new Error('Claim already pending')
+
+  return venuesModel.createVenueClaim(venueId, userId)
+}
+
+async function reviewVenueClaim(claimId, status) {
+  if (!['approved', 'rejected'].includes(status)) {
+    throw new Error('Invalid status')
+  }
+
+  const claim = await venuesModel.getVenueClaimById(claimId)
+  if (!claim) throw new Error('Claim not found')
+  if (claim.status !== 'pending') throw new Error('Claim already processed')
+
+  const updatedClaim = await venuesModel.updateVenueClaimStatus(claimId, status)
+
+  if (status === 'approved') {
+    await venuesModel.updateVenueStatus(claim.venue_id, 'claimed')
+  }
+
+  return updatedClaim
+}
+
 module.exports = {
-  resolveVenue
+  resolveVenue,
+  listVenues,
+  getVenue,
+  requestVenueClaim,
+  reviewVenueClaim
 }

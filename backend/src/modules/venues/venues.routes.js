@@ -1,0 +1,50 @@
+const express = require('express')
+const venuesService = require('./venues.service')
+const { verifyToken } = require('../../middleware/verifyToken')
+
+const router = express.Router()
+
+// GET /venues - List venues
+router.get('/', async (req, res, next) => {
+  try {
+    const filters = {
+      limit: req.query.limit ? parseInt(req.query.limit) : 50,
+      offset: req.query.offset ? parseInt(req.query.offset) : 0,
+      lat: req.query.lat ? parseFloat(req.query.lat) : undefined,
+      lng: req.query.lng ? parseFloat(req.query.lng) : undefined,
+      radiusKm: req.query.radiusKm ? parseFloat(req.query.radiusKm) : undefined,
+    }
+    const venues = await venuesService.listVenues(filters)
+    res.json({ success: true, data: venues })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /venues/:id - Get single venue details (Entry point for Claim)
+router.get('/:id', async (req, res, next) => {
+  try {
+    const venue = await venuesService.getVenue(req.params.id)
+    if (!venue) {
+      return res.status(404).json({ success: false, error: 'Venue not found' })
+    }
+    res.json({ success: true, data: venue })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /venues/:id/claim - Request venue claim
+router.post('/:id/claim', verifyToken, async (req, res, next) => {
+  try {
+    const claim = await venuesService.requestVenueClaim(req.params.id, req.user.id)
+    res.json({ success: true, data: claim })
+  } catch (err) {
+    if (err.message === 'Venue already claimed' || err.message === 'Claim already pending') {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+    next(err)
+  }
+})
+
+module.exports = { venuesRouter: router }

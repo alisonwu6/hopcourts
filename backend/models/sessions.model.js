@@ -26,11 +26,14 @@ const BASE_FIELDS = [
   'photos',
   'is_free',
   'price',
+  'venue_id',
+  'location_source',
 ]
 
 async function listUpcomingSessions({
   city,
   sportKey,
+  venueId,
   from,
   to,
   limit = 50,
@@ -39,6 +42,11 @@ async function listUpcomingSessions({
   const conditions = ["status = 'published'", "visibility = 'public'"]
   const params = []
   let idx = params.length
+
+  if (venueId) {
+    params.push(venueId)
+    conditions.push(`venue_id = $${++idx}`)
+  }
 
   if (from) {
     params.push(from)
@@ -70,10 +78,13 @@ async function listUpcomingSessions({
       h.username as host_username,
       h.country_key as host_country_key,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name
+      c.name_zh as host_city_name,
+      v.status as venue_status,
+      v.logo_url as venue_logo_url
     from public.sessions s
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
+    left join public.venues v on s.venue_id = v.id
     where ${conditions.map(c => `s.${c}`).join(' AND ')}
     order by s.starts_at asc
     limit $${idx + 1}
@@ -210,10 +221,13 @@ async function getSessionById(sessionId) {
        h.username as host_username,
        h.country_key as host_country_key,
        h.city_key as host_city_key,
-       c.name_zh as host_city_name
+       c.name_zh as host_city_name,
+       v.status as venue_status,
+       v.logo_url as venue_logo_url
      from public.sessions s
      left join public.users h on s.host_user_id = h.id
      left join public.cities c on h.city_key = c.key
+     left join public.venues v on s.venue_id = v.id
      where s.id = $1`,
     [sessionId]
   )
@@ -253,9 +267,10 @@ async function createSession(input) {
       gender,
       photos,
       is_free,
-      price
+      price,
+      location_source
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24
     )
     returning ${BASE_FIELDS.join(', ')}
   `
@@ -283,6 +298,7 @@ async function createSession(input) {
     input.photos ?? null,
     input.isFree ?? true,
     input.price ?? null,
+    input.locationSource ?? null,
   ]
 
   const { rows } = await query(sql, params)

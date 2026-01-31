@@ -55,8 +55,8 @@ export interface Venue {
   basePrice?: number
   currency: string
   priceModel: 'per_game' | 'per_hour' | 'per_month' | 'free'
-  isVerified: boolean
-  verificationDate?: Date
+  status: 'claimed' | 'unclaimed'
+  logo_url?: string
   rating: number
   ratingCount: number
   eventsHosted: number
@@ -240,6 +240,7 @@ export interface SaveEventPayload {
 // ACTIVE: canonical UI event model used across the app.
 export interface PlayerEvent {
   id: string
+  venueId?: string
   title: string
   sport: string
   heroImageUrl?: string
@@ -255,6 +256,8 @@ export interface PlayerEvent {
     city: string
     lat?: number
     lng?: number
+    status?: 'unclaimed' | 'claimed'
+    logo_url?: string
   }
   host: {
     id: string
@@ -394,6 +397,7 @@ export interface CreateEventInput {
     lat?: number | null
     lng?: number | null
     instructions?: string
+    source?: string
   }
   venueId?: string
   isFree: boolean

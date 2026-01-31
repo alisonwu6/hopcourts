@@ -3,16 +3,34 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Search, Map as MapIcon, List as ListIcon } from 'lucide-react'
 import clsx from 'clsx'
 
-import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
 import { EventMap } from '@/features/events/components/EventMap'
+import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
 import { VenueListPageContent } from './VenueListPageContent'
+
+// Adapter to make ApiVenue compatible with EventMap logic
+const mapVenueToEventStub = (venue: ApiVenue): any => ({
+  id: venue.id,
+  venueId: venue.id,
+  title: venue.name_display,
+  sport: 'generic', 
+  startTime: new Date(), // Dummy
+  location: {
+    name: venue.name_display,
+    address: venue.address_display,
+    lat: Number(venue.lat),
+    lng: Number(venue.lng),
+    status: venue.status,
+    logo_url: venue.logo_url
+  }
+})
 
 export function VenueListPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { events, fetchEvents, isLoading } = useEventsStore()
+  const [venues, setVenues] = useState<ApiVenue[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const { items: sportsCatalog } = useSports('zh')
   
   // Default to Map view unless explicit list view requested
@@ -28,29 +46,23 @@ export function VenueListPage() {
   }
 
   useEffect(() => {
-    fetchEvents()
-  }, [fetchEvents])
+    const fetchVenues = async () => {
+      setIsLoading(true)
+      const res = await venuesService.listVenues({ limit: 100 })
+      if (res.success && res.data) {
+        setVenues(res.data.data) // PaginatedResponse.data is the array
+      }
+      setIsLoading(false)
+    }
+    fetchVenues()
+  }, [])
 
-  // Derive "Venue Events" (Representative event for each venue to show on Map)
-  // We want one marker per venue. 
-  // Map expects PlayerEvent[]. We can pick the first active event of each venue as the "representative".
-  const venueRepresentativeEvents = useMemo(() => {
-     const venueMap = new Map<string, any>()
-     
-     events.forEach(event => {
-       // Filter out events without coordinates for map
-       if (!event.location?.lat || !event.location?.lng) return
-       
-       const key = `${event.location.lat},${event.location.lng}`
-       if (!venueMap.has(key)) {
-         venueMap.set(key, event)
-       }
-     })
-     
-     return Array.from(venueMap.values())
-  }, [events])
+  // Adapting venues for the map
+  const venueMarkers = useMemo(() => {
+     return venues.map(mapVenueToEventStub)
+  }, [venues])
 
-  if (isLoading && events.length === 0) {
+  if (isLoading && venues.length === 0) {
     return <PageLoading />
   }
 
@@ -72,7 +84,7 @@ export function VenueListPage() {
              <Search className="ml-2 h-5 w-5 text-slate-800" strokeWidth={2.5} />
              <div className="flex flex-col items-start px-1">
                 <span className="text-sm font-bold text-slate-900">開始搜尋</span>
-                <span className="text-xs font-medium text-slate-500">任何時間・任何運動</span>
+                <span className="text-xs font-medium text-slate-500">搜尋場館...</span>
              </div>
            </button>
 
@@ -94,19 +106,38 @@ export function VenueListPage() {
        {showMap ? (
          <div className="h-screen w-full">
             <EventMap 
-              events={venueRepresentativeEvents} 
+              events={venueMarkers} 
               sports={sportsCatalog}
               onSelectEvent={(e) => {
                  // When clicking a pin, navigate to that venue page
-                 if (e && e.location?.name) {
-                    navigate(`/venue/${encodeURIComponent(e.location.name)}`)
+                 if (e) {
+                   if (e.venueId) {
+                     // New Claim Flow: Navigate to Venue Details by UUID
+                     navigate(`/venues/${e.venueId}`)
+                   } else if (e.location?.name) {
+                     // Legacy Fallback
+                     navigate(`/venue/${encodeURIComponent(e.location.name)}`)
+                   }
                  }
               }}
             />
          </div>
        ) : (
-         <div className="pt-24 pb-[100px]">
-            <VenueListPageContent events={events} />
+         <div className="pt-24 pb-[100px] px-4">
+             {/* Simple list view for venues (Placeholder until VenueListContent adaptable) */}
+            <div className="space-y-4">
+              {venues.map(v => (
+                <div key={v.id} onClick={() => navigate(`/venues/${v.id}`)} className="cursor-pointer rounded-xl bg-white p-4 shadow-sm">
+                   <h3 className="font-bold text-slate-900">{v.name_display}</h3>
+                   <p className="text-sm text-slate-500">{v.address_display}</p>
+                   <div className="mt-2 flex items-center gap-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${v.status==='claimed' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
+                        {v.status === 'claimed' ? '官方認證' : '未認領'}
+                      </span>
+                   </div>
+                </div>
+              ))}
+            </div>
          </div>
        )}
     </div>

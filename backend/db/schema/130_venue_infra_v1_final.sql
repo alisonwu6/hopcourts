@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.venues (
 
   name_display varchar(255),
   address_display varchar(255),
+  logo_url text,
 
   -- Status: Core State
   status text NOT NULL DEFAULT 'unclaimed' CHECK (status IN ('unclaimed', 'claimed')),
@@ -69,6 +70,15 @@ CREATE POLICY "Aliases no direct write" ON public.venue_aliases FOR ALL USING (f
 -- IMPORTANT: venue_metrics MUST be updated only via backend service layer. No direct client-side writes allowed.
 CREATE POLICY "Metrics public read" ON public.venue_metrics FOR SELECT USING (true);
 CREATE POLICY "Metrics no direct write" ON public.venue_metrics FOR ALL USING (false);
+
+-- 7. Update Sessions Table (Connection)
+-- Support for location_source history tracking at session level
+ALTER TABLE public.sessions 
+ADD COLUMN IF NOT EXISTS venue_id uuid REFERENCES public.venues(id);
+
+ALTER TABLE public.sessions 
+ADD COLUMN IF NOT EXISTS location_source text; -- 'map_select', 'place_search', 'manual'
+
 
 
 -- 8. Create Indexes and Constraints (Performance & Logic Integrity)

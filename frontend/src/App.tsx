@@ -13,6 +13,7 @@ import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { VenuePage } from '@/features/events/pages/VenuePage'
 import { VenueListPage } from '@/features/events/pages/VenueListPage'
+import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
 import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { CirclePage } from '@/features/profile/pages/CirclePage'
@@ -77,10 +78,10 @@ export default function App() {
         }
       />
       <Route
-        path="/venue/:venueId"
+        path="/venues/:venueId"
         element={
-          <AppChrome showActions={isAuthenticated} showNav={false}>
-            <VenuePage />
+          <AppChrome showActions={isAuthenticated} showNav={false} showHeader={false}>
+            <VenueDetailsPage />
           </AppChrome>
         }
       />

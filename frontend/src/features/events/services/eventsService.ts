@@ -92,6 +92,7 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
 const mapSessionToEvent = (session: any): PlayerEvent => {
   return {
     id: session.id,
+    venueId: session.venue_id,
     title: session.title,
     sport: session.sport_key,
     vibeIcon: '🎯', // TODO: Map sport to icon
@@ -107,6 +108,8 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
       city: '', // TODO: logic to extract city
       lat: session.lat,
       lng: session.lng,
+      status: session.venue_status,
+      logo_url: session.venue_logo_url,
     },
     host: {
       id: session.host_user_id,
@@ -146,6 +149,7 @@ export const eventsService = {
       // Map filters to backend params if needed
       const queryParams: Record<string, any> = {}
       if (filters?.sport) queryParams.sportKey = filters.sport
+      if (filters?.venueId) queryParams.venue_id = filters.venueId
 
       const response = await httpGet<any>('/sessions', { params: queryParams })
       // Backend returns { success: true, data: { data: [...], ... } } or just { success: true, data: [...] } ?
@@ -280,6 +284,7 @@ export const eventsService = {
         is_free: input.isFree ?? true,
         price: input.pricePerPerson ?? undefined,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
+        location: input.location, // Pass the full location object (including source) for backend to handle
       }
 
       const res = await httpPost<{ session: any }>('/sessions', { body: payload })
@@ -324,6 +329,7 @@ export const eventsService = {
         is_free: input.isFree,
         price: input.pricePerPerson,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
+        location: input.location,
       }
 
       if (input.startTime) {

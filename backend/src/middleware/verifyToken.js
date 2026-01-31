@@ -1,7 +1,7 @@
 const {
   findUserByEmail,
   createUserFromSupabaseProfile,
-} = require('../models/userModel')
+} = require('../../models/users.model')
 const supabase = require('../utils/supabase')
 
 async function getSupabaseUserFromToken(token) {
@@ -72,4 +72,4 @@ async function verifyToken(req, res, next) {
   }
 }
 
-module.exports = verifyToken
+module.exports = { verifyToken }

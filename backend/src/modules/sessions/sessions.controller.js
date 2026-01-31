@@ -87,7 +87,7 @@ async function handleCreateSession(req, res, next) {
       address: loc.address || body.address,
       lat: loc.lat ?? body.lat,
       lng: loc.lng ?? body.lng,
-      locationSource: loc.source, // Pass source to service for venue resolution logic
+      locationSource: body.location_source || loc.source, // Support explicit location_source or nested source
       checkinRadiusM: body.checkin_radius_m ?? body.checkinRadiusM,
       checkinOpenMinsBefore: body.checkin_open_mins_before ?? body.checkinOpenMinsBefore,
       checkinCloseMinsAfter: body.checkin_close_mins_after ?? body.checkinCloseMinsAfter,

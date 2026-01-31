@@ -631,12 +631,14 @@ export default function CreateEventPage() {
                         <MapPin className="h-5 w-5" />
                       </div>
                       <div className="flex flex-col text-left">
-                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          地址/點地圖選擇
+                        <span className="text-sm font-bold text-slate-900 leading-tight mb-0.5">
+                          {form.placeName || '點擊選擇位置'}
                         </span>
-                        <span className="text-sm text-slate-500">
-                          {form.location || '點擊選擇位置'}
-                        </span>
+                        {form.location && form.location !== form.placeName && (
+                          <span className="text-xs text-slate-500 line-clamp-1 break-all">
+                            {form.location}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-slate-400" />
