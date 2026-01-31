@@ -241,6 +241,7 @@ export function DiscoverEventsPage() {
         <EventMap
           events={filteredEvents}
           sports={sportsCatalog}
+          mode="events"
           selectedEventId={selectedEventId}
           onSelectEvent={(e) => {
             setSearchParams(

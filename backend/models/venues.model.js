@@ -48,11 +48,13 @@ async function findNearbyVenues({ lat, lng, radiusMeters = 100 }) {
 async function getVenueById(id) {
   const sql = `
     SELECT v.*,
+      COALESCE(vp.logo_url, v.logo_url) as logo_url,
       (SELECT COUNT(*)::int FROM public.sessions s 
        WHERE s.venue_id = v.id 
          AND s.ends_at > NOW() 
          AND s.status = 'published') as active_sessions_count
     FROM public.venues v
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     WHERE v.id = $1
   `
   const { rows } = await query(sql, [id])
@@ -80,11 +82,13 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
   // Note: Using subquery for counts is simpler for now than GROUP BY everything
   const sql = `
     SELECT v.*,
+      COALESCE(vp.logo_url, v.logo_url) as logo_url,
       (SELECT COUNT(*)::int FROM public.sessions s 
        WHERE s.venue_id = v.id 
          AND s.ends_at > NOW() 
          AND s.status = 'published') as active_sessions_count
     FROM public.venues v
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     ${whereClause}
     ORDER BY v.created_at DESC
     LIMIT $${params.length + 1} OFFSET $${params.length + 2}

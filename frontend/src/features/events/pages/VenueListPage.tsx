@@ -108,6 +108,7 @@ export function VenueListPage() {
             <EventMap 
               events={venueMarkers} 
               sports={sportsCatalog}
+              mode="venues"
               onSelectEvent={(e) => {
                  // When clicking a pin, navigate to that venue page
                  if (e) {

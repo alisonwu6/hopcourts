@@ -11,9 +11,10 @@ interface EventMapProps {
   sports: Array<{ key: string; label: string; icon?: string | null }>
   selectedEventId?: string | null
   onSelectEvent: (event: PlayerEvent | null) => void
+  mode?: 'events' | 'venues'
 }
 
-export function EventMap({ events, sports, selectedEventId, onSelectEvent }: EventMapProps) {
+export function EventMap({ events, sports, selectedEventId, onSelectEvent, mode = 'events' }: EventMapProps) {
   const token = import.meta.env.VITE_MAPBOX_TOKEN
   const mapRef = useRef<MapRef>(null)
 
@@ -77,6 +78,11 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
           const isSelected = selectedEvent?.id === event.id
           const sportIcon = sports.find(s => s.key.toUpperCase() === event.sport.toUpperCase())?.icon || '🎯'
 
+          // Marker content based on mode
+          const markerContent = mode === 'venues' 
+            ? (event.location.logo_url ? <img src={event.location.logo_url} className="h-full w-full object-cover" /> : '🏟️')
+            : sportIcon
+
           return (
             <Marker
               key={event.id}
@@ -97,8 +103,8 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
                       : 'bg-white/90 border-white shadow-slate-200'
                   )}
                 >
-                  <span className="text-2xl leading-none">
-                    {sportIcon}
+                  <span className="text-2xl leading-none flex items-center justify-center h-full w-full">
+                    {markerContent}
                   </span>
                 </div>
               </div>
