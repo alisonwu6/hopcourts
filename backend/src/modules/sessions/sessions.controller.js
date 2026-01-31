@@ -73,6 +73,8 @@ async function handleCreateSession(req, res, next) {
     const userId = resolveUserId(req)
     if (!userId) throw Errors.unauthenticated('User id required')
     const body = req.body || {}
+    const loc = body.location || {}
+
     const session = await createSession({
       userId,
       sportKey: body.sport_key || body.sportKey,
@@ -80,10 +82,12 @@ async function handleCreateSession(req, res, next) {
       description: body.description,
       startAt: body.starts_at || body.startAt,
       endAt: body.ends_at || body.endAt,
-      placeName: body.place_name || body.locationName || body.location_name,
-      address: body.address,
-      lat: body.lat,
-      lng: body.lng,
+      // Support NEW nested location object (preferred) OR legacy flat fields
+      placeName: loc.name || body.place_name || body.locationName || body.location_name,
+      address: loc.address || body.address,
+      lat: loc.lat ?? body.lat,
+      lng: loc.lng ?? body.lng,
+      locationSource: loc.source, // Pass source to service for venue resolution logic
       checkinRadiusM: body.checkin_radius_m ?? body.checkinRadiusM,
       checkinOpenMinsBefore: body.checkin_open_mins_before ?? body.checkinOpenMinsBefore,
       checkinCloseMinsAfter: body.checkin_close_mins_after ?? body.checkinCloseMinsAfter,

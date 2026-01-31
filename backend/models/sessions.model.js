@@ -233,6 +233,7 @@ async function createSession(input) {
     insert into public.sessions (
       host_user_id,
       sport_key,
+      venue_id,
       title,
       notes,
       starts_at,
@@ -254,13 +255,14 @@ async function createSession(input) {
       is_free,
       price
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23
     )
     returning ${BASE_FIELDS.join(', ')}
   `
   const params = [
     input.hostUserId,
     input.sportKey,
+    input.venueId ?? null,
     input.title ?? null,
     input.description ?? null,
     input.startAt,
@@ -290,6 +292,7 @@ async function createSession(input) {
 async function updateSession(sessionId, patch = {}) {
   const entries = Object.entries({
     title: patch.title,
+    venue_id: patch.venueId,
     notes: patch.description,
     starts_at: patch.startAt,
     ends_at: patch.endAt,
