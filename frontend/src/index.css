@@ -68,6 +68,7 @@
     background-color: #f4f6fb; /* User preferred background */
     color: var(--color-text-primary);
     font-family: var(--font-sans);
+    touch-action: pan-x pan-y;
   }
 }
 
