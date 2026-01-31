@@ -123,6 +123,19 @@ export function VenuePage() {
         )}
       </div>
 
+       {/* Claim Venue CTA */}
+       <div className="mx-4 mb-8 mt-4 rounded-xl border border-slate-200 bg-slate-100 p-4 text-center">
+          <p className="text-sm text-slate-600">
+            這是您的場館嗎？
+          </p>
+          <button 
+             onClick={() => { alert('即將推出：場館認領功能') }}
+             className="mt-2 text-sm font-bold text-blue-600 underline"
+          >
+            認領此頁面以管理官方活動
+          </button>
+       </div>
+
        <div className="safe-area-bottom h-10" />
     </div>
   )
