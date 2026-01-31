@@ -28,6 +28,9 @@ import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
 import { AdminLoginPage } from '@/features/admin/pages/AdminLoginPage'
 import { AdminRouteGuard } from '@/features/admin/components/AdminRouteGuard'
+import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
+import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
+import { VenuePortalRouteGuard } from '@/features/venue-portal/VenuePortalRouteGuard'
 import { PageLoading } from '@/components/PageLoading'
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
@@ -38,9 +41,7 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
 }
 
 export default function App() {
-  const { isAuthenticated, onboardingStatus } = useAuthStore()
-  const isOnboardingComplete = onboardingStatus?.isComplete ?? false
-  const { isLoading } = useAuthStore()
+  const { isAuthenticated, isLoading, onboardingStatus } = useAuthStore()
 
   if (isLoading) {
     return <PageLoading message="載入中..." />
@@ -48,98 +49,14 @@ export default function App() {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <AppChrome showActions={isAuthenticated} showHeader={false}>
-            <HomePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/events"
-        element={
-          <AppChrome showActions={isAuthenticated}>
-            <DiscoverEventsPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/venues"
-        element={
-          <AppChrome showActions={isAuthenticated} showHeader={false}>
-            <VenueListPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/venue/:venueId"
-        element={
-          <AppChrome showActions={isAuthenticated} showNav={false} showHeader={false}>
-            <VenuePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/venues/:venueId"
-        element={
-          <AppChrome showActions={isAuthenticated} showNav={false} showHeader={false}>
-            <VenueDetailsPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <AppChrome showHeader={false} showActions={false}>
-            <LoginPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/signup"
-        element={
-          <AppChrome showHeader={false} showActions={false} showNav={false}>
-            <SignupPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <AppChrome showHeader={false} showActions={false} showNav={false}>
-            <ForgotPasswordPage />
-          </AppChrome>
-        }
-      />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/auth/reset" element={<ResetPasswordPage />} />
+      
       <Route
-        path="/auth/reset"
-        element={
-          <AppChrome showHeader={false} showActions={false} showNav={false}>
-            <ResetPasswordPage />
-          </AppChrome>
-        }
-      />
-      <Route path="/home" element={<Navigate to="/" replace />} />
-      <Route
-        path="/about"
-        element={
-          <AppChrome showActions={false} showHeader={false} showNav={false}>
-            <AboutPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/mate/:username"
-        element={
-          <AppChrome showHeader={false}>
-            <MateProfilePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/onboarding"
+        path="/onboarding/*"
         element={
           <RequireAuth>
             <OnboardingRoute>
@@ -148,12 +65,11 @@ export default function App() {
           </RequireAuth>
         }
       />
-      <Route
-        path="/admin/login"
-        element={
-          <AdminLoginPage />
-        }
-      />
+      <Route path="/profile/:username" element={<MateProfilePage />} />
+      <Route path="/about" element={<AboutPage />} />
+
+      {/* Admin / Governance (C0) */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route
         path="/admin/venues"
         element={
@@ -162,6 +78,26 @@ export default function App() {
           </AdminRouteGuard>
         }
       />
+
+      {/* Venue Portal (C1) */}
+      <Route
+        path="/venue-portal"
+        element={
+          <VenuePortalRouteGuard>
+             <VenueDashboardPage />
+          </VenuePortalRouteGuard>
+        }
+      />
+      <Route
+        path="/venue-portal/:venueId/profile"
+        element={
+          <VenuePortalRouteGuard>
+             <VenueProfilePage />
+          </VenuePortalRouteGuard>
+        }
+      />
+
+      {/* Main App Routes */}
       <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
     </Routes>
   )
@@ -214,6 +150,22 @@ function AuthenticatedApp() {
         element={
           <AppChrome showHeader={false}>
             <DiscoverEventsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues"
+        element={
+          <AppChrome showHeader={false}>
+            <VenueListPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues/:venueId"
+        element={
+          <AppChrome showNav={false} showHeader={false}>
+            <VenueDetailsPage />
           </AppChrome>
         }
       />
@@ -326,6 +278,22 @@ function GuestApp() {
         element={
           <AppChrome showActions={false} showHeader={false}>
             <DiscoverEventsPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <VenueListPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues/:venueId"
+        element={
+          <AppChrome showActions={false} showNav={false} showHeader={false}>
+            <VenueDetailsPage />
           </AppChrome>
         }
       />

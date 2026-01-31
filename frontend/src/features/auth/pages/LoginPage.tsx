@@ -1,22 +1,32 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components'
 import { LoginPanel } from '@/components/LoginPanel'
 import { useAuthStore } from '@/hooks'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { onboardingStatus, isAuthenticated } = useAuthStore()
 
   useEffect(() => {
     if (isAuthenticated) {
+      // Check if there is a pending redirect
+      const from = (location.state as any)?.from?.pathname || null
+      
+      if (from) {
+        navigate(from, { replace: true })
+        return
+      }
+
+      // Default logic
       if (onboardingStatus?.isComplete) {
         navigate('/', { replace: true })
       } else {
         navigate('/onboarding', { replace: true })
       }
     }
-  }, [isAuthenticated, onboardingStatus?.isComplete, navigate])
+  }, [isAuthenticated, onboardingStatus?.isComplete, navigate, location])
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">

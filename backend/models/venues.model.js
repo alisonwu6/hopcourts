@@ -97,6 +97,12 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
 }
 
 async function createVenueClaim(venueId, userId, claimData = {}) {
+  // Guard: Check for duplicate pending claim by same user
+  const existingClaim = await getPendingClaim(venueId, userId)
+  if (existingClaim) {
+    throw new Error('您已送出過申請，請耐心等候審核。')
+  }
+
   const sql = `
     INSERT INTO public.venue_claims (
       venue_id,
@@ -265,6 +271,55 @@ async function patchVenueDisplay(id, { name_display, address_display }) {
   return rows[0]
 }
 
+async function getManagedVenues(userId) {
+  const sql = `
+    SELECT v.*, vc.contact_email
+    FROM public.venues v
+    JOIN public.venue_claims vc ON v.id = vc.venue_id
+    WHERE vc.owner_id = $1 AND vc.status = 'approved'
+    ORDER BY v.created_at DESC
+  `
+  const { rows } = await query(sql, [userId])
+  return rows
+}
+
+async function getVenueProfile(venueId) {
+  const sql = `SELECT * FROM public.venue_profiles WHERE venue_id = $1`
+  const { rows } = await query(sql, [venueId])
+  return rows[0]
+}
+
+async function upsertVenueProfile(venueId, data) {
+  const sql = `
+    INSERT INTO public.venue_profiles (
+      venue_id, logo_url, cover_url, description, social_links, opening_hours, images, updated_at
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, NOW()
+    )
+    ON CONFLICT (venue_id) DO UPDATE SET
+      logo_url = COALESCE($2, public.venue_profiles.logo_url),
+      cover_url = COALESCE($3, public.venue_profiles.cover_url),
+      description = COALESCE($4, public.venue_profiles.description),
+      social_links = COALESCE($5, public.venue_profiles.social_links),
+      opening_hours = COALESCE($6, public.venue_profiles.opening_hours),
+      images = COALESCE($7, public.venue_profiles.images),
+      updated_at = NOW()
+    RETURNING *
+  `
+  const params = [
+    venueId,
+    data.logo_url || null,
+    data.cover_url || null,
+    data.description || null,
+    data.social_links ? JSON.stringify(data.social_links) : null,
+    data.opening_hours ? JSON.stringify(data.opening_hours) : null,
+    data.images ? JSON.stringify(data.images) : null
+  ]
+  
+  const { rows } = await query(sql, params)
+  return rows[0]
+}
+
 module.exports = {
   createVenue,
   findNearbyVenues,
@@ -281,5 +336,9 @@ module.exports = {
   writeAuditLog,
   getAdminVenues,
   revokeVenueClaim,
-  patchVenueDisplay
+  patchVenueDisplay,
+  // C1 Export
+  getManagedVenues,
+  getVenueProfile,
+  upsertVenueProfile
 }

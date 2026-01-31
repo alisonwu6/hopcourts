@@ -8,9 +8,15 @@ import { eventsService } from '@/features/events/services/eventsService'
 import { EventCard } from '@/features/events/components/EventCard'
 import { PlayerEvent } from '@/types'
 
+import { useAuthStore } from '@/hooks'
+
+// ... imports
+
 export function VenueDetailsPage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
+  const { user } = useAuthStore() // Get user from store
+  
   const [venue, setVenue] = useState<ApiVenue | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -18,6 +24,14 @@ export function VenueDetailsPage() {
   const [claimSuccess, setClaimSuccess] = useState(false)
   const [showClaimDialog, setShowClaimDialog] = useState(false)
   const [showClaimForm, setShowClaimForm] = useState(false)
+  
+  // Calculate managementship
+  // If managedVenues is string[], use includes. If object[], use some.
+  // The lint error `Property 'id' does not exist on type 'string'` implies `v` is inferred as string.
+  // So `managedVenues` is likely `string[]`.
+  const isVenueManager = user?.managedVenues?.some((v: any) => (typeof v === 'string' ? v === venueId : v.id === venueId))
+
+  // ... (rest of state)
   const [claimFormData, setClaimFormData] = useState({ 
     contact_name: '', 
     contact_person: '',
@@ -126,18 +140,30 @@ export function VenueDetailsPage() {
           )}
         </div>
 
-        {/* Status Badge */}
-        <div className="mt-4 flex gap-2">
-          {venue.status === 'claimed' ? (
-             <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-               <CheckCircle className="h-3.5 w-3.5" />
-               官方認證場館
-             </span>
-          ) : (
-             <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-               <AlertCircle className="h-3.5 w-3.5" />
-               未認領
-             </span>
+       {/* Status Badge & Management Entry */}
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex gap-2">
+           {venue.status === 'claimed' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                <CheckCircle className="h-3.5 w-3.5" />
+                官方認證場館
+              </span>
+           ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                <AlertCircle className="h-3.5 w-3.5" />
+                未認領
+              </span>
+           )}
+          </div>
+          
+          
+          {isVenueManager && (
+             <button 
+                onClick={() => navigate('/venue-portal')}
+                className="flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors"
+             >
+                ⚙️ 管理場館
+             </button>
           )}
         </div>
       </div>
