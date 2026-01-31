@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef } from 'react'
 import Map, { Marker, NavigationControl, MapRef } from 'react-map-gl/mapbox'
 import { ChevronRight } from 'lucide-react'
+import clsx from 'clsx'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { PlayerEvent } from '@/types'
 import { Link } from 'react-router-dom'
@@ -73,9 +74,8 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
         {/* Move controls up to avoid overlap with card */}
 
         {validEvents.map((event) => {
-          const isClaimed = event.location?.status === 'claimed'
-          const logoUrl = event.location?.logo_url
           const isSelected = selectedEvent?.id === event.id
+          const sportIcon = sports.find(s => s.key.toUpperCase() === event.sport.toUpperCase())?.icon || '🎯'
 
           return (
             <Marker
@@ -90,16 +90,16 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent }: Eve
             >
               <div className="flex flex-col items-center">
                 <div
-                  className={`flex h-10 w-10 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-white shadow-lg transition-transform ${isSelected ? 'z-10 scale-110 bg-slate-900' : 'bg-white'}`}
-                >
-                  {isClaimed && logoUrl ? (
-                    <img src={logoUrl} alt={event.location.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-xl leading-none">🏟️</span>
+                  className={clsx(
+                    'flex h-11 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 shadow-sm transition-all backdrop-blur-sm',
+                    isSelected 
+                      ? 'z-10 scale-110 bg-indigo-50 border-indigo-500 shadow-indigo-200/50 shadow-md outline outline-2 outline-indigo-200/50' 
+                      : 'bg-white/90 border-white shadow-slate-200'
                   )}
-                </div>
-                <div className="mt-1 max-w-[120px] truncate rounded bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 shadow-sm backdrop-blur-sm">
-                  {event.location.name}
+                >
+                  <span className="text-2xl leading-none">
+                    {sportIcon}
+                  </span>
                 </div>
               </div>
             </Marker>

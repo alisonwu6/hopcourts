@@ -39,8 +39,10 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
     isOfficial: Boolean(isOfficial)
   }
 
-  const sportLabel =
-    sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
+  const sportItem = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
+  const sportLabel = sportItem?.label || event.sport
+  const sportIcon = sportItem?.icon
+
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
   const locationLabel =
@@ -85,17 +87,6 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       }
     : {}
 
-  const getSportEmoji = (key: string) => {
-    switch (key.toUpperCase()) {
-      case 'BADMINTON': return '🏸'
-      case 'BASKETBALL': return '🏀'
-      case 'TENNIS': return '🎾'
-      case 'PICKLEBALL': return '🏓'
-      case 'RUNNING': return '🏃'
-      case 'VOLLEYBALL': return '🏐'
-      default: return '🎯'
-    }
-  }
 
   return (
     <article
@@ -149,7 +140,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           <div className="flex items-center gap-2">
             {/* Sport Tag */}
             <div className="flex items-center gap-1.5 rounded-full bg-white border border-slate-100 px-3 py-1 text-[11px] font-bold text-slate-800 shadow-[0_2px_10px_rgba(15,41,77,0.04)]">
-              <span>{getSportEmoji(event.sport)}</span>
+              <span>{sportIcon}</span>
               {sportLabel}
             </div>
             {/* Skill Tag */}
