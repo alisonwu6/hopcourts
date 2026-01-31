@@ -12,6 +12,10 @@ interface AdminVenue {
   claim_status?: string
   contact_email?: string
   last_activity_at?: string
+  // New fields for pending claims
+  pending_claim_id?: string
+  pending_contact_name?: string
+  pending_contact_email?: string
 }
 
 export function AdminVenueManagementPage() {
@@ -21,6 +25,9 @@ export function AdminVenueManagementPage() {
   const [editingVenue, setEditingVenue] = useState<AdminVenue | null>(null)
   const [patchData, setPatchData] = useState({ name_display: '', address_display: '' })
   const [revokeReason, setRevokeReason] = useState('')
+
+  const [approvingClaim, setApprovingClaim] = useState<any | null>(null)
+  const [officialEmail, setOfficialEmail] = useState('')
 
   useEffect(() => {
     fetchVenues()
@@ -56,6 +63,23 @@ export function AdminVenueManagementPage() {
       fetchVenues(search)
     } else {
       alert('撤銷失敗')
+    }
+  }
+
+  const handleApprove = async () => {
+    if (!approvingClaim || !officialEmail) return
+    
+    // Call backend to approve and assign email
+    // We need a new service method for this specific "Approve with Email" action
+    const res = await adminVenuesService.approveVenueClaim(approvingClaim.id, officialEmail)
+    
+    if (res.success) {
+      alert(`已核准並綁定至 ${officialEmail}`)
+      setApprovingClaim(null)
+      setOfficialEmail('')
+      fetchVenues(search)
+    } else {
+      alert(res.error?.message || '核准失敗')
     }
   }
 
@@ -140,6 +164,24 @@ export function AdminVenueManagementPage() {
                     {venue.last_activity_at ? new Date(venue.last_activity_at).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-4 py-3 text-right space-y-2">
+                    {/* Show Review button if pending claim exists (mocked for now, will wire up) */}
+                    {venue.status === 'unclaimed' && venue.pending_claim_id && (
+                       <button
+                         onClick={() => {
+                            setApprovingClaim({ 
+                              id: venue.pending_claim_id, 
+                              contact_name: venue.pending_contact_name,
+                              contact_email: venue.pending_contact_email
+                            })
+                            // Pre-fill email from claim contact if available
+                            setOfficialEmail(venue.pending_contact_email || '')
+                         }}
+                         className="rounded bg-green-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-green-700 block ml-auto"
+                       >
+                         Review Claim
+                       </button>
+                    )}
+
                     <button 
                       onClick={() => startEditing(venue)}
                       className="text-xs font-semibold text-blue-600 hover:underline block ml-auto"
@@ -206,6 +248,52 @@ export function AdminVenueManagementPage() {
                   className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white"
                 >
                   確認修正
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Approve/Invite Modal */}
+        {approvingClaim && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+              <h2 className="mb-4 text-lg font-bold text-slate-900">審核場館認領</h2>
+              
+              <div className="mb-6 rounded-lg bg-slate-50 p-4 text-sm text-slate-600 space-y-2">
+                 <p><span className="font-bold">申請人/單位：</span> {approvingClaim.contact_name}</p>
+                 <p><span className="font-bold">聯絡 Email：</span> {approvingClaim.contact_email}</p>
+                 <p className="text-xs text-slate-400 mt-2">請確認已透過電話或信件驗證此身份。</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-900">指定官方帳號 (Email)</label>
+                  <p className="mb-2 text-xs text-slate-500">
+                    輸入對方的官方 Email。我們將把管理權限綁定給此 Email 對應的帳號。
+                  </p>
+                  <input 
+                    type="email" 
+                    value={officialEmail}
+                    onChange={(e) => setOfficialEmail(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="official@venue.com"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-2">
+                <button 
+                  onClick={() => setApprovingClaim(null)}
+                  className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={handleApprove}
+                  className="flex-1 rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+                >
+                  確認核准並綁定
                 </button>
               </div>
             </div>

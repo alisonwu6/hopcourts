@@ -45,5 +45,18 @@ export const adminVenuesService = {
         timestamp: new Date(),
       } as any
     }
+  },
+
+  async approveVenueClaim(claimId: string, officialEmail: string): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpPost<any>(`/admin/venue-claims/${claimId}/approve`, { body: { officialEmail } })
+      return wrapSuccess(res.data)
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'APPROVE_CLAIM_FAILED', message: err.message },
+        timestamp: new Date(),
+      } as any
+    }
   }
 }

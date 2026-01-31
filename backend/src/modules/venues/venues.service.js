@@ -1,4 +1,6 @@
 const venuesModel = require('../../../models/venues.model')
+const usersModel = require('../../../models/users.model')
+const { query } = require('../../../db/client')
 
 // Simple Levenshtein distance for string similarity
 function levenshtein(a, b) {
@@ -149,6 +151,37 @@ async function patchVenueDisplay(venueId, adminId, data) {
   return result
 }
 
+async function approveVenueClaim(claimId, adminId, officialEmail) {
+  // 1. Validate Official Email User Exists (Invite Flow Mock)
+  // Use shared model for consistency
+  const user = await usersModel.findUserByEmail(officialEmail)
+  
+  if (!user) {
+    throw new Error(`找不到 Email 為 ${officialEmail} 的使用者。請先請對方註冊帳號。`)
+  }
+  
+  const officialUserId = user.id
+  
+  // 2. Assign Owner to Claim
+  // Update the claim to own by the Official User, not the transient applicant
+  await query('UPDATE public.venue_claims SET owner_id = $1 WHERE id = $2', [officialUserId, claimId])
+  
+  // 3. Approve Claim (Standard Flow)
+  // This updates claim status and venue status
+  const result = await reviewVenueClaim(claimId, 'approved')
+  
+  // 4. Audit Log
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'approve_claim_invite',
+    targetId: claimId,
+    targetType: 'venue_claim',
+    note: `Approved and assigned to official account: ${officialEmail}`
+  })
+  
+  return result
+}
+
 module.exports = {
   resolveVenue,
   listVenues,
@@ -159,5 +192,6 @@ module.exports = {
   // C0 Governance
   getAdminVenues,
   revokeVenueClaim,
-  patchVenueDisplay
+  patchVenueDisplay,
+  approveVenueClaim
 }

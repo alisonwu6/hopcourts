@@ -225,9 +225,18 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
       c.id as claim_id,
       c.status as claim_status,
       c.contact_email,
+      pc.id as pending_claim_id,
+      pc.contact_name as pending_contact_name,
+      pc.contact_email as pending_contact_email,
       (SELECT MAX(starts_at) FROM public.sessions s WHERE s.venue_id = v.id) as last_activity_at
     FROM public.venues v
     LEFT JOIN public.venue_claims c ON c.venue_id = v.id AND c.status = 'approved'
+    LEFT JOIN LATERAL (
+      SELECT id, contact_name, contact_email 
+      FROM public.venue_claims 
+      WHERE venue_id = v.id AND status = 'pending' 
+      ORDER BY created_at DESC LIMIT 1
+    ) pc ON true
     ${whereClause}
     ORDER BY v.created_at DESC
     LIMIT $${params.length + 1} OFFSET $${params.length + 2}

@@ -44,6 +44,23 @@ router.post('/venue-claims/:id/revoke', async (req, res, next) => {
   }
 })
 
+// POST /admin/venue-claims/:id/approve - Approve claim and assign to official email
+router.post('/venue-claims/:id/approve', async (req, res, next) => {
+  try {
+    const adminId = req.userId
+    const { officialEmail } = req.body
+    
+    if (!officialEmail || !officialEmail.includes('@')) {
+      return res.status(400).json({ success: false, error: 'Valid official email is required.' })
+    }
+    
+    const result = await venuesService.approveVenueClaim(req.params.id, adminId, officialEmail)
+    res.json({ success: true, data: result })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // PATCH /admin/venues/:id - Correction of name or address only
 router.patch('/venues/:id', async (req, res, next) => {
   try {
