@@ -3,6 +3,9 @@
 
 @layer base {
   :root {
+    /* Fonts */
+    --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
     /* Brand Core */
     --color-primary: #1ABC9C;
     --color-primary-dark: #00CFC8;
@@ -64,6 +67,7 @@
   body {
     background-color: #f4f6fb; /* User preferred background */
     color: var(--color-text-primary);
+    font-family: var(--font-sans);
   }
 }
 
