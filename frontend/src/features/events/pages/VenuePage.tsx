@@ -95,11 +95,11 @@ export function VenuePage() {
 
       {/* 🧱 Section 2: Activities */}
       <div className="px-4 py-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">即將開始的活動</h2>
+        <h2 className="mb-4 text-lg font-bold text-slate-900">場館開放時段</h2>
         
         {groupedEvents.length === 0 ? (
           <div className="rounded-xl bg-white py-10 text-center text-slate-500 shadow-sm">
-            <p>目前沒有可加入的活動</p>
+            <p>目前無開放時段</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -132,7 +132,7 @@ export function VenuePage() {
              onClick={() => { alert('即將推出：場館認領功能') }}
              className="mt-2 text-sm font-bold text-blue-600 underline"
           >
-            認領此頁面以管理官方活動
+            認領此頁面以管理官方時段
           </button>
        </div>
 
