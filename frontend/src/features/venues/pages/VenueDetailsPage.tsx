@@ -16,6 +16,16 @@ export function VenueDetailsPage() {
   const [error, setError] = useState<string | null>(null)
   const [isClaiming, setIsClaiming] = useState(false)
   const [claimSuccess, setClaimSuccess] = useState(false)
+  const [showClaimDialog, setShowClaimDialog] = useState(false)
+  const [showClaimForm, setShowClaimForm] = useState(false)
+  const [claimFormData, setClaimFormData] = useState({ 
+    contact_name: '', 
+    contact_person: '',
+    contact_title: '',
+    contact_phone: '',
+    contact_email: '', 
+    note: '' 
+  })
   const [sessions, setSessions] = useState<PlayerEvent[]>([])
   const [loadingSessions, setLoadingSessions] = useState(false)
 
@@ -57,12 +67,33 @@ export function VenueDetailsPage() {
     )
   }
 
-  const handleClaimRequest = async () => {
+  const handleStartClaim = () => {
+    setShowClaimDialog(true)
+  }
+
+  const handleContinueToClaim = () => {
+    setShowClaimDialog(false)
+    setShowClaimForm(true)
+  }
+
+  const handleSubmitClaim = async () => {
     if (!venueId) return
+    
+    // Validate required fields
+    if (!claimFormData.contact_name || 
+        !claimFormData.contact_person || 
+        !claimFormData.contact_title ||
+        !claimFormData.contact_phone ||
+        !claimFormData.contact_email) {
+      alert('請填寫所有必填欄位')
+      return
+    }
+    
     setIsClaiming(true)
-    const res = await venuesService.requestVenueClaim(venueId)
+    const res = await venuesService.requestVenueClaim(venueId, claimFormData)
     if (res.success) {
       setClaimSuccess(true)
+      setShowClaimForm(false)
     } else {
       alert(res.error?.message || '申請失敗')
     }
@@ -125,14 +156,128 @@ export function VenueDetailsPage() {
               <h3 className="text-sm font-bold text-blue-900">您是場館管理者嗎？</h3>
               <p className="mt-1 text-xs text-blue-700">認領此場館以管理官方資訊、上傳 Logo 並發布官方活動。</p>
               <button 
-                onClick={handleClaimRequest}
-                disabled={isClaiming}
-                className="mt-3 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-95 disabled:opacity-50"
+                onClick={handleStartClaim}
+                className="mt-3 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
               >
-                {isClaiming ? '傳送中...' : '申請認領場館'}
+                我是這個場館的管理者
               </button>
             </>
           )}
+        </div>
+      )}
+
+      {/* Claim Explanation Dialog */}
+      {showClaimDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowClaimDialog(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-slate-900">申請成為官方管理者</h2>
+            <div className="mt-4 space-y-3 text-sm text-slate-600">
+              <p>• 你將申請成為此場館的官方管理者</p>
+              <p>• 通過後可發布官方活動、查看成效</p>
+              <p>• 每個場館僅能有一位官方管理者</p>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button 
+                onClick={() => setShowClaimDialog(false)}
+                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleContinueToClaim}
+                className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                繼續申請
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Claim Form Dialog */}
+      {showClaimForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowClaimForm(false)}>
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-slate-900">填寫申請資訊</h2>
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">管理者名稱（或公司名）*</label>
+                <input 
+                  type="text"
+                  value={claimFormData.contact_name}
+                  onChange={(e) => setClaimFormData({...claimFormData, contact_name: e.target.value})}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="例：ABC 運動中心"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">聯絡人姓名 *</label>
+                <input 
+                  type="text"
+                  value={claimFormData.contact_person}
+                  onChange={(e) => setClaimFormData({...claimFormData, contact_person: e.target.value})}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="例：王小明"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">職務稱呼 *</label>
+                <input 
+                  type="text"
+                  value={claimFormData.contact_title}
+                  onChange={(e) => setClaimFormData({...claimFormData, contact_title: e.target.value})}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="例：場館經理"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">聯絡電話 *</label>
+                <input 
+                  type="tel"
+                  value={claimFormData.contact_phone}
+                  onChange={(e) => setClaimFormData({...claimFormData, contact_phone: e.target.value})}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="例：0912-345-678"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">聯絡 Email *</label>
+                <input 
+                  type="email"
+                  value={claimFormData.contact_email}
+                  onChange={(e) => setClaimFormData({...claimFormData, contact_email: e.target.value})}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="contact@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">補充說明（選填）</label>
+                <textarea 
+                  value={claimFormData.note}
+                  onChange={(e) => setClaimFormData({...claimFormData, note: e.target.value})}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="例：我們是場館經營者"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button 
+                onClick={() => setShowClaimForm(false)}
+                disabled={isClaiming}
+                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+              >
+                取消
+              </button>
+              <button 
+                onClick={handleSubmitClaim}
+                disabled={isClaiming}
+                className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isClaiming ? '送出中...' : '送出申請'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

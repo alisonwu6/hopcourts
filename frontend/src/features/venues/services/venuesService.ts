@@ -63,9 +63,16 @@ export const venuesService = {
     }
   },
 
-  async requestVenueClaim(id: string): Promise<ApiResponse<any>> {
+  async requestVenueClaim(id: string, claimData: {
+    contact_name: string
+    contact_person: string
+    contact_title: string
+    contact_phone: string
+    contact_email: string
+    note?: string
+  }): Promise<ApiResponse<any>> {
     try {
-      const res = await httpPost<any>(`/venues/${id}/claim`)
+      const res = await httpPost<any>(`/venues/${id}/claim`, { body: claimData })
       return wrapSuccess(res.data)
     } catch (err: any) {
       return {

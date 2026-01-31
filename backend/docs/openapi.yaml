@@ -4,15 +4,24 @@ info:
   version: 1.0.0
 servers:
   - url: /api/v1
+tags:
+  - name: Health
+  - name: Sports
+  - name: Sessions
+  - name: Master Data
+  - name: Profile
+  - name: Venues
 paths:
   /health:
     get:
+      tags: [Health]
       summary: Health check
       responses:
         "200":
           description: ok
   /sports:
     get:
+      tags: [Sports]
       summary: List sports
       parameters:
         - in: query
@@ -21,35 +30,9 @@ paths:
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            key:
-                              type: string
-                            label:
-                              type: string
-                            category:
-                              type: string
-                            icon:
-                              type: string
-                            order:
-                              type: integer
-                            is_active:
-                              type: boolean
   /sessions:
     get:
+      tags: [Sessions]
       summary: List upcoming sessions
       parameters:
         - in: query
@@ -59,9 +42,6 @@ paths:
           name: city_key
           schema: { type: string }
         - in: query
-          name: city
-          schema: { type: string, deprecated: true }
-        - in: query
           name: from
           schema: { type: string, format: date-time }
         - in: query
@@ -70,29 +50,11 @@ paths:
         - in: query
           name: limit
           schema: { type: integer, default: 50 }
-        - in: query
-          name: offset
-          schema: { type: integer, default: 0 }
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/Session'
-                      page:
-                        $ref: '#/components/schemas/Page'
     post:
+      tags: [Sessions]
       summary: Create a session
       security: [{ ApiKeyHeader: [] }]
       requestBody:
@@ -106,6 +68,7 @@ paths:
           description: ok
   /sessions/{id}:
     get:
+      tags: [Sessions]
       summary: Get session by id
       parameters:
         - in: path
@@ -115,167 +78,41 @@ paths:
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      session:
-                        $ref: '#/components/schemas/Session'
-                      meta:
-                        $ref: '#/components/schemas/SessionMeta'
-  /countries:
-    get:
-      summary: List countries
-      parameters:
-        - in: query
-          name: lang
-          schema: { type: string, enum: [zh, en] }
-      responses:
-        "200":
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items: { $ref: '#/components/schemas/Country' }
-  /cities:
-    get:
-      summary: List cities
-      parameters:
-        - in: query
-          name: country
-          schema: { type: string }
-        - in: query
-          name: lang
-          schema: { type: string, enum: [zh, en] }
-      responses:
-        "200":
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items: { $ref: '#/components/schemas/City' }
-  /vibes:
-    get:
-      summary: List vibes
-      parameters:
-        - in: query
-          name: lang
-          schema: { type: string, enum: [zh, en] }
-      responses:
-        "200":
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items: { $ref: '#/components/schemas/Vibe' }
-  /age-ranges:
-    get:
-      summary: List age ranges
-      parameters:
-        - in: query
-          name: lang
-          schema: { type: string, enum: [zh, en] }
-      responses:
-        "200":
-          description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      items:
-                        type: array
-                        items: { $ref: '#/components/schemas/AgeRange' }
   /sessions/{id}/join:
     post:
+      tags: [Sessions]
       summary: Join a session
+      security: [{ ApiKeyHeader: [] }]
       parameters:
         - in: path
           name: id
           required: true
           schema: { type: string, format: uuid }
-      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      session_id: { type: string, format: uuid }
-                      joined: { type: boolean }
-                      meta: { $ref: '#/components/schemas/SessionMeta' }
     delete:
+      tags: [Sessions]
       summary: Leave a session
+      security: [{ ApiKeyHeader: [] }]
       parameters:
         - in: path
           name: id
           required: true
           schema: { type: string, format: uuid }
-      security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      session_id: { type: string, format: uuid }
-                      joined: { type: boolean }
-                      meta: { $ref: '#/components/schemas/SessionMeta' }
   /sessions/{sessionId}/check-in:
     post:
-      summary: Check-in to a session (GPS + time window)
+      tags: [Sessions]
+      summary: Check-in to a session
+      security: [{ ApiKeyHeader: [] }]
       parameters:
         - in: path
           name: sessionId
           required: true
           schema: { type: string, format: uuid }
-      security: [{ ApiKeyHeader: [] }]
       requestBody:
         required: true
         content:
@@ -289,164 +126,146 @@ paths:
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      check_in:
-                        $ref: '#/components/schemas/CheckIn'
-        "401": { description: Unauthenticated }
-        "403": { description: Outside time/radius or not allowed }
-        "404": { description: Session not found }
+  /countries:
+    get:
+      tags: [Master Data]
+      summary: List countries
+      responses:
+        "200":
+          description: ok
+  /cities:
+    get:
+      tags: [Master Data]
+      summary: List cities
+      responses:
+        "200":
+          description: ok
+  /vibes:
+    get:
+      tags: [Master Data]
+      summary: List vibes
+      responses:
+        "200":
+          description: ok
+  /age-ranges:
+    get:
+      tags: [Master Data]
+      summary: List age ranges
+      responses:
+        "200":
+          description: ok
   /me/profile:
     get:
+      tags: [Profile]
       summary: Get my profile
       security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      user: { $ref: '#/components/schemas/User' }
-                      sports:
-                        type: array
-                        items: { $ref: '#/components/schemas/UserSport' }
     put:
-      summary: Upsert my profile
+      tags: [Profile]
+      summary: Update profile
       security: [{ ApiKeyHeader: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username: { type: string }
-                display_name: { type: string }
-                legal_name: { type: string }
-                country_key: { type: string }
-                city_key: { type: string }
-                age_range_key: { type: string }
-                vibe_key: { type: string }
-                bio: { type: string }
-                avatar_url: { type: string }
-                sports:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/UserSport'
-      responses:
-        "200":
-          description: ok
-    patch:
-      summary: Patch my profile
-      security: [{ ApiKeyHeader: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username: { type: string }
-                display_name: { type: string }
-                legal_name: { type: string }
-                country_key: { type: string }
-                city_key: { type: string }
-                age_range_key: { type: string }
-                vibe_key: { type: string }
-                bio: { type: string }
-                avatar_url: { type: string }
-                sports:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/UserSport'
       responses:
         "200":
           description: ok
   /me/preferences:
     get:
+      tags: [Profile]
       summary: Get my preferences
       security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data: { $ref: '#/components/schemas/UserPreferences' }
-    put:
-      summary: Upsert my preferences
-      security: [{ ApiKeyHeader: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPreferences'
-      responses:
-        "200":
-          description: ok
-    patch:
-      summary: Patch my preferences
-      security: [{ ApiKeyHeader: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPreferences'
-      responses:
-        "200":
-          description: ok
   /me/onboarding:
     get:
+      tags: [Profile]
       summary: Get onboarding status
       security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data:
-                    type: object
-                    properties:
-                      is_complete: { type: boolean }
-                      missing_fields:
-                        type: array
-                        items: { type: string }
   /me/stats:
     get:
+      tags: [Profile]
       summary: Get my stats
       security: [{ ApiKeyHeader: [] }]
       responses:
         "200":
           description: ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok: { type: boolean }
-                  data: { $ref: '#/components/schemas/UserStats' }
+  /venues:
+    get:
+      tags: [Venues]
+      summary: List venues
+      parameters:
+        - in: query
+          name: lat
+          schema: { type: number }
+        - in: query
+          name: lng
+          schema: { type: number }
+        - in: query
+          name: radiusKm
+          schema: { type: number }
+      responses:
+        "200":
+          description: ok
+  /venues/{id}:
+    get:
+      tags: [Venues]
+      summary: Get venue by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+  /venues/{id}/claim:
+    post:
+      tags: [Venues]
+      summary: Request to claim a venue (Lead generation)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueClaimRequest'
+      responses:
+        "200":
+          description: ok
+  /venues/venue-claims/{id}/approve:
+    post:
+      tags: [Venues]
+      summary: Approve a venue claim (Admin)
+      security: [{ ApiKeyHeader: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+  /venues/venue-claims/{id}/reject:
+    post:
+      tags: [Venues]
+      summary: Reject a venue claim (Admin)
+      security: [{ ApiKeyHeader: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
 components:
   securitySchemes:
     ApiKeyHeader:
@@ -454,130 +273,29 @@ components:
       in: header
       name: x-user-id
   schemas:
-    Country:
-      type: object
-      properties:
-        key: { type: string }
-        label: { type: string }
-        sort: { type: integer }
-        is_active: { type: boolean }
-    City:
-      type: object
-      properties:
-        key: { type: string }
-        country_key: { type: string }
-        label: { type: string }
-        sort: { type: integer }
-        is_active: { type: boolean }
-    Vibe:
-      type: object
-      properties:
-        key: { type: string }
-        label: { type: string }
-        subtitle: { type: string }
-        sort: { type: integer }
-        is_active: { type: boolean }
-    AgeRange:
-      type: object
-      properties:
-        key: { type: string }
-        label: { type: string }
-        sort: { type: integer }
-        is_active: { type: boolean }
-    Page:
-      type: object
-      properties:
-        limit: { type: integer }
-        offset: { type: integer }
-        has_more: { type: boolean }
     Session:
       type: object
       properties:
         id: { type: string, format: uuid }
-        created_at: { type: string, format: date-time }
-        updated_at: { type: string, format: date-time }
-        host_user_id: { type: string, format: uuid }
-        sport_key: { type: string }
         title: { type: string }
-        notes: { type: string }
-        starts_at: { type: string, format: date-time }
-        ends_at: { type: string, format: date-time }
-        place_name: { type: string }
-        address: { type: string }
-        lat: { type: number, format: double }
-        lng: { type: number, format: double }
-        checkin_radius_m: { type: integer }
-        checkin_open_mins_before: { type: integer }
-        checkin_close_mins_after: { type: integer }
-        min_people: { type: integer }
-        max_people: { type: integer, nullable: true }
-        status:
-          type: string
-          enum: [draft, published, cancelled, completed]
-        visibility:
-          type: string
-          enum: [public, unlisted]
-        skill_level:
-          type: string
-          enum: [any, beginner, intermediate, advanced]
-        gender:
-          type: string
-          enum: [mixed, female_only, male_only]
-        photos:
-          type: array
-          items: { type: string, description: "URL" }
-    SessionMeta:
-      type: object
-      properties:
-        participant_count: { type: integer }
-        spots_left:
-          type: integer
-          nullable: true
-        viewer_has_joined:
-          type: boolean
-        viewer_has_checked_in:
-          type: boolean
-    CheckIn:
+    Venue:
       type: object
       properties:
         id: { type: string, format: uuid }
-        session_id: { type: string, format: uuid }
-        user_id: { type: string, format: uuid }
-        checked_in_at: { type: string, format: date-time }
-        lat: { type: number }
-        lng: { type: number }
-        distance_m: { type: integer }
-        status: { type: string }
-    User:
+        name_display: { type: string }
+        status: { type: string, enum: [unclaimed, claimed] }
+    VenueClaim:
       type: object
       properties:
         id: { type: string, format: uuid }
-        username: { type: string }
-        display_name: { type: string }
-        legal_name: { type: string }
-        country_key: { type: string }
-        city_key: { type: string }
-        age_range_key: { type: string }
-        vibe_key: { type: string }
-        bio: { type: string }
-        avatar_url: { type: string }
-    UserSport:
+        status: { type: string, enum: [pending, approved, rejected] }
+    VenueClaimRequest:
       type: object
+      required: [contact_name, contact_person, contact_title, contact_phone, contact_email]
       properties:
-        sport_key: { type: string }
-        kind:
-          type: string
-          enum: [FAVORITE, TRYING]
-    UserPreferences:
-      type: object
-      properties:
-        preferred_time: { type: string }
-        sessions_per_week: { type: integer }
-        day_slots: { type: object, additionalProperties: true }
-    UserStats:
-      type: object
-      properties:
-        sessions_joined: { type: integer }
-        sessions_completed: { type: integer }
-        high_fives_given: { type: integer }
-        high_fives_received: { type: integer }
+        contact_name: { type: string }
+        contact_person: { type: string }
+        contact_title: { type: string }
+        contact_phone: { type: string }
+        contact_email: { type: string }
+        note: { type: string }

@@ -96,16 +96,61 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
   return rows
 }
 
-async function createVenueClaim(venueId, userId) {
+async function createVenueClaim(venueId, userId, claimData = {}) {
   const sql = `
     INSERT INTO public.venue_claims (
       venue_id,
       owner_id,
+      contact_name,
+      contact_person,
+      contact_title,
+      contact_phone,
+      contact_email,
+      note,
       status
     ) VALUES (
-      $1, $2, 'pending'
+      $1, $2, $3, $4, $5, $6, $7, $8, 'pending'
     )
     RETURNING *
+  `
+  const { rows } = await query(sql, [
+    venueId, 
+    userId,
+    claimData.contact_name || null,
+    claimData.contact_person || null,
+    claimData.contact_title || null,
+    claimData.contact_phone || null,
+    claimData.contact_email || null,
+    claimData.note || null
+  ])
+  return rows[0]
+}
+
+async function getApprovedClaim(venueId) {
+  const sql = `
+    SELECT * FROM public.venue_claims 
+    WHERE venue_id = $1 AND status = 'approved'
+    LIMIT 1
+  `
+  const { rows } = await query(sql, [venueId])
+  return rows[0]
+}
+
+async function getPendingClaimByEmail(venueId, email) {
+  const sql = `
+    SELECT * FROM public.venue_claims 
+    WHERE venue_id = $1 AND contact_email = $2 AND status = 'pending'
+    LIMIT 1
+  `
+  const { rows } = await query(sql, [venueId, email])
+  return rows[0]
+}
+
+async function getApprovedClaimByUser(venueId, userId) {
+  const sql = `
+    SELECT * FROM public.venue_claims 
+    WHERE venue_id = $1 AND owner_id = $2 AND status = 'approved'
+    LIMIT 1
   `
   const { rows } = await query(sql, [venueId, userId])
   return rows[0]
@@ -150,7 +195,9 @@ module.exports = {
   getVenueById,
   listVenues,
   createVenueClaim,
-  getPendingClaim,
+  getPendingClaimByEmail,
+  getApprovedClaim,
+  getApprovedClaimByUser,
   getVenueClaimById,
   updateVenueClaimStatus,
   updateVenueStatus

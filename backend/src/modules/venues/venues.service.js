@@ -73,15 +73,26 @@ async function getVenue(id) {
   return venuesModel.getVenueById(id)
 }
 
-async function requestVenueClaim(venueId, userId) {
+async function requestVenueClaim(venueId, userId, claimData) {
   const venue = await venuesModel.getVenueById(venueId)
   if (!venue) throw new Error('Venue not found')
   if (venue.status === 'claimed') throw new Error('Venue already claimed')
 
-  const existingClaim = await venuesModel.getPendingClaim(venueId, userId)
+  // Check if there is already a pending claim for this venue with this email
+  const existingClaim = await venuesModel.getPendingClaimByEmail(venueId, claimData.contact_email)
   if (existingClaim) throw new Error('Claim already pending')
 
-  return venuesModel.createVenueClaim(venueId, userId)
+  // Check if there's already an approved claim for this venue
+  const approvedClaim = await venuesModel.getApprovedClaim(venueId)
+  if (approvedClaim) throw new Error('Venue already claimed')
+
+  return venuesModel.createVenueClaim(venueId, userId, claimData)
+}
+
+// Check if user is the official owner of a venue
+async function isVenueOwner(userId, venueId) {
+  const claim = await venuesModel.getApprovedClaimByUser(venueId, userId)
+  return !!claim
 }
 
 async function reviewVenueClaim(claimId, status) {
@@ -107,5 +118,6 @@ module.exports = {
   listVenues,
   getVenue,
   requestVenueClaim,
-  reviewVenueClaim
+  reviewVenueClaim,
+  isVenueOwner
 }
