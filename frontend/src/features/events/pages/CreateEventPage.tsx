@@ -189,7 +189,7 @@ export default function CreateEventPage() {
 
     const handle = setTimeout(async () => {
       setAddressLookupPending(true)
-      const loc = await geocodeByAddress(address)
+      const loc = await forwardGeocode(address)
       if (loc) {
         setSelectedLocation(loc)
         setReverseGeoError(null)
@@ -202,16 +202,50 @@ export default function CreateEventPage() {
     return () => clearTimeout(handle)
   }, [selectedAddress, showLocationSheet, addressMode, isAddressClearing])
 
-  const geocodeByAddress = async (address: string) => {
+  // 當使用者移動地圖 (addressMode='auto')，反查地址
+  useEffect(() => {
+    if (!showLocationSheet) return
+    if (addressMode !== 'auto') return
+    if (!selectedLocation) return
+
+    const handle = setTimeout(async () => {
+       const addr = await reverseGeocode(selectedLocation)
+       if (addr) {
+         setSelectedAddress(addr)
+       }
+    }, 800) // Debounce lightly
+
+    return () => clearTimeout(handle)
+  }, [selectedLocation, addressMode, showLocationSheet])
+
+  const forwardGeocode = async (address: string) => {
     if (!MAPBOX_TOKEN || !address.trim()) return null
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
       address.trim()
     )}.json?language=zh-Hant&limit=1&access_token=${MAPBOX_TOKEN}`
-    const res = await fetch(url)
-    const data = await res.json()
-    const feature = data?.features?.[0]
-    if (!feature?.center) return null
-    return { lng: feature.center[0], lat: feature.center[1] } as LatLng
+    try {
+      const res = await fetch(url)
+      const data = await res.json()
+      const feature = data?.features?.[0]
+      if (!feature?.center) return null
+      return { lng: feature.center[0], lat: feature.center[1] } as LatLng
+    } catch {
+      return null
+    }
+  }
+
+  const reverseGeocode = async (loc: LatLng) => {
+    if (!MAPBOX_TOKEN) return null
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${loc.lng},${loc.lat}.json?language=zh-Hant&limit=1&access_token=${MAPBOX_TOKEN}`
+    try {
+      const res = await fetch(url)
+      const data = await res.json()
+      // Prefer precise address (POIs or addresses)
+      const feature = data?.features?.[0]
+      return feature?.place_name || feature?.text || ''
+    } catch {
+      return null
+    }
   }
 
   const canSubmit = useMemo(() => {
@@ -342,6 +376,13 @@ export default function CreateEventPage() {
     const capacity = Number(form.capacity)
     const latNum = form.lat ? Number(form.lat) : null
     const lngNum = form.lng ? Number(form.lng) : null
+
+    // 🔒 Contract: Coordinates are mandatory for venue resolution
+    if (!latNum || !lngNum) {
+      setError('請透過地圖確認場館位置資訊 (需包含座標)。')
+      return
+    }
+
     const startDate = new Date(form.startTime)
     const endDate = new Date(form.endTime)
 
@@ -410,6 +451,7 @@ export default function CreateEventPage() {
           address: form.location.trim(),
           lat: latNum ?? undefined,
           lng: lngNum ?? undefined,
+          source: 'map_select',
         },
         isFree: form.isFree,
         pricePerPerson,
@@ -800,7 +842,7 @@ export default function CreateEventPage() {
               setLocationConfirming(true)
               let loc = selectedLocation
               if (!loc && selectedAddress.trim()) {
-                loc = await geocodeByAddress(selectedAddress.trim())
+                loc = await forwardGeocode(selectedAddress.trim())
                 if (loc) setSelectedLocation(loc)
               }
               if (loc) {
@@ -868,6 +910,9 @@ export default function CreateEventPage() {
                 setAddressMode('auto')
               }}
             />
+          </div>
+          <div className="mt-3 text-center text-xs font-medium text-slate-500">
+            請確認定位點是否正確，活動將依此地點顯示
           </div>
         </SheetLayout>
       </BottomSheet>
