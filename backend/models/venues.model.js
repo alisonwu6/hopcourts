@@ -189,6 +189,82 @@ async function updateVenueStatus(venueId, status) {
   return rows[0]
 }
 
+// --- Admin/Governance Operations (C0) ---
+
+async function writeAuditLog({ adminId, action, targetId, targetType, note }) {
+  const sql = `
+    INSERT INTO public.admin_audit_logs (
+      admin_id, action, target_id, target_type, note
+    ) VALUES ($1, $2, $3, $4, $5)
+    RETURNING *
+  `
+  const { rows } = await query(sql, [adminId, action, targetId, targetType, note])
+  return rows[0]
+}
+
+async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
+  let conditions = []
+  let params = []
+
+  if (search) {
+    conditions.push(`(v.name_display ILIKE $1 OR v.id::text = $1)`)
+    params.push(`%${search}%`)
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+  
+  const sql = `
+    SELECT 
+      v.*,
+      c.id as claim_id,
+      c.status as claim_status,
+      c.contact_email,
+      (SELECT MAX(starts_at) FROM public.sessions s WHERE s.venue_id = v.id) as last_activity_at
+    FROM public.venues v
+    LEFT JOIN public.venue_claims c ON c.venue_id = v.id AND c.status = 'approved'
+    ${whereClause}
+    ORDER BY v.created_at DESC
+    LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+  `
+  params.push(limit, offset)
+  const { rows } = await query(sql, params)
+  return rows
+}
+
+async function revokeVenueClaim(claimId) {
+  // 1. Get the claim to know the venue_id
+  const claim = await getVenueClaimById(claimId)
+  if (!claim) throw new Error('Claim not found')
+
+  // 2. Set claim to revoked
+  const sqlUpdateClaim = `
+    UPDATE public.venue_claims 
+    SET status = 'revoked', claimed_at = NULL 
+    WHERE id = $1 
+    RETURNING *
+  `
+  const { rows: claimRows } = await query(sqlUpdateClaim, [claimId])
+
+  // 3. Set venue back to unclaimed
+  await updateVenueStatus(claim.venue_id, 'unclaimed')
+
+  return claimRows[0]
+}
+
+async function patchVenueDisplay(id, { name_display, address_display }) {
+  const sql = `
+    UPDATE public.venues 
+    SET 
+      name_display = COALESCE($2, name_display),
+      address_display = COALESCE($3, address_display),
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `
+  const { rows } = await query(sql, [id, name_display, address_display])
+  return rows[0]
+}
+
 module.exports = {
   createVenue,
   findNearbyVenues,
@@ -200,5 +276,10 @@ module.exports = {
   getApprovedClaimByUser,
   getVenueClaimById,
   updateVenueClaimStatus,
-  updateVenueStatus
+  updateVenueStatus,
+  // C0 Export
+  writeAuditLog,
+  getAdminVenues,
+  revokeVenueClaim,
+  patchVenueDisplay
 }

@@ -113,11 +113,51 @@ async function reviewVenueClaim(claimId, status) {
   return updatedClaim
 }
 
+// --- Admin Governance (C0) ---
+
+async function getAdminVenues(filters) {
+  return venuesModel.getAdminVenues(filters)
+}
+
+async function revokeVenueClaim(claimId, adminId, reason) {
+  const result = await venuesModel.revokeVenueClaim(claimId)
+  
+  // Audit log is mandatory
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'revoke_claim',
+    targetId: claimId,
+    targetType: 'venue_claim',
+    note: reason
+  })
+  
+  return result
+}
+
+async function patchVenueDisplay(venueId, adminId, data) {
+  const result = await venuesModel.patchVenueDisplay(venueId, data)
+  
+  // Audit log is mandatory
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'patch_venue',
+    targetId: venueId,
+    targetType: 'venue',
+    note: `Updated name/address: ${data.name_display || ''}`
+  })
+  
+  return result
+}
+
 module.exports = {
   resolveVenue,
   listVenues,
   getVenue,
   requestVenueClaim,
   reviewVenueClaim,
-  isVenueOwner
+  isVenueOwner,
+  // C0 Governance
+  getAdminVenues,
+  revokeVenueClaim,
+  patchVenueDisplay
 }

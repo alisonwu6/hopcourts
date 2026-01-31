@@ -25,9 +25,12 @@ import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
+import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
+import { AdminLoginPage } from '@/features/admin/pages/AdminLoginPage'
+import { AdminRouteGuard } from '@/features/admin/components/AdminRouteGuard'
 import { PageLoading } from '@/components/PageLoading'
 
-const RequireAuth = ({ children }: { children: JSX.Element }) => {
+const RequireAuth = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuthStore()
   if (isLoading) return null
   if (!isAuthenticated) return <Navigate to="/login" replace />
@@ -143,6 +146,20 @@ export default function App() {
               <OnboardingPage />
             </OnboardingRoute>
           </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/login"
+        element={
+          <AdminLoginPage />
+        }
+      />
+      <Route
+        path="/admin/venues"
+        element={
+          <AdminRouteGuard>
+            <AdminVenueManagementPage />
+          </AdminRouteGuard>
         }
       />
       <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
