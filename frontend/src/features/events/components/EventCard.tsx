@@ -61,7 +61,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
     (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
   const heroStyle = heroImage
     ? {
-        backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.15), rgba(2,6,23,0.55)), url(${heroImage})`,
+        backgroundImage: `url(${heroImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }
@@ -97,22 +97,22 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500'
       )}
     >
-      {/* 1. Host Header at top (IG style) */}
+      {/* 1. Host Header at top */}
       <header className="px-5 py-3.5 flex items-center justify-between border-b border-slate-50">
         <div className="flex items-center gap-2.5">
           <AvatarCircle name={displayHost.name} src={displayHost.avatarUrl} size="sm" />
           <div>
-            <p className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+            <p className="text-sm font-medium text-slate-900 flex items-center gap-1.5">
               {displayHost.name}
               {displayHost.isOfficial ? (
-                <BadgeCheck className="w-4 h-4 text-blue-500" strokeWidth={2.5} />
+                <BadgeCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
               ) : (
                 event.host.countryKey && <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
               )}
             </p>
             <div className="flex items-center gap-1 mt-1">
               <MapPin className="w-3 h-3 text-slate-400" />
-              <p className="text-[11px] font-medium text-slate-500 leading-none">
+              <p className="text-[11px] text-slate-500 leading-none">
                 {cityLabel}
               </p>
             </div>
@@ -120,15 +120,15 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
         </div>
         
         {event.visibility !== 'public' && (
-          <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">Private</span>
+          <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">Private</span>
         )}
       </header>
 
       {/* 2. Full-width Hero Image */}
       <div className="relative h-56 w-full" style={heroStyle}>
         {!heroImage && (
-          <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-30">
-            {event.vibeIcon}
+          <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">
+            {sportIcon}
           </div>
         )}
       </div>
@@ -139,52 +139,49 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           {/* Tags above Title */}
           <div className="flex items-center gap-2">
             {/* Sport Tag */}
-            <div className="flex items-center gap-1.5 rounded-full bg-white border border-slate-100 px-3 py-1 text-[11px] font-bold text-slate-800 shadow-[0_2px_10px_rgba(15,41,77,0.04)]">
+            <div className="flex items-center gap-1.5 rounded-full bg-white border border-slate-100 px-3 py-1 text-[11px] font-medium text-slate-800">
               <span>{sportIcon}</span>
               {sportLabel}
             </div>
             {/* Skill Tag */}
-            <div className="flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
-              <ChartColumnIncreasing className="w-3 h-3 text-indigo-500" strokeWidth={3} />
+            <div className="flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-100 px-3 py-1 text-[11px] font-medium text-slate-800">
+              <ChartColumnIncreasing className="w-3 h-3 text-blue-600" strokeWidth={3} />
               {skillLabel}
             </div>
             {/* Gender Tag (Added) */}
-            <div className="flex items-center gap-1.5 rounded-full bg-pink-50/50 border border-pink-100 px-3 py-1 text-[11px] font-bold text-pink-700">
-              <span>
-                {event.gender === 'female_only' ? '👩' : event.gender === 'male_only' ? '👨' : '👫'}
-              </span>
+            <div className="flex items-center gap-1.5 rounded-full bg-pink-50/50 border border-pink-100 px-3 py-1 text-[11px] font-medium text-pink-800">
               {event.gender === 'female_only' ? '女性專屬' : event.gender === 'male_only' ? '男性專屬' : '性別混合'}
             </div>
           </div>
 
-          <h3 className="text-xl font-extrabold leading-tight text-slate-900 tracking-tight">
+          <h3 className="text-xl font-medium leading-tight text-slate-900 tracking-tight">
             {event.title}
           </h3>
         </div>
 
         <div className="space-y-2.5">
           <div className="flex items-center gap-3">
-             <div className="flex h-5 w-5 items-center justify-center text-indigo-500">
+             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
                <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
              </div>
-             <span className="text-sm font-semibold text-slate-600">{scheduleLabel}</span>
+             <span className="text-sm">{scheduleLabel}</span>
           </div>
           
           <div className="flex items-center gap-3">
-             <div className="flex h-5 w-5 items-center justify-center text-indigo-500">
+             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
                <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
              </div>
-             <span className="text-sm font-semibold text-slate-600 line-clamp-1">{locationLabel}</span>
+             <span className="text-sm line-clamp-1">{locationLabel}</span>
           </div>
 
           {/* Attendance Area */}
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-5 w-5 items-center justify-center text-indigo-500">
+            <div className="mt-0.5 flex h-5 w-5 items-center justify-center text-blue-600">
               <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-900">
-                {attendeeCount}/{event.maxAttendees} 人已預約
+              <span className="text-sm">
+                {attendeeCount}/{event.maxAttendees} 人已加入
               </span>
               <div className="flex -space-x-1.5">
                  {event.participants.slice(0, 3).map((p, i) => (
@@ -202,10 +199,10 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
 
           {/* Price Area - Now aligned with other icons */}
           <div className="flex items-center gap-3">
-            <div className="flex h-5 w-5 items-center justify-center text-indigo-500">
+            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
               <CircleDollarSign className="w-4.5 h-4.5" strokeWidth={2.5} />
             </div>
-            <div className="text-sm font-bold">
+            <div className="text-sm">
                <span className={clsx(event.isFree ? "text-green-600" : "text-slate-900")}>
                  {event.isFree ? '免費體驗' : `${event.priceRange || `$${event.price}`} /人`}
                </span>
@@ -232,7 +229,7 @@ function AvatarCircle({
   return (
     <div
       className={clsx(
-        'flex items-center justify-center rounded-full bg-slate-200 font-semibold text-slate-700',
+        'flex items-center justify-center rounded-full bg-slate-200 text-slate-700',
         dimension,
         ring && 'border-2 border-white shadow ring-1 ring-slate-200'
       )}
@@ -257,7 +254,7 @@ function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
       <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
         <Icon className="h-5 w-5" strokeWidth={2} />
       </div>
-      <div className="text-sm font-medium text-slate-600">{label}</div>
+      <div className="text-sm text-slate-600">{label}</div>
     </div>
   )
 }
