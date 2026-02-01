@@ -873,7 +873,7 @@ export function ProfilePage() {
                     value={fieldValue}
                     onChange={(e) => setFieldValue(e.target.value)}
                     maxLength={120}
-                    rows={4}
+                    rows={10}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
                     placeholder="和大家分享你想說的一句話。"
                   />
