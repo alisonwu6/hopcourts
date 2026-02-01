@@ -69,6 +69,26 @@
     color: var(--color-text-primary);
     font-family: var(--font-sans);
     touch-action: pan-x pan-y;
+    
+    /* Strong long-press & selection prevention */
+    -webkit-touch-callout: none;    /* iOS Safari */
+    -webkit-user-select: none;      /* Safari */
+    -khtml-user-select: none;       /* Konqueror HTML */
+    -moz-user-select: none;         /* Old versions of Firefox */
+    -ms-user-select: none;          /* Internet Explorer/Edge */
+    user-select: none;              /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+    
+    /* Remove the tap highlight overlay on mobile */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Re-enable selection for inputs and text fields */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
   }
 }
 
