@@ -41,7 +41,7 @@ export function ResetPasswordPage() {
       if (error) throw error
       if (data.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
       }
       window.history.replaceState(
         {},
@@ -67,7 +67,7 @@ export function ResetPasswordPage() {
       if (error) throw error
       if (data.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
       }
       window.history.replaceState({}, document.title, window.location.pathname)
       setSessionReady(true)
@@ -110,7 +110,7 @@ export function ResetPasswordPage() {
       const { data } = await supabase.auth.getSession()
       if (data?.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
       }
       setStatus('密碼重設成功！')
       navigate('/profile', { replace: true })

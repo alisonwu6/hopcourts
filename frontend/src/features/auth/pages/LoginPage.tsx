@@ -7,7 +7,7 @@ import { useAuthStore } from '@/hooks'
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { onboardingStatus, isAuthenticated } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -22,7 +22,7 @@ export function LoginPage() {
       // Default logic: always go to profile after login
       navigate('/profile', { replace: true })
     }
-  }, [isAuthenticated, onboardingStatus?.isComplete, navigate, location])
+  }, [isAuthenticated, navigate, location])
 
   return (
     <div className="min-h-screen bg-blue-50 pb-24">

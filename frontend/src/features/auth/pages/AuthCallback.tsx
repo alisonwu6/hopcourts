@@ -7,7 +7,7 @@ import { useAuthStore } from '@/hooks'
 export function AuthCallback() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { setAuthData } = useAuthStore()
+  const { setAuthData, isAuthenticated } = useAuthStore()
   const [ready, setReady] = useState(false)
   const [ok, setOk] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
@@ -38,7 +38,7 @@ export function AuthCallback() {
       }
       try {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
         setOk('登入成功！為你導向中…')
         navigate('/profile', { replace: true })
       } catch (bootstrapError: any) {
@@ -49,7 +49,7 @@ export function AuthCallback() {
     }
 
     void finalizeLogin()
-  }, [queryType, navigate, setAuthData])
+  }, [queryType, navigate, setAuthData, isAuthenticated])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -72,7 +72,7 @@ export function AuthCallback() {
       const { data } = await supabase.auth.getSession()
       if (data?.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
       }
       setOk('密碼已更新，為你導向中…')
       navigate('/profile', { replace: true })

@@ -1,7 +1,7 @@
 import { api } from '@/api/client'
-import type { ApiResponse, SessionMeta } from '@/api/types'
+import type { ApiResponse } from '@/api/types'
 
-export const onboardingService = {
+export const profileService = {
   async getProfile() {
     return api.me.profile.get()
   },
@@ -16,12 +16,6 @@ export const onboardingService = {
 
   async savePreferences(body: any) {
     return api.me.preferences.update(body)
-  },
-
-  async getOnboardingStatus() {
-    return api.me.onboarding() as Promise<
-      ApiResponse<{ is_complete: boolean; missing_fields: string[] }>
-    >
   },
 
   async getStats() {

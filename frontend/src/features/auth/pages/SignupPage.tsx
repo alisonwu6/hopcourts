@@ -6,7 +6,7 @@ import logoUrl from '@/assets/logo.png'
 
 export function SignupPage() {
   const navigate = useNavigate()
-  const { signup, isLoading, error, clearError, isAuthenticated, onboardingStatus } = useAuthStore()
+  const { signup, isLoading, error, clearError, isAuthenticated } = useAuthStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

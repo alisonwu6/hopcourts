@@ -24,7 +24,7 @@ export function AboutPage() {
       setShowLoginPrompt(true)
       return
     }
-    navigate('/onboarding')
+    navigate('/profile')
   }
 
   return (

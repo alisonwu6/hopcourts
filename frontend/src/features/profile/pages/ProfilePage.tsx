@@ -14,7 +14,7 @@ type ProfileVM = {
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
-import { onboardingService } from '@/features/onboarding/onboarding.service'
+import { profileService } from '@/features/profile/profile.service'
 import { useSports } from '@/features/dictionaries/hooks'
 import { useCountries, useCities, useVibes, useAgeRanges } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
@@ -23,7 +23,6 @@ import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
-import { ProfileOnboardingIntro } from '@/features/profile/components/ProfileOnboardingIntro'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
 const arraysEqual = (a: string[], b: string[]) =>
@@ -68,7 +67,7 @@ export function ProfilePage() {
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
-  const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
+  const { user, isAuthenticated, isLoading, profileCache, setProfileCache } =
     useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
@@ -264,7 +263,6 @@ export function ProfilePage() {
     (resolvedProfile as any)?.username ||
     (resolvedProfile as any)?.name ||
     ''
-  const hasCompletedCard = onboardingStatus?.isComplete ?? false
 
   useEffect(() => {
     if (!isAuthenticated) return
@@ -273,9 +271,9 @@ export function ProfilePage() {
       setProfileNotFound(false)
       try {
         const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
-          onboardingService.getProfile(),
-          onboardingService.getPreferences(),
-          onboardingService.getStats(),
+          profileService.getProfile(),
+          profileService.getPreferences(),
+          profileService.getStats(),
         ])
 
         if (!cancelled && profileRes.status === 'fulfilled') {
@@ -392,7 +390,7 @@ export function ProfilePage() {
       const sessions = draftGoal.sessionsPerWeek
         ? Number(draftGoal.sessionsPerWeek)
         : draftGoal.sessionsPerWeek
-      await onboardingService.savePreferences({
+      await profileService.savePreferences({
         sessions_per_week: sessions || null,
         preferred_time: draftPreferredTime || null,
         day_slots: draftDaySlots,
@@ -470,7 +468,7 @@ export function ProfilePage() {
     }
     setDraftProfile(next)
     try {
-      await onboardingService.saveProfile(payload)
+      await profileService.saveProfile(payload)
     } catch (err) {
       console.error('Failed to patch profile field', err)
     } finally {
@@ -489,7 +487,7 @@ export function ProfilePage() {
         .filter(Boolean)
         .map((label) => keyForLabel(label))
 
-      await onboardingService.saveProfile({
+      await profileService.saveProfile({
         username: draftUsername,
         display_name: draftProfile.name,
         bio: draftProfile.blurb,
@@ -528,8 +526,6 @@ export function ProfilePage() {
   if (isLoading) return null
   if (!isAuthenticated) return null
 
-  const isOnboardingIncomplete = isAuthenticated && !(onboardingStatus?.isComplete ?? false)
-  const showOnboardingIntro = false
 
   const displayProfile = resolvedProfile
   const displayGoal = goal

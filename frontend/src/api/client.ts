@@ -81,7 +81,6 @@ export const api = {
       get: () => httpGet<ApiResponse<any>>('/me/preferences'),
       update: (body: any) => httpPatch<ApiResponse<any>>('/me/preferences', { body }),
     },
-    onboarding: () => httpGet<ApiResponse<any>>('/me/onboarding'),
     stats: () => httpGet<ApiResponse<any>>('/me/stats'),
   },
   profiles: {

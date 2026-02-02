@@ -4,7 +4,6 @@ const {
   handlePutMeProfile,
   handleGetPreferences,
   handlePutPreferences,
-  handleGetOnboarding,
   handleGetStats,
   handleGetProfileByUsername,
 } = require('../../modules/profile/profile.controller')
@@ -17,7 +16,6 @@ router.patch('/me/profile', handlePutMeProfile)
 router.get('/me/preferences', handleGetPreferences)
 router.put('/me/preferences', handlePutPreferences)
 router.patch('/me/preferences', handlePutPreferences)
-router.get('/me/onboarding', handleGetOnboarding)
 router.get('/me/stats', handleGetStats)
 router.get('/profiles/:username', handleGetProfileByUsername)
 
