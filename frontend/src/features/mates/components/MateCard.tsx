@@ -14,8 +14,6 @@ const withAlpha = (hex: string, alpha: number) => {
 export type MateCardProps = {
   name: string
   username?: string
-  flag: string
-  countryKey?: string
   vibe: Vibe | null
   vibeKey?: string | null
   vibeLabel?: string
@@ -32,7 +30,6 @@ export type MateCardProps = {
 
 export function MateCard({
   name,
-  flag,
   vibe,
   sports,
   trying,
@@ -70,9 +67,6 @@ export function MateCard({
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               {name && <span className="text-sm font-semibold text-slate-900">{name}</span>}
-              <span className="text-sm" aria-hidden="true">
-                {flag}
-              </span>
             </div>
             {location && (
               <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">

@@ -26,7 +26,6 @@ export function HeroCard({
     name: '',
     username: '',
     location: '',
-    flag: '',
     vibe: null,
     vibeLabel: '',
     sports: [],

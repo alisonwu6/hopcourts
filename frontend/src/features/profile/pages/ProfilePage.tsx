@@ -30,20 +30,11 @@ import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 const arraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((v, i) => v === b[i])
 
-// Convert ISO country code (e.g., TW) to emoji flag
-const countryCodeToFlag = (code?: string) => {
-  if (!code || code.length < 2) return ''
-  const upper = code.slice(0, 2).toUpperCase()
-  const chars = [...upper].map((c) => 0x1f1e6 - 65 + c.charCodeAt(0))
-  return String.fromCodePoint(...chars)
-}
 
 const emptyProfile: MateCardProps = {
   name: '',
   location: '',
   cityKey: '',
-  flag: '',
-  countryKey: '',
   vibe: null,
   vibeKey: null,
   sports: [],
@@ -100,17 +91,17 @@ export function ProfilePage() {
   const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [isProfileLoaded, setIsProfileLoaded] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
+  const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio' | 'gender' | 'ageRange'
+    null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender' | 'ageRange'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
   const { items: sportsCatalog, isLoading: isSportsLoading } = useSports('zh')
   const { items: vibesCatalog, isLoading: isVibesLoading } = useVibes('zh')
-  const { items: countriesCatalog, isLoading: isCountriesLoading } = useCountries('zh')
   const { items: citiesCatalog, isLoading: isCitiesLoading } = useCities(undefined, 'zh')
   const { items: ageRangesCatalog, isLoading: isAgeRangesLoading } = useAgeRanges('zh')
   const isEventsLoading = useEventsStore((state) => state.isLoading)
@@ -172,10 +163,7 @@ export function ProfilePage() {
     return map
   }, [vibesCatalog])
 
-  const labelForCountry = useMemo(() => {
-    const map = new Map(countriesCatalog.map((c) => [c.key, c.label]))
-    return (key?: string) => (key ? map.get(key) || key : '')
-  }, [countriesCatalog])
+  const labelForCountry = (key?: string) => key || ''
 
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
@@ -205,9 +193,6 @@ export function ProfilePage() {
     const locationLabel = vm.card.cityKey
       ? labelForCity(vm.card.cityKey) || vm.card.location
       : vm.card.location
-    const flagLabel = vm.card.countryKey
-      ? countryCodeToFlag(vm.card.countryKey) || labelForCountry(vm.card.countryKey) || vm.card.flag
-      : vm.card.flag
     let vibeUnion: MateCardProps['vibe'] = null
     if (vm.card.vibe) {
       vibeUnion = vm.card.vibe
@@ -224,23 +209,15 @@ export function ProfilePage() {
       sports: favoriteLabels,
       trying: tryingLabels,
       location: locationLabel,
-      flag: flagLabel,
       vibe: vibeUnion,
-      gender: vm.card.gender,
-      ageRangeKey: vm.card.ageRangeKey,
     }
-  }, [vm, labelForSport, labelForCity, labelForCountry, vibeKeyToUnion])
+  }, [vm, labelForSport, labelForCity, vibeKeyToUnion])
 
   // Memo: derive resolvedDraftProfile (for HeroCard, always label fields, union vibe)
   const resolvedDraftProfile = useMemo<MateCardProps>(() => {
     const locationLabel = draftProfile.cityKey
       ? labelForCity(draftProfile.cityKey) || draftProfile.location
       : draftProfile.location
-    const flagLabel = draftProfile.countryKey
-      ? countryCodeToFlag(draftProfile.countryKey) ||
-        labelForCountry(draftProfile.countryKey) ||
-        draftProfile.flag
-      : draftProfile.flag
     let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
     const draftVibeKey = (draftProfile as any).vibeKey
     if (!vibeUnion && draftVibeKey) {
@@ -252,10 +229,9 @@ export function ProfilePage() {
     return {
       ...draftProfile,
       location: locationLabel,
-      flag: flagLabel,
       vibe: vibeUnion,
     }
-  }, [draftProfile, labelForCity, labelForCountry, vibeKeyToUnion])
+  }, [draftProfile, labelForCity, vibeKeyToUnion])
 
   const usernameFromVm = vm?.username
   const usernameFromUser = (user as any)?.username
@@ -301,8 +277,6 @@ export function ProfilePage() {
               name: data.display_name || data.username || '',
               location: data.city_label || data.city || '',
               cityKey: data.city_key || '',
-              flag: labelForCountry(data.country_key) || '',
-              countryKey: data.country_key || '',
               vibe: vibeUnion,
               vibeKey,
               sports: (favoriteKeys || []).map(labelForSport),
@@ -327,6 +301,10 @@ export function ProfilePage() {
           }
         } else if (!cancelled && profileRes.status === 'rejected') {
           const err: any = profileRes.reason
+          const status = err?.status || err?.response?.status
+          if (status === 404) {
+            setShowEditSheet(true)
+          }
           setVm(null)
           setDraftProfile(emptyProfile)
         }
@@ -368,7 +346,7 @@ export function ProfilePage() {
     return () => {
       cancelled = true
     }
-  }, [isAuthenticated, labelForCountry, labelForSport, vibeKeyToUnion])
+  }, [isAuthenticated, labelForSport, vibeKeyToUnion])
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
@@ -439,11 +417,6 @@ export function ProfilePage() {
         next.location = labelForCity(value) || value
         next.cityKey = value
         payload.city_key = value
-        break
-      case 'flag':
-        next.flag = countryCodeToFlag(value) || labelForCountry(value) || value
-        next.countryKey = value
-        payload.country_key = value
         break
       case 'vibe':
         next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
@@ -525,7 +498,6 @@ export function ProfilePage() {
   const isCriticalDataLoading = 
     isSportsLoading || 
     isVibesLoading || 
-    isCountriesLoading || 
     isCitiesLoading || 
     isAgeRangesLoading
 
@@ -560,7 +532,13 @@ export function ProfilePage() {
               type="button"
               aria-label="Add game"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-              onClick={() => navigate('/create-event')}
+              onClick={() => {
+                if (!vm?.card.name) {
+                  setShowProfileRequiredSheet(true)
+                } else {
+                  navigate('/create-event')
+                }
+              }}
             >
               <PlusSquare className="h-6 w-6" />
             </button>
@@ -607,12 +585,42 @@ export function ProfilePage() {
         onAvatarUpdated={(url) => {
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
           setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
-          // Keep cache shape consistent: cache stores MateCardProps (no username)
-          // Avoid functional-updater style here because setProfileCache is a store action.
           const base = (resolvedProfile ?? draftProfile) as MateCardProps
           setProfileCache({ ...base, avatar: url })
         }}
       />
+
+      {/* Profile Required Bottom Sheet */}
+      <BottomSheet
+        open={showProfileRequiredSheet}
+        onClose={() => setShowProfileRequiredSheet(false)}
+        showHandle
+        sheetClassName="rounded-t-[32px] border border-white/40 bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.35)]"
+        contentClassName="px-6 pb-10 pt-6"
+        maxWidthClassName="max-w-lg"
+      >
+        <div className="flex flex-col items-center text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+            <Lock className="h-7 w-7" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">請先建立運動卡</h3>
+          <p className="mt-2 text-sm text-slate-500">
+            在發佈活動前，我們需要先認識你。<br />
+            請先填寫基本資料，讓其他夥伴更信任你。
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setShowProfileRequiredSheet(false)
+              setShowEditSheet(true)
+            }}
+            className="mt-8 w-full rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98]"
+          >
+            立即建立
+          </button>
+        </div>
+      </BottomSheet>
+
       <BottomSheet
         open={showEditSheet}
         onClose={() => setShowEditSheet(false)}
@@ -658,12 +666,6 @@ export function ProfilePage() {
                   key: 'username',
                   label: '使用者名稱',
                   value: draftUsername ?? '',
-                },
-                {
-                  key: 'flag',
-                  label: '國籍',
-                  value: labelForCountry(draftProfile.countryKey) || draftProfile.flag,
-                  valueKey: draftProfile.countryKey || '',
                 },
                 {
                   key: 'location',
@@ -796,7 +798,6 @@ export function ProfilePage() {
             name: '名稱',
             username: '使用者名稱',
             location: '現居城市',
-            flag: '國籍',
             vibe: '運動氛圍',
             bio: '自我介紹',
             gender: '性別',
@@ -806,7 +807,6 @@ export function ProfilePage() {
             name: '請輸入卡片上要顯示的名稱。',
             username: '你的帳號，夥伴可以用這個找到你。',
             location: '填寫你目前所在的城市。',
-            flag: '場上有共同的語言，讓我們知道你來自哪裡。',
             vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
             bio: '和大家分享你的運動的動態與目標吧！',
             gender: '讓我們更了解你，提供更合適的活動推薦。',
@@ -884,19 +884,6 @@ export function ProfilePage() {
                 >
                   <option value="">請選擇城市</option>
                   {citiesCatalog.map((c) => (
-                    <option key={c.key} value={c.key}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              ) : activeField === 'flag' ? (
-                <select
-                  value={fieldValue}
-                  onChange={(e) => setFieldValue(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">請選擇國籍</option>
-                  {countriesCatalog.map((c) => (
                     <option key={c.key} value={c.key}>
                       {c.label}
                     </option>
