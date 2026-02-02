@@ -2,6 +2,7 @@ const usersModel = require('../../../models/users.model')
 const userSportsModel = require('../../../models/userSports.model')
 const userPreferencesModel = require('../../../models/userPreferences.model')
 const { Errors } = require('../../lib/errors')
+const supabase = require('../../utils/supabase')
 
 function resolveUserId(req) {
   return (
@@ -137,6 +138,28 @@ async function getStats(userId) {
   }
 }
 
+async function deleteAccount(userId) {
+  if (!userId) throw Errors.unauthenticated('User id is required')
+
+  // Attempt to delete from Supabase Auth
+  if (supabase) {
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId)
+      if (error) {
+        console.warn(`[deleteAccount] Supabase Auth delete failed for ${userId}:`, error.message)
+      } else {
+        console.log(`[deleteAccount] Deleted user ${userId} from Supabase Auth`)
+      }
+    } catch (err) {
+      console.error('[deleteAccount] Supabase Auth error:', err)
+    }
+  }
+
+  // Delete from local DB (CASCADE should handle related tables)
+  const success = await usersModel.deleteUser(userId)
+  return { success }
+}
+
 module.exports = {
   resolveUserId,
   getProfile,
@@ -146,4 +169,5 @@ module.exports = {
   upsertPreferences,
   getOnboardingStatus,
   getStats,
+  deleteAccount,
 }

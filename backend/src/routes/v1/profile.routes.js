@@ -6,6 +6,7 @@ const {
   handlePutPreferences,
   handleGetStats,
   handleGetProfileByUsername,
+  handleDeleteAccount,
 } = require('../../modules/profile/profile.controller')
 
 const router = express.Router()
@@ -13,6 +14,7 @@ const router = express.Router()
 router.get('/me/profile', handleGetMeProfile)
 router.put('/me/profile', handlePutMeProfile)
 router.patch('/me/profile', handlePutMeProfile)
+router.delete('/me/account', handleDeleteAccount)
 router.get('/me/preferences', handleGetPreferences)
 router.put('/me/preferences', handlePutPreferences)
 router.patch('/me/preferences', handlePutPreferences)

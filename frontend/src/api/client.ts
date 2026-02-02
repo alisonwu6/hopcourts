@@ -82,6 +82,7 @@ export const api = {
       update: (body: any) => httpPatch<ApiResponse<any>>('/me/preferences', { body }),
     },
     stats: () => httpGet<ApiResponse<any>>('/me/stats'),
+    deleteAccount: () => httpDelete<ApiResponse<any>>('/me/account'),
   },
   profiles: {
     getByUsername: (username: string) =>

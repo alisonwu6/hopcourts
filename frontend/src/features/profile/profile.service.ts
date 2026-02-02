@@ -25,4 +25,8 @@ export const profileService = {
   async getProfileByUsername(username: string) {
     return api.profiles.getByUsername(username)
   },
+
+  async deleteAccount() {
+    return api.me.deleteAccount()
+  },
 }

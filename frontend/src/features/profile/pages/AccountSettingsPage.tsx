@@ -2,11 +2,27 @@ import { Shield, UserRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
+import { profileService } from '@/features/profile/profile.service'
 
 export function AccountSettingsPage() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, logout } = useAuthStore()
   const email = user?.email || '未設定'
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('確定要刪除帳號嗎？所有的資料將會被永久刪除且無法復原。')) {
+      return
+    }
+    
+    try {
+      await profileService.deleteAccount()
+      await logout()
+      navigate('/')
+    } catch (error) {
+      console.error('Failed to delete account:', error)
+      alert('刪除帳號失敗，請稍後再試。')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-white pb-[120px] text-slate-900">
@@ -26,10 +42,11 @@ export function AccountSettingsPage() {
 
         <Section title="危險區域" icon={<Shield className="h-5 w-5 text-rose-400" />}>
           <button
-            className="w-full rounded-lg bg-slate-100 px-4 py-3 text-left text-sm font-semibold text-slate-500"
-            disabled
+            type="button"
+            onClick={handleDeleteAccount}
+            className="w-full rounded-lg bg-red-50 px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-100 transition-colors"
           >
-            刪除帳號（即將推出）
+            刪除帳號
           </button>
         </Section>
       </div>

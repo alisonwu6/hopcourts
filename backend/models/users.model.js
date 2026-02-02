@@ -90,10 +90,16 @@ async function createUserFromSupabaseProfile(profile) {
   return rows[0]
 }
 
+async function deleteUser(id) {
+  const { rowCount } = await query('delete from public.users where id = $1', [id])
+  return rowCount > 0
+}
+
 module.exports = { 
   getUserById, 
   getUserByUsername, 
   upsertUser,
   findUserByEmail,
-  createUserFromSupabaseProfile
+  createUserFromSupabaseProfile,
+  deleteUser
 }
