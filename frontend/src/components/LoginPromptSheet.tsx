@@ -5,10 +5,10 @@ import { LoginPanel } from './LoginPanel'
 type LoginPromptSheetProps = {
   open: boolean
   onClose: () => void
-  onSignup: () => void
+  onSignup?: () => void
 }
 
-export function LoginPromptSheet({ open, onClose, onSignup }: LoginPromptSheetProps) {
+export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
   return (
     <BottomSheet
       open={open}

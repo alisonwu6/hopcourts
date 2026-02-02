@@ -134,7 +134,6 @@ export function HomePage() {
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
-        onSignup={() => navigate('/signup')} 
       />
     </div>
   )

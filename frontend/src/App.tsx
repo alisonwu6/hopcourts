@@ -51,10 +51,14 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      {/*
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      */}
       <Route path="/auth/callback" element={<AuthCallback />} />
+      {/*
       <Route path="/auth/reset" element={<ResetPasswordPage />} />
+      */}
       
       <Route
         path="/onboarding/*"
