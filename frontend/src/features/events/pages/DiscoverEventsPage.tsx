@@ -43,14 +43,14 @@ export function DiscoverEventsPage() {
   // Search State
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
-  const showMap = searchParams.get('view') === 'map'
+  const showMap = searchParams.get('view') !== 'list'
   const selectedEventId = searchParams.get('event')
 
   const toggleMap = () => {
     setSearchParams(
       (prev) => {
-        if (showMap) prev.delete('view')
-        else prev.set('view', 'map')
+        if (showMap) prev.set('view', 'list')
+        else prev.delete('view')
         return prev
       },
       { replace: true }
@@ -269,10 +269,10 @@ export function DiscoverEventsPage() {
               <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
                 <span className="text-5xl">😮</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Opps! 沒有活動?</h3>
+              <h3 className="text-xl font-bold text-slate-900">目前附近沒看到活動呢</h3>
               <p className="mt-2 text-sm text-slate-500">
-                Hey! 成為第一個發起活動的人，<br />
-                一起在路上遇見新夥伴！
+                別灰心！第一個發起活動，<br />
+                讓想運動的夥伴們找到你吧！
               </p>
               <button
                 type="button"

@@ -35,12 +35,12 @@ export function BottomNav() {
       path: '/events',
       matchPaths: ['/events', '/event', '/my-events', '/create-event'],
     },
-    {
-      label: '場館',
-      icon: Building2,
-      path: '/venues',
-      matchPaths: ['/venues', '/venue'],
-    },
+    // {
+    //   label: '場館',
+    //   icon: Building2,
+    //   path: '/venues',
+    //   matchPaths: ['/venues', '/venue'],
+    // },
     // {
     //   label: '夥伴圈',
     //   icon: UsersRound,

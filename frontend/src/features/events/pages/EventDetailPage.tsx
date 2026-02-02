@@ -325,10 +325,13 @@ export function EventDetailPage() {
                   event.venueId ? "hover:text-blue-600" : "hover:text-slate-900"
                 )}
                 onClick={() => {
-                  if (event.venueId) {
-                    navigate(`/venues/${event.venueId}`)
-                  } else if (event.location.name) {
-                    navigate(`/venue/${encodeURIComponent(event.location.name)}`)
+                  if (event.location.lat && event.location.lng) {
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`, '_blank')
+                  } else {
+                    const query = event.location.address || event.location.name
+                    if (query) {
+                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank')
+                    }
                   }
                 }}
               >

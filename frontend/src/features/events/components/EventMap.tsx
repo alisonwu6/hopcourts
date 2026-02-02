@@ -145,24 +145,24 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent, mode 
                   <h3 className="truncate text-[22px] font-extrabold text-slate-900 tracking-tight">
                     {selectedEvent.title}
                   </h3>
-                  {(selectedEvent as any).status === 'claimed' && (
+                  {/* {(selectedEvent as any).status === 'claimed' && (
                     <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-500">
                       <svg viewBox="0 0 24 24" className="h-3 w-3 fill-current text-white">
                         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
                       </svg>
                     </div>
-                  )}
+                  )} */}
                 </div>
 
                 <p className="text-[14px] font-semibold text-slate-400">
                   今天有 {(selectedEvent as any).activeSessionsCount || 0} 個活動正在進行中
                 </p>
                 
-                {(selectedEvent as any).status === 'claimed' && (
+                {/* {(selectedEvent as any).status === 'claimed' && (
                   <span className="inline-block rounded-lg bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-600">
                     官方認證場館
                   </span>
-                )}
+                )} */}
               </div>
 
               <div className="flex items-center justify-center p-1">

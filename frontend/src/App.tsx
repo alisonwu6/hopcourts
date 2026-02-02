@@ -70,6 +70,7 @@ export default function App() {
       <Route path="/about" element={<AboutPage />} />
 
       {/* Admin / Governance (C0) */}
+      {/*
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route
         path="/admin/venues"
@@ -80,7 +81,6 @@ export default function App() {
         }
       />
 
-      {/* Venue Portal (C1) */}
       <Route
         path="/venue-portal"
         element={
@@ -105,6 +105,7 @@ export default function App() {
           </VenuePortalRouteGuard>
         }
       />
+      */}
 
       {/* Main App Routes */}
       <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
@@ -162,6 +163,7 @@ function AuthenticatedApp() {
           </AppChrome>
         }
       />
+      {/*
       <Route
         path="/venues"
         element={
@@ -178,6 +180,7 @@ function AuthenticatedApp() {
           </AppChrome>
         }
       />
+      */}
       <Route path="/home" element={<Navigate to="/" replace />} />
       <Route
         path="/event/:id"
@@ -215,6 +218,7 @@ function AuthenticatedApp() {
           </RequireAuth>
         }
       />
+      {/*
       <Route
         path="/circle"
         element={
@@ -225,6 +229,7 @@ function AuthenticatedApp() {
           </RequireAuth>
         }
       />
+      */}
       <Route
         path="/profile"
         element={
@@ -290,6 +295,7 @@ function GuestApp() {
           </AppChrome>
         }
       />
+      {/*
       <Route
         path="/venues"
         element={
@@ -306,6 +312,7 @@ function GuestApp() {
           </AppChrome>
         }
       />
+      */}
       <Route path="/home" element={<Navigate to="/" replace />} />
       <Route
         path="/event/:id"
@@ -323,6 +330,7 @@ function GuestApp() {
           </AppChrome>
         }
       />
+      {/*
       <Route
         path="/circle"
         element={
@@ -331,6 +339,7 @@ function GuestApp() {
           </AppChrome>
         }
       />
+      */}
       <Route
         path="/my-events"
         element={

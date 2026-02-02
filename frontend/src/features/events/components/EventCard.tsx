@@ -104,10 +104,11 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           <div>
             <p className="text-sm font-medium text-slate-900 flex items-center gap-1.5">
               {displayHost.name}
-              {displayHost.isOfficial ? (
+              {/* {displayHost.isOfficial && (
                 <BadgeCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
-              ) : (
-                event.host.countryKey && <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
+              )} */}
+              {event.host.countryKey && !displayHost.isOfficial && (
+                <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
               )}
             </p>
             <div className="flex items-center gap-1 mt-1">
