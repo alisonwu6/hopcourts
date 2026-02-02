@@ -62,11 +62,6 @@ export function MySessions() {
   }))
   const [showLoginSheet, setShowLoginSheet] = useState(false)
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      void fetchMyEvents()
-    }
-  }, [fetchMyEvents, isAuthenticated])
 
   const upcomingEvents = useMemo(
     () =>

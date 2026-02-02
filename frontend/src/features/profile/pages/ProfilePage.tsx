@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
+import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { Menu, PlusSquare, Lock } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -23,6 +24,7 @@ import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
+import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
 const arraysEqual = (a: string[], b: string[]) =>
@@ -94,7 +96,6 @@ export function ProfilePage() {
       (profileCache as any)?.display_name ||
       ''
   )
-  const [profileNotFound, setProfileNotFound] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [isProfileLoaded, setIsProfileLoaded] = useState(false)
@@ -107,11 +108,13 @@ export function ProfilePage() {
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const { items: sportsCatalog } = useSports('zh')
-  const { items: vibesCatalog } = useVibes('zh')
-  const { items: countriesCatalog } = useCountries('zh')
-  const { items: citiesCatalog } = useCities(undefined, 'zh')
-  const { items: ageRangesCatalog } = useAgeRanges('zh')
+  const { items: sportsCatalog, isLoading: isSportsLoading } = useSports('zh')
+  const { items: vibesCatalog, isLoading: isVibesLoading } = useVibes('zh')
+  const { items: countriesCatalog, isLoading: isCountriesLoading } = useCountries('zh')
+  const { items: citiesCatalog, isLoading: isCitiesLoading } = useCities(undefined, 'zh')
+  const { items: ageRangesCatalog, isLoading: isAgeRangesLoading } = useAgeRanges('zh')
+  const isEventsLoading = useEventsStore((state) => state.isLoading)
+  const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const navigate = useNavigate()
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -268,12 +271,12 @@ export function ProfilePage() {
     if (!isAuthenticated) return
     let cancelled = false
     const fetchProfile = async () => {
-      setProfileNotFound(false)
       try {
         const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
           profileService.getProfile(),
           profileService.getPreferences(),
           profileService.getStats(),
+          fetchMyEvents(),
         ])
 
         if (!cancelled && profileRes.status === 'fulfilled') {
@@ -324,10 +327,6 @@ export function ProfilePage() {
           }
         } else if (!cancelled && profileRes.status === 'rejected') {
           const err: any = profileRes.reason
-          const status = err?.status || err?.response?.status
-          if (status === 404) {
-            setProfileNotFound(true)
-          }
           setVm(null)
           setDraftProfile(emptyProfile)
         }
@@ -523,7 +522,16 @@ export function ProfilePage() {
     }
   }
 
-  if (isLoading) return null
+  const isCriticalDataLoading = 
+    isSportsLoading || 
+    isVibesLoading || 
+    isCountriesLoading || 
+    isCitiesLoading || 
+    isAgeRangesLoading
+
+  if (isLoading || !isProfileLoaded || isCriticalDataLoading) {
+    return <PageLoading />
+  }
   if (!isAuthenticated) return null
 
 
@@ -548,16 +556,14 @@ export function ProfilePage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {!profileNotFound && (
-              <button
-                type="button"
-                aria-label="Add game"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-                onClick={() => navigate('/create-event')}
-              >
-                <PlusSquare className="h-6 w-6" />
-              </button>
-            )}
+            <button
+              type="button"
+              aria-label="Add game"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+              onClick={() => navigate('/create-event')}
+            >
+              <PlusSquare className="h-6 w-6" />
+            </button>
             <Link
               to="/settings"
               aria-label="Menu"
@@ -572,8 +578,8 @@ export function ProfilePage() {
           profile={resolvedProfile}
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
-          actionLabel={profileNotFound ? '建立運動卡' : '編輯運動卡'}
-          actionClassName={profileNotFound ? 'animate-border-pulse !bg-blue-50 !text-blue-600 !border-blue-600' : ''}
+          actionLabel="編輯運動卡"
+          actionClassName=""
         />
         <div className="mt-4 space-y-4 px-3">
           {/* <ProfileContent

@@ -155,7 +155,7 @@ export function MateCard({
           {blurb?.trim() ? (
             <span className="whitespace-pre-wrap">{blurb}</span>
           ) : (
-            <span className="not-italic text-slate-400">這位夥伴還沒寫一句話。</span>
+            <span className="not-italic text-slate-400">這位夥伴還沒準備好說更多。</span>
           )}
         </div>
       </div>

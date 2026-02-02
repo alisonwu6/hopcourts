@@ -43,7 +43,7 @@ export default function App() {
   const { isAuthenticated, isLoading } = useAuthStore()
 
   if (isLoading) {
-    return <PageLoading message="載入中..." />
+    return <PageLoading />
   }
 
   return (
