@@ -69,35 +69,29 @@ export function MateCard({
         <div className="flex flex-1 items-start justify-between gap-3">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              {name ? (
-                <span className="text-sm font-semibold text-slate-900">{name}</span>
-              ) : (
-                <div className="h-5 w-32 animate-pulse rounded-md bg-slate-100/50" />
-              )}
+              {name && <span className="text-sm font-semibold text-slate-900">{name}</span>}
               <span className="text-sm" aria-hidden="true">
                 {flag}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
-              <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
-              {location ? (
+            {location && (
+              <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
+                <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
                 <span className="truncate">{location}</span>
-              ) : (
-                <div className="h-4 w-24 animate-pulse rounded-md bg-slate-100/50" />
-              )}
-            </div>
-          </div>
-          <span
-            className="inline-flex items-center rounded-full px-3.5 py-1 text-xs font-semibold"
-            style={{
-              background: vibeColors.bg,
-              color: vibeColors.text,
-            }}
-          >
-            {vibeList.find((item) => item.id === vibe)?.title ?? (
-              vibe || <div className="h-4 w-12 animate-pulse rounded-md bg-white/30" />
+              </div>
             )}
-          </span>
+          </div>
+          {vibe && (
+            <span
+              className="inline-flex items-center rounded-full px-3.5 py-1 text-xs font-semibold"
+              style={{
+                background: vibeColors.bg,
+                color: vibeColors.text,
+              }}
+            >
+              {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
+            </span>
+          )}
         </div>
       </div>
 
@@ -119,7 +113,11 @@ export function MateCard({
                 </span>
               ))
             ) : (
-              <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+              <>
+                <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+                <div className="h-[22px] w-20 animate-pulse rounded-full bg-slate-100/50" />
+                <div className="h-[22px] w-14 animate-pulse rounded-full bg-slate-100/50" />
+              </>
             )}
           </div>
         </div>
@@ -140,7 +138,10 @@ export function MateCard({
                 </span>
               ))
             ) : (
-              <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+              <>
+                <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+                <div className="h-[22px] w-14 animate-pulse rounded-full bg-slate-100/50" />
+              </>
             )}
           </div>
         </div>

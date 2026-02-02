@@ -540,8 +540,12 @@ export function ProfilePage() {
       <div className="mx-auto w-full max-w-4xl">
         <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
-            {username && <span className="text-2xl font-bold text-slate-900">{username}</span>}
+            {username && (
+              <>
+                <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
+                <span className="text-2xl font-bold text-slate-900">{username}</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {!profileNotFound && (
@@ -578,7 +582,7 @@ export function ProfilePage() {
             completion={completion}
             sessionsCompleted={sessionsCompleted}
             onOpenGoalSheet={handleOpenGoal}
-            showEdit={allowGoalEdit || hasCompletedCard}
+            showEdit={allowGoalEdit}
           /> */}
           <MySessions />
         </div>
