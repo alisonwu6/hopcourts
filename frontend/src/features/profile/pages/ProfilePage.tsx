@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { Menu, PlusSquare, Lock } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 type ProfileVM = {
@@ -29,6 +29,9 @@ import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
 const arraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((v, i) => v === b[i])
+
+const isUuid = (str: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
 
 
 const emptyProfile: MateCardProps = {
@@ -65,7 +68,6 @@ export function ProfilePage() {
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
   const [stats, setStats] = useState<ApiResponse<any>['data'] | null>(null)
-  const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
   const [vm, setVm] = useState<ProfileVM | null>(
     profileCache
       ? {
@@ -242,110 +244,115 @@ export function ProfilePage() {
     (resolvedProfile as any)?.name ||
     ''
 
-  useEffect(() => {
+  const loadProfileData = useCallback(async () => {
     if (!isAuthenticated) return
-    let cancelled = false
-    const fetchProfile = async () => {
-      try {
-        const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
-          profileService.getProfile(),
-          profileService.getPreferences(),
-          profileService.getStats(),
-          fetchMyEvents(),
-        ])
+    try {
+      const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
+        profileService.getProfile(),
+        profileService.getPreferences(),
+        profileService.getStats(),
+        fetchMyEvents(),
+      ])
 
-        if (!cancelled && profileRes.status === 'fulfilled') {
-          const payload: any = (profileRes.value as any)?.data ?? profileRes.value
-          if (payload) {
-            const data = payload.user ? payload.user : payload
-            const sportsRows = payload.sports || []
-            const favoriteKeys =
-              payload.favorite_sports ||
-              sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
-            const tryingKeys =
-              payload.trying_sports ||
-              sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-            const vibeKey = data.vibe_key || null
-            const vibeUnion = vibeKey
-              ? vibeKeyToUnion.get(vibeKey) ||
-                vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
-                vibeKeyToUnionFallback(vibeKey)
-              : null
+      if (profileRes.status === 'fulfilled') {
+        const payload: any = (profileRes.value as any)?.data ?? profileRes.value
+        if (payload) {
+          const data = payload.user ? payload.user : payload
+          const sportsRows = payload.sports || []
+          const favoriteKeys =
+            payload.favorite_sports ||
+            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+          const tryingKeys =
+            payload.trying_sports ||
+            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+          const vibeKey = data.vibe_key || null
+          const vibeUnion = vibeKey
+            ? vibeKeyToUnion.get(vibeKey) ||
+              vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+              vibeKeyToUnionFallback(vibeKey)
+            : null
 
-            const mapped: MateCardProps = {
-              name: data.display_name || data.username || '',
-              location: data.city_label || data.city || '',
-              cityKey: data.city_key || '',
-              vibe: vibeUnion,
-              vibeKey,
-              sports: (favoriteKeys || []).map(labelForSport),
-              trying: (tryingKeys || []).map(labelForSport),
-              blurb: data.bio || '',
-              avatar: data.avatar_url || userAvatar || '',
-              gender: data.gender || null,
-              ageRangeKey: data.age_range_key || null,
-            }
-            const rawUsername = data.username || (user as any)?.username || ''
-            const nextUsername = isUuid(rawUsername) ? '' : rawUsername
-            setVm({
-              username: nextUsername,
-              usernameUpdatedCount: data.username_updated_count || 0,
-              card: mapped,
-              favoriteSportKeys: favoriteKeys || [],
-              tryingSportKeys: tryingKeys || [],
-            })
-            setDraftProfile(mapped)
-            setDraftUsername(nextUsername)
-            setProfileCache(mapped)
+          const mapped: MateCardProps = {
+            name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
+            location: data.city_label || data.city || '',
+            cityKey: data.city_key || '',
+            vibe: vibeUnion,
+            vibeKey,
+            sports: (favoriteKeys || []).map(labelForSport),
+            trying: (tryingKeys || []).map(labelForSport),
+            blurb: data.bio || '',
+            avatar: data.avatar_url || userAvatar || '',
+            gender: data.gender || null,
+            ageRangeKey: data.age_range_key || null,
           }
-        } else if (!cancelled && profileRes.status === 'rejected') {
-          const err: any = profileRes.reason
-          const status = err?.status || err?.response?.status
-          if (status === 404) {
-            setShowEditSheet(true)
-          }
-          setVm(null)
-          setDraftProfile(emptyProfile)
-        }
-
-        if (!cancelled && preferencesRes.status === 'fulfilled') {
-          const preferencesPayload: any =
-            (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
-          const sessionsPerWeek = preferencesPayload.sessions_per_week
-          const preferredTime = preferencesPayload.preferred_time
-          const daySlots = preferencesPayload.day_slots || {}
-          setGoal({
-            sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
-            timeOfDay: preferredTime || '早上',
-            days: [],
+          const rawUsername = data.username || (user as any)?.username || ''
+          const nextUsername = isUuid(rawUsername) ? '' : rawUsername
+          setVm({
+            username: nextUsername,
+            usernameUpdatedCount: data.username_updated_count || 0,
+            card: mapped,
+            favoriteSportKeys: favoriteKeys || [],
+            tryingSportKeys: tryingKeys || [],
           })
-          const mergedSlots: Record<string, string[]> = {
-            ...createDaySlots(),
-            ...daySlots,
-          }
-          setGoalDaySlots(mergedSlots)
-          setDraftDaySlots(mergedSlots)
-          if (preferredTime) setDraftPreferredTime(preferredTime)
+          setDraftProfile(mapped)
+          setDraftUsername(nextUsername)
+          setProfileCache(mapped)
         }
-
-        if (!cancelled && statsRes.status === 'fulfilled') {
-          const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
-          setStats(statsPayload)
+      } else if (profileRes.status === 'rejected') {
+        const err: any = profileRes.reason
+        const status = err?.status || err?.response?.status
+        if (status === 404) {
+          setShowEditSheet(true)
         }
-      } catch (err) {
-        if (!cancelled) {
-          setVm(null)
-          setDraftProfile(emptyProfile)
+        setVm(null)
+        const prefill: MateCardProps = {
+          ...emptyProfile,
+          name: (user as any)?.name || '',
+          avatar: userAvatar || '',
         }
-      } finally {
-        if (!cancelled) setIsProfileLoaded(true)
+        setDraftProfile(prefill)
       }
+
+      if (preferencesRes.status === 'fulfilled') {
+        const preferencesPayload: any =
+          (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
+        const sessionsPerWeek = preferencesPayload.sessions_per_week
+        const preferredTime = preferencesPayload.preferred_time
+        const daySlots = preferencesPayload.day_slots || {}
+        setGoal({
+          sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
+          timeOfDay: preferredTime || '早上',
+          days: [],
+        })
+        const mergedSlots: Record<string, string[]> = {
+          ...createDaySlots(),
+          ...daySlots,
+        }
+        setGoalDaySlots(mergedSlots)
+        setDraftDaySlots(mergedSlots)
+        if (preferredTime) setDraftPreferredTime(preferredTime)
+      }
+
+      if (statsRes.status === 'fulfilled') {
+        const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
+        setStats(statsPayload)
+      }
+    } catch (err) {
+      setVm(null)
+      const prefill: MateCardProps = {
+        ...emptyProfile,
+        name: (user as any)?.name || '',
+        avatar: userAvatar || '',
+      }
+      setDraftProfile(prefill)
+    } finally {
+      setIsProfileLoaded(true)
     }
-    fetchProfile()
-    return () => {
-      cancelled = true
-    }
-  }, [isAuthenticated, labelForSport, vibeKeyToUnion])
+  }, [isAuthenticated, labelForSport, vibeKeyToUnion, fetchMyEvents, setProfileCache, userAvatar, user])
+
+  useEffect(() => {
+    loadProfileData()
+  }, [loadProfileData])
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
@@ -438,6 +445,14 @@ export function ProfilePage() {
         break
     }
     setDraftProfile(next)
+    
+    // Only patch immediately if profile exists. 
+    // New users (vm=null) will save all at once via handleSaveProfile.
+    if (!vm) {
+      setActiveField(null)
+      return
+    }
+
     try {
       await profileService.saveProfile(payload)
     } catch (err) {
@@ -458,18 +473,24 @@ export function ProfilePage() {
         .filter(Boolean)
         .map((label) => keyForLabel(label))
 
-      await profileService.saveProfile({
-        username: draftUsername,
+      const payload: any = {
         display_name: draftProfile.name,
         bio: draftProfile.blurb,
         vibe_key:
-          (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || null,
+          (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined,
         favorite_sports: favoriteKeys,
         trying_sports: tryingKeys,
-        avatar_url: draftProfile.avatar || null,
-        gender: draftProfile.gender || null,
-        age_range_key: draftProfile.ageRangeKey || null,
-      })
+        city_key: draftProfile.cityKey || undefined,
+        avatar_url: draftProfile.avatar || undefined,
+        gender: draftProfile.gender || undefined,
+        age_range_key: draftProfile.ageRangeKey || undefined,
+      }
+
+      if (draftUsername && !isUuid(draftUsername)) {
+        payload.username = draftUsername
+      }
+
+      await profileService.saveProfile(payload)
 
       const updated = {
         ...draftProfile,
@@ -483,9 +504,9 @@ export function ProfilePage() {
         favoriteSportKeys: favoriteKeys,
         tryingSportKeys: tryingKeys,
       } : null))
-      setDraftProfile(updated)
       setProfileCache(updated)
       setShowEditSheet(false)
+      loadProfileData()
     } catch (err) {
       // keep sheet open for retry
       console.error('Failed to save profile', err)
@@ -552,7 +573,11 @@ export function ProfilePage() {
         </div>
 
         <HeroCard
-          profile={resolvedProfile}
+          profile={resolvedProfile ?? {
+            ...emptyProfile,
+            name: (user as any)?.name || '',
+            avatar: userAvatar || '',
+          }}
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
           actionLabel="編輯運動卡"

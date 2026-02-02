@@ -36,6 +36,9 @@ import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
 
+import { profileService } from '@/features/profile/profile.service'
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
+
 export function DiscoverEventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
@@ -80,8 +83,9 @@ export function DiscoverEventsPage() {
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
   const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isAuthenticated, profileCache, setProfileCache } = useAuthStore()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
 
   const sports = useMemo<SportFilterOption[]>(
     () => [
@@ -99,9 +103,45 @@ export function DiscoverEventsPage() {
     void fetchEvents()
   }, [fetchEvents])
 
-  const handleCreateClick = () => {
-    if (isAuthenticated) navigate('/create-event')
-    else setShowLoginPrompt(true)
+  const handleCreateClick = async () => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
+
+    if (profileCache?.name) {
+      navigate('/create-event')
+      return
+    }
+
+    try {
+      const res = await profileService.getProfile()
+      const data: any = (res as any).data ?? res
+      
+      // If we got data but display_name is missing or is explicitly "新夥伴" (default), treat as incomplete
+      // Note: Backend might define "新夥伴" as default.
+      const hasName = data.display_name && data.display_name !== '新夥伴'
+      
+      if (hasName) {
+        setProfileCache({ ...data, name: data.display_name })
+        navigate('/create-event')
+      } else {
+        setShowProfileRequiredSheet(true)
+      }
+    } catch (err: any) {
+      // If 404, definitely needs profile creation
+      if (err?.status === 404 || err?.response?.status === 404) {
+        setShowProfileRequiredSheet(true)
+      } else {
+        // For other errors, we might let them proceed or show validation
+        // But safer to assume they might need to check profile
+         console.error('Check profile failed', err)
+         // Fallback: let them try, or blocking? 
+         // User wants strict check. Let's show sheet if we fail to confirm profile.
+         // But maybe network error? Let's just navigate and let CreateEvent handle it if network error.
+         navigate('/create-event')
+      }
+    }
   }
 
   // Count events per day for the calendar dots.
@@ -327,6 +367,11 @@ export function DiscoverEventsPage() {
           )
           setIsSearchOpen(false)
         }}
+      />
+
+      <ProfileRequiredSheet
+        open={showProfileRequiredSheet}
+        onClose={() => setShowProfileRequiredSheet(false)}
       />
 
       <LoginPromptSheet

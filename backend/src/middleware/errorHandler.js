@@ -15,11 +15,45 @@ function errorHandler(err, req, res, next) {
     })
   }
 
+  // Postgres Error Codes
+  if (err.code) {
+    if (err.code === '23505') {
+      return res.status(409).json({
+        ok: false,
+        error: {
+          code: 'DUPLICATE_ENTRY',
+          message: 'The value already exists (Duplicate entry).',
+          details: { constraint: err.constraint, detail: err.detail },
+        },
+      })
+    }
+    if (err.code === '23503') {
+      return res.status(400).json({
+        ok: false,
+        error: {
+          code: 'INVALID_REFERENCE',
+          message: 'Invalid reference ID (Foreign Key violation).',
+          details: { constraint: err.constraint, detail: err.detail },
+        },
+      })
+    }
+    if (err.code === '23502') {
+      return res.status(400).json({
+        ok: false,
+        error: {
+          code: 'MISSING_FIELD',
+          message: 'Missing required field (Not Null violation).',
+          details: { column: err.column },
+        },
+      })
+    }
+  }
+
   return res.status(500).json({
     ok: false,
     error: {
       code: 'INTERNAL_ERROR',
-      message: 'Something went wrong',
+      message: err.message || 'Something went wrong',
       details: {},
     },
   })
