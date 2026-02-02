@@ -43,14 +43,14 @@ export function DiscoverEventsPage() {
   // Search State
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
-  const showMap = searchParams.get('view') !== 'list'
+  const showMap = searchParams.get('view') === 'map'
   const selectedEventId = searchParams.get('event')
 
   const toggleMap = () => {
     setSearchParams(
       (prev) => {
-        if (showMap) prev.set('view', 'list')
-        else prev.delete('view')
+        if (showMap) prev.delete('view')
+        else prev.set('view', 'map')
         return prev
       },
       { replace: true }

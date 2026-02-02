@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useRef } from 'react'
-import Map, { Marker, NavigationControl, MapRef } from 'react-map-gl/mapbox'
+import Map, { Marker, NavigationControl, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
 import { ChevronRight } from 'lucide-react'
 import clsx from 'clsx'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -72,6 +72,12 @@ export function EventMap({ events, sports, selectedEventId, onSelectEvent, mode 
         onClick={() => onSelectEvent(null)} // Click map to close card
       >
         <NavigationControl position="bottom-right" style={{ marginBottom: 100 }} />
+        <GeolocateControl
+          position="bottom-right"
+          trackUserLocation
+          showUserHeading
+          style={{ marginBottom:  10}}
+        />
         {/* Move controls up to avoid overlap with card */}
 
         {validEvents.map((event) => {
