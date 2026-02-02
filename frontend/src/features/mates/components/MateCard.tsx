@@ -25,6 +25,8 @@ export type MateCardProps = {
   blurb: string
   avatar: string
   accentClassName?: string
+  gender?: string | null
+  ageRangeKey?: string | null
 }
 
 export function MateCard({
@@ -37,6 +39,8 @@ export function MateCard({
   blurb,
   avatar,
   accentClassName,
+  gender,
+  ageRangeKey,
 }: MateCardProps) {
   const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
     bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',

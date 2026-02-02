@@ -15,7 +15,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
 import { useSports } from '@/features/dictionaries/hooks'
-import { useCountries, useCities, useVibes } from '@/features/dictionaries/hooks'
+import { useCountries, useCities, useVibes, useAgeRanges } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { ProfileContent } from '@/features/profile/components/ProfileContent'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
@@ -48,6 +48,8 @@ const emptyProfile: MateCardProps = {
   trying: [],
   blurb: '',
   avatar: '',
+  gender: null,
+  ageRangeKey: null,
 }
 
 const SAMPLE_AVATAR =
@@ -99,7 +101,7 @@ export function ProfilePage() {
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio'
+    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio' | 'gender' | 'ageRange'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
@@ -108,6 +110,7 @@ export function ProfilePage() {
   const { items: vibesCatalog } = useVibes('zh')
   const { items: countriesCatalog } = useCountries('zh')
   const { items: citiesCatalog } = useCities(undefined, 'zh')
+  const { items: ageRangesCatalog } = useAgeRanges('zh')
   const navigate = useNavigate()
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -157,8 +160,10 @@ export function ProfilePage() {
     const map = new Map<string, string>()
     vibesCatalog.forEach((v) => {
       const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      map.set(union, v.key)
-      map.set(union.toLowerCase(), v.key)
+      if (union) {
+        map.set(union as string, v.key)
+        map.set((union as string).toLowerCase(), v.key)
+      }
     })
     return map
   }, [vibesCatalog])
@@ -172,6 +177,11 @@ export function ProfilePage() {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
+
+  const labelForAgeRange = useMemo(() => {
+    const map = new Map(ageRangesCatalog.map((r) => [r.key, r.label]))
+    return (key?: string) => (key ? map.get(key) || key : '')
+  }, [ageRangesCatalog])
 
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
@@ -212,6 +222,8 @@ export function ProfilePage() {
       location: locationLabel,
       flag: flagLabel,
       vibe: vibeUnion,
+      gender: vm.card.gender,
+      ageRangeKey: vm.card.ageRangeKey,
     }
   }, [vm, labelForSport, labelForCity, labelForCountry, vibeKeyToUnion])
 
@@ -294,6 +306,8 @@ export function ProfilePage() {
               trying: (tryingKeys || []).map(labelForSport),
               blurb: data.bio || '',
               avatar: data.avatar_url || userAvatar || '',
+              gender: data.gender || null,
+              ageRangeKey: data.age_range_key || null,
             }
             const nextUsername = data.username || data.display_name || (user as any)?.username || ''
             setVm({
@@ -438,6 +452,14 @@ export function ProfilePage() {
         next.blurb = value
         payload.bio = value
         break
+      case 'gender':
+        next.gender = value
+        payload.gender = value
+        break
+      case 'ageRange':
+        next.ageRangeKey = value
+        payload.age_range_key = value
+        break
       default:
         break
     }
@@ -471,6 +493,8 @@ export function ProfilePage() {
         favorite_sports: favoriteKeys,
         trying_sports: tryingKeys,
         avatar_url: draftProfile.avatar || null,
+        gender: draftProfile.gender || null,
+        age_range_key: draftProfile.ageRangeKey || null,
       })
 
       const updated = {
@@ -648,6 +672,12 @@ export function ProfilePage() {
                   value: labelForCity(draftProfile.cityKey) || draftProfile.location,
                   valueKey: draftProfile.cityKey || '',
                 },
+                {
+                  key: 'gender',
+                  label: '性別',
+                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : draftProfile.gender === 'other' ? '其他' : '未設定',
+                  valueKey: draftProfile.gender || '',
+                },
               ].map((row) => {
                 const isReadOnly = row.key === 'username'
                 const Component = isReadOnly ? 'div' : 'button'
@@ -769,6 +799,8 @@ export function ProfilePage() {
             flag: '國籍',
             vibe: '運動氛圍',
             bio: '自我介紹',
+            gender: '性別',
+            ageRange: '年齡區間',
           }
           const subtitleMap: Record<string, string> = {
             name: '請輸入卡片上要顯示的名稱。',
@@ -777,6 +809,8 @@ export function ProfilePage() {
             flag: '場上有共同的語言，讓我們知道你來自哪裡。',
             vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
             bio: '和大家分享你的運動的動態與目標吧！',
+            gender: '讓我們更了解你，提供更合適的活動推薦。',
+            ageRange: '選擇你的年齡區間。',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -880,6 +914,46 @@ export function ProfilePage() {
                   <div className="text-right text-sm text-slate-500">
                     還可以輸入 {120 - (fieldValue?.length || 0)} 個字
                   </div>
+                </div>
+              ) : activeField === 'gender' ? (
+                <div className="flex flex-col gap-3">
+                  {[
+                    { key: 'male', label: '男生' },
+                    { key: 'female', label: '女生' },
+                    { key: 'other', label: '其他' },
+                  ].map((g) => (
+                    <button
+                      key={g.key}
+                      type="button"
+                      onClick={() => setFieldValue(g.key)}
+                      className={clsx(
+                        'flex items-center justify-between rounded-2xl border px-4 py-4 text-left font-semibold shadow-sm transition',
+                        fieldValue === g.key
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 bg-white text-slate-800'
+                      )}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              ) : activeField === 'ageRange' ? (
+                <div className="flex flex-col gap-3">
+                  {ageRangesCatalog.map((r) => (
+                    <button
+                      key={r.key}
+                      type="button"
+                      onClick={() => setFieldValue(r.key)}
+                      className={clsx(
+                        'flex items-center justify-between rounded-2xl border px-4 py-4 text-left font-semibold shadow-sm transition',
+                        fieldValue === r.key
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 bg-white text-slate-800'
+                      )}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
                 </div>
               ) : (
                 <input

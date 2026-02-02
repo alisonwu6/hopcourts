@@ -10,12 +10,14 @@ import { venuesService, ApiVenue } from '@/features/venues/services/venuesServic
 import { VenueListPageContent } from './VenueListPageContent'
 
 // Adapter to make ApiVenue compatible with EventMap logic
+// Adapter to make ApiVenue compatible with EventMap logic
 const mapVenueToEventStub = (venue: ApiVenue): any => ({
-  id: venue.id,
+  id: `venue-${venue.id}`,
   venueId: venue.id,
   title: venue.name_display,
-  sport: 'generic', 
-  startTime: new Date(), // Dummy
+  sport: '🏟️', 
+  startTime: new Date(), 
+  heroImageUrl: venue.logo_url, // Use logo or a default
   location: {
     name: venue.name_display,
     address: venue.address_display,
@@ -23,7 +25,9 @@ const mapVenueToEventStub = (venue: ApiVenue): any => ({
     lng: Number(venue.lng),
     status: venue.status,
     logo_url: venue.logo_url
-  }
+  },
+  status: venue.status,
+  activeSessionsCount: venue.active_sessions_count
 })
 
 export function VenueListPage() {
@@ -31,16 +35,17 @@ export function VenueListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [venues, setVenues] = useState<ApiVenue[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null)
   const { items: sportsCatalog } = useSports('zh')
   
-  // Default to Map view unless explicit list view requested
-  const isListView = searchParams.get('view') === 'list'
-  const showMap = !isListView 
+  // Default to List view unless explicit map view requested
+  const isMapView = searchParams.get('view') === 'map'
+  const showMap = isMapView
 
   const toggleView = () => {
     setSearchParams(prev => {
-      if (showMap) prev.set('view', 'list')
-      else prev.delete('view')
+      if (showMap) prev.delete('view')
+      else prev.set('view', 'map')
       return prev
     }, { replace: true })
   }
@@ -109,18 +114,8 @@ export function VenueListPage() {
               events={venueMarkers} 
               sports={sportsCatalog}
               mode="venues"
-              onSelectEvent={(e) => {
-                 // When clicking a pin, navigate to that venue page
-                 if (e) {
-                   if (e.venueId) {
-                     // New Claim Flow: Navigate to Venue Details by UUID
-                     navigate(`/venues/${e.venueId}`)
-                   } else if (e.location?.name) {
-                     // Legacy Fallback
-                     navigate(`/venue/${encodeURIComponent(e.location.name)}`)
-                   }
-                 }
-              }}
+              selectedEventId={selectedVenueId}
+              onSelectEvent={(e) => setSelectedVenueId(e?.id || null)}
             />
          </div>
        ) : (
@@ -133,7 +128,7 @@ export function VenueListPage() {
                    <p className="text-sm text-slate-500">{v.address_display}</p>
                    <div className="mt-2 flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${v.status==='claimed' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
-                        {v.status === 'claimed' ? '官方認證' : '未認領'}
+                         {v.status === 'claimed' ? '官方認證' : '未認領'}
                       </span>
                    </div>
                 </div>
