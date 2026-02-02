@@ -3,6 +3,9 @@
 
 @layer base {
   :root {
+    /* Fonts */
+    --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
     /* Brand Core */
     --color-primary: #1ABC9C;
     --color-primary-dark: #00CFC8;
@@ -62,9 +65,41 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background-color: #f4f6fb; /* User preferred background */
     color: var(--color-text-primary);
-    background-image: linear-gradient(135deg, rgba(26, 188, 156, 0.05) 0%, rgba(26, 69, 120, 0.04) 100%);
-    background-repeat: no-repeat;
+    font-family: var(--font-sans);
+    touch-action: pan-x pan-y;
+    
+    /* Strong long-press & selection prevention */
+    -webkit-touch-callout: none;    /* iOS Safari */
+    -webkit-user-select: none;      /* Safari */
+    -khtml-user-select: none;       /* Konqueror HTML */
+    -moz-user-select: none;         /* Old versions of Firefox */
+    -ms-user-select: none;          /* Internet Explorer/Edge */
+    user-select: none;              /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+    
+    /* Remove the tap highlight overlay on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
+
+  /* Re-enable selection for inputs and text fields */
+  input, textarea, [contenteditable="true"] {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+  }
+}
+
+/* Custom Mapbox Popup Style */
+.mapboxgl-popup-content {
+  border-radius: 20px !important;
+  padding: 0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.mapboxgl-popup-close-button {
+  display: none !important;
 }

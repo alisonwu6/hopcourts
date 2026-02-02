@@ -56,7 +56,7 @@ export function ProfileContent({
             <button
               type="button"
               onClick={onOpenGoalSheet}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 "
             >
               編輯
             </button>

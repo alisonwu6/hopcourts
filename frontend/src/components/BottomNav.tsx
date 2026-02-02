@@ -1,5 +1,5 @@
 import { ComponentType } from 'react'
-import { Compass, DoorClosed, PersonStanding, House, UsersRound } from 'lucide-react'
+import { Compass, DoorClosed, PersonStanding, House, UsersRound, Building2 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { useAuthStore } from '@/hooks'
@@ -35,12 +35,18 @@ export function BottomNav() {
       path: '/events',
       matchPaths: ['/events', '/event', '/my-events', '/create-event'],
     },
-    {
-      label: '夥伴圈',
-      icon: UsersRound,
-      path: '/circle',
-      matchPaths: ['/circle'],
-    },
+    // {
+    //   label: '場館',
+    //   icon: Building2,
+    //   path: '/venues',
+    //   matchPaths: ['/venues', '/venue'],
+    // },
+    // {
+    //   label: '夥伴圈',
+    //   icon: UsersRound,
+    //   path: '/circle',
+    //   matchPaths: ['/circle'],
+    // },
     isAuthenticated
       ? {
           label: '我',
@@ -58,7 +64,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-200 bg-white backdrop-blur"
+      className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md border-t border-slate-200 bg-white backdrop-blur"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex items-center justify-center gap-10 px-4 py-2">

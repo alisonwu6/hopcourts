@@ -55,8 +55,8 @@ export interface Venue {
   basePrice?: number
   currency: string
   priceModel: 'per_game' | 'per_hour' | 'per_month' | 'free'
-  isVerified: boolean
-  verificationDate?: Date
+  status: 'claimed' | 'unclaimed'
+  logo_url?: string
   rating: number
   ratingCount: number
   eventsHosted: number
@@ -240,6 +240,7 @@ export interface SaveEventPayload {
 // ACTIVE: canonical UI event model used across the app.
 export interface PlayerEvent {
   id: string
+  venueId?: string
   title: string
   sport: string
   heroImageUrl?: string
@@ -255,6 +256,8 @@ export interface PlayerEvent {
     city: string
     lat?: number
     lng?: number
+    status?: 'unclaimed' | 'claimed'
+    logo_url?: string
   }
   host: {
     id: string
@@ -277,11 +280,19 @@ export interface PlayerEvent {
   price?: number
   priceRange?: string
   description?: string
-  participants: Array<{ id: string; name: string; avatarUrl?: string; username?: string }>
+  participants: Array<{
+    id: string
+    name: string
+    avatarUrl?: string
+    username?: string
+    checkedInAt?: string | Date
+  }>
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date
   visibility?: 'public' | 'private'
   updatedAt?: string | Date
+  checkinOpenMinsBefore?: number
+  checkinCloseMinsAfter?: number
   detail?: {
     description?: string
     lookingFor?: {
@@ -386,6 +397,7 @@ export interface CreateEventInput {
     lat?: number | null
     lng?: number | null
     instructions?: string
+    source?: string
   }
   venueId?: string
   isFree: boolean
@@ -397,4 +409,5 @@ export interface CreateEventInput {
   tags?: string[]
   difficulty?: 1 | 2 | 3 | 4 | 5
   gender?: 'mixed' | 'female_only' | 'male_only'
+  photos?: string[]
 }

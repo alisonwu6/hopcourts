@@ -5,38 +5,31 @@ import { LoginPanel } from './LoginPanel'
 type LoginPromptSheetProps = {
   open: boolean
   onClose: () => void
-  onSignup: () => void
+  onSignup?: () => void
 }
 
-export function LoginPromptSheet({ open, onClose, onSignup }: LoginPromptSheetProps) {
+export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
       showHandle={false}
       sheetClassName="rounded-t-[32px] bg-white shadow-[0_-30px_60px_rgba(15,41,77,0.18)]"
-      contentClassName="px-6 pb-8 pt-4 text-slate-900"
+      disableContainer
     >
-      <div className="text-center">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">登入或註冊</p>
-      </div>
-      <div className="mt-4">
-        <LoginPanel variant="sheet" />
-        <p className="text-center text-sm text-slate-500">
-          還沒有帳號嗎？{' '}
-          <Link to="/signup" className="font-semibold text-blue-600 hover:text-blue-700">
-            加入 SportsMatch
-          </Link>
-        </p>
-      </div>
-      <div className="mt-6 space-y-3 text-center">
+      <div className="relative flex items-center justify-end px-5 pb-4 pt-5">
         <button
-          type="button"
           onClick={onClose}
-          className="inline-flex w-full items-center justify-center text-sm font-semibold text-slate-500 underline transition hover:text-slate-800"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+          aria-label="Close"
         >
-          繼續逛逛
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
+      </div>
+      <div className="px-5 pb-8">
+        <LoginPanel variant="sheet" />
       </div>
     </BottomSheet>
   )

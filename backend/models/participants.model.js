@@ -46,9 +46,11 @@ async function listParticipantsWithDetails(sessionId) {
        sp.joined_at,
        u.display_name,
        u.avatar_url,
-       u.username
+       u.username,
+       c.checked_in_at
      from public.session_participants sp
      join public.users u on u.id = sp.user_id
+     left join public.check_ins c on c.session_id = sp.session_id and c.user_id = sp.user_id
      where sp.session_id = $1
      order by sp.joined_at asc`,
     [sessionId]

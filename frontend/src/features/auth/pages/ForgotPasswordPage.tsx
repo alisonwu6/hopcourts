@@ -61,7 +61,7 @@ export function ForgotPasswordPage() {
 
           <p className="mt-6 text-center text-sm text-player-900/70">
             Remembered your password?{' '}
-            <Link to="/login" className="font-semibold text-player-600 hover:text-player-700">
+            <Link to="/login" className="font-semibold text-player-600 ">
               Back to login
             </Link>
           </p>

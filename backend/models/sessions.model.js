@@ -7,7 +7,7 @@ const BASE_FIELDS = [
   'host_user_id',
   'sport_key',
   'title',
-  'notes',
+  'notes as description',
   'starts_at',
   'ends_at',
   'place_name',
@@ -26,11 +26,15 @@ const BASE_FIELDS = [
   'photos',
   'is_free',
   'price',
+  'venue_id',
+  'location_source',
+  'is_official', // New Field
 ]
 
 async function listUpcomingSessions({
   city,
   sportKey,
+  venueId,
   from,
   to,
   limit = 50,
@@ -39,6 +43,11 @@ async function listUpcomingSessions({
   const conditions = ["status = 'published'", "visibility = 'public'"]
   const params = []
   let idx = params.length
+
+  if (venueId) {
+    params.push(venueId)
+    conditions.push(`venue_id = $${++idx}`)
+  }
 
   if (from) {
     params.push(from)
@@ -70,10 +79,15 @@ async function listUpcomingSessions({
       h.username as host_username,
       h.country_key as host_country_key,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name
+      c.name_zh as host_city_name,
+      v.status as venue_status,
+      COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
+      v.name_display as venue_name_display
     from public.sessions s
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
+    left join public.venues v on s.venue_id = v.id
+    left join public.venue_profiles vp on v.id = vp.venue_id
     where ${conditions.map(c => `s.${c}`).join(' AND ')}
     order by s.starts_at asc
     limit $${idx + 1}
@@ -89,7 +103,7 @@ async function listMyUpcomingSessions({ userId, from, to } = {}) {
   let idx = params.length
   const conditions = [
     '(sp.user_id = $1 OR s.host_user_id = $1)',
-    's.starts_at >= $2',
+    '(s.ends_at IS NULL OR s.ends_at >= $2)',
     "s.status = 'published'",
   ]
 
@@ -204,16 +218,19 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
 
 async function getSessionById(sessionId) {
   const { rows } = await query(
-    `select s.*,
+    `select ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
        h.display_name as host_display_name,
        h.avatar_url as host_avatar_url,
        h.username as host_username,
        h.country_key as host_country_key,
        h.city_key as host_city_key,
-       c.name_zh as host_city_name
+       c.name_zh as host_city_name,
+       v.status as venue_status,
+       v.logo_url as venue_logo_url
      from public.sessions s
      left join public.users h on s.host_user_id = h.id
      left join public.cities c on h.city_key = c.key
+     left join public.venues v on s.venue_id = v.id
      where s.id = $1`,
     [sessionId]
   )
@@ -233,6 +250,7 @@ async function createSession(input) {
     insert into public.sessions (
       host_user_id,
       sport_key,
+      venue_id,
       title,
       notes,
       starts_at,
@@ -252,17 +270,20 @@ async function createSession(input) {
       gender,
       photos,
       is_free,
-      price
+      price,
+      location_source,
+      is_official
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
     )
     returning ${BASE_FIELDS.join(', ')}
   `
   const params = [
     input.hostUserId,
     input.sportKey,
+    input.venueId ?? null,
     input.title ?? null,
-    input.notes ?? null,
+    input.description ?? null,
     input.startAt,
     input.endAt ?? null,
     input.locationName,
@@ -270,8 +291,8 @@ async function createSession(input) {
     input.lat ?? 0,
     input.lng ?? 0,
     input.checkinRadiusM ?? 100,
-    input.checkinOpenMinsBefore ?? 20,
-    input.checkinCloseMinsAfter ?? 20,
+    input.checkinOpenMinsBefore ?? 15,
+    input.checkinCloseMinsAfter ?? 10,
     input.minPeople ?? 2,
     input.capacity ?? input.maxPeople ?? null,
     input.status ?? 'published',
@@ -281,6 +302,8 @@ async function createSession(input) {
     input.photos ?? null,
     input.isFree ?? true,
     input.price ?? null,
+    input.locationSource ?? null,
+    input.isOfficial ?? false,
   ]
 
   const { rows } = await query(sql, params)
@@ -290,7 +313,8 @@ async function createSession(input) {
 async function updateSession(sessionId, patch = {}) {
   const entries = Object.entries({
     title: patch.title,
-    notes: patch.notes,
+    venue_id: patch.venueId,
+    notes: patch.description,
     starts_at: patch.startAt,
     ends_at: patch.endAt,
     place_name: patch.locationName,
@@ -309,6 +333,7 @@ async function updateSession(sessionId, patch = {}) {
     photos: patch.photos,
     is_free: patch.isFree,
     price: patch.price,
+    is_official: patch.isOfficial,
   }).filter(([, value]) => value !== undefined)
 
   if (!entries.length) return getSessionById(sessionId)

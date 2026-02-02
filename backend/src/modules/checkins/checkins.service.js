@@ -34,9 +34,9 @@ async function checkInToSession({ sessionId, userId, lat, lng, now = new Date() 
   }
 
   const openMins = Number(session.checkin_open_mins_before ?? 0)
-  const closeMins = Number(session.checkin_close_mins_after ?? 0)
+  const closeMins = Number(session.checkin_close_mins_after ?? 10)
   const opensAt = addMinutes(startsAt, -openMins)
-  const closesAt = addMinutes(endsAt, closeMins)
+  const closesAt = addMinutes(startsAt, closeMins)
 
   const nowTs = now instanceof Date ? now : new Date(now)
   if (nowTs < opensAt || nowTs > closesAt) {

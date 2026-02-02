@@ -1,7 +1,7 @@
 const {
   findUserByEmail,
   createUserFromSupabaseProfile,
-} = require('../models/userModel')
+} = require('../../models/users.model')
 const supabase = require('../utils/supabase')
 
 async function getSupabaseUserFromToken(token) {
@@ -49,6 +49,7 @@ async function resolveUserFromSupabase(user) {
 async function verifyToken(req, res, next) {
   const header = req.headers.authorization || ''
   const token = header.startsWith('Bearer ') ? header.slice(7) : null
+  
   if (!token) {
     return res.status(401).json({ message: 'Missing authorization header' })
   }
@@ -58,11 +59,14 @@ async function verifyToken(req, res, next) {
     if (!supabaseUser) {
       return res.status(401).json({ message: 'Invalid or expired token' })
     }
+    
     const appUser = await resolveUserFromSupabase(supabaseUser)
     if (!appUser) {
       return res.status(500).json({ message: 'Unable to sync Supabase user' })
     }
+    
     req.authUser = appUser
+    req.user = appUser  // For route compatibility
     req.userId = appUser.id
     req.supabaseUser = supabaseUser
     return next()
@@ -72,4 +76,4 @@ async function verifyToken(req, res, next) {
   }
 }
 
-module.exports = verifyToken
+module.exports = { verifyToken }

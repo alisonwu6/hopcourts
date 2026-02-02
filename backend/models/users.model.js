@@ -2,7 +2,7 @@ const { query } = require('../db/client')
 
 async function getUserById(id) {
   const { rows } = await query(
-    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, vibe_key, bio, avatar_url, created_at, updated_at
+    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at
      from public.users where id = $1`,
     [id]
   )
@@ -11,7 +11,7 @@ async function getUserById(id) {
 
 async function getUserByUsername(username) {
   const { rows } = await query(
-    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, vibe_key, bio, avatar_url, created_at, updated_at
+    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at
      from public.users where username = $1`,
     [username]
   )
@@ -21,9 +21,9 @@ async function getUserByUsername(username) {
 async function upsertUser(user) {
   const sql = `
     insert into public.users (
-      id, username, display_name, legal_name, country_key, city_key, age_range_key, vibe_key, bio, avatar_url
+      id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11
     )
     on conflict (id) do update set
       username = excluded.username,
@@ -32,6 +32,7 @@ async function upsertUser(user) {
       country_key = excluded.country_key,
       city_key = excluded.city_key,
       age_range_key = excluded.age_range_key,
+      gender = excluded.gender,
       vibe_key = excluded.vibe_key,
       bio = excluded.bio,
       avatar_url = excluded.avatar_url
@@ -45,6 +46,7 @@ async function upsertUser(user) {
     user.country_key ?? null,
     user.city_key ?? null,
     user.age_range_key ?? null,
+    user.gender ?? null,
     user.vibe_key ?? null,
     user.bio ?? null,
     user.avatar_url ?? null,
@@ -53,4 +55,39 @@ async function upsertUser(user) {
   return rows[0]
 }
 
-module.exports = { getUserById, getUserByUsername, upsertUser }
+async function findUserByEmail(email) {
+  const { rows } = await query(
+    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at, email
+     from public.users where email = $1`,
+    [email]
+  )
+  return rows[0] || null
+}
+
+async function createUserFromSupabaseProfile(profile) {
+  const sql = `
+    insert into public.users (
+      email, display_name, username, city_key, gender
+    ) values (
+      $1, $2, $3, $4, $5
+    )
+    returning *
+  `
+  const params = [
+    profile.email,
+    profile.fullName || profile.email.split('@')[0],
+    profile.username || null,
+    profile.city || null,
+    profile.gender || null,
+  ]
+  const { rows } = await query(sql, params)
+  return rows[0]
+}
+
+module.exports = { 
+  getUserById, 
+  getUserByUsername, 
+  upsertUser,
+  findUserByEmail,
+  createUserFromSupabaseProfile
+}

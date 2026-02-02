@@ -13,6 +13,7 @@ interface EventsStore {
   createEvent: (input: CreateEventInput) => Promise<PlayerEvent>
   joinEvent: (eventId: string) => Promise<void>
   leaveEvent: (eventId: string) => Promise<void>
+  checkInToEvent: (eventId: string, coords: { lat: number; lng: number }) => Promise<void>
   setSelectedEvent: (event: PlayerEvent | null) => void
 }
 
@@ -135,6 +136,29 @@ export const useEventsStore = create<EventsStore>((set) => ({
       }
     } catch {
       set({ error: 'An error occurred' })
+    }
+  },
+
+  checkInToEvent: async (eventId: string, coords: { lat: number; lng: number }) => {
+    try {
+      const response = await eventsService.checkIn(eventId, coords)
+      if (response.success) {
+        // Maybe refresh event to show checked-in status? API doesn't return updated event usually, just status.
+        // But let's assume we might want to refresh.
+        // For now just allow UI to react to success.
+      } else {
+        set({
+          error: response.error?.message ?? 'Failed to check in',
+        })
+        throw response.error // Throw the full error object containing code/details
+      }
+    } catch (err: any) {
+      // If it's the object we threw above, just rethrow it
+      if (err?.code) throw err
+
+      const message = err?.message || 'Check-in failed'
+      set({ error: message })
+      throw err
     }
   },
 

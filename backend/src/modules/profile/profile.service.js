@@ -41,6 +41,7 @@ async function upsertProfile(userId, body = {}) {
     country_key: body.country_key ?? current.country_key ?? null,
     city_key: body.city_key ?? current.city_key ?? null,
     age_range_key: body.age_range_key ?? current.age_range_key ?? null,
+    gender: body.gender ?? current.gender ?? null,
     vibe_key: body.vibe_key ?? current.vibe_key ?? null,
     bio: body.bio ?? current.bio ?? null,
     avatar_url:

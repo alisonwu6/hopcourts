@@ -18,7 +18,8 @@ async function listSports({ locale = 'zh', q, limit = 50, offset = 0 } = {}) {
   const sql = `
     select key, ${labelCol} as label, label_en, label_zh, category, icon, sort, is_active
     from public.sports
-    ${whereClause}
+    where is_active = true
+    ${conditions.length ? `AND ${conditions.join(' AND ')}` : ''}
     order by sort asc
     limit $${params.length + 1}
     offset $${params.length + 2}

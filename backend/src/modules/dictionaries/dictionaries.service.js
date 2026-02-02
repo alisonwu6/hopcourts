@@ -45,7 +45,27 @@ async function dictionaryMeta() {
   const meta = {}
   const now = new Date().toISOString()
 
-  // sports: use updated_at ；其他暫用 now()
+  try {
+    const configRes = await query(
+      `select value from public.system_config where key = 'sm.dict.meta'`
+    )
+    if (configRes.rows.length > 0) {
+      const configVal = configRes.rows[0].value
+      const globalVer = configVal.version || now
+      
+      meta.sports = { version: globalVer }
+      meta.vibes = { version: globalVer }
+      meta.countries = { version: globalVer }
+      meta.age_ranges = { version: globalVer }
+      meta.cities = { version: globalVer }
+      
+      return meta
+    }
+  } catch (err) {
+    console.error('Failed to read system_config for dict meta', err)
+  }
+
+  // Fallback
   try {
     const sportsRes = await query(
       `select coalesce(to_char(max(updated_at), 'YYYY-MM-DD"T"HH24:MI:SSZ'), to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SSZ')) as version from public.sports`

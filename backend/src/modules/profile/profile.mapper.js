@@ -18,6 +18,8 @@ function mapUserProfile(payload = {}) {
     city_key: user.city_key || null,
     country_key: user.country_key || null,
     vibe_key: user.vibe_key || null,
+    age_range_key: user.age_range_key || null,
+    gender: user.gender || null,
   }
 
   return { user: safeUser, sports }

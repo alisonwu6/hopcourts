@@ -28,7 +28,7 @@ export function ProfileOnboardingIntro({ onStart }: Props) {
           <div className="pt-2">
             <button
               type="button"
-              className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500"
+              className="inline-flex min-w-[220px] items-center justify-center rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition "
               onClick={handleStart}
             >
               建立我的運動卡

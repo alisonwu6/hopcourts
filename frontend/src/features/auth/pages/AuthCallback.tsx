@@ -102,7 +102,7 @@ export function AuthCallback() {
           />
           <button
             type="submit"
-            className="mt-4 w-full rounded-xl bg-player-600 py-3 text-white transition hover:bg-player-700 disabled:opacity-60"
+            className="mt-4 w-full rounded-xl bg-player-600 py-3 text-white transition  disabled:opacity-60"
             disabled={isSubmitting}
           >
             {isSubmitting ? '更新中…' : '更新密碼'}

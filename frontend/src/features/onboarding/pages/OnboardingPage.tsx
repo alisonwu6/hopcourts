@@ -10,6 +10,7 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
 import { useAgeRanges, useCities, useCountries, useVibes } from '@/features/dictionaries/hooks'
+import { PageLoading } from '@/components/PageLoading'
 
 type Step = 'Vibe' | 'Sports' | 'Trying' | 'Country' | 'City' | 'Bio' | 'Info' | 'Preview'
 type TimeSlot = '早上' | '下午' | '晚上'
@@ -449,17 +450,7 @@ export function OnboardingPage() {
   }, [prefilled, keyToVibeSafe])
 
   if (loadingProfile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white text-slate-700">
-        <div className="flex items-center gap-3 rounded-full bg-white/80 px-5 py-3 shadow-[0_10px_40px_rgba(15,41,77,0.12)] ring-1 ring-slate-100">
-          <span className="relative inline-block h-4 w-4">
-            <span className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-70" />
-            <span className="relative inline-block h-4 w-4 rounded-full bg-blue-500" />
-          </span>
-          <span className="text-sm font-semibold">🏃🏻‍➡️ 加速中</span>
-        </div>
-      </div>
-    )
+    return <PageLoading />
   }
 
   return (
@@ -539,7 +530,7 @@ export function OnboardingPage() {
                     'w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition',
                     selected
                       ? 'border-transparent shadow-[0_12px_30px_-18px_rgba(0,0,0,0.3)]'
-                      : 'border-slate-200 bg-white/90 hover:bg-white'
+                      : 'border-slate-200 bg-white/90'
                   )}
                   style={selected ? { background: withAlpha(accent.ring, 0.16) } : undefined}
                 >
@@ -566,7 +557,7 @@ export function OnboardingPage() {
                       {label}
                       <button
                         type="button"
-                        className="text-slate-500 hover:text-slate-700"
+                        className="text-slate-500 "
                         onClick={() => toggleSport(sportId)}
                         aria-label={`Remove ${label}`}
                       >
@@ -598,7 +589,7 @@ export function OnboardingPage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                       selected
                         ? 'border-transparent shadow-sm'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-white'
                     )}
                     style={
                       selected
@@ -633,7 +624,7 @@ export function OnboardingPage() {
                       {label}
                       <button
                         type="button"
-                        className="text-slate-500 hover:text-slate-700"
+                        className="text-slate-500 "
                         onClick={() => toggleTrying(itemId)}
                         aria-label={`Remove ${label}`}
                       >
@@ -665,7 +656,7 @@ export function OnboardingPage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                       selected
                         ? 'border-transparent shadow-sm'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-white'
                     )}
                     style={
                       selected
@@ -711,7 +702,7 @@ export function OnboardingPage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition',
                       selected
                         ? 'border-transparent shadow-sm'
-                        : 'border-slate-200 bg-white hover:bg-slate-50'
+                        : 'border-slate-200 bg-white'
                     )}
                     style={
                       selected
@@ -755,7 +746,7 @@ export function OnboardingPage() {
                       'rounded-full border px-4 py-2 text-sm font-semibold transition',
                       active
                         ? 'border-transparent'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        : 'border-slate-200 bg-white text-slate-700'
                     )}
                     style={
                       active
@@ -868,7 +859,7 @@ export function OnboardingPage() {
                         'rounded-full border px-4 py-2 text-sm font-semibold transition',
                         active
                           ? 'border-transparent'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          : 'border-slate-200 bg-white text-slate-700'
                       )}
                       style={
                         active
@@ -919,7 +910,7 @@ export function OnboardingPage() {
                                 'min-w-[60px] rounded-full border px-4 py-2 text-sm font-semibold transition',
                                 active
                                   ? 'border-transparent'
-                                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                  : 'border-slate-200 bg-white text-slate-700'
                               )}
                               style={
                                 active
@@ -983,7 +974,7 @@ export function OnboardingPage() {
               <button
                 type="button"
                 onClick={goBack}
-                className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+                className="pointer-events-auto flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition  disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
                 上一步

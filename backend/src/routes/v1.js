@@ -5,6 +5,9 @@ const { sessionsRouter } = require('./v1/sessions.routes')
 const { checkinsRouter } = require('../modules/checkins/checkins.routes')
 const { dictionariesRouter } = require('./v1/dictionaries.routes')
 const { profileRouter } = require('./v1/profile.routes')
+const { venuesRouter } = require('../modules/venues/venues.routes')
+const { adminRouter } = require('./v1/admin.routes')
+const { venuePortalRouter } = require('./v1/venuePortal.routes')
 
 const router = express.Router()
 
@@ -14,5 +17,8 @@ router.use('/sessions', sessionsRouter)
 router.use('/', checkinsRouter)
 router.use('/', dictionariesRouter)
 router.use('/', profileRouter)
+router.use('/venues', venuesRouter)
+router.use('/admin', adminRouter)
+router.use('/venue-portal', venuePortalRouter)
 
 module.exports = { v1Router: router }

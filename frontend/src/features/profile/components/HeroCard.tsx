@@ -33,7 +33,7 @@ export function HeroCard({
   }
 
   return (
-    <div className="bg-gradient-to-b from-[#e3ebff] to-[#d5e2ff]">
+    <div className="bg-slate-200">
       <MateCard
         {...safeProfile}
         accentClassName="w-full max-w-none min-w-0 rounded-none bg-transparent px-0 shadow-none"

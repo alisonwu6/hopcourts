@@ -84,7 +84,7 @@ function PeopleContent() {
                   'flex-1 rounded-full px-4 py-2 text-center text-sm font-semibold transition',
                   active
                     ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-800'
+                    : 'text-slate-600'
                 )}
               >
                 {tab.label}
@@ -111,7 +111,7 @@ function PeopleContent() {
                   key={person.name}
                   type="button"
                   onClick={() => goToMate({ name: person.name, vibe: 'Chill' })}
-                  className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 text-left shadow-sm transition hover:shadow-md focus:outline-none"
+                  className="flex w-full items-center gap-4 rounded-2xl border border-slate-200/70 px-4 py-4 text-left shadow-sm transition  focus:outline-none"
                 >
                   <div
                     className={clsx(
@@ -179,7 +179,7 @@ function PeopleContent() {
                           'min-w-[64px] rounded-xl px-4 py-2 text-sm font-semibold shadow-sm',
                           isAdded
                             ? 'bg-slate-100 text-slate-500'
-                            : 'border border-slate-300 text-slate-900 hover:bg-slate-50'
+                            : 'border border-slate-300 text-slate-900'
                         )}
                       >
                         {mate.status}

@@ -60,7 +60,7 @@ export function AboutPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
-                className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500"
+                className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition "
                 type="button"
                 onClick={handleIdentityClick}
               >
@@ -132,7 +132,7 @@ export function AboutPage() {
 
             <div className="mt-10 flex flex-col items-start gap-2">
               <button
-                className="inline-flex items-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-emerald-400 hover:to-teal-400"
+                className="inline-flex items-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition  "
                 type="button"
                 onClick={handleIdentityClick}
               >

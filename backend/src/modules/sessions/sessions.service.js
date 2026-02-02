@@ -4,6 +4,7 @@ const participantsModel = require('../../../models/participants.model')
 const checkinsModel = require('../../../models/checkins.model')
 const usersModel = require('../../../models/users.model')
 const { createSession: createSessionModel } = require('../../../models/sessions.model')
+const { resolveVenue } = require('../venues/venues.service')
 
 function parseNumber(value, fallback) {
   const n = Number(value)
@@ -183,11 +184,32 @@ async function createSession(input) {
     throw Errors.validation('photos must be an array with at most 3 items')
   }
 
+  // Resolve Venue ID
+  let venueId = null
+  // Only attempt resolution if we have valid coordinates
+  if (input.lat && input.lng && input.lat !== 0 && input.lng !== 0) {
+    try {
+      venueId = await resolveVenue({
+        lat: Number(input.lat),
+        lng: Number(input.lng),
+        name: input.placeName,
+        address: input.address,
+        source: input.locationSource
+      })
+    } catch (err) {
+      console.error('Venue resolution failed', err)
+      // We process without venue_id if resolution fails, or throw? 
+      // For now, log and proceed, event will be created without venue link or we fail safe.
+      // Better to proceed so user isn't blocked.
+    }
+  }
+
   const payload = {
     hostUserId: input.userId,
     sportKey: input.sportKey,
+    venueId, // Add resolved venue ID
     title: input.title ?? null,
-    notes: input.notes ?? null,
+    description: input.description ?? null,
     startAt: new Date(input.startAt),
     endAt: input.endAt ? new Date(input.endAt) : null,
     locationName: input.placeName,
@@ -206,6 +228,7 @@ async function createSession(input) {
     photos: input.photos ?? null,
     isFree: input.isFree ?? true,
     price: input.price ?? null,
+    locationSource: input.locationSource,
   }
 
   const session = await createSessionModel(payload)
@@ -242,7 +265,7 @@ async function updateSession(sessionId, input) {
 
   const patch = {
     title: input.title,
-    notes: input.notes,
+    description: input.description,
     startAt: input.startAt ? new Date(input.startAt) : undefined,
     endAt: input.endAt ? new Date(input.endAt) : undefined,
     locationName: input.placeName,

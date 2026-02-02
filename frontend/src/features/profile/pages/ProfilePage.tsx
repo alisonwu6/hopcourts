@@ -15,7 +15,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
 import { onboardingService } from '@/features/onboarding/onboarding.service'
 import { useSports } from '@/features/dictionaries/hooks'
-import { useCountries, useCities, useVibes } from '@/features/dictionaries/hooks'
+import { useCountries, useCities, useVibes, useAgeRanges } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { ProfileContent } from '@/features/profile/components/ProfileContent'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
@@ -23,6 +23,7 @@ import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
 import { ProfileOnboardingIntro } from '@/features/profile/components/ProfileOnboardingIntro'
+import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
 const arraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((v, i) => v === b[i])
@@ -47,6 +48,8 @@ const emptyProfile: MateCardProps = {
   trying: [],
   blurb: '',
   avatar: '',
+  gender: null,
+  ageRangeKey: null,
 }
 
 const SAMPLE_AVATAR =
@@ -98,7 +101,7 @@ export function ProfilePage() {
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio'
+    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio' | 'gender' | 'ageRange'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
@@ -107,6 +110,7 @@ export function ProfilePage() {
   const { items: vibesCatalog } = useVibes('zh')
   const { items: countriesCatalog } = useCountries('zh')
   const { items: citiesCatalog } = useCities(undefined, 'zh')
+  const { items: ageRangesCatalog } = useAgeRanges('zh')
   const navigate = useNavigate()
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -156,8 +160,10 @@ export function ProfilePage() {
     const map = new Map<string, string>()
     vibesCatalog.forEach((v) => {
       const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      map.set(union, v.key)
-      map.set(union.toLowerCase(), v.key)
+      if (union) {
+        map.set(union as string, v.key)
+        map.set((union as string).toLowerCase(), v.key)
+      }
     })
     return map
   }, [vibesCatalog])
@@ -171,6 +177,11 @@ export function ProfilePage() {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
+
+  const labelForAgeRange = useMemo(() => {
+    const map = new Map(ageRangesCatalog.map((r) => [r.key, r.label]))
+    return (key?: string) => (key ? map.get(key) || key : '')
+  }, [ageRangesCatalog])
 
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
@@ -211,6 +222,8 @@ export function ProfilePage() {
       location: locationLabel,
       flag: flagLabel,
       vibe: vibeUnion,
+      gender: vm.card.gender,
+      ageRangeKey: vm.card.ageRangeKey,
     }
   }, [vm, labelForSport, labelForCity, labelForCountry, vibeKeyToUnion])
 
@@ -293,6 +306,8 @@ export function ProfilePage() {
               trying: (tryingKeys || []).map(labelForSport),
               blurb: data.bio || '',
               avatar: data.avatar_url || userAvatar || '',
+              gender: data.gender || null,
+              ageRangeKey: data.age_range_key || null,
             }
             const nextUsername = data.username || data.display_name || (user as any)?.username || ''
             setVm({
@@ -437,6 +452,14 @@ export function ProfilePage() {
         next.blurb = value
         payload.bio = value
         break
+      case 'gender':
+        next.gender = value
+        payload.gender = value
+        break
+      case 'ageRange':
+        next.ageRangeKey = value
+        payload.age_range_key = value
+        break
       default:
         break
     }
@@ -470,6 +493,8 @@ export function ProfilePage() {
         favorite_sports: favoriteKeys,
         trying_sports: tryingKeys,
         avatar_url: draftProfile.avatar || null,
+        gender: draftProfile.gender || null,
+        age_range_key: draftProfile.ageRangeKey || null,
       })
 
       const updated = {
@@ -513,7 +538,7 @@ export function ProfilePage() {
   const pageContent = showOnboardingIntro ? (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-end bg-white px-4 py-4">
+        <div className="flex items-center justify-end bg-white px-4">
           <Link
             to="/settings"
             aria-label="Menu"
@@ -528,7 +553,7 @@ export function ProfilePage() {
   ) : (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-between bg-white px-4 py-4">
+        <div className="flex items-center justify-between bg-white px-4 py-2">
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
             {username && <span className="text-2xl font-bold text-slate-900">{username}</span>}
@@ -597,7 +622,7 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => setShowEditSheet(false)}
-          title="編輯運動卡"
+          title="我的運動卡"
           subtitle="保持最新運動狀態"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
@@ -636,48 +661,50 @@ export function ProfilePage() {
                   value: draftUsername ?? '',
                 },
                 {
-                  key: 'location',
-                  label: '現居地點',
-                  value: labelForCity(draftProfile.cityKey) || draftProfile.location,
-                  valueKey: draftProfile.cityKey || '',
-                },
-                {
                   key: 'flag',
                   label: '國籍',
                   value: labelForCountry(draftProfile.countryKey) || draftProfile.flag,
                   valueKey: draftProfile.countryKey || '',
                 },
                 {
-                  key: 'vibe',
-                  label: '運動氛圍',
-                  value: draftProfile.vibe || '',
-                  valueKey:
-                    vibeUnionToKey.get(draftProfile.vibe as string) ||
-                    (draftProfile as any).vibeKey ||
-                    '',
+                  key: 'location',
+                  label: '現居地點',
+                  value: labelForCity(draftProfile.cityKey) || draftProfile.location,
+                  valueKey: draftProfile.cityKey || '',
                 },
-              ].map((row) => (
-                <button
-                  key={row.key}
-                  type="button"
-                  onClick={() => openFieldSheet(row.key as any, row.value, (row as any).valueKey)}
-                  className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-slate-700">{row.label}</p>
-                    <p className="text-base font-semibold text-slate-900">
-                      {row.key === 'vibe'
-                        ? labelForVibe(
-                            (row as any).valueKey ||
-                              vibeUnionToKey.get(row.value as string) ||
-                              (row.value as string)
-                          ) || '未設定'
-                        : row.value || '未設定'}
-                    </p>
-                  </div>
-                  <span className="text-slate-400">›</span>
-                </button>
-              ))}
+                {
+                  key: 'gender',
+                  label: '性別',
+                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : draftProfile.gender === 'other' ? '其他' : '未設定',
+                  valueKey: draftProfile.gender || '',
+                },
+              ].map((row) => {
+                const isReadOnly = row.key === 'username'
+                const Component = isReadOnly ? 'div' : 'button'
+                return (
+                  <Component
+                    key={row.key}
+                    type={isReadOnly ? undefined : 'button'}
+                    onClick={
+                      isReadOnly
+                        ? undefined
+                        : () => openFieldSheet(row.key as any, row.value, (row as any).valueKey)
+                    }
+                    className={clsx(
+                      'flex w-full items-center justify-between px-4 py-4 text-left',
+                      isReadOnly ? 'bg-slate-100' : ''
+                    )}
+                  >
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-slate-700">{row.label}</p>
+                      <p className="text-base font-semibold text-slate-900">
+                        {row.value || '未設定'}
+                      </p>
+                    </div>
+                    {!isReadOnly && <span className="text-slate-400">›</span>}
+                  </Component>
+                )
+              })}
             </div>
           </div>
 
@@ -686,8 +713,33 @@ export function ProfilePage() {
             <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <button
                 type="button"
+                onClick={() =>
+                  openFieldSheet(
+                    'vibe',
+                    draftProfile.vibe || '',
+                    (draftProfile as any).vibeKey ||
+                      vibeUnionToKey.get(draftProfile.vibe as string) ||
+                      ''
+                  )
+                }
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">運動氛圍</p>
+                  <p className="text-base font-semibold text-slate-900">
+                    {labelForVibe(
+                      (draftProfile as any).vibeKey ||
+                        vibeUnionToKey.get(draftProfile.vibe as string) ||
+                        (draftProfile.vibe as string)
+                    ) || '未設定'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setShowSportsSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">我的最愛</p>
@@ -700,7 +752,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowTryingSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">想嘗試</p>
@@ -719,7 +771,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
-                className="flex w-full items-center justify-between px-4 py-4 text-left hover:bg-slate-50"
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">自我介紹</p>
@@ -743,18 +795,22 @@ export function ProfilePage() {
           const titleMap: Record<string, string> = {
             name: '名稱',
             username: '使用者名稱',
-            location: '現居',
+            location: '現居城市',
             flag: '國籍',
             vibe: '運動氛圍',
             bio: '自我介紹',
+            gender: '性別',
+            ageRange: '年齡區間',
           }
           const subtitleMap: Record<string, string> = {
             name: '請輸入卡片上要顯示的名稱。',
             username: '你的帳號，夥伴可以用這個找到你。',
-            location: '填寫目前所在的城市，方便配對附近的活動。',
-            flag: '選擇你的國籍，展現身份。',
-            vibe: '描述現在最貼近你的運動氛圍。',
+            location: '填寫你目前所在的城市。',
+            flag: '場上有共同的語言，讓我們知道你來自哪裡。',
+            vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
             bio: '和大家分享你的運動的動態與目標吧！',
+            gender: '讓我們更了解你，提供更合適的活動推薦。',
+            ageRange: '選擇你的年齡區間。',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -762,7 +818,7 @@ export function ProfilePage() {
               onClose={() => setActiveField(null)}
               title={titleMap[fieldKey] || ''}
               subtitle={subtitleMap[fieldKey] || ''}
-              height="medium"
+              height={fieldKey === 'vibe' ? 'tall' : 'medium'}
               className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
               contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-3"
               primaryButton={{
@@ -773,12 +829,21 @@ export function ProfilePage() {
               showHandle={false}
             >
               {activeField === 'vibe' ? (
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex flex-col gap-3">
                   {vibesCatalog.map((v) => {
                     const active =
                       v.key === fieldValue ||
                       vibeUnionToKey.get(fieldValue) === v.key ||
                       vibeUnionToKey.get(fieldValue)?.toLowerCase?.() === v.key.toLowerCase()
+
+                    // Try to map dictionary key to Vibe enum key to get colors
+                    // Dictionary keys might be upper case like 'GROWTH', tokens are 'Growth'
+                    // We need a reliable mapping or try to match case-insensitively
+                    const tokenKey = Object.keys(vibeTokens).find(
+                      (k) => k.toUpperCase() === v.key.toUpperCase()
+                    ) as Vibe | undefined
+                    const tokens = tokenKey ? vibeTokens[tokenKey] : undefined
+
                     return (
                       <button
                         key={v.key}
@@ -786,10 +851,24 @@ export function ProfilePage() {
                         onClick={() => setFieldValue(v.key)}
                         className={clsx(
                           'flex flex-col items-start rounded-2xl border px-4 py-4 text-left shadow-sm transition',
-                          active
-                            ? 'border-blue-500 bg-blue-50 text-blue-800'
-                            : 'border-slate-200 bg-white text-slate-900 hover:border-blue-300'
+                          !active && 'border-slate-200 bg-white text-slate-900'
                         )}
+                        style={
+                          active && tokens
+                            ? {
+                                background: tokens.bg,
+                                color: tokens.text,
+                                borderColor: 'transparent',
+                              }
+                            : active
+                              ? {
+                                  // Fallback if no token found
+                                  borderColor: '#3B82F6',
+                                  backgroundColor: '#EFF6FF',
+                                  color: '#1E40AF',
+                                }
+                              : undefined
+                        }
                       >
                         <p className="text-lg font-bold">{v.label}</p>
                       </button>
@@ -828,13 +907,53 @@ export function ProfilePage() {
                     value={fieldValue}
                     onChange={(e) => setFieldValue(e.target.value)}
                     maxLength={120}
-                    rows={4}
+                    rows={10}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
                     placeholder="和大家分享你想說的一句話。"
                   />
                   <div className="text-right text-sm text-slate-500">
                     還可以輸入 {120 - (fieldValue?.length || 0)} 個字
                   </div>
+                </div>
+              ) : activeField === 'gender' ? (
+                <div className="flex flex-col gap-3">
+                  {[
+                    { key: 'male', label: '男生' },
+                    { key: 'female', label: '女生' },
+                    { key: 'other', label: '其他' },
+                  ].map((g) => (
+                    <button
+                      key={g.key}
+                      type="button"
+                      onClick={() => setFieldValue(g.key)}
+                      className={clsx(
+                        'flex items-center justify-between rounded-2xl border px-4 py-4 text-left font-semibold shadow-sm transition',
+                        fieldValue === g.key
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 bg-white text-slate-800'
+                      )}
+                    >
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              ) : activeField === 'ageRange' ? (
+                <div className="flex flex-col gap-3">
+                  {ageRangesCatalog.map((r) => (
+                    <button
+                      key={r.key}
+                      type="button"
+                      onClick={() => setFieldValue(r.key)}
+                      className={clsx(
+                        'flex items-center justify-between rounded-2xl border px-4 py-4 text-left font-semibold shadow-sm transition',
+                        fieldValue === r.key
+                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          : 'border-slate-200 bg-white text-slate-800'
+                      )}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
                 </div>
               ) : (
                 <input
@@ -857,8 +976,8 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => setShowSportsSheet(false)}
-          title="選擇常做運動"
-          subtitle="最多選 3 項，依照你常說「好，走！」的運動，幫你排程與配對。"
+          title="選擇最愛運動"
+          subtitle="那些你能自在接受挑戰，且熱在其中的運動。（最多選 3 項)"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
@@ -883,7 +1002,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 hover:text-slate-600"
+                    className="text-slate-400 "
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -918,11 +1037,14 @@ export function ProfilePage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-base font-semibold shadow-sm transition',
                       selected
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300',
+                        : 'border-slate-200 bg-white text-slate-800',
                       disabled && !selected && 'cursor-not-allowed opacity-50'
                     )}
                   >
-                    <span>{sport.label}</span>
+                    <span className="flex items-center gap-2">
+                      {sport.icon && <span className="text-xl">{sport.icon}</span>}
+                      <span>{sport.label}</span>
+                    </span>
                     <input
                       type="checkbox"
                       checked={selected}
@@ -952,7 +1074,7 @@ export function ProfilePage() {
         <SheetLayout
           onClose={() => setShowTryingSheet(false)}
           title="想嘗試的運動"
-          subtitle="最多選 2 項，挑你感興趣的新挑戰，我們會幫你找帶路人。"
+          subtitle="挑你感興趣的新挑戰（最多選 2 項）"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
@@ -977,7 +1099,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 hover:text-slate-600"
+                    className="text-slate-400 "
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -1012,11 +1134,14 @@ export function ProfilePage() {
                       'flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-base font-semibold shadow-sm transition',
                       selected
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-800 hover:border-blue-300',
+                        : 'border-slate-200 bg-white text-slate-800',
                       disabled && !selected && 'cursor-not-allowed opacity-50'
                     )}
                   >
-                    <span>{sport.label}</span>
+                    <span className="flex items-center gap-2">
+                      {sport.icon && <span className="text-xl">{sport.icon}</span>}
+                      <span>{sport.label}</span>
+                    </span>
                     <input
                       type="checkbox"
                       checked={selected}
@@ -1053,7 +1178,7 @@ export function ProfilePage() {
             <button
               type="button"
               aria-label="Close"
-              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500 hover:text-slate-700"
+              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500 "
               onClick={() => setShowGoalSheet(false)}
             >
               ×
@@ -1100,7 +1225,7 @@ export function ProfilePage() {
                       'rounded-full border px-4 py-2 text-sm font-semibold',
                       active
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        : 'border-slate-200 bg-white text-slate-700'
                     )}
                   >
                     {slot}
@@ -1145,7 +1270,7 @@ export function ProfilePage() {
                                 'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
                                 active
                                   ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                  : 'border-slate-200 bg-white text-slate-700'
                               )}
                             >
                               {slot}
@@ -1168,7 +1293,7 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={() => setShowGoalSheet(false)}
-              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300"
+              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 "
             >
               取消
             </button>
@@ -1176,7 +1301,7 @@ export function ProfilePage() {
               type="button"
               onClick={handleSaveGoal}
               disabled={isSavingGoal}
-              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-300"
+              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition  disabled:cursor-not-allowed disabled:bg-blue-300"
             >
               {isSavingGoal ? '儲存中...' : '儲存'}
             </button>
