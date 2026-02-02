@@ -103,3 +103,19 @@
 .mapboxgl-popup-close-button {
   display: none !important;
 }
+@layer utilities {
+  @keyframes border-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.7);
+      border-color: rgba(59, 130, 246, 1);
+    }
+    50% {
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+  }
+  .animate-border-pulse {
+    animation: border-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    border-width: 2px;
+  }
+}

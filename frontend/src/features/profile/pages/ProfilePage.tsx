@@ -573,7 +573,7 @@ export function ProfilePage() {
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
           actionLabel={profileNotFound ? '建立運動卡' : '編輯運動卡'}
-          actionClassName={profileNotFound ? 'animate-pulse !bg-blue-600 !text-white' : ''}
+          actionClassName={profileNotFound ? 'animate-border-pulse !bg-blue-50 !text-blue-600 !border-blue-600' : ''}
         />
         <div className="mt-4 space-y-4 px-3">
           {/* <ProfileContent
