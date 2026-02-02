@@ -40,7 +40,7 @@ export function AuthCallback() {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token, context.onboardingStatus)
         setOk('登入成功！為你導向中…')
-        setTimeout(() => navigate('/', { replace: true }), 900)
+        navigate('/profile', { replace: true })
       } catch (bootstrapError: any) {
         setErr(bootstrapError?.message ?? 'Unable to finish sign in.')
       } finally {
@@ -75,7 +75,7 @@ export function AuthCallback() {
         setAuthData(context.user, context.token, context.onboardingStatus)
       }
       setOk('密碼已更新，為你導向中…')
-      setTimeout(() => navigate('/', { replace: true }), 1200)
+      navigate('/profile', { replace: true })
     } catch (bootstrapError: any) {
       setErr(bootstrapError?.message ?? 'Password updated but failed to refresh session.')
     } finally {

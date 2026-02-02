@@ -16,13 +16,9 @@ export function SignupPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (onboardingStatus?.isComplete) {
-        navigate('/', { replace: true })
-      } else {
-        navigate('/onboarding', { replace: true })
-      }
+      navigate('/profile', { replace: true })
     }
-  }, [isAuthenticated, onboardingStatus?.isComplete, navigate])
+  }, [isAuthenticated, navigate])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

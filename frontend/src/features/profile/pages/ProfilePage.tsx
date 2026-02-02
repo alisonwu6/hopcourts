@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 type ProfileVM = {
   username: string
+  usernameUpdatedCount: number
   card: MateCardProps
   favoriteSportKeys: string[]
   tryingSportKeys: string[]
@@ -72,14 +73,15 @@ export function ProfilePage() {
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
   const [stats, setStats] = useState<ApiResponse<any>['data'] | null>(null)
+  const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
   const [vm, setVm] = useState<ProfileVM | null>(
     profileCache
       ? {
-          username:
-            (profileCache as any)?.username ||
-            (user as any)?.username ||
-            (profileCache as any)?.display_name ||
-            '',
+          username: (() => {
+            const candidate = (profileCache as any)?.username || (user as any)?.username || ''
+            return isUuid(candidate) ? '' : candidate
+          })(),
+          usernameUpdatedCount: (profileCache as any)?.username_updated_count || 0,
           card: profileCache,
           favoriteSportKeys: [],
           tryingSportKeys: [],
@@ -309,9 +311,11 @@ export function ProfilePage() {
               gender: data.gender || null,
               ageRangeKey: data.age_range_key || null,
             }
-            const nextUsername = data.username || data.display_name || (user as any)?.username || ''
+            const rawUsername = data.username || (user as any)?.username || ''
+            const nextUsername = isUuid(rawUsername) ? '' : rawUsername
             setVm({
               username: nextUsername,
+              usernameUpdatedCount: data.username_updated_count || 0,
               card: mapped,
               favoriteSportKeys: favoriteKeys || [],
               tryingSportKeys: tryingKeys || [],
@@ -413,7 +417,8 @@ export function ProfilePage() {
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
     let nextValue = rawKey ?? value
     if (field === 'vibe') {
-      nextValue = rawKey || vibeUnionToKey.get(value as MateCardProps['vibe']) || value
+      const vibe = value as NonNullable<MateCardProps['vibe']>
+      nextValue = rawKey || (vibe ? vibeUnionToKey.get(vibe) : undefined) || value
     }
     setActiveField(field)
     setFieldValue(nextValue)
@@ -485,7 +490,7 @@ export function ProfilePage() {
         .map((label) => keyForLabel(label))
 
       await onboardingService.saveProfile({
-        username: draftUsername || draftProfile.name,
+        username: draftUsername,
         display_name: draftProfile.name,
         bio: draftProfile.blurb,
         vibe_key:
@@ -502,12 +507,13 @@ export function ProfilePage() {
         sports: draftProfile.sports.filter(Boolean),
         trying: draftProfile.trying.filter(Boolean),
       }
-      setVm((prev) => ({
-        username: draftUsername || prev?.username || '',
+      setVm((prev) => (prev ? {
+        username: draftUsername || prev.username,
+        usernameUpdatedCount: prev.usernameUpdatedCount, // Preserve or logic if it should be updated
         card: updated,
         favoriteSportKeys: favoriteKeys,
         tryingSportKeys: tryingKeys,
-      }))
+      } : null))
       setDraftProfile(updated)
       setProfileCache(updated)
       setShowEditSheet(false)
@@ -523,9 +529,7 @@ export function ProfilePage() {
   if (!isAuthenticated) return null
 
   const isOnboardingIncomplete = isAuthenticated && !(onboardingStatus?.isComplete ?? false)
-  const showOnboardingIntro =
-    (isOnboardingIncomplete || profileNotFound) && isProfileLoaded && !resolvedProfile
-  if (isOnboardingIncomplete && !isProfileLoaded) return null
+  const showOnboardingIntro = false
 
   const displayProfile = resolvedProfile
   const displayGoal = goal
@@ -535,38 +539,25 @@ export function ProfilePage() {
   const completion =
     sessionsTarget > 0 ? Math.min(100, Math.round((sessionsCompleted / sessionsTarget) * 100)) : 0
 
-  const pageContent = showOnboardingIntro ? (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
-      <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-end bg-white px-4">
-          <Link
-            to="/settings"
-            aria-label="Menu"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
-          >
-            <Menu className="h-6 w-6" />
-          </Link>
-        </div>
-      </div>
-      <ProfileOnboardingIntro onStart={() => navigate('/onboarding')} />
-    </div>
-  ) : (
+  const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-between bg-white px-4 py-2">
+        <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
             {username && <span className="text-2xl font-bold text-slate-900">{username}</span>}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Add game"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-              onClick={() => navigate('/create-event')}
-            >
-              <PlusSquare className="h-6 w-6" />
-            </button>
+            {!profileNotFound && (
+              <button
+                type="button"
+                aria-label="Add game"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+                onClick={() => navigate('/create-event')}
+              >
+                <PlusSquare className="h-6 w-6" />
+              </button>
+            )}
             <Link
               to="/settings"
               aria-label="Menu"
@@ -581,6 +572,8 @@ export function ProfilePage() {
           profile={resolvedProfile}
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
+          actionLabel={profileNotFound ? '建立運動卡' : '編輯運動卡'}
+          actionClassName={profileNotFound ? 'animate-pulse !bg-blue-600 !text-white' : ''}
         />
         <div className="mt-4 space-y-4 px-3">
           {/* <ProfileContent
@@ -679,7 +672,8 @@ export function ProfilePage() {
                   valueKey: draftProfile.gender || '',
                 },
               ].map((row) => {
-                const isReadOnly = row.key === 'username'
+                const isUsernameField = row.key === 'username'
+                const isReadOnly = isUsernameField && (vm?.usernameUpdatedCount ?? 0) >= 1
                 const Component = isReadOnly ? 'div' : 'button'
                 return (
                   <Component
@@ -871,6 +865,7 @@ export function ProfilePage() {
                         }
                       >
                         <p className="text-lg font-bold">{v.label}</p>
+                        {v.subtitle && <p className="mt-1 text-sm opacity-80">{v.subtitle}</p>}
                       </button>
                     )
                   })}

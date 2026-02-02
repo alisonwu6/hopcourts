@@ -153,11 +153,7 @@ function AuthenticatedApp() {
     <Routes>
       <Route
         path="/"
-        element={
-          <AppChrome showHeader={false}>
-            <HomePage />
-          </AppChrome>
-        }
+        element={<Navigate to="/profile" replace />}
       />
       <Route
         path="/events"

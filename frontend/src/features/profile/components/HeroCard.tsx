@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { MateCard, type MateCardProps } from '@/features/mates/components/MateCard'
 
 type Props = {
@@ -6,6 +7,7 @@ type Props = {
   avatarFallback?: string
   actionLabel?: string
   actionDisabled?: boolean
+  actionClassName?: string
   showShare?: boolean
   onShare?: () => void
 }
@@ -16,6 +18,7 @@ export function HeroCard({
   avatarFallback = '',
   actionLabel = '編輯運動卡',
   actionDisabled = false,
+  actionClassName,
   showShare = true,
   onShare,
 }: Props) {
@@ -24,7 +27,7 @@ export function HeroCard({
     username: '',
     location: '',
     flag: '',
-    vibe: '',
+    vibe: null,
     vibeLabel: '',
     sports: [],
     trying: [],
@@ -43,7 +46,10 @@ export function HeroCard({
           type="button"
           onClick={onEdit}
           disabled={actionDisabled}
-          className="w-40 rounded-lg bg-slate-100 px-4 py-1 text-sm font-semibold text-slate-600 disabled:opacity-60"
+          className={clsx(
+            'w-40 rounded-lg bg-slate-100 px-4 py-1 text-sm font-semibold text-slate-600 disabled:opacity-60',
+            actionClassName
+          )}
         >
           {actionLabel}
         </button>

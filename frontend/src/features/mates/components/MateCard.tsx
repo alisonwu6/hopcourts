@@ -18,6 +18,7 @@ export type MateCardProps = {
   countryKey?: string
   vibe: Vibe | null
   vibeKey?: string | null
+  vibeLabel?: string
   sports: string[]
   trying: string[]
   location: string
@@ -68,14 +69,22 @@ export function MateCard({
         <div className="flex flex-1 items-start justify-between gap-3">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900">{name}</span>
+              {name ? (
+                <span className="text-sm font-semibold text-slate-900">{name}</span>
+              ) : (
+                <div className="h-5 w-32 animate-pulse rounded-md bg-slate-100/50" />
+              )}
               <span className="text-sm" aria-hidden="true">
                 {flag}
               </span>
             </div>
             <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
               <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <span className="truncate">{location}</span>
+              {location ? (
+                <span className="truncate">{location}</span>
+              ) : (
+                <div className="h-4 w-24 animate-pulse rounded-md bg-slate-100/50" />
+              )}
             </div>
           </div>
           <span
@@ -85,7 +94,9 @@ export function MateCard({
               color: vibeColors.text,
             }}
           >
-            {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
+            {vibeList.find((item) => item.id === vibe)?.title ?? (
+              vibe || <div className="h-4 w-12 animate-pulse rounded-md bg-white/30" />
+            )}
           </span>
         </div>
       </div>
@@ -94,35 +105,43 @@ export function MateCard({
         <div>
           <span className="uppercase tracking-wide text-slate-500">我的最愛：</span>
           <div className="mt-1 flex flex-wrap gap-2">
-            {sports.map((sport) => (
-              <span
-                key={sport}
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-                style={{
-                  background: withAlpha(vibeColors.ring, 0.7),
-                  color: vibeColors.text,
-                }}
-              >
-                {sport}
-              </span>
-            ))}
+            {sports.length > 0 ? (
+              sports.map((sport) => (
+                <span
+                  key={sport}
+                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                  style={{
+                    background: withAlpha(vibeColors.ring, 0.7),
+                    color: vibeColors.text,
+                  }}
+                >
+                  {sport}
+                </span>
+              ))
+            ) : (
+              <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+            )}
           </div>
         </div>
         <div>
           <span className="uppercase tracking-wide text-slate-500">想嘗試：</span>
           <div className="mt-1 flex flex-wrap gap-2">
-            {trying.map((item) => (
-              <span
-                key={item}
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-                style={{
-                  background: withAlpha(vibeColors.ring, 0.7),
-                  color: vibeColors.text,
-                }}
-              >
-                {item}
-              </span>
-            ))}
+            {trying.length > 0 ? (
+              trying.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                  style={{
+                    background: withAlpha(vibeColors.ring, 0.7),
+                    color: vibeColors.text,
+                  }}
+                >
+                  {item}
+                </span>
+              ))
+            ) : (
+              <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+            )}
           </div>
         </div>
 

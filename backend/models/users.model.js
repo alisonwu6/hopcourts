@@ -2,7 +2,7 @@ const { query } = require('../db/client')
 
 async function getUserById(id) {
   const { rows } = await query(
-    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at
+    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at, username_updated_count
      from public.users where id = $1`,
     [id]
   )
@@ -11,7 +11,7 @@ async function getUserById(id) {
 
 async function getUserByUsername(username) {
   const { rows } = await query(
-    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at
+    `select id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at, username_updated_count
      from public.users where username = $1`,
     [username]
   )
@@ -21,12 +21,12 @@ async function getUserByUsername(username) {
 async function upsertUser(user) {
   const sql = `
     insert into public.users (
-      id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url
+      id, username, display_name, legal_name, country_key, city_key, age_range_key, gender, vibe_key, bio, avatar_url, username_updated_count
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, $12
     )
     on conflict (id) do update set
-      username = excluded.username,
+      username = coalesce(excluded.username, users.username),
       display_name = excluded.display_name,
       legal_name = excluded.legal_name,
       country_key = excluded.country_key,
@@ -35,12 +35,17 @@ async function upsertUser(user) {
       gender = excluded.gender,
       vibe_key = excluded.vibe_key,
       bio = excluded.bio,
-      avatar_url = excluded.avatar_url
+      avatar_url = excluded.avatar_url,
+      username_updated_count = case 
+        when excluded.username is not null and (users.username is null or excluded.username <> users.username) 
+        then users.username_updated_count + 1 
+        else users.username_updated_count 
+      end
     returning *
   `
   const params = [
     user.id,
-    user.username,
+    user.username || null,
     user.display_name,
     user.legal_name ?? null,
     user.country_key ?? null,
@@ -50,6 +55,7 @@ async function upsertUser(user) {
     user.vibe_key ?? null,
     user.bio ?? null,
     user.avatar_url ?? null,
+    user.username_updated_count || 0
   ]
   const { rows } = await query(sql, params)
   return rows[0]

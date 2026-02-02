@@ -424,7 +424,9 @@ export function OnboardingPage() {
           setCountry(user.country_key || '')
           setCity(user.city_key || '')
           setBio(user.bio || '')
-          setUsername(user.username || '')
+          const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+          const fetchedUsername = user.username || ''
+          setUsername(isUuid(fetchedUsername) ? '' : fetchedUsername)
           setRealName(user.legal_name || '')
           setDisplayName(user.display_name || '')
           setAgeRange(user.age_range_key || '')

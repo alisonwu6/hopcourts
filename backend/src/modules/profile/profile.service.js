@@ -33,10 +33,21 @@ async function getProfileByUsername(username) {
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
+
+  // Enforce single username update rule
+  if (body.username && current.username && body.username !== current.username) {
+    if (current.username_updated_count >= 1) {
+      throw Errors.badRequest('使用者名稱只能修改一次')
+    }
+  }
+
   const user = await usersModel.upsertUser({
     id: userId,
-    username: body.username || current.username || userId,
-    display_name: body.display_name || current.display_name || body.username || current.username || 'user',
+    username: body.username || current.username || null,
+    display_name:
+      body.display_name ||
+      current.display_name ||
+      '新夥伴',
     legal_name: body.legal_name ?? current.legal_name ?? null,
     country_key: body.country_key ?? current.country_key ?? null,
     city_key: body.city_key ?? current.city_key ?? null,
