@@ -17,7 +17,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
 import { profileService } from '@/features/profile/profile.service'
 import { useSports } from '@/features/dictionaries/hooks'
-import { useCountries, useCities, useVibes, useAgeRanges } from '@/features/dictionaries/hooks'
+import { useCities, useVibes, useAgeRanges } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { ProfileContent } from '@/features/profile/components/ProfileContent'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
@@ -163,7 +163,6 @@ export function ProfilePage() {
     return map
   }, [vibesCatalog])
 
-  const labelForCountry = (key?: string) => key || ''
 
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))

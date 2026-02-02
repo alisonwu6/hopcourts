@@ -113,7 +113,6 @@ export function MateProfilePage() {
         setProfileData({
           name: data.name || user.display_name || user.username || mate?.name || username,
           username: data.username || user.username || mate?.name || username,
-          flag: data.flag || mate?.flag || '',
           vibe:
             vibeKeyToUnion(data.vibe) ||
             vibeKeyToUnion(user.vibe_key) ||
@@ -138,7 +137,6 @@ export function MateProfilePage() {
           setProfileData({
             name: mate.name || username || 'Mate',
             username: mate.name || username || 'Mate',
-            flag: mate.flag || '🏴',
             vibe: (mate.vibe as MateCardProps['vibe']) || 'Chill',
             vibeLabel: labelForVibe(mate.vibe as string),
             sports: asStringArray(mate.sports) || [],
@@ -159,7 +157,6 @@ export function MateProfilePage() {
       setProfileData({
         name: mate.name || username || 'Mate',
         username: mate.name || username || 'Mate',
-        flag: mate.flag || '🏴',
         vibe: (mate.vibe as MateCardProps['vibe']) || 'Chill',
         vibeLabel: labelForVibe(mate.vibe as string),
         sports: asStringArray(mate.sports) || [],
@@ -180,7 +177,6 @@ export function MateProfilePage() {
       ({
         name: mate?.name ?? username ?? 'New mate',
         username: mate?.name ?? username ?? 'New mate',
-        flag: mate?.flag ?? '🏴',
         vibe: (mate?.vibe as MateCardProps['vibe']) ?? 'Chill',
         sports: asStringArray(mate?.sports) ?? [],
         trying: asStringArray(mate?.trying) ?? [],
