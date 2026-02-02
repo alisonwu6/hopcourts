@@ -21,4 +21,8 @@ export const profileService = {
   async getStats() {
     return api.me.stats()
   },
+
+  async getProfileByUsername(username: string) {
+    return api.profiles.getByUsername(username)
+  },
 }

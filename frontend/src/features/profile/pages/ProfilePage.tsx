@@ -17,9 +17,8 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { useAuthStore } from '@/hooks'
 import { profileService } from '@/features/profile/profile.service'
 import { useSports } from '@/features/dictionaries/hooks'
-import { useCities, useVibes, useAgeRanges } from '@/features/dictionaries/hooks'
+import { useCities, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
-import { ProfileContent } from '@/features/profile/components/ProfileContent'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
@@ -96,8 +95,9 @@ export function ProfilePage() {
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
+  const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender' | 'ageRange'
+    null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
@@ -105,8 +105,6 @@ export function ProfilePage() {
   const { items: sportsCatalog, isLoading: isSportsLoading } = useSports('zh')
   const { items: vibesCatalog, isLoading: isVibesLoading } = useVibes('zh')
   const { items: citiesCatalog, isLoading: isCitiesLoading } = useCities(undefined, 'zh')
-  const { items: ageRangesCatalog, isLoading: isAgeRangesLoading } = useAgeRanges('zh')
-  const isEventsLoading = useEventsStore((state) => state.isLoading)
   const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const navigate = useNavigate()
   const labelForSport = useMemo(() => {
@@ -171,10 +169,6 @@ export function ProfilePage() {
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
 
-  const labelForAgeRange = useMemo(() => {
-    const map = new Map(ageRangesCatalog.map((r) => [r.key, r.label]))
-    return (key?: string) => (key ? map.get(key) || key : '')
-  }, [ageRangesCatalog])
 
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
@@ -241,7 +235,6 @@ export function ProfilePage() {
     usernameFromUser ||
     draftUsername ||
     (resolvedProfile as any)?.username ||
-    (resolvedProfile as any)?.name ||
     ''
 
   const loadProfileData = useCallback(async () => {
@@ -416,6 +409,18 @@ export function ProfilePage() {
         payload.display_name = value
         break
       case 'username':
+        if (!value) {
+           setFieldError('請輸入使用者名稱')
+           return
+        }
+        if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
+           setFieldError('帳號只能包含英文、數字、底線與句號')
+           return
+        }
+        if (value.length < 3 || value.length > 20) {
+           setFieldError('帳號長度需介於 3 至 20 個字')
+           return
+        }
         setDraftUsername(value)
         payload.username = value
         break
@@ -437,10 +442,6 @@ export function ProfilePage() {
         next.gender = value
         payload.gender = value
         break
-      case 'ageRange':
-        next.ageRangeKey = value
-        payload.age_range_key = value
-        break
       default:
         break
     }
@@ -449,14 +450,34 @@ export function ProfilePage() {
     // Only patch immediately if profile exists. 
     // New users (vm=null) will save all at once via handleSaveProfile.
     if (!vm) {
+      if (activeField === 'username' && fieldValue) {
+        try {
+          // Check availability (returns 200 if taken, 404 if available)
+          await profileService.getProfileByUsername(fieldValue)
+          setFieldError('使用者名稱已存在，請選擇其他名稱')
+          return // Keep sheet open
+        } catch (err: any) {
+          const status = err?.status || err?.response?.status
+          if (status !== 404) {
+             console.error('Failed to validate username', err)
+          }
+        }
+      }
+      setFieldError(null)
       setActiveField(null)
       return
     }
 
     try {
       await profileService.saveProfile(payload)
-    } catch (err) {
-      console.error('Failed to patch profile field', err)
+    } catch (err: any) {
+      const status = err?.status || err?.response?.status
+      if (status === 409) {
+        alert('使用者名稱已存在，請選擇其他名稱')
+        // Revert username if needed, but for now just alert allows user to fix
+      } else {
+        console.error('Failed to patch profile field', err)
+      }
     } finally {
       setActiveField(null)
     }
@@ -466,50 +487,102 @@ export function ProfilePage() {
     if (isSavingProfile) return
     setIsSavingProfile(true)
     try {
-      const favoriteKeys = (draftProfile.sports || [])
-        .filter(Boolean)
-        .map((label) => keyForLabel(label))
-      const tryingKeys = (draftProfile.trying || [])
-        .filter(Boolean)
-        .map((label) => keyForLabel(label))
+      const favoriteKeys = Array.from(new Set(
+        (draftProfile.sports || [])
+          .filter(Boolean)
+          .map((label) => keyForLabel(label))
+      ))
+      const tryingKeys = Array.from(new Set(
+        (draftProfile.trying || [])
+          .filter(Boolean)
+          .map((label) => keyForLabel(label))
+      ))
 
-      const payload: any = {
-        display_name: draftProfile.name,
-        bio: draftProfile.blurb,
-        vibe_key:
-          (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined,
-        favorite_sports: favoriteKeys,
-        trying_sports: tryingKeys,
-        city_key: draftProfile.cityKey || undefined,
-        avatar_url: draftProfile.avatar || undefined,
-        gender: draftProfile.gender || undefined,
-        age_range_key: draftProfile.ageRangeKey || undefined,
+      // If creating new profile (vm null), send EVERYTHING.
+      // If updating existing (vm exists), only send fields that aren't auto-saved (Sports, Avatar).
+      // Note: Other fields (Name, Bio, etc.) are saved immediately in handleSaveField.
+      
+      let payload: any = {}
+      
+      if (!vm) {
+        // Validate required fields for new user creation
+        const { name, cityKey, vibe, gender } = draftProfile
+        const hasVibe = vibe || (draftProfile as any).vibeKey
+        const hasSports = favoriteKeys.length > 0
+        
+        if (!name || !draftUsername || !cityKey || !hasVibe || !gender || !hasSports) {
+          alert('請填寫完整個人資料')
+          setIsSavingProfile(false)
+          return
+        }
+
+        // Full create payload
+        payload = {
+          display_name: draftProfile.name,
+          bio: draftProfile.blurb,
+          vibe_key:
+            (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined,
+          city_key: draftProfile.cityKey || undefined,
+          gender: draftProfile.gender || undefined,
+          age_range_key: draftProfile.ageRangeKey || undefined,
+          favorite_sports: favoriteKeys,
+          trying_sports: tryingKeys,
+          avatar_url: draftProfile.avatar || undefined,
+        }
+        if (draftUsername && !isUuid(draftUsername)) {
+          payload.username = draftUsername
+        }
+      } else {
+        // Update payload: only Sports and Avatar (and sync any potentially desynced fields if we want to be safe, but user asked for minimal)
+        // Let's just send Sports and Avatar as they are the ones not immediately calling saveProfile() in their handlers.
+        payload = {
+          favorite_sports: favoriteKeys,
+          trying_sports: tryingKeys,
+          avatar_url: draftProfile.avatar || undefined,
+          // We can optionally include others if we suspect drift, but per request, minimize.
+        }
       }
 
-      if (draftUsername && !isUuid(draftUsername)) {
-        payload.username = draftUsername
-      }
-
-      await profileService.saveProfile(payload)
+      const res = await profileService.saveProfile(payload)
+      const responseData = (res as any).data || res
+      const savedUser = responseData.user || responseData
+      
+      // If we got a valid updated count from backend, use it. Otherwise estimate.
+      const newCount = typeof savedUser?.username_updated_count === 'number' 
+        ? savedUser.username_updated_count 
+        : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
 
       const updated = {
         ...draftProfile,
         sports: draftProfile.sports.filter(Boolean),
         trying: draftProfile.trying.filter(Boolean),
       }
-      setVm((prev) => (prev ? {
-        username: draftUsername || prev.username,
-        usernameUpdatedCount: prev.usernameUpdatedCount, // Preserve or logic if it should be updated
+      setVm({
+        username: draftUsername || vm?.username || '',
+        usernameUpdatedCount: newCount,
         card: updated,
         favoriteSportKeys: favoriteKeys,
         tryingSportKeys: tryingKeys,
-      } : null))
+      })
       setProfileCache(updated)
       setShowEditSheet(false)
       loadProfileData()
-    } catch (err) {
+    } catch (err: any) {
       // keep sheet open for retry
       console.error('Failed to save profile', err)
+      const status = err?.status || err?.response?.status
+      const errorData = err?.response?.data?.error || {}
+      const constraint = errorData.details?.constraint || ''
+      
+      if (status === 409) {
+        if (constraint.includes('username')) {
+           alert('使用者名稱已存在，請選擇其他名稱')
+        } else {
+           alert('儲存失敗：資料衝突，請檢查輸入內容')
+        }
+      } else {
+        alert('儲存失敗，請稍後再試')
+      }
     } finally {
       setIsSavingProfile(false)
     }
@@ -518,8 +591,7 @@ export function ProfilePage() {
   const isCriticalDataLoading = 
     isSportsLoading || 
     isVibesLoading || 
-    isCitiesLoading || 
-    isAgeRangesLoading
+    isCitiesLoading
 
   if (isLoading || !isProfileLoaded || isCriticalDataLoading) {
     return <PageLoading />
@@ -527,13 +599,6 @@ export function ProfilePage() {
   if (!isAuthenticated) return null
 
 
-  const displayProfile = resolvedProfile
-  const displayGoal = goal
-  const allowGoalEdit = true
-  const sessionsCompleted = Math.max(0, Number((stats as any)?.sessions_completed ?? 0))
-  const sessionsTarget = Math.max(0, Number(displayGoal?.sessionsPerWeek ?? 0))
-  const completion =
-    sessionsTarget > 0 ? Math.min(100, Math.round((sessionsCompleted / sessionsTarget) * 100)) : 0
 
   const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
@@ -553,7 +618,15 @@ export function ProfilePage() {
               aria-label="Add game"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
               onClick={() => {
-                if (!vm?.card.name) {
+                const isProfileComplete = 
+                  vm?.card.name && 
+                  vm?.username && 
+                  vm?.card.cityKey && 
+                  (vm?.card.vibe || vm?.card.vibeKey) && 
+                  vm?.card.gender && 
+                  (vm?.card.sports && vm.card.sports.length > 0)
+
+                if (!isProfileComplete) {
                   setShowProfileRequiredSheet(true)
                 } else {
                   navigate('/create-event')
@@ -584,14 +657,6 @@ export function ProfilePage() {
           actionClassName=""
         />
         <div className="mt-4 space-y-4 px-3">
-          {/* <ProfileContent
-            goal={displayGoal}
-            goalDaySlots={goalDaySlots}
-            completion={completion}
-            sessionsCompleted={sessionsCompleted}
-            onOpenGoalSheet={handleOpenGoal}
-            showEdit={allowGoalEdit}
-          /> */}
           <MySessions />
         </div>
       </div>
@@ -705,7 +770,7 @@ export function ProfilePage() {
                 },
               ].map((row) => {
                 const isUsernameField = row.key === 'username'
-                const isReadOnly = isUsernameField && (vm?.usernameUpdatedCount ?? 0) >= 1
+                const isReadOnly = isUsernameField && !!vm?.username
                 const Component = isReadOnly ? 'div' : 'button'
                 return (
                   <Component
@@ -825,7 +890,6 @@ export function ProfilePage() {
             vibe: '運動氛圍',
             bio: '自我介紹',
             gender: '性別',
-            ageRange: '年齡區間',
           }
           const subtitleMap: Record<string, string> = {
             name: '請輸入卡片上要顯示的名稱。',
@@ -834,7 +898,6 @@ export function ProfilePage() {
             vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
             bio: '和大家分享你的運動的動態與目標吧！',
             gender: '讓我們更了解你，提供更合適的活動推薦。',
-            ageRange: '選擇你的年齡區間。',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -932,7 +995,6 @@ export function ProfilePage() {
                   {[
                     { key: 'male', label: '男生' },
                     { key: 'female', label: '女生' },
-                    { key: 'other', label: '其他' },
                   ].map((g) => (
                     <button
                       key={g.key}
@@ -949,32 +1011,27 @@ export function ProfilePage() {
                     </button>
                   ))}
                 </div>
-              ) : activeField === 'ageRange' ? (
-                <div className="flex flex-col gap-3">
-                  {ageRangesCatalog.map((r) => (
-                    <button
-                      key={r.key}
-                      type="button"
-                      onClick={() => setFieldValue(r.key)}
-                      className={clsx(
-                        'flex items-center justify-between rounded-2xl border px-4 py-4 text-left font-semibold shadow-sm transition',
-                        fieldValue === r.key
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-slate-200 bg-white text-slate-800'
-                      )}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
               ) : (
-                <input
-                  type="text"
-                  value={fieldValue}
-                  onChange={(e) => setFieldValue(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                  placeholder="請輸入"
-                />
+                <div className="w-full">
+                  <input
+                    type="text"
+                    value={fieldValue}
+                    onChange={(e) => {
+                      setFieldValue(e.target.value)
+                      setFieldError(null)
+                    }}
+                    className={clsx(
+                      "w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none",
+                      fieldError 
+                        ? "border-red-500 focus:border-red-500" 
+                        : "border-slate-200 focus:border-blue-500"
+                    )}
+                    placeholder="請輸入"
+                  />
+                  {fieldError && (
+                    <p className="mt-2 text-sm text-red-500">{fieldError}</p>
+                  )}
+                </div>
               )}
             </SheetLayout>
           )
