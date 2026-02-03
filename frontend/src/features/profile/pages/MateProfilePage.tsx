@@ -1,9 +1,9 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Frown } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
-import { ProfileContent } from '@/features/profile/components/ProfileContent'
+
 import { api } from '@/api/client'
 import type { ApiResponse } from '@/api/types'
 import { useVibes, useSports, useCities } from '@/features/dictionaries/hooks'
@@ -16,11 +16,7 @@ export function MateProfilePage() {
   const { items: sportsDict } = useSports('zh')
   const { items: vibesCatalog } = useVibes('zh')
   const { items: citiesDict } = useCities(undefined, 'zh')
-  const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-  const goalDaySlots = daysList.reduce<Record<string, string[]>>((acc, day) => {
-    acc[day] = []
-    return acc
-  }, {})
+
 
   const asStringArray = (items?: any[]) =>
     Array.isArray(items)
@@ -107,32 +103,38 @@ export function MateProfilePage() {
       try {
         const res = (await api.profiles.getByUsername(username)) as ApiResponse<any>
         const data = res?.data ?? {}
-        const user = data.user || {}
-        const sportsResp = Array.isArray(data.sports) ? data.sports : []
+        const user = data.user || data // Handle both nested and flat structures
+        const sportsResp = Array.isArray(data.sports) ? data.sports : (Array.isArray(user.sports) ? user.sports : [])
         const { favorites, trying } = normalizeSports(sportsResp)
+        
+        const vibeKey = user.vibe_key || user.vibe || data.vibe || mate?.vibe
+        const unionVibe = vibeKeyToUnion(vibeKey)
+
         setProfileData({
-          name: data.name || user.display_name || user.username || mate?.name || username,
-          username: data.username || user.username || mate?.name || username,
-          vibe:
-            vibeKeyToUnion(data.vibe) ||
-            vibeKeyToUnion(user.vibe_key) ||
-            (mate?.vibe as MateCardProps['vibe']),
-          vibeLabel: labelForVibe(
-            (data.vibe as string) || (user.vibe_key as string) || (mate?.vibe as string) || ''
-          ),
-          sports: favorites.length ? favorites : asStringArray(data.sports) || [],
-          trying: trying.length ? trying : asStringArray(data.trying) || [],
-          location: data.location || user.city_key || mate?.location || '',
-          blurb: data.blurb || user.bio || mate?.blurb || '',
+          name: user.display_name || user.username || mate?.name || username,
+          username: user.username || mate?.name || username,
+          vibe: unionVibe || (mate?.vibe as MateCardProps['vibe']),
+          vibeLabel: labelForVibe(vibeKey) || labelForVibe(mate?.vibe as string) || '',
+          sports: favorites.length ? favorites : asStringArray(mate?.sports) || [],
+          trying: trying.length ? trying : asStringArray(mate?.trying) || [],
+          location: user.city_key || user.location || data.location || mate?.location || '',
+          blurb: user.bio || user.blurb || data.blurb || mate?.blurb || '',
+          friendCount: user.friend_count || user.mates_count || 0,
           avatar:
-            data.avatar ||
             user.avatar_url ||
+            user.avatar ||
+            data.avatar ||
             mate?.avatar ||
-            'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+            '',
         })
-      } catch (err) {
+      } catch (err: any) {
         console.error('load mate failed', err)
-        setError('無法載入運動卡')
+        const status = err?.status || err?.response?.status
+        if (status === 404) {
+          setError(`找不到 ${username} 夥伴！請確認夥伴使用者帳號`)
+        } else {
+          setError('無法載入運動卡')
+        }
         if (mate) {
           setProfileData({
             name: mate.name || username || 'Mate',
@@ -145,7 +147,7 @@ export function MateProfilePage() {
             blurb: mate.blurb || '',
             avatar:
               mate.avatar ||
-              'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+              '',
           })
         }
       } finally {
@@ -165,7 +167,7 @@ export function MateProfilePage() {
         blurb: mate.blurb || '',
         avatar:
           mate.avatar ||
-          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+          '',
       })
     }
     fetchProfile()
@@ -182,9 +184,10 @@ export function MateProfilePage() {
         trying: asStringArray(mate?.trying) ?? [],
         location: mate?.location ?? '台北',
         blurb: mate?.blurb ?? '',
+        friendCount: 0,
         avatar:
           mate?.avatar ??
-          'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=320&q=80',
+          '',
       } as MateCardProps)
 
     const vibeUnion = vibeKeyToUnion(base.vibe as unknown as string) as MateCardProps['vibe']
@@ -220,8 +223,12 @@ export function MateProfilePage() {
         </div>
 
         {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-600 shadow-sm">
-            {error}
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="mb-4 rounded-full bg-slate-100 p-4">
+              <Frown className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold text-slate-900">找不到夥伴</h3>
+            <p className="max-w-xs text-sm text-slate-500">{error}</p>
           </div>
         ) : (
           <HeroCard
@@ -235,14 +242,7 @@ export function MateProfilePage() {
           />
         )}
 
-        <div className="mt-4">
-          <ProfileContent
-            goal={{ sessionsPerWeek: '2', timeOfDay: 'Evenings', days: ['Mon', 'Wed'] }}
-            goalDaySlots={goalDaySlots}
-            onOpenGoalSheet={() => {}}
-            showEdit={false}
-          />
-        </div>
+
       </div>
     </div>
   )

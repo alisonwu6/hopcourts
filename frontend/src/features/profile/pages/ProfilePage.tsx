@@ -462,7 +462,10 @@ export function ProfilePage() {
     if (!activeField) return
     const value = fieldValue.trim()
     const next = { ...draftProfile }
-    const payload: Record<string, any> = {}
+    const payload: Record<string, any> = {
+      avatar_url: next.avatar,
+    }
+
     switch (activeField) {
       case 'name':
         next.name = value

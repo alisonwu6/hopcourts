@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { MapPin } from 'lucide-react'
+import { MapPin, Smile } from 'lucide-react'
 import { vibeTokens, vibeList, type Vibe } from '@/constants/vibeTokens'
 
 const withAlpha = (hex: string, alpha: number) => {
@@ -57,13 +57,17 @@ export function MateCard({
       )}
     >
       <div className="flex items-stretch gap-3">
-        <div className="h-26 w-26 mb-2 flex-shrink-0 overflow-hidden rounded-full bg-white">
-          <img
-            src={avatar}
-            alt={`${name} avatar`}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
+        <div className="h-26 w-26 mb-2 flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+          {avatar ? (
+            <img
+              src={avatar}
+              alt={`${name} avatar`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <Smile className="h-12 w-12 text-slate-300" />
+          )}
         </div>
         <div className="flex flex-1 justify-between gap-3">
           <div className="flex flex-col">
@@ -76,6 +80,14 @@ export function MateCard({
                 <span className="truncate">{location}</span>
               </div>
             )}
+            <div className="mt-3 border-t border-slate-300/50 pt-2">
+              <span className="mb-0.5 block text-[10px] font-medium text-slate-500">夥伴</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
+                <span className="text-[10px] font-medium text-slate-600">位</span>
+              </div>
+            </div>
+
           </div>
           <div className="flex flex-col items-end justify-between gap-2">
             {vibe && (
@@ -89,10 +101,6 @@ export function MateCard({
                 {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
               </span>
             )}
-            <div className="flex flex-col items-center">
-              <span className="text-lg font-bold leading-tight text-slate-900">{friendCount}</span>
-              <span className="text-[10px] text-slate-500">位夥伴</span>
-            </div>
           </div>
         </div>
       </div>
