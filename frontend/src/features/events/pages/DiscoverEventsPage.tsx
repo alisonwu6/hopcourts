@@ -311,8 +311,8 @@ export function DiscoverEventsPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900">目前附近沒看到活動呢</h3>
               <p className="mt-2 text-sm text-slate-500">
-                別灰心！第一個發起活動，<br />
-                讓想運動的夥伴們找到你吧！
+                嘿！發佈一個活動，<br />
+                讓有相同運動興趣的夥伴們找到你吧！
               </p>
               <button
                 type="button"

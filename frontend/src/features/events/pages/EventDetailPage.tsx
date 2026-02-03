@@ -664,7 +664,7 @@ function ImageCarousel({ images }: { images: string[] }) {
   }
 
   return (
-    <div className="relative h-[230px] w-full">
+    <div className="relative h-[320px] w-full">
       <div
         ref={containerRef}
         className="flex h-full w-full snap-x snap-mandatory overflow-x-auto [&::-webkit-scrollbar]:hidden"
@@ -675,17 +675,10 @@ function ImageCarousel({ images }: { images: string[] }) {
             key={idx}
             className="relative h-full min-w-full snap-center overflow-hidden bg-slate-100"
           >
-            {/* Blurred Background Layer (Atmosphere) */}
-            <div
-              className="absolute inset-0 bg-cover bg-center blur-xl opacity-60 scale-110"
-              style={{ backgroundImage: `url(${src})` }}
-            />
-            
-            {/* Main Image Layer (Content) */}
             <img
               src={src}
               alt={`Event photo ${idx + 1}`}
-              className="relative h-full w-full object-contain object-center z-10"
+              className="h-full w-full object-cover object-center"
             />
           </div>
         ))}
