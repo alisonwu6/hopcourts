@@ -309,7 +309,7 @@ export function DiscoverEventsPage() {
               <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
                 <span className="text-5xl">😮</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900">目前附近沒看到活動呢</h3>
+              <h3 className="text-xl font-bold text-slate-900">Opps! 沒有活動？</h3>
               <p className="mt-2 text-sm text-slate-500">
                 先開始先享受運動的樂趣。<br />
                 快來發佈一個活動，<br />

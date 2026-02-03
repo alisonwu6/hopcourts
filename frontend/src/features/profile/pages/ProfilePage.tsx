@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { Menu, PlusSquare, Lock } from 'lucide-react'
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { Menu, PlusSquare, Lock, Copy, MessageCircle } from 'lucide-react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 type ProfileVM = {
@@ -14,6 +14,7 @@ type ProfileVM = {
 }
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
+import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { profileService } from '@/features/profile/profile.service'
 import { useSports } from '@/features/dictionaries/hooks'
@@ -52,7 +53,15 @@ const SAMPLE_AVATAR =
   'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
 
 export function ProfilePage() {
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean
+    title: string
+    description: React.ReactNode
+    type: 'success' | 'error' | 'info' | 'warning'
+  }>({ open: false, title: '', description: '', type: 'info' })
+
   const [showGoalSheet, setShowGoalSheet] = useState(false)
+  const [showShareSheet, setShowShareSheet] = useState(false)
   const [goal, setGoal] = useState<GoalState | null>(null)
   const [draftGoal, setDraftGoal] = useState<GoalState>({
     sessionsPerWeek: '',
@@ -383,6 +392,56 @@ export function ProfilePage() {
     }
   }
 
+  const handleShare = async () => {
+    const shareUsername = username || draftUsername
+    if (!shareUsername) return
+    
+    const url = `${window.location.origin}/mate/${shareUsername}`
+    const shareData = {
+      title: 'SportsMatch 運動卡',
+      text: `看看 ${draftProfile.name} 的運動檔案`,
+      url,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        setShowShareSheet(true)
+      }
+    } catch (err: any) {
+      console.error('Share failed', err)
+    }
+  }
+
+  const handleShareToLine = () => {
+    const shareUsername = username || draftUsername
+    const url = `${window.location.origin}/mate/${shareUsername}`
+    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`
+    setShowShareSheet(false)
+  }
+
+  const handleCopyLink = async () => {
+    const shareUsername = username || draftUsername
+    const url = `${window.location.origin}/mate/${shareUsername}`
+    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    
+    try {
+      await navigator.clipboard.writeText(text)
+      setAlertDialog({
+        open: true,
+        title: '已複製',
+        description: '連結與文字已複製到剪貼簿',
+        type: 'success'
+      })
+    } catch (err) {
+      window.prompt('請複製連結', text)
+    } finally {
+      setShowShareSheet(false)
+    }
+  }
+
   const handleOpenProfileEdit = () => {
     setDraftProfile(resolvedProfile ?? emptyProfile)
     setDraftUsername(vm?.username || '')
@@ -647,6 +706,7 @@ export function ProfilePage() {
         </div>
 
         <HeroCard
+          onShare={handleShare}
           profile={resolvedProfile ?? {
             ...emptyProfile,
             name: (user as any)?.name || '',
@@ -686,6 +746,41 @@ export function ProfilePage() {
         onClose={() => setShowProfileRequiredSheet(false)}
         onConfirm={() => setShowEditSheet(true)}
       />
+      
+      <AlertDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog((prev) => ({ ...prev, open: false }))}
+        title={alertDialog.title}
+        description={alertDialog.description}
+        type={alertDialog.type}
+      />
+
+      {/* Custom Share Sheet for non-native environments */}
+      <BottomSheet open={showShareSheet} onClose={() => setShowShareSheet(false)}>
+        <div className="px-4 pb-8 pt-4">
+          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">分享運動卡</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={handleShareToLine}
+              className="flex flex-col items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 py-4 active:bg-slate-100"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#06C755] text-white shadow-sm">
+                <MessageCircle className="h-6 w-6" />
+              </div>
+              <span className="text-sm font-medium text-slate-700">LINE</span>
+            </button>
+            <button
+              onClick={handleCopyLink}
+              className="flex flex-col items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 py-4 active:bg-slate-100"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-slate-600 shadow-sm">
+                <Copy className="h-6 w-6" />
+              </div>
+              <span className="text-sm font-medium text-slate-700">複製連結</span>
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         open={showEditSheet}

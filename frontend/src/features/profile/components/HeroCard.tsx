@@ -58,7 +58,7 @@ export function HeroCard({
             onClick={onShare}
             className="w-40 rounded-lg bg-slate-100 px-4 py-1 text-sm font-semibold text-slate-600"
           >
-            分享
+            分享運動卡
           </button>
         )}
       </div>

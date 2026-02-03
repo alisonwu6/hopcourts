@@ -26,6 +26,7 @@ export type MateCardProps = {
   accentClassName?: string
   gender?: string | null
   ageRangeKey?: string | null
+  friendCount?: number
 }
 
 export function MateCard({
@@ -39,6 +40,7 @@ export function MateCard({
   accentClassName,
   gender,
   ageRangeKey,
+  friendCount = 0,
 }: MateCardProps) {
   const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
     bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',
@@ -54,7 +56,7 @@ export function MateCard({
         accentClassName
       )}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-stretch gap-3">
         <div className="h-26 w-26 mb-2 flex-shrink-0 overflow-hidden rounded-full bg-white">
           <img
             src={avatar}
@@ -63,7 +65,7 @@ export function MateCard({
             loading="lazy"
           />
         </div>
-        <div className="flex flex-1 items-start justify-between gap-3">
+        <div className="flex flex-1 justify-between gap-3">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               {name && <span className="text-sm font-semibold text-slate-900">{name}</span>}
@@ -75,17 +77,23 @@ export function MateCard({
               </div>
             )}
           </div>
-          {vibe && (
-            <span
-              className="inline-flex items-center rounded-full px-3.5 py-1 text-xs font-semibold"
-              style={{
-                background: vibeColors.bg,
-                color: vibeColors.text,
-              }}
-            >
-              {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
-            </span>
-          )}
+          <div className="flex flex-col items-end justify-between gap-2">
+            {vibe && (
+              <span
+                className="inline-flex items-center rounded-full px-3.5 py-1 text-xs font-semibold"
+                style={{
+                  background: vibeColors.bg,
+                  color: vibeColors.text,
+                }}
+              >
+                {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
+              </span>
+            )}
+            <div className="flex flex-col items-center">
+              <span className="text-lg font-bold leading-tight text-slate-900">{friendCount}</span>
+              <span className="text-[10px] text-slate-500">位夥伴</span>
+            </div>
+          </div>
         </div>
       </div>
 
