@@ -23,6 +23,7 @@ import { AboutPage } from '@/features/profile/pages/AboutPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
+import { TeammatesPage } from '@/features/profile/pages/TeammatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
 import { AdminLoginPage } from '@/features/admin/pages/AdminLoginPage'
 import { AdminRouteGuard } from '@/features/admin/components/AdminRouteGuard'
@@ -58,7 +59,6 @@ export default function App() {
       <Route path="/auth/reset" element={<ResetPasswordPage />} />
       */}
       
-      <Route path="/profile/:username" element={<MateProfilePage />} />
       <Route path="/about" element={<AboutPage />} />
 
       {/* Admin / Governance (C0) */}
@@ -228,6 +228,16 @@ function AuthenticatedApp() {
           <RequireAuth>
             <AppChrome showHeader={false}>
               <ProfilePage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile/teammates"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <TeammatesPage />
             </AppChrome>
           </RequireAuth>
         }

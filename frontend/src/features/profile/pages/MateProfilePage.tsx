@@ -119,7 +119,7 @@ export function MateProfilePage() {
           trying: trying.length ? trying : asStringArray(mate?.trying) || [],
           location: user.city_key || user.location || data.location || mate?.location || '',
           blurb: user.bio || user.blurb || data.blurb || mate?.blurb || '',
-          friendCount: user.friend_count || user.mates_count || 0,
+          friendCount: user.teammate_count || user.friend_count || 0,
           avatar:
             user.avatar_url ||
             user.avatar ||
@@ -233,10 +233,6 @@ export function MateProfilePage() {
         ) : (
           <HeroCard
             profile={profile}
-            onEdit={() => {
-              // TODO: add follow action
-            }}
-            actionLabel="追蹤"
             showShare={false}
             actionDisabled={loading}
           />

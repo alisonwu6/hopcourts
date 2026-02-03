@@ -87,5 +87,6 @@ export const api = {
   profiles: {
     getByUsername: (username: string) =>
       httpGet<ApiResponse<any>>(`/profiles/${encodeURIComponent(username)}`, { auth: false }),
+    getTeammates: () => httpGet<ApiResponse<any[]>>('/me/teammates'),
   },
 }

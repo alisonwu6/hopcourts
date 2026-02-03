@@ -285,6 +285,7 @@ export function ProfilePage() {
             trying: (tryingKeys || []).map(labelForSport),
             blurb: data.bio || '',
             avatar: data.avatar_url || userAvatar || '',
+            friendCount: data.teammate_count || 0,
             gender: data.gender || null,
             ageRangeKey: data.age_range_key || null,
           }
@@ -719,6 +720,7 @@ export function ProfilePage() {
           avatarFallback={userAvatar || ''}
           actionLabel="編輯運動卡"
           actionClassName=""
+          onTeammatesClick={() => navigate('/profile/teammates')}
         />
         <div className="mt-4 space-y-4 px-3">
           <MySessions />

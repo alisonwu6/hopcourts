@@ -27,6 +27,7 @@ export type MateCardProps = {
   gender?: string | null
   ageRangeKey?: string | null
   friendCount?: number
+  onTeammatesClick?: () => void
 }
 
 export function MateCard({
@@ -41,6 +42,7 @@ export function MateCard({
   gender,
   ageRangeKey,
   friendCount = 0,
+  onTeammatesClick,
 }: MateCardProps) {
   const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
     bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',
@@ -80,8 +82,14 @@ export function MateCard({
                 <span className="truncate">{location}</span>
               </div>
             )}
-            <div className="mt-3 border-t border-slate-300/50 pt-2">
-              <span className="mb-0.5 block text-[10px] font-medium text-slate-500">夥伴</span>
+            <div 
+              className={clsx(
+                "mt-3 border-t border-slate-300/50 pt-2 transition-opacity",
+                onTeammatesClick ? "cursor-pointer hover:opacity-70" : ""
+              )}
+              onClick={onTeammatesClick}
+            >
+              <span className="mb-0.5 block text-[10px] font-medium text-slate-500">交手夥伴</span>
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
                 <span className="text-[10px] font-medium text-slate-600">位</span>

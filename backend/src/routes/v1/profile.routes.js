@@ -7,6 +7,7 @@ const {
   handleGetStats,
   handleGetProfileByUsername,
   handleDeleteAccount,
+  handleGetTeammates,
 } = require('../../modules/profile/profile.controller')
 
 const router = express.Router()
@@ -19,6 +20,7 @@ router.get('/me/preferences', handleGetPreferences)
 router.put('/me/preferences', handlePutPreferences)
 router.patch('/me/preferences', handlePutPreferences)
 router.get('/me/stats', handleGetStats)
+router.get('/me/teammates', handleGetTeammates)
 router.get('/profiles/:username', handleGetProfileByUsername)
 
 module.exports = { profileRouter: router }

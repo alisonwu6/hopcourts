@@ -1,6 +1,7 @@
 const usersModel = require('../../../models/users.model')
 const userSportsModel = require('../../../models/userSports.model')
 const userPreferencesModel = require('../../../models/userPreferences.model')
+const participantsModel = require('../../../models/participants.model')
 const { Errors } = require('../../lib/errors')
 const supabase = require('../../utils/supabase')
 
@@ -18,8 +19,9 @@ async function getProfile(userId) {
   const user = await usersModel.getUserById(userId)
   if (!user) throw Errors.notFound('User not found')
   const sports = await userSportsModel.listUserSports(userId)
+  const teammate_count = await participantsModel.countTeammates(userId)
   return {
-    user,
+    user: { ...user, teammate_count },
     sports,
   }
 }
@@ -28,7 +30,8 @@ async function getProfileByUsername(username) {
   const user = await usersModel.getUserByUsername(username)
   if (!user) throw Errors.notFound('User not found')
   const sports = await userSportsModel.listUserSports(user.id)
-  return { user, sports }
+  const teammate_count = await participantsModel.countTeammates(user.id)
+  return { user: { ...user, teammate_count }, sports }
 }
 
 async function upsertProfile(userId, body = {}) {
@@ -160,6 +163,11 @@ async function deleteAccount(userId) {
   return { success }
 }
 
+async function getTeammates(userId) {
+  if (!userId) throw Errors.unauthenticated('User id is required')
+  return await participantsModel.listTeammates(userId)
+}
+
 module.exports = {
   resolveUserId,
   getProfile,
@@ -170,4 +178,5 @@ module.exports = {
   getOnboardingStatus,
   getStats,
   deleteAccount,
+  getTeammates,
 }

@@ -8,6 +8,7 @@ const {
   getOnboardingStatus,
   getStats,
   deleteAccount,
+  getTeammates,
 } = require('./profile.service')
 const { ok } = require('../../lib/respond')
 const { mapUserProfile } = require('./profile.mapper')
@@ -92,6 +93,16 @@ async function handleDeleteAccount(req, res, next) {
   }
 }
 
+async function handleGetTeammates(req, res, next) {
+  try {
+    const userId = resolveUserId(req)
+    const data = await getTeammates(userId)
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+}
+
 module.exports = {
   handleGetMeProfile,
   handleGetProfileByUsername,
@@ -100,5 +111,6 @@ module.exports = {
   handlePutPreferences,
   handleGetOnboarding,
   handleGetStats,
-  handleDeleteAccount
+  handleDeleteAccount,
+  handleGetTeammates,
 }

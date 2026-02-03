@@ -66,11 +66,50 @@ async function countParticipantsBySession(sessionId) {
   return rows[0]?.count ?? 0
 }
 
+async function countTeammates(userId) {
+  const sql = `
+    select count(distinct sp.user_id)::int as count
+    from public.session_participants sp
+    where sp.session_id in (
+      select session_id from public.session_participants where user_id = $1
+    )
+    and sp.user_id != $1
+  `
+  const { rows } = await query(sql, [userId])
+  return rows[0]?.count ?? 0
+}
+
 module.exports = {
   joinSession,
   leaveSession,
   getParticipant,
   listParticipantsBySession,
   countParticipantsBySession,
-  listParticipantsWithDetails,
+  countTeammates,
+  listTeammates,
+}
+
+async function listTeammates(userId, { limit = 50, offset = 0 } = {}) {
+  const sql = `
+    select 
+      u.id, 
+      u.display_name, 
+      u.username, 
+      u.avatar_url, 
+      u.city_key,
+      count(distinct s.id)::int as sessions_count,
+      max(s.starts_at) as last_played_at,
+      array_agg(distinct s.sport_key) as shared_sports
+    from public.session_participants me
+    join public.session_participants other on me.session_id = other.session_id
+    join public.users u on u.id = other.user_id
+    join public.sessions s on s.id = me.session_id
+    where me.user_id = $1 
+      and other.user_id != $1
+    group by u.id
+    order by last_played_at desc
+    limit $2 offset $3
+  `
+  const { rows } = await query(sql, [userId, limit, offset])
+  return rows
 }

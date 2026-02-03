@@ -3,13 +3,14 @@ import { MateCard, type MateCardProps } from '@/features/mates/components/MateCa
 
 type Props = {
   profile: MateCardProps | null
-  onEdit: () => void
+  onEdit?: () => void
   avatarFallback?: string
   actionLabel?: string
   actionDisabled?: boolean
   actionClassName?: string
   showShare?: boolean
   onShare?: () => void
+  onTeammatesClick?: () => void
 }
 
 export function HeroCard({
@@ -21,6 +22,7 @@ export function HeroCard({
   actionClassName,
   showShare = true,
   onShare,
+  onTeammatesClick,
 }: Props) {
   const safeProfile: MateCardProps = profile ?? {
     name: '',
@@ -39,19 +41,22 @@ export function HeroCard({
       <MateCard
         {...safeProfile}
         accentClassName="w-full max-w-none min-w-0 rounded-none bg-transparent px-0 shadow-none"
+        onTeammatesClick={onTeammatesClick}
       />
       <div className="flex justify-center gap-4 py-2">
-        <button
-          type="button"
-          onClick={onEdit}
-          disabled={actionDisabled}
-          className={clsx(
-            'w-40 rounded-lg bg-slate-100 px-4 py-1 text-sm font-semibold text-slate-600 disabled:opacity-60',
-            actionClassName
-          )}
-        >
-          {actionLabel}
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            disabled={actionDisabled}
+            className={clsx(
+              'w-40 rounded-lg bg-slate-100 px-4 py-1 text-sm font-semibold text-slate-600 disabled:opacity-60',
+              actionClassName
+            )}
+          >
+            {actionLabel}
+          </button>
+        )}
         {showShare && (
           <button
             type="button"
