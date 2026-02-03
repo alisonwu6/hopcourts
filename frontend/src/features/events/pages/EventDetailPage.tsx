@@ -303,11 +303,6 @@ export function EventDetailPage() {
               <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
                 {genderLabel}
               </span>
-              {event.visibility === 'public' && (
-                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700">
-                  公開場次
-                </span>
-              )}
             </div>
 
             <div className="mt-4">
@@ -588,7 +583,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       )
       statusText = (
         <p className="text-center text-xs font-medium text-slate-500">
-          將於 {formatTime(openTime)} 開放報到
+          將於 {formatTime(openTime)} 開放報到，讓夥伴知道你已經抵達場地。
         </p>
       )
     }
