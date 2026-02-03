@@ -118,12 +118,12 @@ export function DiscoverEventsPage() {
       const res = await profileService.getProfile()
       const data: any = (res as any).data ?? res
       
-      // If we got data but display_name is missing or is explicitly "新夥伴" (default), treat as incomplete
-      // Note: Backend might define "新夥伴" as default.
-      const hasName = data.display_name && data.display_name !== '新夥伴'
+      // Check if profile is valid. Username is unique and required for valid
+      const hasUsername = !!data.username
+      const hasName = !!data.display_name
       
-      if (hasName) {
-        setProfileCache({ ...data, name: data.display_name })
+      if (hasName || hasUsername) {
+        setProfileCache({ ...data, name: data.display_name || data.username })
         navigate('/create-event')
       } else {
         setShowProfileRequiredSheet(true)
@@ -311,7 +311,8 @@ export function DiscoverEventsPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900">目前附近沒看到活動呢</h3>
               <p className="mt-2 text-sm text-slate-500">
-                嘿！發佈一個活動，<br />
+                先開始先享受運動的樂趣。<br />
+                快來發佈一個活動，<br />
                 讓有相同運動興趣的夥伴們找到你吧！
               </p>
               <button

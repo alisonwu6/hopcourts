@@ -14,7 +14,9 @@ import {
   PersonStanding,
   Trash2,
   LandPlot,
-  NotebookPen,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -42,6 +44,10 @@ export function EventDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
+  
+  const [isEditingDesc, setIsEditingDesc] = useState(false)
+  const [descValue, setDescValue] = useState('')
+  const [isSavingDesc, setIsSavingDesc] = useState(false)
 
   const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
@@ -175,6 +181,26 @@ export function EventDetailPage() {
     )
   }
 
+
+  const handleSaveDesc = async () => {
+    if (!event) return
+    setIsSavingDesc(true)
+    try {
+      const res = await eventsService.updateEvent(event.id, { description: descValue })
+      if (res.success) {
+        await fetchEventById(event.id)
+        setIsEditingDesc(false)
+      } else {
+        alert(res.error?.message || '更新失敗')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('更新失敗')
+    } finally {
+      setIsSavingDesc(false)
+    }
+  }
+
   const handleDelete = async () => {
     if (!id) return
     setIsDeleting(true)
@@ -273,7 +299,7 @@ export function EventDetailPage() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6 pb-20">
+          <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
             <div
               className="flex cursor-pointer items-center gap-3 transition "
               onClick={() => {
@@ -406,15 +432,70 @@ export function EventDetailPage() {
             <hr className="my-6 border-slate-200" />
 
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                  <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-                </span>
-                <span>活動說明</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                    <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  </span>
+                  <span>活動說明</span>
+                </div>
+                {event.host.id === currentUserId && !isEditingDesc && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setDescValue(event.detail?.description || event.description || '')
+                            setIsEditingDesc(true)
+                        }}
+                        className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-600 transition"
+                    >
+                        <Pencil className="h-4 w-4" />
+                    </button>
+                )}
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                {event.detail?.description || event.description || '沒有描述'}
-              </p>
+              
+              {isEditingDesc ? (
+                <div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                    <textarea
+                        value={descValue}
+                        onChange={(e) => setDescValue(e.target.value)}
+                        className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
+                        placeholder="輸入活動說明..."
+                    />
+                    <div className="flex justify-end gap-2">
+                        <button
+                            onClick={() => setIsEditingDesc(false)}
+                            className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition"
+                            disabled={isSavingDesc}
+                        >
+                            <X className="h-3.5 w-3.5" />
+                            取消
+                        </button>
+                        <button
+                            onClick={handleSaveDesc}
+                            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-blue-500 transition disabled:opacity-70"
+                            disabled={isSavingDesc}
+                        >
+                            {isSavingDesc ? (
+                                '儲存中...'
+                            ) : (
+                                <>
+                                    <Check className="h-3.5 w-3.5" />
+                                    儲存更新
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                   {event.detail?.description || event.description || '沒有描述'}
+                </p>
+              )}
+              {event.updatedAt && (
+                <p className="mt-2 text-right text-xs text-slate-400">
+                  活動說明最後更新於 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
+                </p>
+              )}
             </div>
 
 
@@ -433,23 +514,47 @@ export function EventDetailPage() {
       />
 
       <BottomSheet open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        <SheetLayout
-          onClose={() => setShowDeleteConfirm(false)}
-          title="確定要刪除活動嗎？"
-          subtitle="一旦刪除，活動資訊將無法恢復。"
-          primaryButton={{
-            label: isDeleting ? '刪除中...' : '確定刪除',
-            onClick: handleDelete,
-            variant: 'danger',
-            isLoading: isDeleting,
-          }}
-          secondaryButton={{
-            label: '取消',
-            onClick: () => setShowDeleteConfirm(false),
-          }}
-        >
-          <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
-        </SheetLayout>
+        {(() => {
+          const hasParticipants = event?.participants && event.participants.length > 0
+
+          if (hasParticipants) {
+            return (
+              <SheetLayout
+                onClose={() => setShowDeleteConfirm(false)}
+                title="無法刪除活動"
+                subtitle="已有夥伴報名參加，無法刪除。"
+                primaryButton={{
+                  label: '關閉',
+                  onClick: () => setShowDeleteConfirm(false),
+                }}
+              >
+                <div className="py-2 text-sm text-slate-500">
+                  若有異動需求，建議您直接更新活動說明欄位告知參與夥伴。
+                </div>
+              </SheetLayout>
+            )
+          }
+
+          return (
+            <SheetLayout
+              onClose={() => setShowDeleteConfirm(false)}
+              title="確定要刪除活動嗎？"
+              subtitle="一旦刪除，活動資訊將無法恢復。"
+              primaryButton={{
+                label: '取消',
+                onClick: () => setShowDeleteConfirm(false),
+              }}
+              secondaryButton={{
+                label: isDeleting ? '刪除中...' : '確定刪除',
+                onClick: handleDelete,
+                variant: 'danger',
+                isLoading: isDeleting,
+              }}
+            >
+              <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
+            </SheetLayout>
+          )
+        })()}
       </BottomSheet>
 
       <LoginPromptSheet
