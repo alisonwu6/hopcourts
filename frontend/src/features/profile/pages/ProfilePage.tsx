@@ -20,6 +20,7 @@ import { useSports } from '@/features/dictionaries/hooks'
 import { useCities, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
@@ -680,35 +681,11 @@ export function ProfilePage() {
       />
 
       {/* Profile Required Bottom Sheet */}
-      <BottomSheet
+      <ProfileRequiredSheet
         open={showProfileRequiredSheet}
         onClose={() => setShowProfileRequiredSheet(false)}
-        showHandle
-        sheetClassName="rounded-t-[32px] border border-white/40 bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.35)]"
-        contentClassName="px-6 pb-10 pt-6"
-        maxWidthClassName="max-w-lg"
-      >
-        <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-            <Lock className="h-7 w-7" />
-          </div>
-          <h3 className="text-xl font-bold text-slate-900">請先建立運動卡</h3>
-          <p className="mt-2 text-sm text-slate-500">
-            在發佈活動前，我們需要先認識你。<br />
-            請先填寫基本資料，讓其他夥伴更信任你。
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setShowProfileRequiredSheet(false)
-              setShowEditSheet(true)
-            }}
-            className="mt-8 w-full rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98]"
-          >
-            立即建立
-          </button>
-        </div>
-      </BottomSheet>
+        onConfirm={() => setShowEditSheet(true)}
+      />
 
       <BottomSheet
         open={showEditSheet}
@@ -897,7 +874,7 @@ export function ProfilePage() {
             location: '填寫你目前所在的城市。',
             vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
             bio: '和大家分享你的運動的動態與目標吧！',
-            gender: '讓我們更了解你，提供更合適的活動推薦。',
+            gender: '因應性別專場，請選擇你的生理性別。',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -1046,7 +1023,7 @@ export function ProfilePage() {
         <SheetLayout
           onClose={() => setShowSportsSheet(false)}
           title="選擇最愛運動"
-          subtitle="那些你能自在接受挑戰，且熱在其中的運動。（最多選 3 項)"
+          subtitle="那些你能自在接受挑戰，且熱在其中的運動。"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"

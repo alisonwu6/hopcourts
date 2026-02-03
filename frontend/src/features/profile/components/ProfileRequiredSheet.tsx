@@ -40,8 +40,8 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm }: Props) {
         </div>
         <h3 className="text-xl font-bold text-slate-900">請先建立運動卡</h3>
         <p className="mt-2 text-sm text-slate-500">
-          在發佈活動前，我們需要先認識你。<br />
-          請先填寫基本資料，讓其他夥伴更信任你。
+          在發佈活動前，<br />
+          請先完成運動卡建立，讓其他夥伴更認識你。
         </p>
         <button
           type="button"
