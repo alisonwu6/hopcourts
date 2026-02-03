@@ -18,6 +18,7 @@ export interface User {
   managedVenues: string[]
   eventsAttended: number
   eventsHosted: number
+  gender?: 'male' | 'female' | null
   createdAt: Date
   updatedAt: Date
 }

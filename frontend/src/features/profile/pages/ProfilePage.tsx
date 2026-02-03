@@ -301,6 +301,35 @@ export function ProfilePage() {
           setDraftProfile(mapped)
           setDraftUsername(nextUsername)
           setProfileCache(mapped)
+          
+          // Sync to AuthStore so other components (EventDetailPage) have access to gender/etc.
+          const { user: authUser, token, setAuthData } = useAuthStore.getState()
+          if (authUser && token) {
+             const newName = data.display_name || authUser.name
+             const newAvatar = data.avatar_url || authUser.avatar
+             const newLocation = data.city_key || authUser.location
+             const newGender = data.gender || authUser.gender
+             const newBio = data.bio || authUser.bio
+
+             const isChanged = 
+                authUser.name !== newName ||
+                authUser.avatar !== newAvatar ||
+                authUser.location !== newLocation ||
+                authUser.gender !== newGender ||
+                authUser.bio !== newBio
+
+             if (isChanged) {
+                const updatedUser = {
+                    ...authUser,
+                    name: newName,
+                    avatar: newAvatar,
+                    location: newLocation,
+                    gender: newGender,
+                    bio: newBio
+                }
+                setAuthData(updatedUser, token)
+             }
+          }
         }
       } else if (profileRes.status === 'rejected') {
         const err: any = profileRes.reason
@@ -629,6 +658,22 @@ export function ProfilePage() {
         tryingSportKeys: tryingKeys,
       })
       setProfileCache(updated)
+      
+      // Update AuthStore immediately
+      const { user: authUser, token, setAuthData } = useAuthStore.getState()
+      if (authUser && token) {
+         // savedUser from response has DB fields
+         const updatedUser = {
+             ...authUser,
+             name: savedUser.display_name || authUser.name,
+             avatar: savedUser.avatar_url || authUser.avatar,
+             gender: savedUser.gender || authUser.gender,
+             bio: savedUser.bio || authUser.bio,
+             location: savedUser.city_key || authUser.location
+         }
+         setAuthData(updatedUser, token)
+      }
+
       setShowEditSheet(false)
       loadProfileData()
     } catch (err: any) {
@@ -842,7 +887,7 @@ export function ProfilePage() {
                 {
                   key: 'gender',
                   label: '性別',
-                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : draftProfile.gender === 'other' ? '其他' : '未設定',
+                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : '未設定',
                   valueKey: draftProfile.gender || '',
                 },
               ].map((row) => {

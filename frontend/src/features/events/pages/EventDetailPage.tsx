@@ -91,6 +91,39 @@ export function EventDetailPage() {
     }
     if (!event || !id) return
 
+    // Gender Validation
+    if (!event.joined && event.gender && event.gender !== 'mixed') {
+      const user = useAuthStore.getState().user
+      const userGender = user?.gender
+
+      if (!userGender) {
+        showAlert(
+          '需完善個人資料',
+          '此活動設有性別限制。請先至「個人檔案 > 編輯運動卡」設定您的性別，以便確認是否符合參加資格。',
+          'warning'
+        )
+        return
+      }
+
+      if (event.gender === 'male_only' && userGender !== 'male') {
+        showAlert(
+          '無法參加',
+          '本活動僅限男性參加。',
+          'error'
+        )
+        return
+      }
+
+      if (event.gender === 'female_only' && userGender !== 'female') {
+        showAlert(
+          '無法參加',
+          '本活動僅限女性參加。',
+          'error'
+        )
+        return
+      }
+    }
+
     if (event.joined) {
       await leaveEvent(id)
     } else {
