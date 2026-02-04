@@ -207,7 +207,7 @@ export function EventDetailPage() {
       },
       (err) => {
         console.error(err)
-        showAlert('你在哪？', '請開啟位置功能，讓我們知道你是否已進入到報告範圍。', 'warning')
+        showAlert('你在哪？', '請開啟位置功能，讓我們知道你是否已進入到報到範圍。', 'warning')
         setIsCheckingIn(false)
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }

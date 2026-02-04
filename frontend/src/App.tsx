@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
@@ -118,6 +118,11 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   const noHeaderPaths = ['/events', '/my-events', '/event/', '/create-event']
   const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
   const headerVisible = showHeader && !hideHeader
