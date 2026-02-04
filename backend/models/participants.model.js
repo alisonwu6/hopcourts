@@ -87,6 +87,7 @@ module.exports = {
   countParticipantsBySession,
   countTeammates,
   listTeammates,
+  listParticipantsWithDetails,
 }
 
 async function listTeammates(userId, { limit = 50, offset = 0 } = {}) {
