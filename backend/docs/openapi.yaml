@@ -6,27 +6,15 @@ servers:
   - url: /api/v1
 tags:
   - name: Health
-  - name: Sports
-  - name: Sessions
   - name: Master Data
   - name: Profile
+  - name: Sessions
   - name: Venues
 paths:
   /health:
     get:
       tags: [Health]
       summary: Health check
-      responses:
-        "200":
-          description: ok
-  /sports:
-    get:
-      tags: [Sports]
-      summary: List sports
-      parameters:
-        - in: query
-          name: lang
-          schema: { type: string, enum: [zh, en] }
       responses:
         "200":
           description: ok
@@ -126,6 +114,24 @@ paths:
       responses:
         "200":
           description: ok
+  /meta/dictionaries:
+    get:
+      tags: [Master Data]
+      summary: Get dictionaries meta
+      responses:
+        "200":
+          description: ok
+  /sports:
+    get:
+      tags: [Master Data]
+      summary: List sports
+      parameters:
+        - in: query
+          name: lang
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        "200":
+          description: ok
   /countries:
     get:
       tags: [Master Data]
@@ -190,6 +196,51 @@ paths:
       tags: [Profile]
       summary: Get my stats
       security: [{ ApiKeyHeader: [] }]
+      responses:
+        "200":
+          description: ok
+  /me/teammates:
+    get:
+      tags: [Profile]
+      summary: List my teammates
+      security: [{ ApiKeyHeader: [] }]
+      responses:
+        "200":
+          description: ok
+  /profiles/{username}:
+    get:
+      tags: [Profile]
+      summary: Get user profile by username
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: ok
+  /profiles/{username}/follow:
+    post:
+      tags: [Profile]
+      summary: Follow a user
+      security: [{ ApiKeyHeader: [] }]
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: ok
+    delete:
+      tags: [Profile]
+      summary: Unfollow a user
+      security: [{ ApiKeyHeader: [] }]
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string }
       responses:
         "200":
           description: ok
@@ -278,6 +329,25 @@ components:
       properties:
         id: { type: string, format: uuid }
         title: { type: string }
+        description: { type: string }
+        sport_key: { type: string }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        gender: { type: string, enum: [mixed, male_only, female_only] }
+        skill_level: { type: string, enum: [any, beginner, intermediate, advanced] }
+        is_official: { type: boolean }
+        photos: { type: array, items: { type: string } }
+        price: { type: number }
+        is_free: { type: boolean }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        display_name: { type: string }
+        gender: { type: string, enum: [male, female] }
+        avatar_url: { type: string }
+        teammate_count: { type: integer }
     Venue:
       type: object
       properties:
