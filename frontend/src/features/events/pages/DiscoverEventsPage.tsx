@@ -527,7 +527,7 @@ function SearchSheet({
                       className={clsx(
                         'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition ',
                         active
-                          ? 'border-black bg-neutral-900 text-white shadow-sm'
+                          ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
                           : 'border-slate-200 bg-white text-slate-700'
                       )}
                     >
