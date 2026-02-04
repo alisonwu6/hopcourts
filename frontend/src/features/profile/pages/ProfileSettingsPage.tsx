@@ -1,15 +1,18 @@
 import { useState } from 'react'
-import { ChevronRight, ShieldCheck, UserRound, LogOut, Info } from 'lucide-react'
+import { ChevronRight, ShieldCheck, UserRound, LogOut, Info, Mail, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 
-type SettingKey = 'about' | 'account' | 'privacy'
-
-const items: { key: SettingKey; label: string; icon: React.ElementType }[] = [
-  { key: 'about', label: '關於我們', icon: Info },
+const generalItems = [
   { key: 'account', label: '帳號設定', icon: UserRound },
-  { key: 'privacy', label: '隱私與安全', icon: ShieldCheck },
+  { key: 'privacy', label: '隱私權與安全', icon: ShieldCheck },
+]
+
+const otherItems = [
+  { key: 'about', label: '關於我們', icon: Info },
+  { key: 'contact', label: '寫信給我們', icon: Mail },
+  { key: 'careers', label: '加入我們', icon: Users },
 ]
 
 export function ProfileSettingsPage() {
@@ -39,29 +42,50 @@ export function ProfileSettingsPage() {
         rightContent={<span className="h-10 w-10" aria-hidden="true" />}
         borderBottom
       />
-      <div className="mx-auto w-full max-w-3xl px-4 pb-6 pt-2">
-        <div className="divide-y divide-slate-200 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
-          {items.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              className="flex w-full items-center justify-between px-4 py-4 text-left "
-              onClick={() => {
-                if (key === 'about') {
-                  navigate('/about')
-                } else if (key === 'account') {
-                  navigate('/settings/account')
-                } else if (key === 'privacy') {
-                  navigate('/settings/privacy')
-                }
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <Icon className="h-5 w-5 text-slate-700" />
-                <span className="text-base font-medium text-slate-900">{label}</span>
-              </div>
-              <ChevronRight className="h-5 w-5 text-slate-300" />
-            </button>
-          ))}
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 space-y-6">
+        <div>
+          <h3 className="mb-2 ml-4 text-sm font-medium text-slate-500">一般設定</h3>
+          <div className="divide-y divide-slate-200 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
+            {generalItems.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                onClick={() => {
+                  if (key === 'account') navigate('/settings/account')
+                  if (key === 'privacy') navigate('/settings/privacy')
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="h-5 w-5 text-slate-700" />
+                  <span className="text-base font-medium text-slate-900">{label}</span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-slate-300" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+           <h3 className="mb-2 ml-4 text-sm font-medium text-slate-500">SportsMatch</h3>
+           <div className="divide-y divide-slate-200 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
+            {otherItems.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                onClick={() => {
+                  if (key === 'about') navigate('/about')
+                  if (key === 'contact') window.location.href = 'mailto:support@sportsmatch.com'
+                  if (key === 'careers') window.location.href = 'mailto:hr@sportsmatch.com?subject=Join Us'
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <Icon className="h-5 w-5 text-slate-700" />
+                  <span className="text-base font-medium text-slate-900">{label}</span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-slate-300" />
+              </button>
+            ))}
+          </div>
         </div>
         <div className="mt-3 rounded-2xl bg-slate-50 shadow-sm ring-1 ring-slate-200/60">
           <button
