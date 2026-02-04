@@ -74,7 +74,7 @@ export function ProfileSettingsPage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left "
                 onClick={() => {
                   if (key === 'about') navigate('/about')
-                  if (key === 'contact') window.location.href = 'mailto:support@sportsmatch.com'
+                  if (key === 'contact') navigate('/settings/contact')
                   if (key === 'careers') window.location.href = 'mailto:hr@sportsmatch.com?subject=Join Us'
                 }}
               >

@@ -20,6 +20,7 @@ import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPag
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import { AboutPage } from '@/features/profile/pages/AboutPage'
+import { ContactUsPage } from '@/features/misc/pages/ContactUsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
@@ -268,6 +269,16 @@ function AuthenticatedApp() {
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>
               <PrivacySettingsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/settings/contact"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <ContactUsPage />
             </AppChrome>
           </RequireAuth>
         }
