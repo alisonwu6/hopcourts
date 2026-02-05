@@ -247,7 +247,7 @@ export interface PlayerEvent {
   heroImageUrl?: string
   vibeIcon: string
   skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed' | 'any'
-  gender?: 'mixed' | 'female_only' | 'male_only'
+  gender?: 'mixed' | 'female' | 'male'
   photos?: string[]
   startTime: Date | string
   endTime: Date | string
@@ -409,6 +409,6 @@ export interface CreateEventInput {
   recurringPattern?: RecurringPatternInput
   tags?: string[]
   difficulty?: 1 | 2 | 3 | 4 | 5
-  gender?: 'mixed' | 'female_only' | 'male_only'
+  gender?: 'mixed' | 'female' | 'male'
   photos?: string[]
 }

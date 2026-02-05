@@ -4,11 +4,7 @@ const { query } = require('../client');
 const fs = require('fs');
 
 const seedFiles = [
-  '100_seed_sports.sql',
-  '130_seed_countries.sql',
-  '140_seed_cities.sql',
-  '150_seed_vibes.sql',
-  '160_seed_age_ranges.sql'
+  '002_seed_data.sql'
 ];
 
 (async () => {
@@ -17,7 +13,7 @@ const seedFiles = [
     
     for (const file of seedFiles) {
       console.log(`Running seed: ${file}`);
-      const filePath = path.join(__dirname, '../seed', file);
+      const filePath = path.join(__dirname, '../schema', file);
       const sql = fs.readFileSync(filePath, 'utf8');
       
       // Remove psql-specific commands if any (like \set, \echo, \ir)

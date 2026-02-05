@@ -1,14 +1,16 @@
 Project SportsMatch {
   database_type: "PostgreSQL"
-  note: "Core schema: sports, sessions, participants, check-ins, dictionaries, profiles"
+  note: "Core schema: sports, sessions, venues, participants, check-ins, dictionaries, profiles"
 }
 
+// 1. Dictionaries
 Table sports {
   key text [pk, note: "Sport key (uppercase kebab)"]
   label_zh text [not null]
   label_en text [not null]
-  category text
+  category text [note: "social_competitive | adventure_endurance | training_wellness"]
   icon text
+  cover_image text
   sort int
   is_active boolean [not null, default: true]
 }
@@ -31,7 +33,7 @@ Table cities {
 }
 
 Table vibes {
-  key text [pk]
+  key text [pk, note: "CHECK (key IN ('CHILL', 'SOCIAL', 'FLOW', 'EXPLORER', 'GROWTH', 'COMPETITIVE', 'SUPPORTIVE'))"]
   name_zh text [not null]
   name_en text [not null]
   subtitle_zh text
@@ -44,104 +46,181 @@ Table age_ranges {
   key text [pk]
   label_zh text [not null]
   label_en text [not null]
+  min_age int
+  max_age int
   sort int
   is_active boolean [not null, default: true]
 }
 
-Table sessions {
-  id uuid [pk]
+// 2. Users & Core
+Table users {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  email text [unique, not null]
+  username text [unique]
+  username_updated_at timestamptz
+  display_name text
+  avatar_url text
+  bio text
+  
+  city_key text [ref: > cities.key] 
+  
+  gender text
+  birth_date date
+  age_range_key text [ref: > age_ranges.key]
+  vibe_key text [ref: > vibes.key]
+  
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
+  
+  role text [default: 'user', note: "CHECK (role IN ('user', 'admin', 'moderator'))"]
+  is_verified boolean [default: false]
+}
 
-  host_user_id uuid [not null]
-  sport_key text [not null, ref: > sports.key]
+Table user_sports {
+  user_id uuid [ref: > users.id, delete: cascade]
+  sport_key text [ref: > sports.key, delete: cascade]
+  status text [not null, note: "CHECK (status IN ('favorite', 'trying'))"]
+  level text
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
 
+  indexes {
+    (user_id, sport_key) [pk]
+  }
+}
+Table user_preferences {
+  user_id uuid [pk, ref: > users.id, note: "on delete cascade"]
+  preferred_days text[]
+  preferred_time_slots text[]
+  sessions_per_week_goal int
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table follows {
+  follower_id uuid [ref: > users.id]
+  following_id uuid [ref: > users.id]
+  created_at timestamptz [default: `now()`]
+  
+  primary key (follower_id, following_id)
+}
+
+// 3. Venues
+Table venues {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  name text [not null]
+  name_display text
+  logo_url text
+  address text
+  
+  city_key text [ref: > cities.key]
+  lat double
+  lng double
+  
+  description text
+  cover_image text
+  images text[]
+  amenities text[]
+  website_url text
+  phone text
+  
+  is_official boolean [default: false]
+  owner_user_id uuid [ref: > users.id]
+  status text [default: 'active', note: "CHECK (status IN ('active', 'pending', 'suspended'))"]
+
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table venue_profiles {
+  venue_id uuid [pk, ref: > venues.id, note: "on delete cascade"]
+  logo_url text
+  cover_url text
+}
+
+// 4. Sessions
+Table sessions {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  
+  host_user_id uuid [ref: > users.id]
+  sport_key text [ref: > sports.key]
+  venue_id uuid [ref: > venues.id]
+  
   title text
   notes text
-
+  
   starts_at timestamptz [not null]
   ends_at timestamptz
-
-  place_name text [not null]
+  
+  place_name text
   address text
   lat double
   lng double
-
-  checkin_radius_m int [not null, default: 100]
-  checkin_open_mins_before int [not null, default: 20]
-  checkin_close_mins_after int [not null, default: 20]
-
-  min_people int [not null, default: 2]
-  max_people int
-
-  status text [not null, note: "draft | published | cancelled | completed"]
-  visibility text [not null, note: "public | unlisted"]
+  location_source text
+  
+  checkin_radius_m int [default: 100]
+  checkin_open_mins_before int [default: 15]
+  checkin_close_mins_after int [default: 10]
+  
+  min_people int [default: 2]
+  max_people int [default: 10]
+  
+  status text [default: 'published', note: "CHECK (status IN ('draft', 'published', 'cancelled', 'completed'))"]
+  visibility text [default: 'public', note: "CHECK (visibility IN ('public', 'private', 'link'))"]
+  
+  skill_level text
+  gender text [default: 'mixed', note: "CHECK (gender IN ('mixed', 'male', 'female'))"]
+  photos text[]
+  
+  is_free boolean [default: true]
+  price numeric(10, 2)
+  currency text [default: 'TWD']
+  
+  is_official boolean [default: false]
+  
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
 
   Indexes {
     starts_at [name: "idx_sessions_starts_at"]
     sport_key [name: "idx_sessions_sport_key"]
-    status [name: "idx_sessions_status"]
+    venue_id [name: "idx_sessions_venue_id"]
   }
 }
 
+// 5. Participation & Check-ins
 Table session_participants {
-  session_id uuid [not null, ref: > sessions.id, note: "on delete cascade"]
-  user_id uuid [not null]
-  role text [not null, default: 'member']
-  joined_at timestamptz [not null, default: `now()`]
+  session_id uuid [ref: > sessions.id, delete: cascade]
+  user_id uuid [ref: > users.id, delete: cascade]
+  status text [not null, default: 'joined', note: "CHECK (status IN ('joined', 'left', 'kicked', 'waitlist'))"]
+  role text [not null, default: 'player', note: "CHECK (role IN ('player', 'organizer'))"]
+  joined_at timestamptz [default: `now()`]
+  status_updated_at timestamptz [default: `now()`]
 
-  primary key (session_id, user_id)
-
-  Indexes {
-    user_id [name: "idx_participants_user_id"]
+  indexes {
+    (session_id, user_id) [pk]
+    (user_id, status)
+    (session_id, status)
   }
 }
 
 Table check_ins {
   id uuid [pk, default: `uuid_generate_v4()`]
-  session_id uuid [not null, ref: > sessions.id, note: "on delete cascade"]
-  user_id uuid [not null]
-  checked_in_at timestamptz [not null, default: `now()`]
-  lat double [not null]
-  lng double [not null]
-  distance_m int
-  status text [not null, default: "ok", note: "ok | late | outside_radius | rejected"]
-
-  Indexes {
-    session_id [name: "idx_checkins_session_id"]
-    user_id [name: "idx_checkins_user_id"]
-  }
+  session_id uuid [ref: > sessions.id]
+  user_id uuid [ref: > users.id]
+  venue_id uuid [ref: > venues.id]
+  checked_in_at timestamptz [default: `now()`]
+  location_lat double
+  location_lng double
+  is_verified boolean [default: false]
 }
 
-Table users {
-  id uuid [pk, note: "Supabase auth user id"]
-  username text [not null, unique]
-  display_name text [not null]
-  legal_name text
-  country_key text [ref: > countries.key]
-  city_key text [ref: > cities.key]
-  age_range_key text [ref: > age_ranges.key]
-  vibe_key text [ref: > vibes.key]
-  bio text
-  avatar_url text
-  created_at timestamptz [not null, default: `now()`]
-  updated_at timestamptz [not null, default: `now()`]
-}
-
-Table user_sports {
-  user_id uuid [not null, ref: > users.id, note: "on delete cascade"]
-  sport_key text [not null, ref: > sports.key]
-  kind text [not null, note: "FAVORITE | TRYING"]
-  created_at timestamptz [not null, default: `now()`]
-
-  primary key (user_id, sport_key, kind)
-}
-
-Table user_preferences {
-  user_id uuid [pk, ref: > users.id, note: "on delete cascade"]
-  preferred_time text
-  sessions_per_week int
-  day_slots jsonb
-  created_at timestamptz [not null, default: `now()`]
-  updated_at timestamptz [not null, default: `now()`]
+Table feedback {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  user_id uuid [ref: > users.id]
+  type text [not null]
+  message text [not null]
+  images text[]
+  allow_reply boolean [default: false]
+  status text [default: 'new', note: "CHECK (status IN ('new', 'read', 'archived', 'replied'))"]
+  created_at timestamptz [default: `now()`]
 }

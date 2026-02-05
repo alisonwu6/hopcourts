@@ -1,13 +1,13 @@
 const { query } = require('../db/client')
 
-async function joinSession({ sessionId, userId }) {
+async function joinSession({ sessionId, userId, role = 'player' }) {
   const sql = `
     insert into public.session_participants (session_id, user_id, role)
-    values ($1, $2, 'member')
+    values ($1, $2, $3)
     on conflict (session_id, user_id) do nothing
     returning session_id, user_id, role, joined_at
   `
-  const { rows } = await query(sql, [sessionId, userId])
+  const { rows } = await query(sql, [sessionId, userId, role])
   return rows[0] || null
 }
 
