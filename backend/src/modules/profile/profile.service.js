@@ -1,7 +1,9 @@
 const usersModel = require('../../../models/users.model')
 const userSportsModel = require('../../../models/userSports.model')
 const userPreferencesModel = require('../../../models/userPreferences.model')
+const participantsModel = require('../../../models/participants.model')
 const { Errors } = require('../../lib/errors')
+const supabase = require('../../utils/supabase')
 
 function resolveUserId(req) {
   return (
@@ -17,8 +19,9 @@ async function getProfile(userId) {
   const user = await usersModel.getUserById(userId)
   if (!user) throw Errors.notFound('User not found')
   const sports = await userSportsModel.listUserSports(userId)
+  const teammate_count = await participantsModel.countTeammates(userId)
   return {
-    user,
+    user: { ...user, teammate_count },
     sports,
   }
 }
@@ -27,16 +30,28 @@ async function getProfileByUsername(username) {
   const user = await usersModel.getUserByUsername(username)
   if (!user) throw Errors.notFound('User not found')
   const sports = await userSportsModel.listUserSports(user.id)
-  return { user, sports }
+  const teammate_count = await participantsModel.countTeammates(user.id)
+  return { user: { ...user, teammate_count }, sports }
 }
 
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
+
+  // Enforce single username update rule
+  if (body.username && current.username && body.username !== current.username) {
+    if (current.username_updated_count >= 1) {
+      throw Errors.badRequest('使用者名稱只能修改一次')
+    }
+  }
+
   const user = await usersModel.upsertUser({
     id: userId,
-    username: body.username || current.username || userId,
-    display_name: body.display_name || current.display_name || body.username || current.username || 'user',
+    username: body.username || current.username || null,
+    display_name:
+      body.display_name ||
+      current.display_name ||
+      '新夥伴',
     legal_name: body.legal_name ?? current.legal_name ?? null,
     country_key: body.country_key ?? current.country_key ?? null,
     city_key: body.city_key ?? current.city_key ?? null,
@@ -126,6 +141,33 @@ async function getStats(userId) {
   }
 }
 
+async function deleteAccount(userId) {
+  if (!userId) throw Errors.unauthenticated('User id is required')
+
+  // Attempt to delete from Supabase Auth
+  if (supabase) {
+    try {
+      const { error } = await supabase.auth.admin.deleteUser(userId)
+      if (error) {
+        console.warn(`[deleteAccount] Supabase Auth delete failed for ${userId}:`, error.message)
+      } else {
+        console.log(`[deleteAccount] Deleted user ${userId} from Supabase Auth`)
+      }
+    } catch (err) {
+      console.error('[deleteAccount] Supabase Auth error:', err)
+    }
+  }
+
+  // Delete from local DB (CASCADE should handle related tables)
+  const success = await usersModel.deleteUser(userId)
+  return { success }
+}
+
+async function getTeammates(userId) {
+  if (!userId) throw Errors.unauthenticated('User id is required')
+  return await participantsModel.listTeammates(userId)
+}
+
 module.exports = {
   resolveUserId,
   getProfile,
@@ -135,4 +177,6 @@ module.exports = {
   upsertPreferences,
   getOnboardingStatus,
   getStats,
+  deleteAccount,
+  getTeammates,
 }

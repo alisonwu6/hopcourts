@@ -6,7 +6,7 @@ import logoUrl from '@/assets/logo.png'
 
 export function SignupPage() {
   const navigate = useNavigate()
-  const { signup, isLoading, error, clearError, isAuthenticated, onboardingStatus } = useAuthStore()
+  const { signup, isLoading, error, clearError, isAuthenticated } = useAuthStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -16,13 +16,9 @@ export function SignupPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (onboardingStatus?.isComplete) {
-        navigate('/', { replace: true })
-      } else {
-        navigate('/onboarding', { replace: true })
-      }
+      navigate('/profile', { replace: true })
     }
-  }, [isAuthenticated, onboardingStatus?.isComplete, navigate])
+  }, [isAuthenticated, navigate])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

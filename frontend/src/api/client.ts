@@ -81,11 +81,12 @@ export const api = {
       get: () => httpGet<ApiResponse<any>>('/me/preferences'),
       update: (body: any) => httpPatch<ApiResponse<any>>('/me/preferences', { body }),
     },
-    onboarding: () => httpGet<ApiResponse<any>>('/me/onboarding'),
     stats: () => httpGet<ApiResponse<any>>('/me/stats'),
+    deleteAccount: () => httpDelete<ApiResponse<any>>('/me/account'),
   },
   profiles: {
     getByUsername: (username: string) =>
       httpGet<ApiResponse<any>>(`/profiles/${encodeURIComponent(username)}`, { auth: false }),
+    getTeammates: () => httpGet<ApiResponse<any[]>>('/me/teammates'),
   },
 }

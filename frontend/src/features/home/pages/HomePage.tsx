@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import logo from '@/assets/sportsmatch.png'
 import { MapPin, Sparkles, ArrowRight, Clock, Users } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
@@ -20,15 +21,18 @@ export function HomePage() {
       setShowLoginPrompt(true)
       return
     }
-    navigate('/onboarding')
+    navigate('/profile')
   }
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
-      <div className="relative mx-auto flex w-full flex-col gap-6 px-4 pt-4">
+      <div className="relative mx-auto flex w-full flex-col px-4 pt-4">
         {/* Top Navigation / City Selector */}
-        <nav className="-mb-2 flex w-full" aria-label="City Selector">
+        <div className="mb-2 flex w-full justify-center pt-2">
+          <img src={logo} alt="SportsMatch" className="h-20 w-auto" />
+        </div>
+        {/* <nav className="-mb-2 flex w-full" aria-label="City Selector">
           <button
             type="button"
             className="flex w-full items-center gap-3 rounded-full border border-[var(--color-border)] bg-white px-5 py-3 text-left shadow-md shadow-blue-100/40"
@@ -43,7 +47,8 @@ export function HomePage() {
               <span className="text-xs font-medium text-slate-500">目前所在城市</span>
             </div>
           </button>
-        </nav>
+        </nav> */}
+        
 
         <main className="flex flex-col gap-8">
           {/* Badge & Headlines */}
@@ -71,11 +76,13 @@ export function HomePage() {
           <section aria-label="App Features" className="px-4">
             <ul className="mx-auto grid w-full grid-cols-3 gap-3">
               {/* Time */}
-              <li className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-2 text-center shadow-sm backdrop-blur-sm">
-                <Clock className="h-7 w-7 text-emerald-600" strokeWidth={2} aria-hidden="true" />
+              <li className="flex flex-col items-center gap-3 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm">
+                  <Clock className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
+                </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">隨時開約</h3>
-                  <p className="mt-1 text-[12px] leading-tight text-slate-600 text-opacity-90 sm:text-xs">
+                  <p className="mt-1 text-xs leading-tight text-slate-600 sm:text-sm">
                     配合你的
                     <br />
                     生活步調
@@ -84,11 +91,13 @@ export function HomePage() {
               </li>
 
               {/* Location */}
-              <li className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-50/50 p-2 text-center shadow-sm backdrop-blur-sm">
-                <MapPin className="h-7 w-7 text-blue-600" strokeWidth={2} aria-hidden="true" />
+              <li className="flex flex-col items-center gap-3 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 text-blue-600 shadow-sm">
+                  <MapPin className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
+                </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">探索城市</h3>
-                  <p className="mt-1 text-[12px] leading-tight text-slate-600 text-opacity-90 sm:text-xs">
+                  <p className="mt-1 text-xs leading-tight text-slate-600 sm:text-sm">
                     挖掘身邊
                     <br />
                     運動熱點
@@ -97,15 +106,13 @@ export function HomePage() {
               </li>
 
               {/* People */}
-              <li className="flex aspect-square flex-col items-center justify-center gap-2 rounded-2xl border border-amber-200 bg-amber-50/50 p-2 text-center shadow-sm backdrop-blur-sm">
-                <Users
-                  className="h-7 w-7 text-amber-600"
-                  strokeWidth={2}
-                  aria-hidden="true"
-                />
+              <li className="flex flex-col items-center gap-3 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-200 bg-amber-50 text-amber-600 shadow-sm">
+                  <Users className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
+                </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">契合夥伴</h3>
-                  <p className="mt-1 text-[12px] leading-tight text-slate-600 text-opacity-90 sm:text-xs">
+                  <p className="mt-1 text-xs leading-tight text-slate-600 sm:text-sm">
                     實力相當
                     <br />
                     更有挑戰

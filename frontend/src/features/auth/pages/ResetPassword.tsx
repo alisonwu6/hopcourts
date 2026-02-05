@@ -41,7 +41,7 @@ export function ResetPasswordPage() {
       if (error) throw error
       if (data.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
       }
       window.history.replaceState(
         {},
@@ -63,13 +63,11 @@ export function ResetPasswordPage() {
     const type = params.get('type')
     if (!recoveryToken || type !== 'recovery') return false
     try {
-      const { data, error } = await supabase.auth.exchangeCodeForSession({
-        authCode: recoveryToken,
-      })
+      const { data, error } = await supabase.auth.exchangeCodeForSession(recoveryToken)
       if (error) throw error
       if (data.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
       }
       window.history.replaceState({}, document.title, window.location.pathname)
       setSessionReady(true)
@@ -112,10 +110,10 @@ export function ResetPasswordPage() {
       const { data } = await supabase.auth.getSession()
       if (data?.session?.access_token) {
         const context = await sessionService.bootstrap(data.session.access_token)
-        setAuthData(context.user, context.token, context.onboardingStatus)
+        setAuthData(context.user, context.token)
       }
-      setStatus('Password updated. Redirecting...')
-      setTimeout(() => navigate('/', { replace: true }), 1200)
+      setStatus('密碼重設成功！')
+      navigate('/profile', { replace: true })
     } catch (err: any) {
       setError(err?.message ?? 'Unable to update password.')
     } finally {
@@ -141,7 +139,6 @@ export function ResetPasswordPage() {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="new-password"
-          required
         />
         <InputField
           label="Confirm Password"
@@ -151,7 +148,6 @@ export function ResetPasswordPage() {
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
           autoComplete="new-password"
-          required
         />
         {error && <p className="text-sm text-red-500">{error}</p>}
         {status && <p className="text-sm text-emerald-600">{status}</p>}

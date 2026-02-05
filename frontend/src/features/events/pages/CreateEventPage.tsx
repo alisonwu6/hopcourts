@@ -130,7 +130,7 @@ export default function CreateEventPage() {
             sportKey: draft.sport || '',
             startTime: draft.startTime ? toLocalISO(draft.startTime) : '',
             endTime: draft.endTime ? toLocalISO(draft.endTime) : '',
-            location: draft.location.name || '',
+            location: draft.location.address || draft.location.name || '',
             lat: draft.location.lat ? String(draft.location.lat) : '',
             lng: draft.location.lng ? String(draft.location.lng) : '',
             capacity: String(draft.maxAttendees || 3),
@@ -144,8 +144,8 @@ export default function CreateEventPage() {
             placeName: draft.location.name || '',
           })
 
-          if (draft.location.name) {
-            setSelectedAddress(draft.location.name)
+          if (draft.location.address || draft.location.name) {
+            setSelectedAddress(draft.location.address || draft.location.name || '')
             if (draft.location.lat && draft.location.lng) {
               setSelectedLocation({ lat: draft.location.lat, lng: draft.location.lng })
             }
@@ -179,7 +179,7 @@ export default function CreateEventPage() {
     setAddressLookupPending(false)
   }, [showLocationSheet, form.location, selectedLocation, isAddressClearing])
 
-  // 使用者輸入地址 3 秒後自動定位地圖，不覆寫輸入文字
+  // 使用者輸入地址 2 秒後自動定位地圖，不覆寫輸入文字
   useEffect(() => {
     if (!showLocationSheet) return
     if (addressMode !== 'manual') return
@@ -197,7 +197,7 @@ export default function CreateEventPage() {
         setReverseGeoError('無法定位，請再試一次或點地圖')
       }
       setAddressLookupPending(false)
-    }, 3000)
+    }, 2000)
 
     return () => clearTimeout(handle)
   }, [selectedAddress, showLocationSheet, addressMode, isAddressClearing])
@@ -632,13 +632,8 @@ export default function CreateEventPage() {
                       </div>
                       <div className="flex flex-col text-left">
                         <span className="text-sm font-bold text-slate-900 leading-tight mb-0.5">
-                          {form.placeName || '點擊選擇位置'}
+                          {form.location || '點擊選擇位置'}
                         </span>
-                        {form.location && form.location !== form.placeName && (
-                          <span className="text-xs text-slate-500 line-clamp-1 break-all">
-                            {form.location}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-slate-400" />

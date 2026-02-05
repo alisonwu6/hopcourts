@@ -1,12 +1,26 @@
 import { api } from '@/api/client'
 import type { Country, City, Vibe, AgeRange, Sport } from '@/types/dictionary'
 
+let metaPromise: Promise<any> | null = null
+
 export const dictionaryService = {
   async meta() {
-    const res = await api.dictionaries.meta()
-    if (!res.ok) throw new Error('Failed to load dictionary meta')
-    // backend may return { data: {...} } or directly {...}
-    return (res.data as any)?.data ?? res.data
+    if (metaPromise) return metaPromise
+    
+    metaPromise = api.dictionaries.meta().then((res) => {
+      if (!res.ok) {
+        throw new Error('Failed to load dictionary meta')
+      }
+      // backend may return { data: {...} } or directly {...}
+      return (res.data as any)?.data ?? res.data
+    })
+    
+    // Allow concurrent calls to share the promise, then clear it
+    metaPromise.finally(() => {
+        setTimeout(() => { metaPromise = null }, 2000)
+    })
+    
+    return metaPromise
   },
   async listCountries(lang: 'zh' | 'en' = 'zh') {
     const res = await api.dictionaries.countries(lang)

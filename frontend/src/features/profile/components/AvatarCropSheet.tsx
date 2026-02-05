@@ -81,12 +81,28 @@ export function AvatarCropSheet({
 
   useEffect(() => {
     if (open) {
-      // 自動開啟檔案選擇；未選擇直接關閉
-      setTimeout(() => fileInputRef.current?.click(), 50)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      
+      const timer = setTimeout(() => {
+        fileInputRef.current?.click()
+
+        const onFocus = () => {
+          // 給予一點緩衝時間讓 onChange 可能先觸發
+          setTimeout(() => {
+            if (!fileInputRef.current?.files?.length) {
+              onClose()
+            }
+          }, 500)
+          window.removeEventListener('focus', onFocus)
+        }
+        window.addEventListener('focus', onFocus)
+      }, 50)
+
+      return () => clearTimeout(timer)
     } else {
       resetState()
     }
-  }, [open])
+  }, [open, onClose])
 
   const handleFile = (file: File | null) => {
     if (!file) {

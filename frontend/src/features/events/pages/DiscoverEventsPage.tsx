@@ -36,6 +36,9 @@ import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
 
+import { profileService } from '@/features/profile/profile.service'
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
+
 export function DiscoverEventsPage() {
   const navigate = useNavigate()
   const today = startOfDay(new Date())
@@ -80,8 +83,9 @@ export function DiscoverEventsPage() {
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
   const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isAuthenticated, profileCache, setProfileCache } = useAuthStore()
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
 
   const sports = useMemo<SportFilterOption[]>(
     () => [
@@ -99,9 +103,45 @@ export function DiscoverEventsPage() {
     void fetchEvents()
   }, [fetchEvents])
 
-  const handleCreateClick = () => {
-    if (isAuthenticated) navigate('/create-event')
-    else setShowLoginPrompt(true)
+  const handleCreateClick = async () => {
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
+
+    if (profileCache?.name) {
+      navigate('/create-event')
+      return
+    }
+
+    try {
+      const res = await profileService.getProfile()
+      const data: any = (res as any).data ?? res
+      
+      // Check if profile is valid. Username is unique and required for valid
+      const hasUsername = !!data.username
+      const hasName = !!data.display_name
+      
+      if (hasName || hasUsername) {
+        setProfileCache({ ...data, name: data.display_name || data.username })
+        navigate('/create-event')
+      } else {
+        setShowProfileRequiredSheet(true)
+      }
+    } catch (err: any) {
+      // If 404, definitely needs profile creation
+      if (err?.status === 404 || err?.response?.status === 404) {
+        setShowProfileRequiredSheet(true)
+      } else {
+        // For other errors, we might let them proceed or show validation
+        // But safer to assume they might need to check profile
+         console.error('Check profile failed', err)
+         // Fallback: let them try, or blocking? 
+         // User wants strict check. Let's show sheet if we fail to confirm profile.
+         // But maybe network error? Let's just navigate and let CreateEvent handle it if network error.
+         navigate('/create-event')
+      }
+    }
   }
 
   // Count events per day for the calendar dots.
@@ -269,10 +309,11 @@ export function DiscoverEventsPage() {
               <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
                 <span className="text-5xl">😮</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900">目前附近沒看到活動呢</h3>
+              <h3 className="text-xl font-bold text-slate-900">Opps! 沒有活動？</h3>
               <p className="mt-2 text-sm text-slate-500">
-                別灰心！第一個發起活動，<br />
-                讓想運動的夥伴們找到你吧！
+                先開始先享受運動的樂趣。<br />
+                快來發佈一個活動，<br />
+                讓有相同運動興趣的夥伴們找到你吧！
               </p>
               <button
                 type="button"
@@ -327,6 +368,11 @@ export function DiscoverEventsPage() {
           )
           setIsSearchOpen(false)
         }}
+      />
+
+      <ProfileRequiredSheet
+        open={showProfileRequiredSheet}
+        onClose={() => setShowProfileRequiredSheet(false)}
       />
 
       <LoginPromptSheet
@@ -481,7 +527,7 @@ function SearchSheet({
                       className={clsx(
                         'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition ',
                         active
-                          ? 'border-black bg-neutral-900 text-white shadow-sm'
+                          ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
                           : 'border-slate-200 bg-white text-slate-700'
                       )}
                     >

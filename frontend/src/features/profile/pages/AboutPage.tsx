@@ -1,12 +1,8 @@
 import {
-  Activity,
-  ArrowRight,
   CalendarCheck,
   ShieldCheck,
   Sparkles,
-  SlidersHorizontal,
   UsersRound,
-  MessageCircle,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -24,7 +20,7 @@ export function AboutPage() {
       setShowLoginPrompt(true)
       return
     }
-    navigate('/onboarding')
+    navigate('/profile')
   }
 
   return (
@@ -47,102 +43,44 @@ export function AboutPage() {
           <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-12">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
               <Sparkles className="h-4 w-4" />
-              Real-World First Application
+              Real World First Application
             </div>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
-              你的運動，由你定義。
+              你的城市，
               <br />
-              你的世界，等你探索。
+              就是你的主場。
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-              我們是運動生活社群，讓每一次行動都能找到最可靠的連結。一起找到步調相近的人，
-              把運動變成日常裡最爽快的約定。
+              SportsMatch 是一個專注於真實連結的運動社群。我們相信，運動最好的部分不只是流汗，
+              更是與志趣相投的夥伴，一起在城市裡創造爽快的時刻。
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button
-                className="inline-flex items-center justify-center rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition "
-                type="button"
-                onClick={handleIdentityClick}
-              >
-                加入 SportsMatch
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </button>
-            </div>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <UsersRound className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">靈魂匹配</h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">運動夥伴</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  根據你的運動心態和節奏，找到與你同頻的夥伴。
+                  找到興趣與時間都契合的運動夥伴。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">可靠夥伴</h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">輕鬆成局</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  社群信用系統幫你篩選準時、投入的運動夥伴。
+                  直觀的開局與參加流程。設定時間、地點、程度，剩下的交給我們。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">隱私最高標準</h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">真實信用</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  個人資料與行程都有加密防護，讓你安心享受運動。
+                  建立可靠的運動履歷。每一次準時出席與友善互動，都是你的最佳背書。
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="bg-emerald-50/60 py-14">
-          <div className="mx-auto w-full max-w-5xl px-4">
-            <h2 className="text-2xl font-black text-slate-900 sm:text-3xl">
-              不是報名一場運動，
-              <br />
-              是建立你在城市裡的運動身份。
-            </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-              在 SportsMatch，你不是匿名參加者，而是一個有節奏、有偏好、有故事的運動者。
-            </p>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-                <Activity className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動狀態</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  不是程度高低，而是你的步調、心情與生活節奏。輕鬆 / 穩定 / 成長 / 探索。
-                </p>
-              </div>
-              <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-                <SlidersHorizontal className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動偏好</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  我的最愛、想嘗試的項目、偏好的時間與頻率，讓對的人更容易找到你。
-                </p>
-              </div>
-              <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-                <MessageCircle className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">你的運動故事</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  一句話就好，這會成為你運動卡片上最真實、也最吸引人的部分。
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-10 flex flex-col items-start gap-2">
-              <button
-                className="inline-flex items-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition  "
-                type="button"
-                onClick={handleIdentityClick}
-              >
-                建立我的運動身份
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </button>
-              <span className="text-xs text-slate-500">約 2 分鐘完成，之後都可以調整</span>
-            </div>
-          </div>
-        </section>
       </main>
 
       <LoginPromptSheet

@@ -2,7 +2,7 @@ export { Button } from './Button'
 export { BottomNav } from './BottomNav'
 export { BottomSheet } from './BottomSheet'
 export * from './AlertDialog'
-export { IntroSheet } from './IntroSheet'
+
 export { LoginPromptSheet } from './LoginPromptSheet'
 export { LoginPanel } from './LoginPanel'
 export { InputField } from './form/InputField'

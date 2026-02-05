@@ -47,19 +47,16 @@ export function BottomNav() {
     //   path: '/circle',
     //   matchPaths: ['/circle'],
     // },
-    isAuthenticated
-      ? {
-          label: '我',
-          icon: PersonStanding,
-          path: '/profile',
-          matchPaths: ['/profile', '/settings'],
-        }
-      : {
-          label: '登入',
-          icon: DoorClosed,
-          path: '/login',
-          matchPaths: ['/login', '/signup'],
-        },
+    ...(isAuthenticated
+      ? [
+          {
+            label: '我',
+            icon: PersonStanding,
+            path: '/profile',
+            matchPaths: ['/profile', '/settings'],
+          },
+        ]
+      : []),
   ]
 
   return (

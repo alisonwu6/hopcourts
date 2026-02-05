@@ -1,47 +1,44 @@
 import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
-import { Menu, PlusSquare, Lock } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEventsStore } from '@/features/events/hooks/useEventsStore'
+import { Menu, PlusSquare, Lock, Copy, MessageCircle } from 'lucide-react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 type ProfileVM = {
   username: string
+  usernameUpdatedCount: number
   card: MateCardProps
   favoriteSportKeys: string[]
   tryingSportKeys: string[]
 }
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
+import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
-import { onboardingService } from '@/features/onboarding/onboarding.service'
+import { profileService } from '@/features/profile/profile.service'
 import { useSports } from '@/features/dictionaries/hooks'
-import { useCountries, useCities, useVibes, useAgeRanges } from '@/features/dictionaries/hooks'
+import { useCities, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
-import { ProfileContent } from '@/features/profile/components/ProfileContent'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
-import { ProfileOnboardingIntro } from '@/features/profile/components/ProfileOnboardingIntro'
+import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
 const arraysEqual = (a: string[], b: string[]) =>
   a.length === b.length && a.every((v, i) => v === b[i])
 
-// Convert ISO country code (e.g., TW) to emoji flag
-const countryCodeToFlag = (code?: string) => {
-  if (!code || code.length < 2) return ''
-  const upper = code.slice(0, 2).toUpperCase()
-  const chars = [...upper].map((c) => 0x1f1e6 - 65 + c.charCodeAt(0))
-  return String.fromCodePoint(...chars)
-}
+const isUuid = (str: string) =>
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+
 
 const emptyProfile: MateCardProps = {
   name: '',
   location: '',
   cityKey: '',
-  flag: '',
-  countryKey: '',
   vibe: null,
   vibeKey: null,
   sports: [],
@@ -56,7 +53,15 @@ const SAMPLE_AVATAR =
   'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
 
 export function ProfilePage() {
+  const [alertDialog, setAlertDialog] = useState<{
+    open: boolean
+    title: string
+    description: React.ReactNode
+    type: 'success' | 'error' | 'info' | 'warning'
+  }>({ open: false, title: '', description: '', type: 'info' })
+
   const [showGoalSheet, setShowGoalSheet] = useState(false)
+  const [showShareSheet, setShowShareSheet] = useState(false)
   const [goal, setGoal] = useState<GoalState | null>(null)
   const [draftGoal, setDraftGoal] = useState<GoalState>({
     sessionsPerWeek: '',
@@ -67,7 +72,7 @@ export function ProfilePage() {
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
-  const { user, onboardingStatus, isAuthenticated, isLoading, profileCache, setProfileCache } =
+  const { user, isAuthenticated, isLoading, profileCache, setProfileCache } =
     useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
@@ -75,11 +80,11 @@ export function ProfilePage() {
   const [vm, setVm] = useState<ProfileVM | null>(
     profileCache
       ? {
-          username:
-            (profileCache as any)?.username ||
-            (user as any)?.username ||
-            (profileCache as any)?.display_name ||
-            '',
+          username: (() => {
+            const candidate = (profileCache as any)?.username || (user as any)?.username || ''
+            return isUuid(candidate) ? '' : candidate
+          })(),
+          usernameUpdatedCount: (profileCache as any)?.username_updated_count || 0,
           card: profileCache,
           favoriteSportKeys: [],
           tryingSportKeys: [],
@@ -93,24 +98,24 @@ export function ProfilePage() {
       (profileCache as any)?.display_name ||
       ''
   )
-  const [profileNotFound, setProfileNotFound] = useState(false)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [isProfileLoaded, setIsProfileLoaded] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
+  const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
+  const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'flag' | 'vibe' | 'bio' | 'gender' | 'ageRange'
+    null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const { items: sportsCatalog } = useSports('zh')
-  const { items: vibesCatalog } = useVibes('zh')
-  const { items: countriesCatalog } = useCountries('zh')
-  const { items: citiesCatalog } = useCities(undefined, 'zh')
-  const { items: ageRangesCatalog } = useAgeRanges('zh')
+  const { items: sportsCatalog, isLoading: isSportsLoading } = useSports('zh')
+  const { items: vibesCatalog, isLoading: isVibesLoading } = useVibes('zh')
+  const { items: citiesCatalog, isLoading: isCitiesLoading } = useCities(undefined, 'zh')
+  const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const navigate = useNavigate()
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -168,20 +173,12 @@ export function ProfilePage() {
     return map
   }, [vibesCatalog])
 
-  const labelForCountry = useMemo(() => {
-    const map = new Map(countriesCatalog.map((c) => [c.key, c.label]))
-    return (key?: string) => (key ? map.get(key) || key : '')
-  }, [countriesCatalog])
 
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
 
-  const labelForAgeRange = useMemo(() => {
-    const map = new Map(ageRangesCatalog.map((r) => [r.key, r.label]))
-    return (key?: string) => (key ? map.get(key) || key : '')
-  }, [ageRangesCatalog])
 
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
@@ -201,9 +198,6 @@ export function ProfilePage() {
     const locationLabel = vm.card.cityKey
       ? labelForCity(vm.card.cityKey) || vm.card.location
       : vm.card.location
-    const flagLabel = vm.card.countryKey
-      ? countryCodeToFlag(vm.card.countryKey) || labelForCountry(vm.card.countryKey) || vm.card.flag
-      : vm.card.flag
     let vibeUnion: MateCardProps['vibe'] = null
     if (vm.card.vibe) {
       vibeUnion = vm.card.vibe
@@ -220,23 +214,15 @@ export function ProfilePage() {
       sports: favoriteLabels,
       trying: tryingLabels,
       location: locationLabel,
-      flag: flagLabel,
       vibe: vibeUnion,
-      gender: vm.card.gender,
-      ageRangeKey: vm.card.ageRangeKey,
     }
-  }, [vm, labelForSport, labelForCity, labelForCountry, vibeKeyToUnion])
+  }, [vm, labelForSport, labelForCity, vibeKeyToUnion])
 
   // Memo: derive resolvedDraftProfile (for HeroCard, always label fields, union vibe)
   const resolvedDraftProfile = useMemo<MateCardProps>(() => {
     const locationLabel = draftProfile.cityKey
       ? labelForCity(draftProfile.cityKey) || draftProfile.location
       : draftProfile.location
-    const flagLabel = draftProfile.countryKey
-      ? countryCodeToFlag(draftProfile.countryKey) ||
-        labelForCountry(draftProfile.countryKey) ||
-        draftProfile.flag
-      : draftProfile.flag
     let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
     const draftVibeKey = (draftProfile as any).vibeKey
     if (!vibeUnion && draftVibeKey) {
@@ -248,10 +234,9 @@ export function ProfilePage() {
     return {
       ...draftProfile,
       location: locationLabel,
-      flag: flagLabel,
       vibe: vibeUnion,
     }
-  }, [draftProfile, labelForCity, labelForCountry, vibeKeyToUnion])
+  }, [draftProfile, labelForCity, vibeKeyToUnion])
 
   const usernameFromVm = vm?.username
   const usernameFromUser = (user as any)?.username
@@ -260,114 +245,147 @@ export function ProfilePage() {
     usernameFromUser ||
     draftUsername ||
     (resolvedProfile as any)?.username ||
-    (resolvedProfile as any)?.name ||
     ''
-  const hasCompletedCard = onboardingStatus?.isComplete ?? false
+
+  const loadProfileData = useCallback(async () => {
+    if (!isAuthenticated) return
+    try {
+      const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
+        profileService.getProfile(),
+        profileService.getPreferences(),
+        profileService.getStats(),
+        fetchMyEvents(),
+      ])
+
+      if (profileRes.status === 'fulfilled') {
+        const payload: any = (profileRes.value as any)?.data ?? profileRes.value
+        if (payload) {
+          const data = payload.user ? payload.user : payload
+          const sportsRows = payload.sports || []
+          const favoriteKeys =
+            payload.favorite_sports ||
+            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+          const tryingKeys =
+            payload.trying_sports ||
+            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+          const vibeKey = data.vibe_key || null
+          const vibeUnion = vibeKey
+            ? vibeKeyToUnion.get(vibeKey) ||
+              vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+              vibeKeyToUnionFallback(vibeKey)
+            : null
+
+          const mapped: MateCardProps = {
+            name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
+            location: data.city_label || data.city || '',
+            cityKey: data.city_key || '',
+            vibe: vibeUnion,
+            vibeKey,
+            sports: (favoriteKeys || []).map(labelForSport),
+            trying: (tryingKeys || []).map(labelForSport),
+            blurb: data.bio || '',
+            avatar: data.avatar_url || userAvatar || '',
+            friendCount: data.teammate_count || 0,
+            gender: data.gender || null,
+            ageRangeKey: data.age_range_key || null,
+          }
+          const rawUsername = data.username || (user as any)?.username || ''
+          const nextUsername = isUuid(rawUsername) ? '' : rawUsername
+          setVm({
+            username: nextUsername,
+            usernameUpdatedCount: data.username_updated_count || 0,
+            card: mapped,
+            favoriteSportKeys: favoriteKeys || [],
+            tryingSportKeys: tryingKeys || [],
+          })
+          setDraftProfile(mapped)
+          setDraftUsername(nextUsername)
+          setProfileCache(mapped)
+          
+          // Sync to AuthStore so other components (EventDetailPage) have access to gender/etc.
+          const { user: authUser, token, setAuthData } = useAuthStore.getState()
+          if (authUser && token) {
+             const newName = data.display_name || authUser.name
+             const newAvatar = data.avatar_url || authUser.avatar
+             const newLocation = data.city_key || authUser.location
+             const newGender = data.gender || authUser.gender
+             const newBio = data.bio || authUser.bio
+
+             const isChanged = 
+                authUser.name !== newName ||
+                authUser.avatar !== newAvatar ||
+                authUser.location !== newLocation ||
+                authUser.gender !== newGender ||
+                authUser.bio !== newBio
+
+             if (isChanged) {
+                const updatedUser = {
+                    ...authUser,
+                    name: newName,
+                    avatar: newAvatar,
+                    location: newLocation,
+                    gender: newGender,
+                    bio: newBio
+                }
+                setAuthData(updatedUser, token)
+             }
+          }
+        }
+      } else if (profileRes.status === 'rejected') {
+        const err: any = profileRes.reason
+        const status = err?.status || err?.response?.status
+        if (status === 404) {
+          setShowEditSheet(true)
+        }
+        setVm(null)
+        const prefill: MateCardProps = {
+          ...emptyProfile,
+          name: (user as any)?.name || '',
+          avatar: userAvatar || '',
+        }
+        setDraftProfile(prefill)
+      }
+
+      if (preferencesRes.status === 'fulfilled') {
+        const preferencesPayload: any =
+          (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
+        const sessionsPerWeek = preferencesPayload.sessions_per_week
+        const preferredTime = preferencesPayload.preferred_time
+        const daySlots = preferencesPayload.day_slots || {}
+        setGoal({
+          sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
+          timeOfDay: preferredTime || '早上',
+          days: [],
+        })
+        const mergedSlots: Record<string, string[]> = {
+          ...createDaySlots(),
+          ...daySlots,
+        }
+        setGoalDaySlots(mergedSlots)
+        setDraftDaySlots(mergedSlots)
+        if (preferredTime) setDraftPreferredTime(preferredTime)
+      }
+
+      if (statsRes.status === 'fulfilled') {
+        const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
+        setStats(statsPayload)
+      }
+    } catch (err) {
+      setVm(null)
+      const prefill: MateCardProps = {
+        ...emptyProfile,
+        name: (user as any)?.name || '',
+        avatar: userAvatar || '',
+      }
+      setDraftProfile(prefill)
+    } finally {
+      setIsProfileLoaded(true)
+    }
+  }, [isAuthenticated, labelForSport, vibeKeyToUnion, fetchMyEvents, setProfileCache, userAvatar, user])
 
   useEffect(() => {
-    if (!isAuthenticated) return
-    let cancelled = false
-    const fetchProfile = async () => {
-      setProfileNotFound(false)
-      try {
-        const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
-          onboardingService.getProfile(),
-          onboardingService.getPreferences(),
-          onboardingService.getStats(),
-        ])
-
-        if (!cancelled && profileRes.status === 'fulfilled') {
-          const payload: any = (profileRes.value as any)?.data ?? profileRes.value
-          if (payload) {
-            const data = payload.user ? payload.user : payload
-            const sportsRows = payload.sports || []
-            const favoriteKeys =
-              payload.favorite_sports ||
-              sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
-            const tryingKeys =
-              payload.trying_sports ||
-              sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-            const vibeKey = data.vibe_key || null
-            const vibeUnion = vibeKey
-              ? vibeKeyToUnion.get(vibeKey) ||
-                vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
-                vibeKeyToUnionFallback(vibeKey)
-              : null
-
-            const mapped: MateCardProps = {
-              name: data.display_name || data.username || '',
-              location: data.city_label || data.city || '',
-              cityKey: data.city_key || '',
-              flag: labelForCountry(data.country_key) || '',
-              countryKey: data.country_key || '',
-              vibe: vibeUnion,
-              vibeKey,
-              sports: (favoriteKeys || []).map(labelForSport),
-              trying: (tryingKeys || []).map(labelForSport),
-              blurb: data.bio || '',
-              avatar: data.avatar_url || userAvatar || '',
-              gender: data.gender || null,
-              ageRangeKey: data.age_range_key || null,
-            }
-            const nextUsername = data.username || data.display_name || (user as any)?.username || ''
-            setVm({
-              username: nextUsername,
-              card: mapped,
-              favoriteSportKeys: favoriteKeys || [],
-              tryingSportKeys: tryingKeys || [],
-            })
-            setDraftProfile(mapped)
-            setDraftUsername(nextUsername)
-            setProfileCache(mapped)
-          }
-        } else if (!cancelled && profileRes.status === 'rejected') {
-          const err: any = profileRes.reason
-          const status = err?.status || err?.response?.status
-          if (status === 404) {
-            setProfileNotFound(true)
-          }
-          setVm(null)
-          setDraftProfile(emptyProfile)
-        }
-
-        if (!cancelled && preferencesRes.status === 'fulfilled') {
-          const preferencesPayload: any =
-            (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
-          const sessionsPerWeek = preferencesPayload.sessions_per_week
-          const preferredTime = preferencesPayload.preferred_time
-          const daySlots = preferencesPayload.day_slots || {}
-          setGoal({
-            sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
-            timeOfDay: preferredTime || '早上',
-            days: [],
-          })
-          const mergedSlots: Record<string, string[]> = {
-            ...createDaySlots(),
-            ...daySlots,
-          }
-          setGoalDaySlots(mergedSlots)
-          setDraftDaySlots(mergedSlots)
-          if (preferredTime) setDraftPreferredTime(preferredTime)
-        }
-
-        if (!cancelled && statsRes.status === 'fulfilled') {
-          const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
-          setStats(statsPayload)
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setVm(null)
-          setDraftProfile(emptyProfile)
-        }
-      } finally {
-        if (!cancelled) setIsProfileLoaded(true)
-      }
-    }
-    fetchProfile()
-    return () => {
-      cancelled = true
-    }
-  }, [isAuthenticated, labelForCountry, labelForSport, vibeKeyToUnion])
+    loadProfileData()
+  }, [loadProfileData])
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
@@ -388,7 +406,7 @@ export function ProfilePage() {
       const sessions = draftGoal.sessionsPerWeek
         ? Number(draftGoal.sessionsPerWeek)
         : draftGoal.sessionsPerWeek
-      await onboardingService.savePreferences({
+      await profileService.savePreferences({
         sessions_per_week: sessions || null,
         preferred_time: draftPreferredTime || null,
         day_slots: draftDaySlots,
@@ -404,6 +422,56 @@ export function ProfilePage() {
     }
   }
 
+  const handleShare = async () => {
+    const shareUsername = username || draftUsername
+    if (!shareUsername) return
+    
+    const url = `${window.location.origin}/mate/${shareUsername}`
+    const shareData = {
+      title: 'SportsMatch 運動卡',
+      text: `看看 ${draftProfile.name} 的運動檔案`,
+      url,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        setShowShareSheet(true)
+      }
+    } catch (err: any) {
+      console.error('Share failed', err)
+    }
+  }
+
+  const handleShareToLine = () => {
+    const shareUsername = username || draftUsername
+    const url = `${window.location.origin}/mate/${shareUsername}`
+    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`
+    setShowShareSheet(false)
+  }
+
+  const handleCopyLink = async () => {
+    const shareUsername = username || draftUsername
+    const url = `${window.location.origin}/mate/${shareUsername}`
+    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    
+    try {
+      await navigator.clipboard.writeText(text)
+      setAlertDialog({
+        open: true,
+        title: '已複製',
+        description: '連結與文字已複製到剪貼簿',
+        type: 'success'
+      })
+    } catch (err) {
+      window.prompt('請複製連結', text)
+    } finally {
+      setShowShareSheet(false)
+    }
+  }
+
   const handleOpenProfileEdit = () => {
     setDraftProfile(resolvedProfile ?? emptyProfile)
     setDraftUsername(vm?.username || '')
@@ -413,7 +481,8 @@ export function ProfilePage() {
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
     let nextValue = rawKey ?? value
     if (field === 'vibe') {
-      nextValue = rawKey || vibeUnionToKey.get(value as MateCardProps['vibe']) || value
+      const vibe = value as NonNullable<MateCardProps['vibe']>
+      nextValue = rawKey || (vibe ? vibeUnionToKey.get(vibe) : undefined) || value
     }
     setActiveField(field)
     setFieldValue(nextValue)
@@ -423,13 +492,28 @@ export function ProfilePage() {
     if (!activeField) return
     const value = fieldValue.trim()
     const next = { ...draftProfile }
-    const payload: Record<string, any> = {}
+    const payload: Record<string, any> = {
+      avatar_url: next.avatar,
+    }
+
     switch (activeField) {
       case 'name':
         next.name = value
         payload.display_name = value
         break
       case 'username':
+        if (!value) {
+           setFieldError('請輸入使用者名稱')
+           return
+        }
+        if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
+           setFieldError('帳號只能包含英文、數字、底線與句號')
+           return
+        }
+        if (value.length < 3 || value.length > 20) {
+           setFieldError('帳號長度需介於 3 至 20 個字')
+           return
+        }
         setDraftUsername(value)
         payload.username = value
         break
@@ -437,11 +521,6 @@ export function ProfilePage() {
         next.location = labelForCity(value) || value
         next.cityKey = value
         payload.city_key = value
-        break
-      case 'flag':
-        next.flag = countryCodeToFlag(value) || labelForCountry(value) || value
-        next.countryKey = value
-        payload.country_key = value
         break
       case 'vibe':
         next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
@@ -456,18 +535,42 @@ export function ProfilePage() {
         next.gender = value
         payload.gender = value
         break
-      case 'ageRange':
-        next.ageRangeKey = value
-        payload.age_range_key = value
-        break
       default:
         break
     }
     setDraftProfile(next)
+    
+    // Only patch immediately if profile exists. 
+    // New users (vm=null) will save all at once via handleSaveProfile.
+    if (!vm) {
+      if (activeField === 'username' && fieldValue) {
+        try {
+          // Check availability (returns 200 if taken, 404 if available)
+          await profileService.getProfileByUsername(fieldValue)
+          setFieldError('使用者名稱已存在，請選擇其他名稱')
+          return // Keep sheet open
+        } catch (err: any) {
+          const status = err?.status || err?.response?.status
+          if (status !== 404) {
+             console.error('Failed to validate username', err)
+          }
+        }
+      }
+      setFieldError(null)
+      setActiveField(null)
+      return
+    }
+
     try {
-      await onboardingService.saveProfile(payload)
-    } catch (err) {
-      console.error('Failed to patch profile field', err)
+      await profileService.saveProfile(payload)
+    } catch (err: any) {
+      const status = err?.status || err?.response?.status
+      if (status === 409) {
+        alert('使用者名稱已存在，請選擇其他名稱')
+        // Revert username if needed, but for now just alert allows user to fix
+      } else {
+        console.error('Failed to patch profile field', err)
+      }
     } finally {
       setActiveField(null)
     }
@@ -477,93 +580,167 @@ export function ProfilePage() {
     if (isSavingProfile) return
     setIsSavingProfile(true)
     try {
-      const favoriteKeys = (draftProfile.sports || [])
-        .filter(Boolean)
-        .map((label) => keyForLabel(label))
-      const tryingKeys = (draftProfile.trying || [])
-        .filter(Boolean)
-        .map((label) => keyForLabel(label))
+      const favoriteKeys = Array.from(new Set(
+        (draftProfile.sports || [])
+          .filter(Boolean)
+          .map((label) => keyForLabel(label))
+      ))
+      const tryingKeys = Array.from(new Set(
+        (draftProfile.trying || [])
+          .filter(Boolean)
+          .map((label) => keyForLabel(label))
+      ))
 
-      await onboardingService.saveProfile({
-        username: draftUsername || draftProfile.name,
-        display_name: draftProfile.name,
-        bio: draftProfile.blurb,
-        vibe_key:
-          (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || null,
-        favorite_sports: favoriteKeys,
-        trying_sports: tryingKeys,
-        avatar_url: draftProfile.avatar || null,
-        gender: draftProfile.gender || null,
-        age_range_key: draftProfile.ageRangeKey || null,
-      })
+      // If creating new profile (vm null), send EVERYTHING.
+      // If updating existing (vm exists), only send fields that aren't auto-saved (Sports, Avatar).
+      // Note: Other fields (Name, Bio, etc.) are saved immediately in handleSaveField.
+      
+      let payload: any = {}
+      
+      if (!vm) {
+        // Validate required fields for new user creation
+        const { name, cityKey, vibe, gender } = draftProfile
+        const hasVibe = vibe || (draftProfile as any).vibeKey
+        const hasSports = favoriteKeys.length > 0
+        
+        if (!name || !draftUsername || !cityKey || !hasVibe || !gender || !hasSports) {
+          alert('請填寫完整個人資料')
+          setIsSavingProfile(false)
+          return
+        }
+
+        // Full create payload
+        payload = {
+          display_name: draftProfile.name,
+          bio: draftProfile.blurb,
+          vibe_key:
+            (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined,
+          city_key: draftProfile.cityKey || undefined,
+          gender: draftProfile.gender || undefined,
+          age_range_key: draftProfile.ageRangeKey || undefined,
+          favorite_sports: favoriteKeys,
+          trying_sports: tryingKeys,
+          avatar_url: draftProfile.avatar || undefined,
+        }
+        if (draftUsername && !isUuid(draftUsername)) {
+          payload.username = draftUsername
+        }
+      } else {
+        // Update payload: only Sports and Avatar (and sync any potentially desynced fields if we want to be safe, but user asked for minimal)
+        // Let's just send Sports and Avatar as they are the ones not immediately calling saveProfile() in their handlers.
+        payload = {
+          favorite_sports: favoriteKeys,
+          trying_sports: tryingKeys,
+          avatar_url: draftProfile.avatar || undefined,
+          // We can optionally include others if we suspect drift, but per request, minimize.
+        }
+      }
+
+      const res = await profileService.saveProfile(payload)
+      const responseData = (res as any).data || res
+      const savedUser = responseData.user || responseData
+      
+      // If we got a valid updated count from backend, use it. Otherwise estimate.
+      const newCount = typeof savedUser?.username_updated_count === 'number' 
+        ? savedUser.username_updated_count 
+        : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
 
       const updated = {
         ...draftProfile,
         sports: draftProfile.sports.filter(Boolean),
         trying: draftProfile.trying.filter(Boolean),
       }
-      setVm((prev) => ({
-        username: draftUsername || prev?.username || '',
+      setVm({
+        username: draftUsername || vm?.username || '',
+        usernameUpdatedCount: newCount,
         card: updated,
         favoriteSportKeys: favoriteKeys,
         tryingSportKeys: tryingKeys,
-      }))
-      setDraftProfile(updated)
+      })
       setProfileCache(updated)
+      
+      // Update AuthStore immediately
+      const { user: authUser, token, setAuthData } = useAuthStore.getState()
+      if (authUser && token) {
+         // savedUser from response has DB fields
+         const updatedUser = {
+             ...authUser,
+             name: savedUser.display_name || authUser.name,
+             avatar: savedUser.avatar_url || authUser.avatar,
+             gender: savedUser.gender || authUser.gender,
+             bio: savedUser.bio || authUser.bio,
+             location: savedUser.city_key || authUser.location
+         }
+         setAuthData(updatedUser, token)
+      }
+
       setShowEditSheet(false)
-    } catch (err) {
+      loadProfileData()
+    } catch (err: any) {
       // keep sheet open for retry
       console.error('Failed to save profile', err)
+      const status = err?.status || err?.response?.status
+      const errorData = err?.response?.data?.error || {}
+      const constraint = errorData.details?.constraint || ''
+      
+      if (status === 409) {
+        if (constraint.includes('username')) {
+           alert('使用者名稱已存在，請選擇其他名稱')
+        } else {
+           alert('儲存失敗：資料衝突，請檢查輸入內容')
+        }
+      } else {
+        alert('儲存失敗，請稍後再試')
+      }
     } finally {
       setIsSavingProfile(false)
     }
   }
 
-  if (isLoading) return null
+  const isCriticalDataLoading = 
+    isSportsLoading || 
+    isVibesLoading || 
+    isCitiesLoading
+
+  if (isLoading || !isProfileLoaded || isCriticalDataLoading) {
+    return <PageLoading />
+  }
   if (!isAuthenticated) return null
 
-  const isOnboardingIncomplete = isAuthenticated && !(onboardingStatus?.isComplete ?? false)
-  const showOnboardingIntro =
-    (isOnboardingIncomplete || profileNotFound) && isProfileLoaded && !resolvedProfile
-  if (isOnboardingIncomplete && !isProfileLoaded) return null
 
-  const displayProfile = resolvedProfile
-  const displayGoal = goal
-  const allowGoalEdit = true
-  const sessionsCompleted = Math.max(0, Number((stats as any)?.sessions_completed ?? 0))
-  const sessionsTarget = Math.max(0, Number(displayGoal?.sessionsPerWeek ?? 0))
-  const completion =
-    sessionsTarget > 0 ? Math.min(100, Math.round((sessionsCompleted / sessionsTarget) * 100)) : 0
 
-  const pageContent = showOnboardingIntro ? (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
-      <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-end bg-white px-4">
-          <Link
-            to="/settings"
-            aria-label="Menu"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
-          >
-            <Menu className="h-6 w-6" />
-          </Link>
-        </div>
-      </div>
-      <ProfileOnboardingIntro onStart={() => navigate('/onboarding')} />
-    </div>
-  ) : (
+  const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-between bg-white px-4 py-2">
+        <div className="flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
-            {username && <span className="text-2xl font-bold text-slate-900">{username}</span>}
+            {username && (
+              <>
+                <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
+                <span className="text-2xl font-bold text-slate-900">{username}</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label="Add game"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-              onClick={() => navigate('/create-event')}
+              onClick={() => {
+                const isProfileComplete = 
+                  vm?.card.name && 
+                  vm?.username && 
+                  vm?.card.cityKey && 
+                  (vm?.card.vibe || vm?.card.vibeKey) && 
+                  vm?.card.gender && 
+                  (vm?.card.sports && vm.card.sports.length > 0)
+
+                if (!isProfileComplete) {
+                  setShowProfileRequiredSheet(true)
+                } else {
+                  navigate('/create-event')
+                }
+              }}
             >
               <PlusSquare className="h-6 w-6" />
             </button>
@@ -578,19 +755,19 @@ export function ProfilePage() {
         </div>
 
         <HeroCard
-          profile={resolvedProfile}
+          onShare={handleShare}
+          profile={resolvedProfile ?? {
+            ...emptyProfile,
+            name: (user as any)?.name || '',
+            avatar: userAvatar || '',
+          }}
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
+          actionLabel="編輯運動卡"
+          actionClassName=""
+          onTeammatesClick={() => navigate('/profile/teammates')}
         />
         <div className="mt-4 space-y-4 px-3">
-          {/* <ProfileContent
-            goal={displayGoal}
-            goalDaySlots={goalDaySlots}
-            completion={completion}
-            sessionsCompleted={sessionsCompleted}
-            onOpenGoalSheet={handleOpenGoal}
-            showEdit={allowGoalEdit || hasCompletedCard}
-          /> */}
           <MySessions />
         </div>
       </div>
@@ -608,12 +785,53 @@ export function ProfilePage() {
         onAvatarUpdated={(url) => {
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
           setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
-          // Keep cache shape consistent: cache stores MateCardProps (no username)
-          // Avoid functional-updater style here because setProfileCache is a store action.
           const base = (resolvedProfile ?? draftProfile) as MateCardProps
           setProfileCache({ ...base, avatar: url })
         }}
       />
+
+      {/* Profile Required Bottom Sheet */}
+      <ProfileRequiredSheet
+        open={showProfileRequiredSheet}
+        onClose={() => setShowProfileRequiredSheet(false)}
+        onConfirm={() => setShowEditSheet(true)}
+      />
+      
+      <AlertDialog
+        open={alertDialog.open}
+        onClose={() => setAlertDialog((prev) => ({ ...prev, open: false }))}
+        title={alertDialog.title}
+        description={alertDialog.description}
+        type={alertDialog.type}
+      />
+
+      {/* Custom Share Sheet for non-native environments */}
+      <BottomSheet open={showShareSheet} onClose={() => setShowShareSheet(false)}>
+        <div className="px-4 pb-8 pt-4">
+          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">分享運動卡</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={handleShareToLine}
+              className="flex flex-col items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 py-4 active:bg-slate-100"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#06C755] text-white shadow-sm">
+                <MessageCircle className="h-6 w-6" />
+              </div>
+              <span className="text-sm font-medium text-slate-700">LINE</span>
+            </button>
+            <button
+              onClick={handleCopyLink}
+              className="flex flex-col items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 py-4 active:bg-slate-100"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-slate-600 shadow-sm">
+                <Copy className="h-6 w-6" />
+              </div>
+              <span className="text-sm font-medium text-slate-700">複製連結</span>
+            </button>
+          </div>
+        </div>
+      </BottomSheet>
+
       <BottomSheet
         open={showEditSheet}
         onClose={() => setShowEditSheet(false)}
@@ -661,12 +879,6 @@ export function ProfilePage() {
                   value: draftUsername ?? '',
                 },
                 {
-                  key: 'flag',
-                  label: '國籍',
-                  value: labelForCountry(draftProfile.countryKey) || draftProfile.flag,
-                  valueKey: draftProfile.countryKey || '',
-                },
-                {
                   key: 'location',
                   label: '現居地點',
                   value: labelForCity(draftProfile.cityKey) || draftProfile.location,
@@ -675,11 +887,12 @@ export function ProfilePage() {
                 {
                   key: 'gender',
                   label: '性別',
-                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : draftProfile.gender === 'other' ? '其他' : '未設定',
+                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : '未設定',
                   valueKey: draftProfile.gender || '',
                 },
               ].map((row) => {
-                const isReadOnly = row.key === 'username'
+                const isUsernameField = row.key === 'username'
+                const isReadOnly = isUsernameField && !!vm?.username
                 const Component = isReadOnly ? 'div' : 'button'
                 return (
                   <Component
@@ -796,21 +1009,17 @@ export function ProfilePage() {
             name: '名稱',
             username: '使用者名稱',
             location: '現居城市',
-            flag: '國籍',
             vibe: '運動氛圍',
             bio: '自我介紹',
             gender: '性別',
-            ageRange: '年齡區間',
           }
           const subtitleMap: Record<string, string> = {
             name: '請輸入卡片上要顯示的名稱。',
             username: '你的帳號，夥伴可以用這個找到你。',
             location: '填寫你目前所在的城市。',
-            flag: '場上有共同的語言，讓我們知道你來自哪裡。',
             vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
             bio: '和大家分享你的運動的動態與目標吧！',
-            gender: '讓我們更了解你，提供更合適的活動推薦。',
-            ageRange: '選擇你的年齡區間。',
+            gender: '因應性別專場，請選擇你的生理性別。',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -871,6 +1080,7 @@ export function ProfilePage() {
                         }
                       >
                         <p className="text-lg font-bold">{v.label}</p>
+                        {v.subtitle && <p className="mt-1 text-sm opacity-80">{v.subtitle}</p>}
                       </button>
                     )
                   })}
@@ -883,19 +1093,6 @@ export function ProfilePage() {
                 >
                   <option value="">請選擇城市</option>
                   {citiesCatalog.map((c) => (
-                    <option key={c.key} value={c.key}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              ) : activeField === 'flag' ? (
-                <select
-                  value={fieldValue}
-                  onChange={(e) => setFieldValue(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">請選擇國籍</option>
-                  {countriesCatalog.map((c) => (
                     <option key={c.key} value={c.key}>
                       {c.label}
                     </option>
@@ -920,7 +1117,6 @@ export function ProfilePage() {
                   {[
                     { key: 'male', label: '男生' },
                     { key: 'female', label: '女生' },
-                    { key: 'other', label: '其他' },
                   ].map((g) => (
                     <button
                       key={g.key}
@@ -937,32 +1133,27 @@ export function ProfilePage() {
                     </button>
                   ))}
                 </div>
-              ) : activeField === 'ageRange' ? (
-                <div className="flex flex-col gap-3">
-                  {ageRangesCatalog.map((r) => (
-                    <button
-                      key={r.key}
-                      type="button"
-                      onClick={() => setFieldValue(r.key)}
-                      className={clsx(
-                        'flex items-center justify-between rounded-2xl border px-4 py-4 text-left font-semibold shadow-sm transition',
-                        fieldValue === r.key
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-slate-200 bg-white text-slate-800'
-                      )}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
-                </div>
               ) : (
-                <input
-                  type="text"
-                  value={fieldValue}
-                  onChange={(e) => setFieldValue(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                  placeholder="請輸入"
-                />
+                <div className="w-full">
+                  <input
+                    type="text"
+                    value={fieldValue}
+                    onChange={(e) => {
+                      setFieldValue(e.target.value)
+                      setFieldError(null)
+                    }}
+                    className={clsx(
+                      "w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none",
+                      fieldError 
+                        ? "border-red-500 focus:border-red-500" 
+                        : "border-slate-200 focus:border-blue-500"
+                    )}
+                    placeholder="請輸入"
+                  />
+                  {fieldError && (
+                    <p className="mt-2 text-sm text-red-500">{fieldError}</p>
+                  )}
+                </div>
               )}
             </SheetLayout>
           )
@@ -977,7 +1168,7 @@ export function ProfilePage() {
         <SheetLayout
           onClose={() => setShowSportsSheet(false)}
           title="選擇最愛運動"
-          subtitle="那些你能自在接受挑戰，且熱在其中的運動。（最多選 3 項)"
+          subtitle="那些你能自在接受挑戰，且熱在其中的運動。"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"

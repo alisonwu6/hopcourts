@@ -62,21 +62,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                items?: {
-                                    key?: string;
-                                    label?: string;
-                                    category?: string;
-                                    icon?: string;
-                                    order?: number;
-                                    is_active?: boolean;
-                                }[];
-                            };
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
@@ -100,11 +86,10 @@ export interface paths {
             parameters: {
                 query?: {
                     sport_key?: string;
-                    city?: string;
+                    city_key?: string;
                     from?: string;
                     to?: string;
                     limit?: number;
-                    offset?: number;
                 };
                 header?: never;
                 path?: never;
@@ -117,20 +102,34 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                sessions?: components["schemas"]["Session"][];
-                                page?: components["schemas"]["Page"];
-                            };
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
         put?: never;
-        post?: never;
+        /** Create a session */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -161,188 +160,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                session?: components["schemas"]["Session"];
-                                meta?: components["schemas"]["SessionMeta"];
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/countries": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List countries */
-        get: {
-            parameters: {
-                query?: {
-                    lang?: "zh" | "en";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                items?: components["schemas"]["Country"][];
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/cities": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List cities */
-        get: {
-            parameters: {
-                query?: {
-                    country?: string;
-                    lang?: "zh" | "en";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                items?: components["schemas"]["City"][];
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/vibes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List vibes */
-        get: {
-            parameters: {
-                query?: {
-                    lang?: "zh" | "en";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                items?: components["schemas"]["Vibe"][];
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/age-ranges": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List age ranges */
-        get: {
-            parameters: {
-                query?: {
-                    lang?: "zh" | "en";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                items?: components["schemas"]["AgeRange"][];
-                            };
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
@@ -380,17 +198,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                /** Format: uuid */
-                                session_id?: string;
-                                joined?: boolean;
-                                meta?: components["schemas"]["SessionMeta"];
-                            };
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
@@ -411,17 +219,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                /** Format: uuid */
-                                session_id?: string;
-                                joined?: boolean;
-                                meta?: components["schemas"]["SessionMeta"];
-                            };
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
@@ -439,7 +237,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Check-in to a session (GPS + time window) */
+        /** Check-in to a session */
         post: {
             parameters: {
                 query?: never;
@@ -463,31 +261,35 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                check_in?: components["schemas"]["CheckIn"];
-                            };
-                        };
-                    };
-                };
-                /** @description Unauthenticated */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
                     content?: never;
                 };
-                /** @description Outside time/radius or not allowed */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Session not found */
-                404: {
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/countries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List countries */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -495,6 +297,110 @@ export interface paths {
                 };
             };
         };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List cities */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vibes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List vibes */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/age-ranges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List age ranges */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -523,19 +429,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                user?: components["schemas"]["User"];
-                                sports?: components["schemas"]["UserSport"][];
-                            };
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
-        /** Upsert my profile */
+        /** Update profile */
         put: {
             parameters: {
                 query?: never;
@@ -543,22 +441,7 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        username?: string;
-                        display_name?: string;
-                        legal_name?: string;
-                        country_key?: string;
-                        city_key?: string;
-                        age_range_key?: string;
-                        vibe_key?: string;
-                        bio?: string;
-                        avatar_url?: string;
-                        sports?: components["schemas"]["UserSport"][];
-                    };
-                };
-            };
+            requestBody?: never;
             responses: {
                 /** @description ok */
                 200: {
@@ -598,38 +481,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: components["schemas"]["UserPreferences"];
-                        };
-                    };
-                };
-            };
-        };
-        /** Upsert my preferences */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UserPreferences"];
-                };
-            };
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
                     content?: never;
                 };
             };
         };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -659,15 +515,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: {
-                                is_complete?: boolean;
-                                missing_fields?: string[];
-                            };
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
@@ -701,12 +549,7 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": {
-                            ok?: boolean;
-                            data?: components["schemas"]["UserStats"];
-                        };
-                    };
+                    content?: never;
                 };
             };
         };
@@ -718,124 +561,371 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/teammates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List my teammates */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profiles/{username}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get user profile by username */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    username: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/profiles/{username}/follow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Follow a user */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    username: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Unfollow a user */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    username: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/venues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List venues */
+        get: {
+            parameters: {
+                query?: {
+                    lat?: number;
+                    lng?: number;
+                    radiusKm?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/venues/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get venue by id */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/venues/{id}/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request to claim a venue (Lead generation) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VenueClaimRequest"];
+                };
+            };
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/venues/venue-claims/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a venue claim (Admin) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/venues/venue-claims/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a venue claim (Admin) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Country: {
-            key?: string;
-            label?: string;
-            sort?: number;
-            is_active?: boolean;
-        };
-        City: {
-            key?: string;
-            country_key?: string;
-            label?: string;
-            sort?: number;
-            is_active?: boolean;
-        };
-        Vibe: {
-            key?: string;
-            label?: string;
-            subtitle?: string;
-            sort?: number;
-            is_active?: boolean;
-        };
-        AgeRange: {
-            key?: string;
-            label?: string;
-            sort?: number;
-            is_active?: boolean;
-        };
-        Page: {
-            limit?: number;
-            offset?: number;
-            has_more?: boolean;
-        };
         Session: {
             /** Format: uuid */
             id?: string;
-            /** Format: date-time */
-            created_at?: string;
-            /** Format: date-time */
-            updated_at?: string;
-            /** Format: uuid */
-            host_user_id?: string;
-            sport_key?: string;
             title?: string;
-            notes?: string;
+            description?: string;
+            sport_key?: string;
             /** Format: date-time */
             starts_at?: string;
             /** Format: date-time */
             ends_at?: string;
-            place_name?: string;
-            address?: string;
-            /** Format: double */
-            lat?: number;
-            /** Format: double */
-            lng?: number;
-            checkin_radius_m?: number;
-            checkin_open_mins_before?: number;
-            checkin_close_mins_after?: number;
-            min_people?: number;
-            max_people?: number | null;
             /** @enum {string} */
-            status?: "draft" | "published" | "cancelled" | "completed";
+            gender?: "mixed" | "male_only" | "female_only";
             /** @enum {string} */
-            visibility?: "public" | "unlisted";
-        };
-        SessionMeta: {
-            participant_count?: number;
-            spots_left?: number | null;
-            is_joined?: boolean;
-            viewer_has_joined?: boolean;
-            viewer_has_checked_in?: boolean;
-        };
-        CheckIn: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            session_id?: string;
-            /** Format: uuid */
-            user_id?: string;
-            /** Format: date-time */
-            checked_in_at?: string;
-            lat?: number;
-            lng?: number;
-            distance_m?: number;
-            status?: string;
+            skill_level?: "any" | "beginner" | "intermediate" | "advanced";
+            is_official?: boolean;
+            photos?: string[];
+            price?: number;
+            is_free?: boolean;
         };
         User: {
             /** Format: uuid */
             id?: string;
             username?: string;
             display_name?: string;
-            legal_name?: string;
-            country_key?: string;
-            city_key?: string;
-            age_range_key?: string;
-            vibe_key?: string;
-            bio?: string;
-            avatar_url?: string;
-        };
-        UserSport: {
-            sport_key?: string;
             /** @enum {string} */
-            kind?: "FAVORITE" | "TRYING";
+            gender?: "male" | "female";
+            avatar_url?: string;
+            teammate_count?: number;
         };
-        UserPreferences: {
-            preferred_time?: string;
-            sessions_per_week?: number;
-            day_slots?: {
-                [key: string]: unknown;
-            };
+        Venue: {
+            /** Format: uuid */
+            id?: string;
+            name_display?: string;
+            /** @enum {string} */
+            status?: "unclaimed" | "claimed";
         };
-        UserStats: {
-            sessions_joined?: number;
-            sessions_completed?: number;
-            high_fives_given?: number;
-            high_fives_received?: number;
+        VenueClaim: {
+            /** Format: uuid */
+            id?: string;
+            /** @enum {string} */
+            status?: "pending" | "approved" | "rejected";
+        };
+        VenueClaimRequest: {
+            contact_name: string;
+            contact_person: string;
+            contact_title: string;
+            contact_phone: string;
+            contact_email: string;
+            note?: string;
         };
     };
     responses: never;

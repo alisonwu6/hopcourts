@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { MapPin } from 'lucide-react'
+import { MapPin, Smile } from 'lucide-react'
 import { vibeTokens, vibeList, type Vibe } from '@/constants/vibeTokens'
 
 const withAlpha = (hex: string, alpha: number) => {
@@ -14,10 +14,9 @@ const withAlpha = (hex: string, alpha: number) => {
 export type MateCardProps = {
   name: string
   username?: string
-  flag: string
-  countryKey?: string
   vibe: Vibe | null
   vibeKey?: string | null
+  vibeLabel?: string
   sports: string[]
   trying: string[]
   location: string
@@ -27,11 +26,12 @@ export type MateCardProps = {
   accentClassName?: string
   gender?: string | null
   ageRangeKey?: string | null
+  friendCount?: number
+  onTeammatesClick?: () => void
 }
 
 export function MateCard({
   name,
-  flag,
   vibe,
   sports,
   trying,
@@ -41,6 +41,8 @@ export function MateCard({
   accentClassName,
   gender,
   ageRangeKey,
+  friendCount = 0,
+  onTeammatesClick,
 }: MateCardProps) {
   const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
     bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',
@@ -56,37 +58,58 @@ export function MateCard({
         accentClassName
       )}
     >
-      <div className="flex items-start gap-3">
-        <div className="h-26 w-26 mb-2 flex-shrink-0 overflow-hidden rounded-full bg-white">
-          <img
-            src={avatar}
-            alt={`${name} avatar`}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
+      <div className="flex items-stretch gap-3">
+        <div className="h-26 w-26 mb-2 flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+          {avatar ? (
+            <img
+              src={avatar}
+              alt={`${name} avatar`}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <Smile className="h-12 w-12 text-slate-300" />
+          )}
         </div>
-        <div className="flex flex-1 items-start justify-between gap-3">
+        <div className="flex flex-1 justify-between gap-3">
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900">{name}</span>
-              <span className="text-sm" aria-hidden="true">
-                {flag}
-              </span>
+              {name && <span className="text-sm font-semibold text-slate-900">{name}</span>}
             </div>
-            <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
-              <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
-              <span className="truncate">{location}</span>
+            {location && (
+              <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
+                <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
+                <span className="truncate">{location}</span>
+              </div>
+            )}
+            <div 
+              className={clsx(
+                "mt-3 border-t border-slate-300/50 pt-2 transition-opacity",
+                onTeammatesClick ? "cursor-pointer hover:opacity-70" : ""
+              )}
+              onClick={onTeammatesClick}
+            >
+              <span className="mb-0.5 block text-[10px] font-medium text-slate-500">交手夥伴</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
+                <span className="text-[10px] font-medium text-slate-600">位</span>
+              </div>
             </div>
+
           </div>
-          <span
-            className="inline-flex items-center rounded-full px-3.5 py-1 text-xs font-semibold"
-            style={{
-              background: vibeColors.bg,
-              color: vibeColors.text,
-            }}
-          >
-            {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
-          </span>
+          <div className="flex flex-col items-end justify-between gap-2">
+            {vibe && (
+              <span
+                className="inline-flex items-center rounded-full px-3.5 py-1 text-xs font-semibold"
+                style={{
+                  background: vibeColors.bg,
+                  color: vibeColors.text,
+                }}
+              >
+                {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -94,35 +117,50 @@ export function MateCard({
         <div>
           <span className="uppercase tracking-wide text-slate-500">我的最愛：</span>
           <div className="mt-1 flex flex-wrap gap-2">
-            {sports.map((sport) => (
-              <span
-                key={sport}
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-                style={{
-                  background: withAlpha(vibeColors.ring, 0.7),
-                  color: vibeColors.text,
-                }}
-              >
-                {sport}
-              </span>
-            ))}
+            {sports.length > 0 ? (
+              sports.map((sport) => (
+                <span
+                  key={sport}
+                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                  style={{
+                    background: withAlpha(vibeColors.ring, 0.7),
+                    color: vibeColors.text,
+                  }}
+                >
+                  {sport}
+                </span>
+              ))
+            ) : (
+              <>
+                <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+                <div className="h-[22px] w-20 animate-pulse rounded-full bg-slate-100/50" />
+                <div className="h-[22px] w-14 animate-pulse rounded-full bg-slate-100/50" />
+              </>
+            )}
           </div>
         </div>
         <div>
           <span className="uppercase tracking-wide text-slate-500">想嘗試：</span>
           <div className="mt-1 flex flex-wrap gap-2">
-            {trying.map((item) => (
-              <span
-                key={item}
-                className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-                style={{
-                  background: withAlpha(vibeColors.ring, 0.7),
-                  color: vibeColors.text,
-                }}
-              >
-                {item}
-              </span>
-            ))}
+            {trying.length > 0 ? (
+              trying.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                  style={{
+                    background: withAlpha(vibeColors.ring, 0.7),
+                    color: vibeColors.text,
+                  }}
+                >
+                  {item}
+                </span>
+              ))
+            ) : (
+              <>
+                <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
+                <div className="h-[22px] w-14 animate-pulse rounded-full bg-slate-100/50" />
+              </>
+            )}
           </div>
         </div>
 
@@ -135,7 +173,7 @@ export function MateCard({
           {blurb?.trim() ? (
             <span className="whitespace-pre-wrap">{blurb}</span>
           ) : (
-            <span className="not-italic text-slate-400">這位夥伴還沒寫一句話。</span>
+            <span className="not-italic text-slate-400">等待夥伴更新自我介紹...</span>
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
@@ -8,7 +8,6 @@ import { SignupPage } from '@/features/auth/pages/SignupPage'
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
 import { AuthCallback } from '@/features/auth/pages/AuthCallback'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPassword'
-import { OnboardingPage } from '@/features/onboarding/pages/OnboardingPage'
 import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { VenuePage } from '@/features/events/pages/VenuePage'
@@ -21,10 +20,11 @@ import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPag
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import { AboutPage } from '@/features/profile/pages/AboutPage'
+import { ContactUsPage } from '@/features/misc/pages/ContactUsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
-import { OnboardingRoute } from '@/routes/OnboardingRoute'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
+import { TeammatesPage } from '@/features/profile/pages/TeammatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
 import { AdminLoginPage } from '@/features/admin/pages/AdminLoginPage'
 import { AdminRouteGuard } from '@/features/admin/components/AdminRouteGuard'
@@ -42,10 +42,10 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
 }
 
 export default function App() {
-  const { isAuthenticated, isLoading, onboardingStatus } = useAuthStore()
+  const { isAuthenticated, isLoading } = useAuthStore()
 
   if (isLoading) {
-    return <PageLoading message="載入中..." />
+    return <PageLoading />
   }
 
   return (
@@ -60,17 +60,6 @@ export default function App() {
       <Route path="/auth/reset" element={<ResetPasswordPage />} />
       */}
       
-      <Route
-        path="/onboarding/*"
-        element={
-          <RequireAuth>
-            <OnboardingRoute>
-              <OnboardingPage />
-            </OnboardingRoute>
-          </RequireAuth>
-        }
-      />
-      <Route path="/profile/:username" element={<MateProfilePage />} />
       <Route path="/about" element={<AboutPage />} />
 
       {/* Admin / Governance (C0) */}
@@ -129,6 +118,11 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   const noHeaderPaths = ['/events', '/my-events', '/event/', '/create-event']
   const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
   const headerVisible = showHeader && !hideHeader
@@ -245,6 +239,16 @@ function AuthenticatedApp() {
         }
       />
       <Route
+        path="/profile/teammates"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <TeammatesPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/settings"
         element={
           <RequireAuth>
@@ -270,6 +274,16 @@ function AuthenticatedApp() {
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>
               <PrivacySettingsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/settings/contact"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <ContactUsPage />
             </AppChrome>
           </RequireAuth>
         }
@@ -355,35 +369,19 @@ function GuestApp() {
       <Route path="/mates" element={<Navigate to="/" replace />} />
       <Route
         path="/profile"
-        element={
-          <AppChrome showActions={false} showHeader={false}>
-            <ProfilePage />
-          </AppChrome>
-        }
+        element={<Navigate to="/events" replace />}
       />
       <Route
         path="/settings"
-        element={
-          <AppChrome showActions={false} showHeader={false} showNav={false}>
-            <ProfileSettingsPage />
-          </AppChrome>
-        }
+        element={<Navigate to="/events" replace />}
       />
       <Route
         path="/settings/account"
-        element={
-          <AppChrome showActions={false} showHeader={false} showNav={false}>
-            <AccountSettingsPage />
-          </AppChrome>
-        }
+        element={<Navigate to="/events" replace />}
       />
       <Route
         path="/settings/privacy"
-        element={
-          <AppChrome showActions={false} showHeader={false} showNav={false}>
-            <PrivacySettingsPage />
-          </AppChrome>
-        }
+        element={<Navigate to="/events" replace />}
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

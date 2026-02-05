@@ -14,7 +14,9 @@ import {
   PersonStanding,
   Trash2,
   LandPlot,
-  NotebookPen,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -42,6 +44,10 @@ export function EventDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
+  
+  const [isEditingDesc, setIsEditingDesc] = useState(false)
+  const [descValue, setDescValue] = useState('')
+  const [isSavingDesc, setIsSavingDesc] = useState(false)
 
   const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
@@ -84,6 +90,39 @@ export function EventDetailPage() {
       return
     }
     if (!event || !id) return
+
+    // Gender Validation
+    if (!event.joined && event.gender && event.gender !== 'mixed') {
+      const user = useAuthStore.getState().user
+      const userGender = user?.gender
+
+      if (!userGender) {
+        showAlert(
+          '需完善個人資料',
+          '此活動設有性別限制。請先至「個人檔案 > 編輯運動卡」設定您的性別，以便確認是否符合參加資格。',
+          'warning'
+        )
+        return
+      }
+
+      if (event.gender === 'male_only' && userGender !== 'male') {
+        showAlert(
+          '無法參加',
+          '本活動僅限男性參加。',
+          'error'
+        )
+        return
+      }
+
+      if (event.gender === 'female_only' && userGender !== 'female') {
+        showAlert(
+          '無法參加',
+          '本活動僅限女性參加。',
+          'error'
+        )
+        return
+      }
+    }
 
     if (event.joined) {
       await leaveEvent(id)
@@ -168,11 +207,31 @@ export function EventDetailPage() {
       },
       (err) => {
         console.error(err)
-        showAlert('你在哪？', '請開啟位置功能，讓我們知道你是否已進入到報告範圍。', 'warning')
+        showAlert('你在哪？', '請開啟位置功能，讓我們知道你是否已進入到報到範圍。', 'warning')
         setIsCheckingIn(false)
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     )
+  }
+
+
+  const handleSaveDesc = async () => {
+    if (!event) return
+    setIsSavingDesc(true)
+    try {
+      const res = await eventsService.updateEvent(event.id, { description: descValue })
+      if (res.success) {
+        await fetchEventById(event.id)
+        setIsEditingDesc(false)
+      } else {
+        alert(res.error?.message || '更新失敗')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('更新失敗')
+    } finally {
+      setIsSavingDesc(false)
+    }
   }
 
   const handleDelete = async () => {
@@ -273,7 +332,7 @@ export function EventDetailPage() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6 pb-20">
+          <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
             <div
               className="flex cursor-pointer items-center gap-3 transition "
               onClick={() => {
@@ -303,11 +362,6 @@ export function EventDetailPage() {
               <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
                 {genderLabel}
               </span>
-              {event.visibility === 'public' && (
-                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-emerald-700">
-                  公開場次
-                </span>
-              )}
             </div>
 
             <div className="mt-4">
@@ -411,15 +465,70 @@ export function EventDetailPage() {
             <hr className="my-6 border-slate-200" />
 
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                  <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-                </span>
-                <span>活動說明</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                    <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  </span>
+                  <span>活動說明</span>
+                </div>
+                {event.host.id === currentUserId && !isEditingDesc && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setDescValue(event.detail?.description || event.description || '')
+                            setIsEditingDesc(true)
+                        }}
+                        className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-600 transition"
+                    >
+                        <Pencil className="h-4 w-4" />
+                    </button>
+                )}
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                {event.detail?.description || event.description || '沒有描述'}
-              </p>
+              
+              {isEditingDesc ? (
+                <div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                    <textarea
+                        value={descValue}
+                        onChange={(e) => setDescValue(e.target.value)}
+                        className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
+                        placeholder="輸入活動說明..."
+                    />
+                    <div className="flex justify-end gap-2">
+                        <button
+                            onClick={() => setIsEditingDesc(false)}
+                            className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition"
+                            disabled={isSavingDesc}
+                        >
+                            <X className="h-3.5 w-3.5" />
+                            取消
+                        </button>
+                        <button
+                            onClick={handleSaveDesc}
+                            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-blue-500 transition disabled:opacity-70"
+                            disabled={isSavingDesc}
+                        >
+                            {isSavingDesc ? (
+                                '儲存中...'
+                            ) : (
+                                <>
+                                    <Check className="h-3.5 w-3.5" />
+                                    儲存更新
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                   {event.detail?.description || event.description || '沒有描述'}
+                </p>
+              )}
+              {event.updatedAt && (
+                <p className="mt-2 text-right text-xs text-slate-400">
+                  活動說明最後更新於 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
+                </p>
+              )}
             </div>
 
 
@@ -438,23 +547,47 @@ export function EventDetailPage() {
       />
 
       <BottomSheet open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        <SheetLayout
-          onClose={() => setShowDeleteConfirm(false)}
-          title="確定要刪除活動嗎？"
-          subtitle="一旦刪除，活動資訊將無法恢復。"
-          primaryButton={{
-            label: isDeleting ? '刪除中...' : '確定刪除',
-            onClick: handleDelete,
-            variant: 'danger',
-            isLoading: isDeleting,
-          }}
-          secondaryButton={{
-            label: '取消',
-            onClick: () => setShowDeleteConfirm(false),
-          }}
-        >
-          <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
-        </SheetLayout>
+        {(() => {
+          const hasParticipants = event?.participants && event.participants.length > 0
+
+          if (hasParticipants) {
+            return (
+              <SheetLayout
+                onClose={() => setShowDeleteConfirm(false)}
+                title="無法刪除活動"
+                subtitle="已有夥伴報名參加，無法刪除。"
+                primaryButton={{
+                  label: '關閉',
+                  onClick: () => setShowDeleteConfirm(false),
+                }}
+              >
+                <div className="py-2 text-sm text-slate-500">
+                  若有異動需求，建議您直接更新活動說明欄位告知參與夥伴。
+                </div>
+              </SheetLayout>
+            )
+          }
+
+          return (
+            <SheetLayout
+              onClose={() => setShowDeleteConfirm(false)}
+              title="確定要刪除活動嗎？"
+              subtitle="一旦刪除，活動資訊將無法恢復。"
+              primaryButton={{
+                label: '取消',
+                onClick: () => setShowDeleteConfirm(false),
+              }}
+              secondaryButton={{
+                label: isDeleting ? '刪除中...' : '確定刪除',
+                onClick: handleDelete,
+                variant: 'danger',
+                isLoading: isDeleting,
+              }}
+            >
+              <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
+            </SheetLayout>
+          )
+        })()}
       </BottomSheet>
 
       <LoginPromptSheet
@@ -588,7 +721,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       )
       statusText = (
         <p className="text-center text-xs font-medium text-slate-500">
-          將於 {formatTime(openTime)} 開放報到
+          將於 {formatTime(openTime)} 開放報到，讓夥伴知道你已經抵達場地。
         </p>
       )
     }
@@ -664,7 +797,7 @@ function ImageCarousel({ images }: { images: string[] }) {
   }
 
   return (
-    <div className="relative h-[230px] w-full">
+    <div className="relative h-[320px] w-full">
       <div
         ref={containerRef}
         className="flex h-full w-full snap-x snap-mandatory overflow-x-auto [&::-webkit-scrollbar]:hidden"
@@ -675,17 +808,10 @@ function ImageCarousel({ images }: { images: string[] }) {
             key={idx}
             className="relative h-full min-w-full snap-center overflow-hidden bg-slate-100"
           >
-            {/* Blurred Background Layer (Atmosphere) */}
-            <div
-              className="absolute inset-0 bg-cover bg-center blur-xl opacity-60 scale-110"
-              style={{ backgroundImage: `url(${src})` }}
-            />
-            
-            {/* Main Image Layer (Content) */}
             <img
               src={src}
               alt={`Event photo ${idx + 1}`}
-              className="relative h-full w-full object-contain object-center z-10"
+              className="h-full w-full object-cover object-center"
             />
           </div>
         ))}
