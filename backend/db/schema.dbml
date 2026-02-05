@@ -77,15 +77,17 @@ Table users {
 }
 
 Table user_sports {
-  user_id uuid [ref: > users.id, note: "on delete cascade"]
-  sport_key text [ref: > sports.key, note: "on delete cascade"]
-  level text 
-  is_favorite boolean [default: false]
-  is_trying boolean [default: false]
-  
-  primary key (user_id, sport_key)
-}
+  user_id uuid [ref: > users.id, delete: cascade]
+  sport_key text [ref: > sports.key, delete: cascade]
+  status text [not null, note: "CHECK (status IN ('favorite', 'trying'))"]
+  level text
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
 
+  indexes {
+    (user_id, sport_key) [pk]
+  }
+}
 Table user_preferences {
   user_id uuid [pk, ref: > users.id, note: "on delete cascade"]
   preferred_days text[]

@@ -77,7 +77,6 @@ async function listUpcomingSessions({
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
-      h.country_key as host_country_key,
       h.city_key as host_city_key,
       c.name_zh as host_city_name,
       v.status as venue_status,
@@ -118,7 +117,6 @@ async function listMyUpcomingSessions({ userId, from, to } = {}) {
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
-      h.country_key as host_country_key,
       h.city_key as host_city_key,
       c.name_zh as host_city_name
     from public.sessions s
@@ -152,16 +150,9 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
   // History includes:
   // 1. Sessions I participated in that are ENDED (ends_at < now)
   // 2. Sessions I HOSTED that are DRAFT (regardless of time)
-  // 3. (Optional) Sessions I HOSTED that are CANCELLED ? 
-  // Let's stick to Past Participation (which includes hosted past events if I joined them) + Hosted Drafts.
-  // Assuming host always joins automatically.
-  
-  // We can do a UNION query.
-  // Part 1: Past Sessions
-  // Part 2: Drafts (Owner = Me & Status = Draft)
   
   const now = new Date()
-  const params = [userId, now, limit, offset] // $1=userId, $2=now, $3=limit, $4=offset
+  const params = [userId, now, limit, offset]
   
   const sql = `
     SELECT ${BASE_FIELDS.map((f) => `sub.${f}`).join(', ')},
@@ -172,7 +163,6 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
         h.display_name as host_display_name,
         h.avatar_url as host_avatar_url,
         h.username as host_username,
-        h.country_key as host_country_key,
         h.city_key as host_city_key,
         c.name_zh as host_city_name
       FROM public.sessions s
@@ -190,7 +180,6 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
         h.display_name as host_display_name,
         h.avatar_url as host_avatar_url,
         h.username as host_username,
-        h.country_key as host_country_key,
         h.city_key as host_city_key,
         c.name_zh as host_city_name
       FROM public.sessions s
@@ -200,21 +189,14 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
         AND s.status = 'draft'
     ) sub
     ORDER BY 
-      CASE WHEN sub.status = 'draft' THEN 0 ELSE 1 END ASC, -- Drafts first? Or Chronological? Let's sort by date desc, nulls last?
+      CASE WHEN sub.status = 'draft' THEN 0 ELSE 1 END ASC,
       sub.starts_at DESC
     LIMIT $3 OFFSET $4
   `
-  // Note on ordering:
-  // If we want Drafts at the top, we can use custom order.
-  // User asked for "History" containing "Completed and Draft".
-  // Usually drafts are "Actionable", so maybe at top.
-  // Or just mixed by date. Drafts have future dates usually?
-  // Let's sort simply by created_at desc or starts_at desc.
-  // Updated SQL order: Drafts first (status='draft'), then recent history?
-  
   const { rows } = await query(sql, params)
   return rows
 }
+  // ...
 
 async function getSessionById(sessionId) {
   const { rows } = await query(
@@ -222,7 +204,6 @@ async function getSessionById(sessionId) {
        h.display_name as host_display_name,
        h.avatar_url as host_avatar_url,
        h.username as host_username,
-       h.country_key as host_country_key,
        h.city_key as host_city_key,
        c.name_zh as host_city_name,
        v.status as venue_status,

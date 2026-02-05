@@ -18,7 +18,7 @@ async function listCountries(query = {}) {
 
 async function listCities(query = {}) {
   const lang = parseLang(query)
-  const country = query.country || query.country_key
+  const country = query.country
   const items = await citiesModel.listCities({ country, lang })
   return { items }
 }
@@ -45,25 +45,18 @@ async function dictionaryMeta() {
   const meta = {}
   const now = new Date().toISOString()
 
+  /*
   try {
     const configRes = await query(
       `select value from public.system_config where key = 'sm.dict.meta'`
     )
     if (configRes.rows.length > 0) {
-      const configVal = configRes.rows[0].value
-      const globalVer = configVal.version || now
-      
-      meta.sports = { version: globalVer }
-      meta.vibes = { version: globalVer }
-      meta.countries = { version: globalVer }
-      meta.age_ranges = { version: globalVer }
-      meta.cities = { version: globalVer }
-      
-      return meta
+      // ...
     }
   } catch (err) {
     console.error('Failed to read system_config for dict meta', err)
   }
+  */
 
   // Fallback
   try {

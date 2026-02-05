@@ -95,13 +95,22 @@ CREATE TABLE users (
 );
 
 CREATE TABLE user_sports (
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id   UUID REFERENCES users(id) ON DELETE CASCADE,
   sport_key TEXT REFERENCES sports(key) ON DELETE CASCADE,
+
+  -- 只能二選一
+  status TEXT NOT NULL CHECK (status IN ('favorite', 'trying')),
   level TEXT, 
-  is_favorite BOOLEAN DEFAULT false,
-  is_trying BOOLEAN DEFAULT false,
+
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+  -- 關鍵：同一個運動只能在一個區
   PRIMARY KEY (user_id, sport_key)
 );
+
+CREATE INDEX idx_user_sports_user_id ON user_sports(user_id);
+CREATE INDEX idx_user_sports_sport_key ON user_sports(sport_key);
 
 CREATE TABLE user_preferences (
   user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,

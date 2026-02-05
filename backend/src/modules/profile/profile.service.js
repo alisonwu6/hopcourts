@@ -38,34 +38,60 @@ async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
 
-  // Enforce single username update rule
+  // Enforce single username update rule (Removed as column doesn't exist)
+  /*
   if (body.username && current.username && body.username !== current.username) {
     if (current.username_updated_count >= 1) {
       throw Errors.badRequest('使用者名稱只能修改一次')
     }
   }
+  */
+
+  // Prepare user data
+  let email = body.email || (body.auth_user && body.auth_user.email) || current.email
+  let avatarUrl = 
+      body.avatar_url ||
+      body.avatar ||
+      current.avatar_url ||
+      (body.auth_user && body.auth_user.user_metadata && body.auth_user.user_metadata.picture) ||
+      (body.auth_user && body.auth_user.avatar_url) ||
+      null
+
+  // If email is missing (new user via API without full payload), try fetching from Supabase
+  if (!email && supabase) {
+    try {
+      const { data, error } = await supabase.auth.admin.getUserById(userId)
+      if (data && data.user) {
+        email = data.user.email
+        // Also sync avatar if still missing
+        if (!avatarUrl && data.user.user_metadata?.picture) {
+           avatarUrl = data.user.user_metadata.picture
+        }
+         if (!avatarUrl && data.user.user_metadata?.avatar_url) {
+           avatarUrl = data.user.user_metadata.avatar_url
+        }
+      } else if (error) {
+        console.warn(`[upsertProfile] Failed to fetch Supabase user ${userId}:`, error.message)
+      }
+    } catch (err) {
+      console.error('[upsertProfile] Error fetching Supabase user:', err)
+    }
+  }
 
   const user = await usersModel.upsertUser({
     id: userId,
+    email: email, 
     username: body.username || current.username || null,
     display_name:
       body.display_name ||
       current.display_name ||
       '新夥伴',
-    legal_name: body.legal_name ?? current.legal_name ?? null,
-    country_key: body.country_key ?? current.country_key ?? null,
     city_key: body.city_key ?? current.city_key ?? null,
     age_range_key: body.age_range_key ?? current.age_range_key ?? null,
     gender: body.gender ?? current.gender ?? null,
     vibe_key: body.vibe_key ?? current.vibe_key ?? null,
     bio: body.bio ?? current.bio ?? null,
-    avatar_url:
-      body.avatar_url ||
-      body.avatar ||
-      current.avatar_url ||
-      (body.auth_user && body.auth_user.avatar_url) ||
-      (body.auth_user && body.auth_user.user_metadata && body.auth_user.user_metadata.picture) ||
-      null,
+    avatar_url: avatarUrl,
   })
 
   const sportsInput = Array.isArray(body.sports) ? body.sports : []
@@ -121,7 +147,6 @@ async function getOnboardingStatus(userId) {
   const user = await usersModel.getUserById(userId)
   const missing = []
   if (!user?.display_name) missing.push('display_name')
-  if (!user?.country_key) missing.push('country_key')
   if (!user?.city_key) missing.push('city_key')
   if (!user?.vibe_key) missing.push('vibe_key')
   if (!user?.age_range_key) missing.push('age_range_key')
