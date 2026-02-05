@@ -29,7 +29,7 @@ CREATE TABLE cities (
 
 -- Vibes
 CREATE TABLE vibes (
-  key TEXT PRIMARY KEY,
+  key TEXT PRIMARY KEY CHECK (key IN ('CHILL', 'SOCIAL', 'FLOW', 'EXPLORER', 'GROWTH', 'COMPETITIVE', 'SUPPORTIVE')),
   name_zh TEXT NOT NULL,
   name_en TEXT NOT NULL,
   subtitle_zh TEXT,
@@ -67,6 +67,9 @@ CREATE TABLE sports (
 -- 2. Users & Core
 -- ==========================================
 
+-- 2. Users & Core
+-- ==========================================
+
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email TEXT UNIQUE NOT NULL,
@@ -77,15 +80,17 @@ CREATE TABLE users (
   bio TEXT,
   
   city_key TEXT REFERENCES cities(key),
-  country_key TEXT REFERENCES countries(key), -- Often used in models
+  -- country_key removed: derived from city_key -> cities.country_key
+  
   gender TEXT,
   birth_date DATE,
   age_range_key TEXT REFERENCES age_ranges(key),
+  vibe_key TEXT REFERENCES vibes(key), -- Primary vibe preference
   
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   
-  role TEXT DEFAULT 'user',
+  role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
   is_verified BOOLEAN DEFAULT false
 );
 
@@ -123,7 +128,7 @@ CREATE TABLE venues (
   logo_url TEXT,     -- Using logo_url instead of cover_image in some models?
   address TEXT,
   city_key TEXT REFERENCES cities(key),
-  country_key TEXT REFERENCES countries(key),
+  -- country_key removed: derived from city_key -> cities.country_key
   lat DOUBLE PRECISION,
   lng DOUBLE PRECISION,
   
@@ -136,7 +141,7 @@ CREATE TABLE venues (
   
   is_official BOOLEAN DEFAULT false,
   owner_user_id UUID REFERENCES users(id),
-  status TEXT DEFAULT 'active', -- 'active', 'pending'
+  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'pending', 'suspended')),
 
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -177,11 +182,11 @@ CREATE TABLE sessions (
   min_people INTEGER DEFAULT 2,
   max_people INTEGER DEFAULT 10,
   
-  status TEXT DEFAULT 'published', -- 'draft', 'published', 'cancelled', 'completed'
-  visibility TEXT DEFAULT 'public', -- 'public', 'private', 'link'
+  status TEXT DEFAULT 'published' CHECK (status IN ('draft', 'published', 'cancelled', 'completed')),
+  visibility TEXT DEFAULT 'public' CHECK (visibility IN ('public', 'private', 'link')),
   
   skill_level TEXT,
-  gender TEXT DEFAULT 'mixed',
+  gender TEXT DEFAULT 'mixed' CHECK (gender IN ('mixed', 'male', 'female')),
   photos TEXT[],
   
   is_free BOOLEAN DEFAULT true,
@@ -200,9 +205,9 @@ CREATE TABLE sessions (
 CREATE TABLE session_participants (
   session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  status TEXT DEFAULT 'joined',
+  status TEXT DEFAULT 'joined' CHECK (status IN ('joined', 'left', 'kicked', 'waitlist')),
   joined_at TIMESTAMPTZ DEFAULT NOW(),
-  role TEXT DEFAULT 'player',
+  role TEXT DEFAULT 'player' CHECK (role IN ('player', 'host', 'organizer')),
   PRIMARY KEY (session_id, user_id)
 );
 
@@ -230,7 +235,7 @@ CREATE TABLE feedback (
   message TEXT NOT NULL,
   images TEXT[],
   allow_reply BOOLEAN DEFAULT false,
-  status TEXT DEFAULT 'new',
+  status TEXT DEFAULT 'new' CHECK (status IN ('new', 'read', 'archived', 'replied')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
