@@ -151,7 +151,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             </div>
             {/* Gender Tag (Added) */}
             <div className="flex items-center gap-1.5 rounded-full bg-pink-50/50 border border-pink-100 px-3 py-1 text-[11px] font-medium text-pink-800">
-              {event.gender === 'female_only' ? '女性專屬' : event.gender === 'male_only' ? '男性專屬' : '性別混合'}
+              {event.gender === 'female' ? '女性專屬' : event.gender === 'male' ? '男性專屬' : '性別混合'}
             </div>
           </div>
 

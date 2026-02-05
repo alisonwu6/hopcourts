@@ -189,13 +189,18 @@ Table sessions {
 
 // 5. Participation & Check-ins
 Table session_participants {
-  session_id uuid [ref: > sessions.id, note: "on delete cascade"]
-  user_id uuid [ref: > users.id, note: "on delete cascade"]
-  status text [default: 'joined', note: "CHECK (status IN ('joined', 'left', 'kicked', 'waitlist'))"]
+  session_id uuid [ref: > sessions.id, delete: cascade]
+  user_id uuid [ref: > users.id, delete: cascade]
+  status text [not null, default: 'joined', note: "CHECK (status IN ('joined', 'left', 'kicked', 'waitlist'))"]
+  role text [not null, default: 'player', note: "CHECK (role IN ('player', 'organizer'))"]
   joined_at timestamptz [default: `now()`]
-  role text [default: 'player', note: "CHECK (role IN ('player', 'host', 'organizer'))"]
-  
-  primary key (session_id, user_id)
+  status_updated_at timestamptz [default: `now()`]
+
+  indexes {
+    (session_id, user_id) [pk]
+    (user_id, status)
+    (session_id, status)
+  }
 }
 
 Table check_ins {

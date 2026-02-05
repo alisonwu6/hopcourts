@@ -172,7 +172,7 @@ async function createSession(input) {
   if (!input.placeName) throw Errors.validation('place_name is required')
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
-  const allowedGender = ['mixed', 'female_only', 'male_only']
+  const allowedGender = ['mixed', 'female', 'male']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
     throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })
@@ -233,9 +233,13 @@ async function createSession(input) {
 
   const session = await createSessionModel(payload)
   
-  // Auto-join the creator
+  // Auto-join the creator as organizer
   if (session && session.id) {
-    await participantsModel.joinSession({ sessionId: session.id, userId: input.userId })
+    await participantsModel.joinSession({ 
+      sessionId: session.id, 
+      userId: input.userId,
+      role: 'organizer'
+    })
   }
 
   return session
@@ -251,7 +255,7 @@ async function updateSession(sessionId, input) {
   }
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
-  const allowedGender = ['mixed', 'female_only', 'male_only']
+  const allowedGender = ['mixed', 'female', 'male']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
     throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })

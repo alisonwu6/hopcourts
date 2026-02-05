@@ -214,11 +214,24 @@ CREATE TABLE sessions (
 CREATE TABLE session_participants (
   session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  status TEXT DEFAULT 'joined' CHECK (status IN ('joined', 'left', 'kicked', 'waitlist')),
+
+  status TEXT NOT NULL DEFAULT 'joined'
+    CHECK (status IN ('joined', 'left', 'kicked', 'waitlist')),
+
+  role TEXT NOT NULL DEFAULT 'player'
+    CHECK (role IN ('player', 'organizer')),
+
   joined_at TIMESTAMPTZ DEFAULT NOW(),
-  role TEXT DEFAULT 'player' CHECK (role IN ('player', 'host', 'organizer')),
+  status_updated_at TIMESTAMPTZ DEFAULT NOW(),
+
   PRIMARY KEY (session_id, user_id)
 );
+
+CREATE INDEX idx_session_participants_user_status
+  ON session_participants(user_id, status);
+
+CREATE INDEX idx_session_participants_session_status
+  ON session_participants(session_id, status);
 
 -- 6. Check-ins
 -- ==========================================

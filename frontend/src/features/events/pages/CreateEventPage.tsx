@@ -48,7 +48,7 @@ type FormState = {
   price: string
   priceNote: string
   skillLevel: SkillLevelKey
-  gender: 'mixed' | 'female_only' | 'male_only'
+  gender: 'mixed' | 'female' | 'male'
   description: string
   notes: string
   placeName: string
@@ -1035,13 +1035,13 @@ function GenderSelector({
   selected,
   onSelect,
 }: {
-  selected: 'mixed' | 'female_only' | 'male_only'
-  onSelect: (value: 'mixed' | 'female_only' | 'male_only') => void
+  selected: 'mixed' | 'female' | 'male'
+  onSelect: (value: 'mixed' | 'female' | 'male') => void
 }) {
-  const options: { id: 'mixed' | 'female_only' | 'male_only'; label: string }[] = [
+  const options: { id: 'mixed' | 'female' | 'male'; label: string }[] = [
     { id: 'mixed', label: '不限性別' },
-    { id: 'female_only', label: '女孩專屬' },
-    { id: 'male_only', label: '男孩專屬' },
+    { id: 'female', label: '女孩專屬' },
+    { id: 'male', label: '男孩專屬' },
   ]
 
   return (

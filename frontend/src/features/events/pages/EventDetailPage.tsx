@@ -105,7 +105,7 @@ export function EventDetailPage() {
         return
       }
 
-      if (event.gender === 'male_only' && userGender !== 'male') {
+      if (event.gender === 'male' && userGender !== 'male') {
         showAlert(
           '無法參加',
           '本活動僅限男性參加。',
@@ -114,7 +114,7 @@ export function EventDetailPage() {
         return
       }
 
-      if (event.gender === 'female_only' && userGender !== 'female') {
+      if (event.gender === 'female' && userGender !== 'female') {
         showAlert(
           '無法參加',
           '本活動僅限女性參加。',
@@ -279,9 +279,9 @@ export function EventDetailPage() {
           : '不限程度'
 
   const genderLabel =
-    event.gender === 'female_only'
+    event.gender === 'female'
       ? '女性專屬'
-      : event.gender === 'male_only'
+      : event.gender === 'male'
         ? '男性專屬'
         : '性別混合'
 
