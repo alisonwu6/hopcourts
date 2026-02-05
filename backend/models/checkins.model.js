@@ -1,21 +1,21 @@
 const { query } = require('../db/client')
 
-async function createCheckIn({ sessionId, userId, lat, lng, checkedInAt, distanceM, status }) {
+async function createCheckIn({ sessionId, userId, lat, lng }) {
   const { rows } = await query(
     `insert into public.check_ins (
-      session_id, user_id, lat, lng, checked_in_at, distance_m, status
+      session_id, user_id, location_lat, location_lng, checked_in_at, is_verified
     ) values (
-      $1, $2, $3, $4, coalesce($5, now()), $6, coalesce($7, 'ok')
+      $1, $2, $3, $4, now(), true
     )
-    returning id, session_id, user_id, lat, lng, checked_in_at, distance_m, status`,
-    [sessionId, userId, lat, lng, checkedInAt ?? null, distanceM ?? null, status ?? null]
+    returning id, session_id, user_id, location_lat as lat, location_lng as lng, checked_in_at, is_verified`,
+    [sessionId, userId, lat, lng]
   )
   return rows[0]
 }
 
 async function getLatestCheckIn({ sessionId, userId }) {
   const { rows } = await query(
-    `select id, session_id, user_id, lat, lng, checked_in_at, distance_m, status
+    `select id, session_id, user_id, location_lat as lat, location_lng as lng, checked_in_at, is_verified
      from public.check_ins
      where session_id = $1 and user_id = $2
      order by checked_in_at desc
@@ -27,7 +27,7 @@ async function getLatestCheckIn({ sessionId, userId }) {
 
 async function listCheckInsBySession(sessionId) {
   const { rows } = await query(
-    `select id, session_id, user_id, lat, lng, checked_in_at, distance_m, status
+    `select id, session_id, user_id, location_lat as lat, location_lng as lng, checked_in_at, is_verified
      from public.check_ins
      where session_id = $1
      order by checked_in_at desc`,

@@ -562,7 +562,10 @@ export function ProfilePage() {
     }
 
     try {
-      await profileService.saveProfile(payload)
+      const res = await profileService.saveProfile(payload)
+      
+      // Sync latest profile data to global store
+      await useAuthStore.getState().hydrate()
     } catch (err: any) {
       const status = err?.status || err?.response?.status
       if (status === 409) {

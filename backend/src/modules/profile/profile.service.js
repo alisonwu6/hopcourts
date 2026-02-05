@@ -16,8 +16,22 @@ function resolveUserId(req) {
 }
 
 async function getProfile(userId) {
-  const user = await usersModel.getUserById(userId)
-  if (!user) throw Errors.notFound('User not found')
+  let user = await usersModel.getUserById(userId)
+  
+  if (!user) {
+    // Attempt Auto-Heal: user might exist in Auth but not in DB (e.g. after DB reset)
+    console.log(`[getProfile] User ${userId} not found in DB, attempting auto-heal...`)
+    try {
+      // upsertProfile has logic to fetch email/avatar from Supabase if missing
+      const result = await upsertProfile(userId, {}) 
+      user = result.user
+    } catch (err) {
+      console.error(`[getProfile] Auto-heal failed: ${err.message}`)
+       // If auto-heal fails, then truly not found
+      throw Errors.notFound('User not found')
+    }
+  }
+
   const sports = await userSportsModel.listUserSports(userId)
   const teammate_count = await participantsModel.countTeammates(userId)
   return {
@@ -56,19 +70,29 @@ async function upsertProfile(userId, body = {}) {
       (body.auth_user && body.auth_user.user_metadata && body.auth_user.user_metadata.picture) ||
       (body.auth_user && body.auth_user.avatar_url) ||
       null
+  
+  let nameFromAuth = 
+      (body.auth_user && body.auth_user.user_metadata && (body.auth_user.user_metadata.full_name || body.auth_user.user_metadata.name)) ||
+      null
 
   // If email is missing (new user via API without full payload), try fetching from Supabase
-  if (!email && supabase) {
+  if ((!email || !nameFromAuth) && supabase) {
     try {
       const { data, error } = await supabase.auth.admin.getUserById(userId)
       if (data && data.user) {
-        email = data.user.email
+        if (!email) email = data.user.email
+        
         // Also sync avatar if still missing
         if (!avatarUrl && data.user.user_metadata?.picture) {
            avatarUrl = data.user.user_metadata.picture
         }
          if (!avatarUrl && data.user.user_metadata?.avatar_url) {
            avatarUrl = data.user.user_metadata.avatar_url
+        }
+
+        // Sync name if missing
+        if (!nameFromAuth && data.user.user_metadata) {
+          nameFromAuth = data.user.user_metadata.full_name || data.user.user_metadata.name
         }
       } else if (error) {
         console.warn(`[upsertProfile] Failed to fetch Supabase user ${userId}:`, error.message)
@@ -85,6 +109,7 @@ async function upsertProfile(userId, body = {}) {
     display_name:
       body.display_name ||
       current.display_name ||
+      nameFromAuth ||
       '新夥伴',
     city_key: body.city_key ?? current.city_key ?? null,
     age_range_key: body.age_range_key ?? current.age_range_key ?? null,
