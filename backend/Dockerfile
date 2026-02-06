@@ -40,5 +40,5 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 # Copy source code
 COPY . .
-EXPOSE 3000
+EXPOSE 8080
 CMD ["npm", "start"]
