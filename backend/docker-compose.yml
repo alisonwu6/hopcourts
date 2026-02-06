@@ -1,16 +1,29 @@
-version: '3.8'
 name: sportsmatch
+
 services:
   api:
-    build: .
+    build:
+      context: .
+      # CRITICAL: Target the 'development' stage from our Multi-stage Dockerfile
+      target: development
     container_name: sportsmatch-backend
+    
+    # Volumes strategy for Hot Reloading
     volumes:
+      # Sync local source code to container
       - .:/app
-    working_dir: /app
+      # Anonymous volume to preserve container's node_modules (prevent local override)
+      - /app/node_modules
+      
     ports:
       - "3000:3000"
+      
+    # Load local environment variables
     env_file:
       - .env.local
+      
     environment:
       NODE_ENV: development
+      
+    # Verify the command matches the dev script
     command: npm run dev
