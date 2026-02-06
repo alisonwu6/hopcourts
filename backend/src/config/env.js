@@ -2,13 +2,16 @@ const fs = require('fs')
 const path = require('path')
 const dotenv = require('dotenv')
 
-const envFiles = ['.env.local', '.env']
-envFiles.forEach((filename) => {
-  const filePath = path.join(process.cwd(), filename)
-  if (fs.existsSync(filePath)) {
-    dotenv.config({ path: filePath })
-  }
-})
+// Only load dotenv in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  const envFiles = ['.env.local', '.env']
+  envFiles.forEach((filename) => {
+    const filePath = path.join(process.cwd(), filename)
+    if (fs.existsSync(filePath)) {
+      dotenv.config({ path: filePath })
+    }
+  })
+}
 
 const env = {
   port: Number(process.env.PORT || 3000),
