@@ -12,7 +12,9 @@ const pool = hasPgConfig
       database: env.pg.database,
       user: env.pg.user,
       password: env.pg.password,
-      ssl: env.pg.sslmode === 'require',
+      ssl: env.pg.sslmode === 'require'
+        ? (process.env.NODE_ENV === 'production' ? {} : { rejectUnauthorized: false })
+        : false,
     })
   : null
 
