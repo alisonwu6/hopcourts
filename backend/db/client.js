@@ -1,20 +1,23 @@
 const { Pool } = require('pg')
-const { env } = require('../src/config/env')
 
 // Simple shared pg pool. Fail fast if config is missing.
 const hasPgConfig =
-  env.pg.host && env.pg.port && env.pg.database && env.pg.user && env.pg.password
+  process.env.PGHOST &&
+  process.env.PGPORT &&
+  process.env.PGDATABASE &&
+  process.env.PGUSER &&
+  process.env.PGPASSWORD
+
+const isProd = process.env.NODE_ENV === 'production'
 
 const pool = hasPgConfig
   ? new Pool({
-      host: env.pg.host,
-      port: env.pg.port,
-      database: env.pg.database,
-      user: env.pg.user,
-      password: env.pg.password,
-      ssl: env.pg.sslmode === 'require'
-        ? (process.env.NODE_ENV === 'production' ? {} : { rejectUnauthorized: false })
-        : false,
+      host: process.env.PGHOST,
+      port: Number(process.env.PGPORT || 5432),
+      database: process.env.PGDATABASE,
+      user: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      ssl: isProd ? { rejectUnauthorized: false } : false,
     })
   : null
 
