@@ -6,7 +6,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'sans-serif'],
+        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

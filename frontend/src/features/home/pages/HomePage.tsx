@@ -6,7 +6,6 @@ import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 
 export function HomePage() {
-  const city = '大台北'
 
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { isAuthenticated } = useAuthStore((state) => ({
@@ -28,31 +27,14 @@ export function HomePage() {
     <div className="relative min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4 pt-4">
-        {/* Top Navigation / City Selector */}
+        
         <div className="mb-2 flex w-full justify-center pt-2">
           <img src={logo} alt="SportsMatch" className="h-20 w-auto" />
-        </div>
-        {/* <nav className="-mb-2 flex w-full" aria-label="City Selector">
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-full border border-[var(--color-border)] bg-white px-5 py-3 text-left shadow-md shadow-blue-100/40"
-          >
-            <MapPin
-              className="h-5 w-5 text-[var(--color-primary)]"
-              strokeWidth={2.2}
-              aria-hidden="true"
-            />
-            <div className="flex flex-1 flex-col">
-              <span className="text-lg font-bold text-slate-900">{city}</span>
-              <span className="text-xs font-medium text-slate-500">目前所在城市</span>
-            </div>
-          </button>
-        </nav> */}
-        
+        </div>      
 
         <main className="flex flex-col gap-8">
           {/* Badge & Headlines */}
-          <header className="mt-6 flex flex-col items-center gap-4 text-center">
+          <header className="mt-2 flex flex-col items-center gap-4 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
               <Sparkles className="h-3.5 w-3.5" />
               <span>Real-World First Application</span>
@@ -63,10 +45,12 @@ export function HomePage() {
                 找到你運動的樣子
               </h1>
               <h2 className="text-base text-slate-600">
-                在 <span className="font-bold italic text-slate-800">SportsMatch</span>，
-                找到志趣相投的運動夥伴，
+                在每一座城市裡，
                 <br />
-                讓運動成為最爽快的日常。
+                讓運動成為最爽快的日常！
+                <br />
+                開場喜愛的運動，
+                <br />找到志趣相投的運動夥伴！
               </h2>
             </div>
 
@@ -126,7 +110,7 @@ export function HomePage() {
           {!isAuthenticated && (
             <section className="mt-6 flex justify-center">
               <button
-                className="flex w-full items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
+                className="flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
                 type="button"
                 onClick={handleIdentityClick}
               >
