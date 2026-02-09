@@ -6,7 +6,7 @@ The frontend now authenticates directly with Supabase. Copy `src/.env` to the pr
 
 ```
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=public-anon-key
+VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 VITE_SUPABASE_EMAIL_REDIRECT=http://localhost:5173/auth/callback
 ```
 
