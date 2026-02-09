@@ -6,7 +6,7 @@ console.log('%c[ENV Check]', 'color: #00ff00; font-weight: bold;', {
   BASE_URL: import.meta.env.BASE_URL,
   VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
   VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-  HAS_ANON_KEY: !!import.meta.env.VITE_SUPABASE_ANON_KEY
+  HAS_PUBLISHABLE_KEY: !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 });
 
 import ReactDOM from 'react-dom/client'
