@@ -1,6 +1,6 @@
 import React from 'react'
 // Environment Variable Debugging for Production Check
-console.log('%c[ENV Check]', 'color: #00ff00; font-weight: bold;', {
+console.log('%c[ENV Check - 12:39]', 'color: #00ff00; font-weight: bold;', {
   timestamp: new Date().toISOString(),
   MODE: import.meta.env.MODE,
   BASE_URL: import.meta.env.BASE_URL,
