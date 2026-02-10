@@ -1,14 +1,15 @@
 import { useNavigate } from 'react-router-dom'
-import { Lock } from 'lucide-react'
+import { Lock, X } from 'lucide-react'
 import { BottomSheet } from '@/components/BottomSheet'
 
 type Props = {
   open: boolean
   onClose: () => void
   onConfirm?: () => void
+  dismissible?: boolean
 }
 
-export function ProfileRequiredSheet({ open, onClose, onConfirm }: Props) {
+export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = false }: Props) {
   const navigate = useNavigate()
 
   const handleConfirm = () => {
@@ -31,17 +32,26 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm }: Props) {
       onClose={onClose}
       showHandle
       sheetClassName="rounded-t-[32px] border border-white/40 bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.35)]"
-      contentClassName="px-6 pb-10 pt-6"
+      contentClassName="relative px-6 pb-10 pt-6"
       maxWidthClassName="max-w-lg"
     >
+      {dismissible && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-6 top-6 text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          繼續探索
+        </button>
+      )}
       <div className="flex flex-col items-center text-center">
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
           <Lock className="h-7 w-7" />
         </div>
         <h3 className="text-xl font-bold text-slate-900">請先建立運動卡</h3>
         <p className="mt-2 text-sm text-slate-500">
-          在發佈活動前，<br />
-          請先完成運動卡建立，讓其他夥伴更認識你。
+          在發佈活動或參與活動前，<br />
+          請先完成運動卡建立。
         </p>
         <button
           type="button"

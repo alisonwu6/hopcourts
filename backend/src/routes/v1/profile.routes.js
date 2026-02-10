@@ -10,7 +10,11 @@ const {
   handleGetTeammates,
 } = require('../../modules/profile/profile.controller')
 
+const { verifyToken } = require('../../middleware/verifyToken')
+
 const router = express.Router()
+
+router.use(verifyToken)
 
 router.get('/me/profile', handleGetMeProfile)
 router.put('/me/profile', handlePutMeProfile)

@@ -19,6 +19,8 @@ export interface User {
   eventsAttended: number
   eventsHosted: number
   gender?: 'male' | 'female' | null
+
+  onboarding_completed_at?: Date | string | null
   createdAt: Date
   updatedAt: Date
 }

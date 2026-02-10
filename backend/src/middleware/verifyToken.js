@@ -1,5 +1,6 @@
 const {
   findUserByEmail,
+  getUserById,
   createUserFromSupabaseProfile,
 } = require('../../models/users.model')
 const supabase = require('../utils/supabase')
@@ -23,11 +24,26 @@ async function getSupabaseUserFromToken(token) {
 }
 
 async function resolveUserFromSupabase(user) {
-  if (!user?.email) return null
-  let dbUser = await findUserByEmail(user.email)
+  if (!user?.id) return null
+  
+  // 1. Try to find by ID (Primary Source of Truth)
+  let dbUser = await getUserById(user.id)
   if (dbUser) return dbUser
+
+  // 2. Try to find by Email (Fallback/Legacy Sync)
+  if (user.email) {
+    dbUser = await findUserByEmail(user.email)
+    if (dbUser) {
+      // TODO: Handle ID mismatch migration (e.g. update DB ID to match Supabase ID)
+      // For now, we return the email-matched user
+      return dbUser
+    }
+  }
+
+  // 3. Create new user with Supabase ID
   try {
     dbUser = await createUserFromSupabaseProfile({
+      id: user.id, // Pass the UUID!
       email: user.email,
       fullName:
         user.user_metadata?.full_name ||
@@ -38,6 +54,7 @@ async function resolveUserFromSupabase(user) {
       role: user.user_metadata?.role || 'player',
       city: user.user_metadata?.city,
       gender: user.user_metadata?.gender,
+      avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || user.user_metadata?.avatar || null,
     })
     return dbUser
   } catch (err) {

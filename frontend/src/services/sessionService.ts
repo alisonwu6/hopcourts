@@ -44,12 +44,58 @@ const fetchSupabaseUser = async (token: string) => {
   return data.user as SupabaseUser
 }
 
+import { http } from '@/api/http'
+import type { ApiResponse } from '@/api/types'
+
+// ... existing imports
+
 export const sessionService = {
   async bootstrap(token: string): Promise<SessionContext> {
-    const supabaseUser = await fetchSupabaseUser(token)
-    return {
-      token,
-      user: buildUser(supabaseUser),
+    try {
+      // 1. Fetch user profile from backend to check profile completion status
+      // We explicitly pass the token since it might not be in storage yet
+      const response = await http<ApiResponse<any>>('GET', '/me/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+        tokenOverride: token
+      })
+      
+      const backendUser = response.data.user
+      const userSports = response.data.sports || []
+
+      // 2. Map backend response to Frontend User type
+      const user: User = {
+        id: backendUser.id,
+        email: backendUser.email,
+        name: backendUser.display_name || 'New User',
+        avatar: backendUser.avatar_url,
+        bio: backendUser.bio,
+        location: backendUser.city_key || '',
+        sports: userSports.map((s: any) => s.sport_key),
+        skillLevel: 'beginner',
+        following: [],
+        followers: [],
+        managedVenues: [],
+        eventsAttended: backendUser.teammate_count || 0,
+        eventsHosted: 0,
+        gender: backendUser.gender,
+        onboarding_completed_at: backendUser.onboarding_completed_at || null,
+        createdAt: new Date(backendUser.created_at),
+        updatedAt: new Date(backendUser.updated_at)
+      }
+
+      return {
+        token,
+        user
+      }
+    } catch (error) {
+      console.error('Bootstrap failed, falling back to basic auth:', error)
+      const supabaseUser = await fetchSupabaseUser(token)
+      if (!supabaseUser) throw new Error('Authentication failed')
+      
+      return {
+        token,
+        user: buildUser(supabaseUser)
+      }
     }
   },
 

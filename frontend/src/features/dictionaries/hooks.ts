@@ -72,10 +72,6 @@ const useDictionary = <T>(
 
     const bootstrap = async () => {
       const versionMap = getVersionCache()
-      // 移除快取與版本檢查的阻擋，確保總是會去驗證後端版本
-      // if (cachedItems && cachedItems.length && versionMap[type]?.version) {
-      //   return
-      // }
 
       try {
         const meta = await dictionaryService.meta()
@@ -92,7 +88,6 @@ const useDictionary = <T>(
           setItems(data)
           setCache(type, lang, data)
           setVersionCache({
-            ...versionMap,
             [type]: { version: remoteVersion || Date.now().toString() },
           })
         }

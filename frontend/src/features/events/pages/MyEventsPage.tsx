@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { PlayerEvent } from '@/types'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
@@ -43,16 +43,17 @@ export function MyEventsPage() {
   const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
-  const { isAuthenticated } = useAuthStore((state) => ({
+  const { isAuthenticated, user } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
+    user: state.user,
   }))
   const [showLoginSheet, setShowLoginSheet] = useState(false)
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.onboarding_completed_at) {
       void fetchMyEvents()
     }
-  }, [fetchMyEvents, isAuthenticated])
+  }, [fetchMyEvents, isAuthenticated, user?.onboarding_completed_at])
 
   const upcomingEvents = useMemo(() => events.filter((event) => !isCompleted(event)), [events])
   const completedEvents = useMemo(() => events.filter((event) => isCompleted(event)), [events])
@@ -109,6 +110,28 @@ export function MyEventsPage() {
         </BottomSheet>
       </div>
     )
+  }
+  
+  // Check onboarding status
+  const hasCompletedOnboarding = !!user?.onboarding_completed_at
+  
+  if (!hasCompletedOnboarding) {
+      return (
+        <div className="flex min-h-[50vh] flex-col items-center justify-center space-y-4 px-6 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">請先建立運動卡</h2>
+            <p className="text-sm text-slate-500">在發佈活動或參與活動前，<br/>請先完成運動卡建立。</p>
+            <button
+                type="button"
+                onClick={() => navigate('/profile')}
+                className="mt-4 w-full max-w-xs rounded-xl bg-blue-600 py-3 text-base font-bold text-white shadow-sm active:scale-95 transition-transform"
+            >
+                立即建立
+            </button>
+        </div>
+      )
   }
 
   return (
@@ -223,7 +246,7 @@ function EventGroupList({
   emptyState,
 }: {
   groups: Array<[string, PlayerEvent[]]>
-  emptyState: JSX.Element
+  emptyState: React.ReactNode
 }) {
   const navigate = useNavigate()
 

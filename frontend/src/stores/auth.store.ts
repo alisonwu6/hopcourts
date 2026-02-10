@@ -20,7 +20,7 @@ interface AuthState {
   login: (email: string, password: string, remember?: boolean) => Promise<void>
   signup: (name: string, email: string, password: string, remember?: boolean) => Promise<void>
   logout: () => Promise<void>
-  hydrate: () => Promise<void>
+  hydrate: (silent?: boolean) => Promise<void>
   setAuthData: (
     user: User | null,
     token: string | null,
@@ -147,8 +147,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  hydrate: async () => {
-    set({ isLoading: true, error: null })
+  hydrate: async (silent = false) => {
+    if (!silent) set({ isLoading: true, error: null })
     try {
       if (!supabase) throw new Error('Supabase 未設定')
       const { data, error } = await supabase.auth.getSession()

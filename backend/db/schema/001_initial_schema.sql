@@ -64,8 +64,6 @@ CREATE TABLE sports (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Users & Core
--- ==========================================
 
 -- 2. Users & Core
 -- ==========================================
@@ -91,7 +89,7 @@ CREATE TABLE users (
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   
   role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator')),
-  is_verified BOOLEAN DEFAULT false
+  onboarding_completed_at TIMESTAMPTZ
 );
 
 CREATE TABLE user_sports (

@@ -36,7 +36,7 @@ async function getProfile(userId) {
   const teammate_count = await participantsModel.countTeammates(userId)
   return {
     user: { ...user, teammate_count },
-    sports,
+    sports
   }
 }
 
@@ -51,6 +51,7 @@ async function getProfileByUsername(username) {
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
+  console.log('[upsertProfile] Current User:', JSON.stringify(current, null, 2))
 
   // Enforce single username update rule (Removed as column doesn't exist)
   /*
@@ -102,6 +103,27 @@ async function upsertProfile(userId, body = {}) {
     }
   }
 
+  // Check for sports presence (Incoming or Existing)
+  const incomingSportsCount = 
+    (Array.isArray(body.sports) ? body.sports.length : 0) +
+    (Array.isArray(body.favorite_sports) ? body.favorite_sports.length : 0) +
+    (Array.isArray(body.trying_sports) ? body.trying_sports.length : 0)
+
+  let hasSports = incomingSportsCount > 0
+  if (!hasSports) {
+     const existingSports = await userSportsModel.listUserSports(userId)
+     hasSports = existingSports.length > 0
+  }
+
+  // Strict Onboarding Rule: Everything except bio
+  const isProfileComplete =
+    (body.display_name || current.display_name || nameFromAuth) &&
+    (body.username || current.username) &&
+    (body.city_key ?? current.city_key) &&
+    (body.gender ?? current.gender) &&
+    (body.vibe_key ?? current.vibe_key) &&
+    hasSports
+
   const user = await usersModel.upsertUser({
     id: userId,
     email: email, 
@@ -117,6 +139,9 @@ async function upsertProfile(userId, body = {}) {
     vibe_key: body.vibe_key ?? current.vibe_key ?? null,
     bio: body.bio ?? current.bio ?? null,
     avatar_url: avatarUrl,
+    onboarding_completed_at: 
+      current.onboarding_completed_at || 
+      (isProfileComplete ? new Date() : null)
   })
 
   const sportsInput = Array.isArray(body.sports) ? body.sports : []

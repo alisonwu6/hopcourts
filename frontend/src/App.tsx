@@ -142,9 +142,18 @@ function AppChrome({
   )
 }
 
+
+
 function AuthenticatedApp() {
+  const { user } = useAuthStore()
+  const location = useLocation()
+
+  // No global onboarding guard - handled within ProfilePage flow
+
   return (
     <Routes>
+
+      
       <Route
         path="/"
         element={

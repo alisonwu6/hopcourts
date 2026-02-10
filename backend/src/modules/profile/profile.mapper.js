@@ -19,6 +19,7 @@ function mapUserProfile(payload = {}) {
     vibe_key: user.vibe_key || null,
     age_range_key: user.age_range_key || null,
     gender: user.gender || null,
+    onboarding_completed_at: user.onboarding_completed_at || null,
   }
 
   return { user: safeUser, sports }

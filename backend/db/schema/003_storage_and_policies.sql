@@ -17,7 +17,7 @@ ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 
 -- Ensure buckets exist (Idempotent approach usually requires extension or API, doing via SQL insert)
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO storage.buckets (id, name, public) VALUES ('session-photos', 'session-photos', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('sessions-photos', 'sessions-photos', true) ON CONFLICT (id) DO NOTHING;
 INSERT INTO storage.buckets (id, name, public) VALUES ('venue-images', 'venue-images', true) ON CONFLICT (id) DO NOTHING;
 INSERT INTO storage.buckets (id, name, public) VALUES ('feedback-images', 'feedback-images', true) ON CONFLICT (id) DO NOTHING;
 
@@ -34,9 +34,9 @@ CREATE POLICY "Avatar Owner Update" ON storage.objects FOR UPDATE USING (bucket_
 
 -- Session Photos
 DROP POLICY IF EXISTS "Session Photos Public Read" ON storage.objects;
-CREATE POLICY "Session Photos Public Read" ON storage.objects FOR SELECT USING (bucket_id = 'session-photos');
+CREATE POLICY "Session Photos Public Read" ON storage.objects FOR SELECT USING (bucket_id = 'sessions-photos');
 DROP POLICY IF EXISTS "Session Photos Auth Upload" ON storage.objects;
-CREATE POLICY "Session Photos Auth Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'session-photos' AND auth.role() = 'authenticated');
+CREATE POLICY "Session Photos Auth Upload" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'sessions-photos' AND auth.role() = 'authenticated');
 
 -- 3. Table Policies
 -- =========================================================
