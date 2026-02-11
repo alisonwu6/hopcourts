@@ -30,7 +30,7 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
     <BottomSheet
       open={open}
       onClose={onClose}
-      showHandle
+      showHandle={false}
       sheetClassName="rounded-t-[32px] border border-white/40 bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.35)]"
       contentClassName="relative px-6 pb-10 pt-6"
       maxWidthClassName="max-w-lg"
@@ -39,7 +39,7 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-6 top-6 text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors"
+          className="absolute right-6 top-6 text-sm font-normal text-slate-400 hover:text-slate-600 transition-colors"
         >
           繼續探索
         </button>

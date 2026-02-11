@@ -148,6 +148,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   hydrate: async (silent = false) => {
+    const hasToken = typeof window !== 'undefined' && 
+      (window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || 
+       window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY))
+    
+    if (!hasToken) {
+      set({ 
+        isLoading: false, 
+        isAuthenticated: false, 
+        user: null, 
+        token: null 
+      })
+      return
+    }
+
     if (!silent) set({ isLoading: true, error: null })
     try {
       if (!supabase) throw new Error('Supabase 未設定')

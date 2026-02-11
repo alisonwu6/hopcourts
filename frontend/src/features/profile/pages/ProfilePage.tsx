@@ -3,7 +3,7 @@ import { MySessions } from '@/features/events/components/MySessions'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { Menu, PlusSquare, Lock, Copy, MessageCircle } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 type ProfileVM = {
   username: string
@@ -22,14 +22,12 @@ import { useCities, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
+import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
-
-const arraysEqual = (a: string[], b: string[]) =>
-  a.length === b.length && a.every((v, i) => v === b[i])
 
 const isUuid = (str: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
@@ -48,9 +46,6 @@ const emptyProfile: MateCardProps = {
   gender: null,
   ageRangeKey: null,
 }
-
-const SAMPLE_AVATAR =
-  'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
 
 export function ProfilePage() {
   const [alertDialog, setAlertDialog] = useState<{
@@ -76,7 +71,6 @@ export function ProfilePage() {
     useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
-  const [stats, setStats] = useState<ApiResponse<any>['data'] | null>(null)
   const [vm, setVm] = useState<ProfileVM | null>(
     profileCache
       ? {
@@ -105,6 +99,8 @@ export function ProfilePage() {
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
+  const [showCompletionSheet, setShowCompletionSheet] = useState(false)
+
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
     null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender'
@@ -117,6 +113,7 @@ export function ProfilePage() {
   const { items: citiesCatalog, isLoading: isCitiesLoading } = useCities(undefined, 'zh')
   const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const navigate = useNavigate()
+  const location = useLocation()
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
     const labelMap = new Map<string, string>()
@@ -247,7 +244,7 @@ export function ProfilePage() {
     (resolvedProfile as any)?.username ||
     ''
 
-  const [isOnboarding, setIsOnboarding] = useState(false)
+
   
   const [rawProfile, setRawProfile] = useState<any>(null)
 
@@ -269,7 +266,7 @@ export function ProfilePage() {
         }
         setVm(null)
         setRawProfile(null) // Clear raw
-        setIsOnboarding(true)
+
         
         const prefill: MateCardProps = {
           ...emptyProfile,
@@ -286,13 +283,11 @@ export function ProfilePage() {
         const data = payload.user || payload
         setRawProfile(payload)
 
-        const needsOnboarding = !data.onboarding_completed_at
-        const hasCompletedOnboarding = !needsOnboarding
-        setIsOnboarding(needsOnboarding)
+        const completedAt = data.onboarding_completed_at
         
-        // Auto-show completion flow if not on-boarded and not dismissed recently
-        const isDismissed = localStorage.getItem('onboarding_suggestion_dismissed') === 'true'
-        if (needsOnboarding && !isDismissed) {
+        if (completedAt) {
+           setShowProfileRequiredSheet(false)
+        } else {
            setShowProfileRequiredSheet(true)
         }
 
@@ -327,16 +322,16 @@ export function ProfilePage() {
         }
 
         // 3. STOP if Onboarding
-        if (!hasCompletedOnboarding) {
+        // 3. STOP if Onboarding
+        if (!completedAt) {
            setIsProfileLoaded(true)
            return
         }
       }
 
       // 4. Fetch Rest
-      const [preferencesRes, statsRes] = await Promise.allSettled([
+      const [preferencesRes] = await Promise.allSettled([
         profileService.getPreferences(),
-        profileService.getStats(),
         fetchMyEvents(),
       ])
 
@@ -355,11 +350,6 @@ export function ProfilePage() {
         setGoalDaySlots(mergedSlots)
         setDraftDaySlots(mergedSlots)
         if (preferredTime) setDraftPreferredTime(preferredTime)
-      }
-
-      if (statsRes.status === 'fulfilled') {
-        const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
-        setStats(statsPayload)
       }
 
     } catch (err) {
@@ -436,6 +426,28 @@ export function ProfilePage() {
   useEffect(() => {
     fetchProfileData()
   }, [])
+
+  // 1.5 Handle deep link from ProfileRequiredSheet (navigation from other pages)
+  useEffect(() => {
+    if (location.state?.openEdit) {
+      setShowEditSheet(true)
+      // Clear state so it doesn't re-trigger
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
+
+  // Monitor first-time onboarding completion via global state
+  const prevOnboardedRef = React.useRef(!!(user as any)?.onboarding_completed_at)
+  useEffect(() => {
+    const isNowOnboarded = !!(user as any)?.onboarding_completed_at
+    if (!prevOnboardedRef.current && isNowOnboarded) {
+      // Immediate trigger for overlap effect
+      setShowEditSheet(false)
+      setShowCompletionSheet(true)
+      setShowProfileRequiredSheet(false)
+    }
+    prevOnboardedRef.current = isNowOnboarded
+  }, [(user as any)?.onboarding_completed_at])
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
@@ -647,15 +659,14 @@ export function ProfilePage() {
   const saveSports = async () => {
     setIsSavingProfile(true)
     try {
+      const favSports = (draftProfile.sports || []).filter(Boolean)
+      const trySports = (draftProfile.trying || []).filter(Boolean)
+
       const favoriteKeys = Array.from(new Set(
-        (draftProfile.sports || [])
-          .filter(Boolean)
-          .map((label) => keyForLabel(label))
+        favSports.map((label) => keyForLabel(label))
       ))
       const tryingKeys = Array.from(new Set(
-        (draftProfile.trying || [])
-          .filter(Boolean)
-          .map((label) => keyForLabel(label))
+        trySports.map((label) => keyForLabel(label))
       ))
       const res = await profileService.saveProfile({
         favorite_sports: favoriteKeys,
@@ -703,19 +714,8 @@ export function ProfilePage() {
       
       let payload: any = {}
       
-      if (!vm) {
-        // Validate required fields for new user creation
-        const { name, cityKey, vibe, gender } = draftProfile
-        const hasVibe = vibe || (draftProfile as any).vibeKey
-        const hasSports = favoriteKeys.length > 0
-        
-        if (!name || !draftUsername || !cityKey || !hasVibe || !gender || !hasSports) {
-          alert('請填寫完整個人資料')
-          setIsSavingProfile(false)
-          return
-        }
-
-        // Full create payload
+      if (!(user as any)?.onboarding_completed_at) {
+        // For first-time users, we still send the full creation payload
         payload = {
           display_name: draftProfile.name,
           bio: draftProfile.blurb,
@@ -775,14 +775,14 @@ export function ProfilePage() {
              avatar: savedUser.avatar_url || authUser.avatar,
              gender: savedUser.gender || authUser.gender,
              bio: savedUser.bio || authUser.bio,
-             location: savedUser.city_key || authUser.location
+             location: savedUser.city_key || authUser.location,
+             onboarding_completed_at: savedUser.onboarding_completed_at || authUser.onboarding_completed_at
          }
          setAuthData(updatedUser, token)
       }
 
       setShowEditSheet(false)
       setRawProfile((prev: any) => ({ ...prev, ...responseData }))
-      fetchProfileData()
     } catch (err: any) {
       // keep sheet open for retry
       console.error('Failed to save profile', err)
@@ -834,13 +834,7 @@ export function ProfilePage() {
               aria-label="Add game"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
               onClick={() => {
-                const isProfileComplete = 
-                  vm?.card.name && 
-                  vm?.username && 
-                  vm?.card.cityKey && 
-                  (vm?.card.vibe || vm?.card.vibeKey) && 
-                  vm?.card.gender && 
-                  (vm?.card.sports && vm.card.sports.length > 0)
+                const isProfileComplete = !!(user as any)?.onboarding_completed_at
 
                 if (!isProfileComplete) {
                   setShowProfileRequiredSheet(true)
@@ -888,7 +882,7 @@ export function ProfilePage() {
         open={showAvatarCropper}
         onClose={() => setShowAvatarCropper(false)}
         userId={userId}
-        defaultAvatar={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+        defaultAvatar={draftProfile.avatar || userAvatar || ''}
         onAvatarUpdated={(url) => {
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
           setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
@@ -906,7 +900,6 @@ export function ProfilePage() {
         dismissible={true}
         onClose={() => {
           setShowProfileRequiredSheet(false)
-          localStorage.setItem('onboarding_suggestion_dismissed', 'true')
         }}
         onConfirm={() => {
           setShowProfileRequiredSheet(false)
@@ -977,7 +970,7 @@ export function ProfilePage() {
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
               <img
-                src={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+                src={draftProfile.avatar || userAvatar || ''}
                 alt="Avatar"
                 className="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-white"
               />
@@ -1622,6 +1615,12 @@ export function ProfilePage() {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Profile Completion Bottom Sheet */}
+      <ProfileCompletionSheet
+        open={showCompletionSheet}
+        onClose={() => setShowCompletionSheet(false)}
+      />
     </div>
   )
 }

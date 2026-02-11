@@ -104,25 +104,34 @@ async function upsertProfile(userId, body = {}) {
   }
 
   // Check for sports presence (Incoming or Existing)
-  const incomingSportsCount = 
-    (Array.isArray(body.sports) ? body.sports.length : 0) +
-    (Array.isArray(body.favorite_sports) ? body.favorite_sports.length : 0) +
-    (Array.isArray(body.trying_sports) ? body.trying_sports.length : 0)
+  const incomingFavs = Array.isArray(body.favorite_sports) ? body.favorite_sports : []
+  const incomingTrying = Array.isArray(body.trying_sports) ? body.trying_sports : []
+  
+  // If sports field is used (legacy/bulk), it might contain both
+  const incomingBulk = Array.isArray(body.sports) ? body.sports : []
+  const bulkFavs = incomingBulk.filter(s => s.kind === 'FAVORITE' || s.type === 'FAVORITE')
+  const bulkTrying = incomingBulk.filter(s => s.kind === 'TRYING' || s.type === 'TRYING')
 
-  let hasSports = incomingSportsCount > 0
-  if (!hasSports) {
+  let hasFavorite = (incomingFavs.length + bulkFavs.length) > 0
+  let hasTrying = (incomingTrying.length + bulkTrying.length) > 0
+
+  if (!hasFavorite || !hasTrying) {
      const existingSports = await userSportsModel.listUserSports(userId)
-     hasSports = existingSports.length > 0
+     if (!hasFavorite) hasFavorite = existingSports.some(s => s.kind === 'FAVORITE')
+     if (!hasTrying) hasTrying = existingSports.some(s => s.kind === 'TRYING')
   }
 
-  // Strict Onboarding Rule: Everything except bio
+  const hasBothSports = hasFavorite && hasTrying
+
+  // Strict Onboarding Rule: All fields including bio
   const isProfileComplete =
     (body.display_name || current.display_name || nameFromAuth) &&
     (body.username || current.username) &&
     (body.city_key ?? current.city_key) &&
     (body.gender ?? current.gender) &&
     (body.vibe_key ?? current.vibe_key) &&
-    hasSports
+    (body.bio ?? current.bio) &&
+    hasBothSports
 
   const user = await usersModel.upsertUser({
     id: userId,
@@ -200,8 +209,10 @@ async function getOnboardingStatus(userId) {
   if (!user?.city_key) missing.push('city_key')
   if (!user?.vibe_key) missing.push('vibe_key')
   if (!user?.age_range_key) missing.push('age_range_key')
+  if (!user?.bio) missing.push('bio')
   const sports = await userSportsModel.listUserSports(userId)
-  if (!sports.length) missing.push('sports')
+  if (!sports.some(s => s.kind === 'FAVORITE')) missing.push('favorite_sports')
+  if (!sports.some(s => s.kind === 'TRYING')) missing.push('trying_sports')
   return { is_complete: missing.length === 0, missing_fields: missing }
 }
 
