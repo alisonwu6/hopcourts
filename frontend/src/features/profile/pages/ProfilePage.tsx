@@ -708,10 +708,15 @@ export function ProfilePage() {
           .map((label) => keyForLabel(label))
       ))
 
-      // If creating new profile (vm null), send EVERYTHING.
-      // If updating existing (vm exists), only send fields that aren't auto-saved (Sports, Avatar).
-      // Note: Other fields (Name, Bio, etc.) are saved immediately in handleSaveField.
-      
+      // If updating existing (vm exists) AND onboarding is complete, just close.
+      // Auto-save handles fields. 
+      if ((user as any)?.onboarding_completed_at) {
+          setShowEditSheet(false)
+          setIsSavingProfile(false)
+          return
+      }
+
+      // If creating new profile (vm null) or incomplete onboarding, send creation payload.
       let payload: any = {}
       
       if (!(user as any)?.onboarding_completed_at) {
@@ -730,15 +735,6 @@ export function ProfilePage() {
         }
         if (draftUsername && !isUuid(draftUsername)) {
           payload.username = draftUsername
-        }
-      } else {
-        // Update payload: only Sports and Avatar (and sync any potentially desynced fields if we want to be safe, but user asked for minimal)
-        // Let's just send Sports and Avatar as they are the ones not immediately calling saveProfile() in their handlers.
-        payload = {
-          favorite_sports: favoriteKeys,
-          trying_sports: tryingKeys,
-          avatar_url: draftProfile.avatar || undefined,
-          // We can optionally include others if we suspect drift, but per request, minimize.
         }
       }
 
@@ -884,13 +880,34 @@ export function ProfilePage() {
         userId={userId}
         defaultAvatar={draftProfile.avatar || userAvatar || ''}
         onAvatarUpdated={(url) => {
+          // 1. Update local UI state immediately
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
           setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
+          
+          // 2. Update Auth Store immediately so other components (like Header) update
+          const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
+          if (authUser && token) {
+            setAuth({ ...authUser, avatar: url }, token)
+          }
+
+          // 3. Update cache
           const base = (resolvedProfile ?? draftProfile) as MateCardProps
           setProfileCache({ ...base, avatar: url })
-          profileService.saveProfile({ avatar_url: url }).then(() => {
-             useAuthStore.getState().hydrate(true)
-          }).catch(console.error)
+          
+          // 4. Persist to Backend in background
+          profileService.saveProfile({ avatar_url: url }).then((res) => {
+             // Update rawProfile to match, so useEffect doesn't revert it
+             const data = (res as any)?.data ?? res
+             // Force keep our URL with params, even if backend returns clean URL
+             if (data && data.user) {
+                 data.user.avatar_url = url 
+             } else if (data) {
+                 data.avatar_url = url
+             }
+             setRawProfile((prev: any) => ({ ...prev, ...data }))
+          }).catch((err) => {
+             console.error('Failed to save avatar URL to DB', err)
+          })
         }}
       />
 
