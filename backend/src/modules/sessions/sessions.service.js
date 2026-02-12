@@ -184,6 +184,16 @@ async function createSession(input) {
     throw Errors.validation('photos must be an array with at most 3 items')
   }
 
+  // Cost validation
+  if (input.isFree === false) {
+    if (!input.price || Number(input.price) <= 0) {
+      throw Errors.validation('Price is required for paid sessions')
+    }
+    if (!input.priceNote) {
+      throw Errors.validation('Price note is required for paid sessions')
+    }
+  }
+
   // Resolve Venue ID
   let venueId = null
   // Only attempt resolution if we have valid coordinates
@@ -219,7 +229,7 @@ async function createSession(input) {
     checkinRadiusM: input.checkinRadiusM ?? 100,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 20,
     checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 20,
-    minPeople: input.minPeople ?? 2,
+    minPeople: input.minPeople ?? 3,
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',
     visibility: input.visibility ?? 'public',
@@ -229,6 +239,7 @@ async function createSession(input) {
     isFree: input.isFree ?? true,
     price: input.price ?? null,
     locationSource: input.locationSource,
+    priceNote: input.priceNote ?? null,
   }
 
   const session = await createSessionModel(payload)
@@ -288,6 +299,7 @@ async function updateSession(sessionId, input) {
     photos: input.photos,
     isFree: input.isFree,
     price: input.price,
+    priceNote: input.priceNote,
   }
 
   return sessionsModel.updateSession(sessionId, patch)

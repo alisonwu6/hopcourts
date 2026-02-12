@@ -22,7 +22,7 @@ export function ProfileCompletionSheet({ open, onClose }: Props) {
         </div>
         <h3 className="text-xl font-bold text-slate-900">運動卡建立完成！</h3>
         <p className="mt-2 text-sm text-slate-500">
-          你已經準備好開始探索活動與結識新夥伴了。
+          準備開始探索活動與結識運動夥伴
         </p>
         <button
           type="button"

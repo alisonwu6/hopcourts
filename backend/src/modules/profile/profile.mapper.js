@@ -11,6 +11,8 @@ function mapUserProfile(payload = {}) {
     .filter(Boolean)
 
   const safeUser = {
+    id: user.id,
+    email: user.email,
     username: user.username || null,
     display_name: user.display_name || null,
     avatar_url: user.avatar_url || null,
@@ -20,6 +22,9 @@ function mapUserProfile(payload = {}) {
     age_range_key: user.age_range_key || null,
     gender: user.gender || null,
     onboarding_completed_at: user.onboarding_completed_at || null,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+    teammate_count: user.teammate_count,
   }
 
   return { user: safeUser, sports }

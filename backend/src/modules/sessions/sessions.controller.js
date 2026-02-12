@@ -100,6 +100,7 @@ async function handleCreateSession(req, res, next) {
       photos: Array.isArray(body.photos) ? body.photos : undefined,
       isFree: body.is_free ?? body.isFree,
       price: body.price,
+      priceNote: body.price_note ?? body.priceNote,
     })
     return ok(res, { session })
   } catch (err) {
@@ -169,6 +170,7 @@ async function handleUpdateSession(req, res, next) {
       photos: Array.isArray(body.photos) ? body.photos : undefined,
       isFree: body.is_free ?? body.isFree,
       price: body.price,
+      priceNote: body.price_note ?? body.priceNote,
     })
     return ok(res, { session })
   } catch (err) {

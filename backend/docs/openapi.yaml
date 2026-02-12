@@ -333,12 +333,30 @@ components:
         sport_key: { type: string }
         starts_at: { type: string, format: date-time }
         ends_at: { type: string, format: date-time }
-        gender: { type: string, enum: [mixed, male_only, female_only] }
+        gender: { type: string, enum: [mixed, female, male] }
         skill_level: { type: string, enum: [any, beginner, intermediate, advanced] }
         is_official: { type: boolean }
         photos: { type: array, items: { type: string } }
         price: { type: number }
+        price_note: { type: string }
         is_free: { type: boolean }
+        min_people: { type: integer }
+        max_people: { type: integer }
+        host_user_id: { type: string, format: uuid }
+        venue_id: { type: string, format: uuid, nullable: true }
+        place_name: { type: string }
+        address: { type: string }
+        lat: { type: number, format: float }
+        lng: { type: number, format: float }
+        location_source: { type: string }
+        checkin_radius_m: { type: integer }
+        checkin_open_mins_before: { type: integer }
+        checkin_close_mins_after: { type: integer }
+        status: { type: string, enum: [draft, published, cancelled, completed] }
+        visibility: { type: string, enum: [public, private, link] }
+        currency: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
     User:
       type: object
       properties:

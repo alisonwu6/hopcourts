@@ -17,6 +17,7 @@ import {
   Pencil,
   Check,
   X,
+  Smile,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -250,7 +251,12 @@ export function EventDetailPage() {
     }
   }
 
-  const isJoined = event?.joined ?? false
+  const isHost = event?.host?.id === currentUserId
+  const isParticipant = event?.participants.some((p) => p.id === currentUserId)
+
+  /* DEBUG: Check why isJoined is false -- REMOVED */
+  
+  const isJoined = (event?.joined || isHost || isParticipant) ?? false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
 
   // Check if current user is checked in based on event data
@@ -616,7 +622,10 @@ export function EventDetailPage() {
 function AvatarCircle({ name, src }: { name: string; src?: string }) {
   return (
     <div
-      className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-slate-700"
+      className={clsx(
+        'flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-slate-700',
+        !src && 'bg-slate-100'
+      )}
       style={
         src
           ? {
@@ -627,7 +636,7 @@ function AvatarCircle({ name, src }: { name: string; src?: string }) {
           : undefined
       }
     >
-      {!src && name.charAt(0).toUpperCase()}
+      {!src && <Smile className="h-6 w-6 text-slate-400" strokeWidth={1.5} />}
     </div>
   )
 }

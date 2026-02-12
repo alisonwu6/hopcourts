@@ -198,6 +198,7 @@ CREATE TABLE sessions (
   
   is_free BOOLEAN DEFAULT true,
   price NUMERIC(10, 2),
+  price_note TEXT,
   currency TEXT DEFAULT 'TWD',
   
   is_official BOOLEAN DEFAULT false,

@@ -278,9 +278,11 @@ export interface PlayerEvent {
   joined: boolean
   attendeeCount: number
   maxAttendees: number
+  minPeople?: number
   difficulty: 1 | 2 | 3 | 4 | 5
   isFree: boolean
   price?: number
+  priceNote?: string | null
   priceRange?: string
   description?: string
   participants: Array<{
@@ -391,6 +393,7 @@ export interface CreateEventInput {
   startTime: Date
   duration: number
   maxAttendees: number
+  minPeople?: number
   location: {
     name?: string | null
     address: string
@@ -405,6 +408,7 @@ export interface CreateEventInput {
   venueId?: string
   isFree: boolean
   pricePerPerson?: number
+  priceNote?: string
   notesForAttendees?: string
   coverPhotoUrl?: string | null
   isRecurring?: boolean

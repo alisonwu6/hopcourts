@@ -28,6 +28,7 @@ const BASE_FIELDS = [
   'price',
   'venue_id',
   'location_source',
+  'price_note', // New Field
   'is_official', // New Field
 ]
 
@@ -253,9 +254,10 @@ async function createSession(input) {
       is_free,
       price,
       location_source,
-      is_official
+      is_official,
+      price_note
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26
     )
     returning ${BASE_FIELDS.join(', ')}
   `
@@ -285,6 +287,7 @@ async function createSession(input) {
     input.price ?? null,
     input.locationSource ?? null,
     input.isOfficial ?? false,
+    input.priceNote ?? null,
   ]
 
   const { rows } = await query(sql, params)
@@ -315,6 +318,7 @@ async function updateSession(sessionId, patch = {}) {
     is_free: patch.isFree,
     price: patch.price,
     is_official: patch.isOfficial,
+    price_note: patch.priceNote,
   }).filter(([, value]) => value !== undefined)
 
   if (!entries.length) return getSessionById(sessionId)

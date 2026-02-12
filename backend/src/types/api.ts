@@ -38,42 +38,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/sports": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List sports */
-        get: {
-            parameters: {
-                query?: {
-                    lang?: "zh" | "en";
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/sessions": {
         parameters: {
             query?: never;
@@ -265,6 +229,76 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meta/dictionaries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get dictionaries meta */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List sports */
+        get: {
+            parameters: {
+                query?: {
+                    lang?: "zh" | "en";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -888,13 +922,39 @@ export interface components {
             /** Format: date-time */
             ends_at?: string;
             /** @enum {string} */
-            gender?: "mixed" | "male_only" | "female_only";
+            gender?: "mixed" | "female" | "male";
             /** @enum {string} */
             skill_level?: "any" | "beginner" | "intermediate" | "advanced";
             is_official?: boolean;
             photos?: string[];
             price?: number;
+            price_note?: string;
             is_free?: boolean;
+            min_people?: number;
+            max_people?: number;
+            /** Format: uuid */
+            host_user_id?: string;
+            /** Format: uuid */
+            venue_id?: string | null;
+            place_name?: string;
+            address?: string;
+            /** Format: float */
+            lat?: number;
+            /** Format: float */
+            lng?: number;
+            location_source?: string;
+            checkin_radius_m?: number;
+            checkin_open_mins_before?: number;
+            checkin_close_mins_after?: number;
+            /** @enum {string} */
+            status?: "draft" | "published" | "cancelled" | "completed";
+            /** @enum {string} */
+            visibility?: "public" | "private" | "link";
+            currency?: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
         };
         User: {
             /** Format: uuid */

@@ -44,12 +44,12 @@ type FormState = {
   lat: string
   lng: string
   capacity: string
+  minPeople: string
   isFree: boolean
   price: string
   priceNote: string
   skillLevel: SkillLevelKey
   gender: 'mixed' | 'female' | 'male'
-  description: string
   notes: string
   placeName: string
 }
@@ -64,12 +64,12 @@ const initialState: FormState = {
   lat: '',
   lng: '',
   capacity: '',
+  minPeople: '3',
   isFree: true,
   price: '',
-  priceNote: '現場收費',
+  priceNote: '',
   skillLevel: 'any',
   gender: 'mixed',
-  description: '',
   notes: '',
   placeName: '',
 }
@@ -134,13 +134,13 @@ export default function CreateEventPage() {
             lat: draft.location.lat ? String(draft.location.lat) : '',
             lng: draft.location.lng ? String(draft.location.lng) : '',
             capacity: String(draft.maxAttendees || 3),
+            minPeople: String(draft.minPeople || 3),
             isFree: draft.isFree ?? true,
             price: draft.price && draft.maxAttendees ? String(draft.price * draft.maxAttendees) : '',
-            priceNote: '現場收費',
+            priceNote: (draft as any).priceNote || '',
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
             gender: draft.gender || 'mixed',
-            description: draft.detail?.description || draft.description || '',
-            notes: (draft as any).notesForAttendees || draft.detail?.lookingFor?.notes || '',
+            notes: draft.detail?.description || draft.description || '',
             placeName: draft.location.name || '',
           })
 
@@ -367,6 +367,18 @@ export default function CreateEventPage() {
       return
     }
 
+    // Cost validation
+    if (!form.isFree) {
+      if (!form.price || Number(form.price) <= 0) {
+        setError('請輸入有效的費用')
+        return
+      }
+      if (!form.priceNote.trim()) {
+        setError('請輸入收費說明')
+        return
+      }
+    }
+
     if (!isAuthenticated) {
       setShowLoginPrompt(true)
       return
@@ -377,8 +389,22 @@ export default function CreateEventPage() {
     const latNum = form.lat ? Number(form.lat) : null
     const lngNum = form.lng ? Number(form.lng) : null
 
-    // 🔒 Contract: Coordinates are mandatory for venue resolution
-    if (!latNum || !lngNum) {
+    if (capacity <= 0) {
+      setError('人數上限必須大於 0')
+      return
+    }
+    
+    const minPeople = Number(form.minPeople)
+    if (minPeople <= 0) {
+      setError('最少成團人數必須大於 0')
+      return
+    }
+    if (minPeople > capacity) {
+      setError('最少成團人數不可大於人數上限')
+      return
+    }
+
+    if (latNum === null || lngNum === null) {
       setError('請透過地圖確認場館位置資訊 (需包含座標)。')
       return
     }
@@ -437,15 +463,17 @@ export default function CreateEventPage() {
 
       // Combine: Existing first, then new
       uploadedPhotoUrls = [...existingPhotoUrls, ...newPhotoUrls]
-
+      
       const commonPayload = {
         title: form.title.trim(),
         sport: form.sportKey.trim(),
-        description: form.description.trim(),
+        description: form.notes.trim(),
         notesForAttendees: form.notes.trim(),
+        priceNote: form.priceNote.trim(),
         startTime: startDate,
         duration: durationMinutes,
         maxAttendees: capacity,
+        minPeople: Number(form.minPeople),
         location: {
           name: form.placeName.trim(),
           address: form.location.trim(),
@@ -606,15 +634,30 @@ export default function CreateEventPage() {
                 placeholder="選擇運動"
                 required
               />
-              <FloatingField
-                  label="人數上限"
-                  name="capacity"
-                  type="number"
-                  min={1}
-                  value={form.capacity}
-                  onChange={handleInputChange}
-                  required
-                />
+               <div className="flex gap-4">
+                 <div className="flex-1">
+                    <FloatingField
+                      label="人數上限"
+                      name="capacity"
+                      type="number"
+                      min={1}
+                      value={form.capacity}
+                      onChange={handleInputChange}
+                      required
+                    />
+                 </div>
+                 <div className="flex-1">
+                    <FloatingField
+                      label="最少人數(未達則取消)"
+                      name="minPeople"
+                      type="number"
+                      min={1}
+                      value={form.minPeople}
+                      onChange={handleInputChange}
+                      required
+                    />
+                 </div>
+               </div>
               <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
               <GenderSelector selected={form.gender} onSelect={handleGenderSelect} />
             </FieldSection>
@@ -722,10 +765,8 @@ export default function CreateEventPage() {
                       placeholder={costMode === 'total' ? '例如: 2000' : '例如: 200'}
                       required={!form.isFree}
                       supportingText={
-                        form.price && Number(form.capacity) > 0
-                          ? costMode === 'total'
-                            ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
-                            : `總計預估 : $${Number(form.price) * Number(form.capacity)}`
+                        form.price && Number(form.capacity) > 0 && costMode === 'total'
+                          ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
                           : undefined
                       }
                     />
@@ -745,9 +786,9 @@ export default function CreateEventPage() {
               <FloatingField
                 as="textarea"
                 label="活動說明"
-                name="description"
+                name="notes"
                 rows={5}
-                value={form.description}
+                value={form.notes}
                 onChange={handleInputChange}
               />
 
@@ -1234,7 +1275,7 @@ function DateTimeField({
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
   required?: boolean
 }) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null) // Typed ref
   
   const displayValue = useMemo(() => {
     if (!value) return ''
