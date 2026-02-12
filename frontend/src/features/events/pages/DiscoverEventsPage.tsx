@@ -268,6 +268,15 @@ export function DiscoverEventsPage() {
               { replace: true }
             )
           }}
+          onClickDetail={(event) => {
+            if (!isAuthenticated) {
+              setShowLoginPrompt(true)
+            } else if (!user?.onboarding_completed_at) {
+              setShowProfileRequiredSheet(true)
+            } else {
+              navigate(`/event/${event.id}`)
+            }
+          }}
         />
       ) : (
         <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">
@@ -304,10 +313,12 @@ export function DiscoverEventsPage() {
                 key={event.id}
                 event={event}
                 onViewDetails={() => {
-                  if (isAuthenticated) {
-                    navigate(`/event/${event.id}`)
-                  } else {
+                  if (!isAuthenticated) {
                     setShowLoginPrompt(true)
+                  } else if (!user?.onboarding_completed_at) {
+                    setShowProfileRequiredSheet(true)
+                  } else {
+                    navigate(`/event/${event.id}`)
                   }
                 }}
               />

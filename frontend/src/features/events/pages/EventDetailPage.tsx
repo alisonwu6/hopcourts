@@ -26,6 +26,7 @@ import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
@@ -44,14 +45,16 @@ export function EventDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
+  const [showProfileRequired, setShowProfileRequired] = useState(false)
   
   const [isEditingDesc, setIsEditingDesc] = useState(false)
   const [descValue, setDescValue] = useState('')
   const [isSavingDesc, setIsSavingDesc] = useState(false)
 
-  const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
+  const { isAuthenticated, currentUserId, user } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
     currentUserId: state.user?.id,
+    user: state.user,
   }))
   const {
     selectedEvent: event,
@@ -68,6 +71,13 @@ export function EventDetailPage() {
       fetchEventById(id)
     }
   }, [id, fetchEventById])
+
+  useEffect(() => {
+    console.log('user', user)
+    if (isAuthenticated && !user?.onboarding_completed_at) {
+      setShowProfileRequired(true)
+    }
+  }, [isAuthenticated, user?.onboarding_completed_at])
 
   const handleShare = () => {
     // navigator.share usually requires HTTPS
@@ -95,15 +105,6 @@ export function EventDetailPage() {
     if (!event.joined && event.gender && event.gender !== 'mixed') {
       const user = useAuthStore.getState().user
       const userGender = user?.gender
-
-      if (!userGender) {
-        showAlert(
-          '需完善個人資料',
-          '此活動設有性別限制。請先至「個人檔案 > 編輯運動卡」設定您的性別，以便確認是否符合參加資格。',
-          'warning'
-        )
-        return
-      }
 
       if (event.gender === 'male' && userGender !== 'male') {
         showAlert(
@@ -602,6 +603,11 @@ export function EventDetailPage() {
         title={alertDialog.title}
         description={alertDialog.description}
         type={alertDialog.type}
+      />
+
+      <ProfileRequiredSheet
+        open={showProfileRequired}
+        onClose={() => setShowProfileRequired(false)}
       />
     </div>
   )
