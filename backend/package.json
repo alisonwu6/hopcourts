@@ -11,6 +11,7 @@
     "openapi:lint": "npx swagger-cli validate docs/openapi.yaml",
     "openapi:build": "node src/config/swagger.js",
     "openapi:update": "npm run openapi:lint && npm run openapi:build",
+    "verify:schema": "node scripts/check_session_schema.js",
     "docs:update": "npm run openapi:update",
     "db:pull": "supabase db pull",
     "db:push": "supabase db push",
