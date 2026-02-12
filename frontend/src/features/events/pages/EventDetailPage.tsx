@@ -108,18 +108,18 @@ export function EventDetailPage() {
 
       if (event.gender === 'male' && userGender !== 'male') {
         showAlert(
-          '無法參加',
-          '本活動僅限男性參加。',
-          'error'
+          '',
+          '此活動為男生專場。',
+          'warning'
         )
         return
       }
 
       if (event.gender === 'female' && userGender !== 'female') {
         showAlert(
-          '無法參加',
-          '本活動僅限女性參加。',
-          'error'
+          '',
+          '此活動為女生專場。',
+          'warning'
         )
         return
       }
