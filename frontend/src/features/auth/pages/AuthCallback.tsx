@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
 import { useAuthStore } from '@/hooks'
+import { PageLoading } from '@/components/PageLoading'
 
 export function AuthCallback() {
   const location = useLocation()
@@ -114,12 +115,5 @@ export function AuthCallback() {
     )
   }
 
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-player-100 bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-player-100 border-t-player-600" />
-        <p className="mt-4 text-sm text-player-900/70">{err ?? ok ?? '完成登入中…'}</p>
-      </div>
-    </div>
-  )
+  return <PageLoading message={err ?? ok ?? '登入中'} />
 }
