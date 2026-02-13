@@ -21,7 +21,7 @@ import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
 import { PageLoading } from '@/components/PageLoading'
-import { format, addDays, startOfDay, addHours } from 'date-fns'
+import { format, addHours, startOfHour } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
@@ -58,8 +58,8 @@ const initialState: FormState = {
   title: '',
   sport: '',
   sportKey: '',
-  startTime: format(startOfDay(addDays(new Date(), 1)), "yyyy-MM-dd'T'HH:mm"),
-  endTime: format(addHours(startOfDay(addDays(new Date(), 1)), 2), "yyyy-MM-dd'T'HH:mm"),
+  startTime: format(startOfHour(addHours(new Date(), 7)), "yyyy-MM-dd'T'HH:mm"),
+  endTime: format(startOfHour(addHours(new Date(), 9)), "yyyy-MM-dd'T'HH:mm"),
   location: '',
   lat: '',
   lng: '',
@@ -266,6 +266,18 @@ export default function CreateEventPage() {
     if (name === 'skillLevel') {
       setForm((prev) => ({ ...prev, skillLevel: value as SkillLevelKey }))
       return
+    }
+    if (name === 'startTime') {
+      const newStart = new Date(value)
+      if (!Number.isNaN(newStart.getTime())) {
+        const newEnd = addHours(newStart, 2)
+        setForm((prev) => ({
+          ...prev,
+          startTime: value,
+          endTime: format(newEnd, "yyyy-MM-dd'T'HH:mm"),
+        }))
+        return
+      }
     }
     setForm((prev) => ({ ...prev, [name]: value }))
   }
