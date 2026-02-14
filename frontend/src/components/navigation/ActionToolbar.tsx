@@ -63,7 +63,7 @@ export function ActionToolbar({
         )}
 
         <div className="flex min-w-0 flex-1 items-center justify-center px-2">
-          {title && <div className="truncate text-sm font-semibold text-slate-800">{title}</div>}
+          {title && <div className="text-lg font-semibold text-slate-900">{title}</div>}
         </div>
 
         <div className="flex items-center gap-3">
@@ -92,6 +92,10 @@ export function ActionToolbar({
                 aria-hidden="true"
               />
             </button>
+          )}
+          {/* Auto-balance: if back button exists (w-10) but no right content, add spacer */}
+          {!rightContent && !showShare && !showFavorite && showBack && (
+            <span className="h-10 w-10" aria-hidden="true" />
           )}
         </div>
       </div>

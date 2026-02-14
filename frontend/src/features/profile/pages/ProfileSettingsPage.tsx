@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, ShieldCheck, UserRound, LogOut, Info, Mail, Users } from 'lucide-react'
+import { ChevronRight, ShieldCheck, UserRound, LogOut, Info, Mail, BookOpen, FileText } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
@@ -11,8 +11,9 @@ const generalItems = [
 
 const otherItems = [
   { key: 'about', label: '關於我們', icon: Info },
+  { key: 'story', label: '創立故事', icon: BookOpen },
+  { key: 'rules', label: '使用規範', icon: FileText },
   { key: 'contact', label: '寫信給我們', icon: Mail },
-  { key: 'careers', label: '加入我們', icon: Users },
 ]
 
 export function ProfileSettingsPage() {
@@ -74,8 +75,9 @@ export function ProfileSettingsPage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left "
                 onClick={() => {
                   if (key === 'about') navigate('/about')
+                  if (key === 'story') navigate('/story')
+                  if (key === 'rules') navigate('/rules')
                   if (key === 'contact') navigate('/settings/contact')
-                  if (key === 'careers') window.location.href = 'mailto:hr@sportsmatch.com?subject=Join Us'
                 }}
               >
                 <div className="flex items-center gap-3">

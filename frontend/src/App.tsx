@@ -18,6 +18,8 @@ import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPag
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import { AboutPage } from '@/features/profile/pages/AboutPage'
+import { StoryPage } from '@/features/profile/pages/StoryPage'
+import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
 import { ContactUsPage } from '@/features/misc/pages/ContactUsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
@@ -59,6 +61,8 @@ export default function App() {
       */}
       
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/story" element={<StoryPage />} />
+      <Route path="/rules" element={<UsageRulesPage />} />
 
       {/* Admin / Governance (C0) */}
       {/*
