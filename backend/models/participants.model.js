@@ -79,6 +79,14 @@ async function countTeammates(userId) {
   return rows[0]?.count ?? 0
 }
 
+async function countJoinedSessions(userId) {
+  const { rows } = await query(
+    'select count(*)::int as count from public.session_participants where user_id = $1',
+    [userId]
+  )
+  return rows[0]?.count ?? 0
+}
+
 module.exports = {
   joinSession,
   leaveSession,
@@ -88,6 +96,7 @@ module.exports = {
   countTeammates,
   listTeammates,
   listParticipantsWithDetails,
+  countJoinedSessions,
 }
 
 async function listTeammates(userId, { limit = 50, offset = 0 } = {}) {

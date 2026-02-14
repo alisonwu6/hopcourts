@@ -362,6 +362,14 @@ async function deleteSession(sessionId) {
   return rows[0] || null
 }
 
+async function countHostedSessions(userId) {
+  const { rows } = await query(
+    "select count(*)::int as count from public.sessions where host_user_id = $1 and status != 'draft'",
+    [userId]
+  )
+  return rows[0]?.count ?? 0
+}
+
 module.exports = {
   listUpcomingSessions,
   listMyUpcomingSessions,
@@ -374,4 +382,5 @@ module.exports = {
   countSessionParticipants,
   getParticipantCount,
   deleteSession,
+  countHostedSessions,
 }

@@ -25,6 +25,8 @@ function mapUserProfile(payload = {}) {
     created_at: user.created_at,
     updated_at: user.updated_at,
     teammate_count: user.teammate_count,
+    joined_count: user.joined_count,
+    hosted_count: user.hosted_count,
   }
 
   return { user: safeUser, sports }

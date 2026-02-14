@@ -31,15 +31,15 @@ export function TeammatesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <div className="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
+      <div className="sticky top-0 z-10 flex items-center justify-center relative border-b border-slate-200 bg-white px-4 py-3">
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="-ml-2 rounded-full p-2 text-slate-600 hover:bg-slate-100"
+          className="absolute left-2 rounded-full p-2 text-slate-600 hover:bg-slate-100"
         >
           <ArrowLeft className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold text-slate-900">交手夥伴</span>
+        <span className="text-lg font-bold text-slate-900">我的運動圈</span>
       </div>
 
       <div className="flex flex-col gap-3 p-4">
@@ -47,7 +47,7 @@ export function TeammatesPage() {
           <div className="text-center text-sm text-slate-400 py-10">載入中...</div>
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-            <p>還沒有交手夥伴</p>
+            <p>還沒有我的運動圈</p>
             <p className="text-xs mt-1">只要參加過同一場活動，就會出現在這裡</p>
           </div>
         ) : (

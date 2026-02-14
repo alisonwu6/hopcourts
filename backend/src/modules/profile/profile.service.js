@@ -2,6 +2,7 @@ const usersModel = require('../../../models/users.model')
 const userSportsModel = require('../../../models/userSports.model')
 const userPreferencesModel = require('../../../models/userPreferences.model')
 const participantsModel = require('../../../models/participants.model')
+const sessionsModel = require('../../../models/sessions.model')
 const { Errors } = require('../../lib/errors')
 const supabase = require('../../utils/supabase')
 
@@ -34,8 +35,10 @@ async function getProfile(userId) {
 
   const sports = await userSportsModel.listUserSports(userId)
   const teammate_count = await participantsModel.countTeammates(userId)
+  const joined_count = await participantsModel.countJoinedSessions(userId)
+  const hosted_count = await sessionsModel.countHostedSessions(userId)
   return {
-    user: { ...user, teammate_count },
+    user: { ...user, teammate_count, joined_count, hosted_count },
     sports
   }
 }
@@ -45,7 +48,9 @@ async function getProfileByUsername(username) {
   if (!user) throw Errors.notFound('User not found')
   const sports = await userSportsModel.listUserSports(user.id)
   const teammate_count = await participantsModel.countTeammates(user.id)
-  return { user: { ...user, teammate_count }, sports }
+  const joined_count = await participantsModel.countJoinedSessions(user.id)
+  const hosted_count = await sessionsModel.countHostedSessions(user.id)
+  return { user: { ...user, teammate_count, joined_count, hosted_count }, sports }
 }
 
 async function upsertProfile(userId, body = {}) {

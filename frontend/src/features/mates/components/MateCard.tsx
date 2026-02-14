@@ -27,6 +27,8 @@ export type MateCardProps = {
   gender?: string | null
   ageRangeKey?: string | null
   friendCount?: number
+  joinedCount?: number
+  hostedCount?: number
   onTeammatesClick?: () => void
 }
 
@@ -42,6 +44,8 @@ export function MateCard({
   gender,
   ageRangeKey,
   friendCount = 0,
+  joinedCount = 0,
+  hostedCount = 0,
   onTeammatesClick,
 }: MateCardProps) {
   const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
@@ -58,8 +62,8 @@ export function MateCard({
         accentClassName
       )}
     >
-      <div className="flex items-stretch gap-3">
-        <div className="h-26 w-26 mb-2 flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+      <div className="flex items-start gap-3">
+        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-full bg-white">
           {avatar ? (
             <img
               src={avatar}
@@ -71,36 +75,25 @@ export function MateCard({
             <Smile className="h-12 w-12 text-slate-300" />
           )}
         </div>
-        <div className="flex flex-1 justify-between gap-3">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              {name && <span className="text-sm font-semibold text-slate-900">{name}</span>}
-            </div>
-            {location && (
-              <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
-                <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
-                <span className="truncate">{location}</span>
+        
+        <div className="flex flex-1 flex-col gap-2">
+          {/* Header: Name/Loc + Vibe */}
+          <div className="flex justify-between items-start gap-2">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                {name && <span className="text-base font-bold text-slate-900">{name}</span>}
               </div>
-            )}
-            <div 
-              className={clsx(
-                "mt-3 border-t border-slate-300/50 pt-2 transition-opacity",
-                onTeammatesClick ? "cursor-pointer hover:opacity-70" : ""
+              {location && (
+                <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
+                  <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
+                  <span className="truncate">{location}</span>
+                </div>
               )}
-              onClick={onTeammatesClick}
-            >
-              <span className="mb-0.5 block text-[10px] font-medium text-slate-500">交手夥伴</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
-                <span className="text-[10px] font-medium text-slate-600">位</span>
-              </div>
             </div>
 
-          </div>
-          <div className="flex flex-col items-end justify-between gap-2">
             {vibe && (
               <span
-                className="inline-flex items-center rounded-full px-3.5 py-1 text-xs font-semibold"
+                className="inline-flex flex-shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold"
                 style={{
                   background: vibeColors.bg,
                   color: vibeColors.text,
@@ -109,6 +102,40 @@ export function MateCard({
                 {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
               </span>
             )}
+          </div>
+
+          {/* Stats Bar */}
+          {/* Stats Bar */}
+          <div className="flex w-full divide-x divide-slate-300/50 border-y border-slate-300/50 py-2">
+            <div className="flex-1 pr-2">
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold leading-none text-slate-900">{hostedCount}</span>
+                <span className="text-[10px] font-medium text-slate-600">場</span>
+              </div>
+              <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">主辦活動</span>
+            </div>
+
+            <div className="flex-1 pl-4">
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold leading-none text-slate-900">{joinedCount}</span>
+                <span className="text-[10px] font-medium text-slate-600">場</span>
+              </div>
+              <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">參與活動</span>
+            </div>
+
+            <div 
+              className={clsx(
+                "flex-1 pl-4 transition-opacity",
+                onTeammatesClick ? "cursor-pointer hover:opacity-70" : ""
+              )}
+              onClick={onTeammatesClick}
+            >
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
+                <span className="text-[10px] font-medium text-slate-600">位</span>
+              </div>
+              <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">一起動過的人</span>
+            </div>
           </div>
         </div>
       </div>

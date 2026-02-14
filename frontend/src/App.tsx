@@ -226,7 +226,7 @@ function AuthenticatedApp() {
         }
       />
       <Route
-        path="/profile/teammates"
+        path="/circle"
         element={
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>

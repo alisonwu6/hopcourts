@@ -394,6 +394,8 @@ export function ProfilePage() {
       blurb: data.bio || '',
       avatar: data.avatar_url || userAvatar || '',
       friendCount: data.teammate_count || 0,
+      joinedCount: data.joined_count || 0,
+      hostedCount: data.hosted_count || 0,
       gender: data.gender || null,
       ageRangeKey: data.age_range_key || null,
     }
@@ -862,7 +864,7 @@ export function ProfilePage() {
           avatarFallback={userAvatar || ''}
           actionLabel="編輯運動卡"
           actionClassName=""
-          onTeammatesClick={() => navigate('/profile/teammates')}
+          onTeammatesClick={() => navigate('/circle')}
         />
         <div className="mt-4 space-y-4 px-3">
           <MySessions />

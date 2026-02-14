@@ -18,6 +18,7 @@ export interface User {
   managedVenues: string[]
   eventsAttended: number
   eventsHosted: number
+  teammateCount: number
   gender?: 'male' | 'female' | null
 
   onboarding_completed_at?: Date | string | null
