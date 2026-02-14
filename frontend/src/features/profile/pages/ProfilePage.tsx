@@ -1,17 +1,11 @@
 import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { Menu, PlusSquare, Lock, Copy, MessageCircle } from 'lucide-react'
+import { Menu, PlusSquare, Lock, Copy, MessageCircle, Bell } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
-type ProfileVM = {
-  username: string
-  usernameUpdatedCount: number
-  card: MateCardProps
-  favoriteSportKeys: string[]
-  tryingSportKeys: string[]
-}
+import { notificationsService } from '@/features/notifications/services/notificationsService'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
@@ -28,6 +22,14 @@ import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
+
+type ProfileVM = {
+  username: string
+  usernameUpdatedCount: number
+  card: MateCardProps
+  favoriteSportKeys: string[]
+  tryingSportKeys: string[]
+}
 
 const isUuid = (str: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
@@ -54,6 +56,16 @@ export function ProfilePage() {
     description: React.ReactNode
     type: 'success' | 'error' | 'info' | 'warning'
   }>({ open: false, title: '', description: '', type: 'info' })
+
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    notificationsService.listNotifications({ limit: 1 }).then((res) => {
+        if (res.ok) {
+            setUnreadCount(res.data.unread_count)
+        }
+    }).catch(console.error)
+  }, [])
 
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const [showShareSheet, setShowShareSheet] = useState(false)
@@ -817,20 +829,31 @@ export function ProfilePage() {
   const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-between bg-white px-4 py-4">
-          <div className="flex items-center gap-2">
+        <div className="relative flex items-center justify-between bg-white px-4 py-4">
+          <div className="flex items-center">
+            <Link
+              to="/settings"
+              aria-label="Menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+            >
+              <Menu className="h-6 w-6" />
+            </Link>
+          </div>
+
+          <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2">
             {username && (
               <>
-                <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
-                <span className="text-2xl font-bold text-slate-900">{username}</span>
+                <Lock className="h-4 w-4 text-slate-700" aria-hidden="true" />
+                <span className="text-xl font-bold text-slate-900">{username}</span>
               </>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-1">
             <button
               type="button"
               aria-label="Add game"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800 hover:bg-slate-50 active:bg-slate-100"
               onClick={() => {
                 const isProfileComplete = !!(user as any)?.onboarding_completed_at
 
@@ -844,11 +867,15 @@ export function ProfilePage() {
               <PlusSquare className="h-6 w-6" />
             </button>
             <Link
-              to="/settings"
-              aria-label="Menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+              to="/notifications"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-800 hover:bg-slate-50 active:bg-slate-100"
             >
-              <Menu className="h-6 w-6" />
+              <div className="relative">
+                <Bell className="h-6 w-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute right-0 top-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                )}
+              </div>
             </Link>
           </div>
         </div>

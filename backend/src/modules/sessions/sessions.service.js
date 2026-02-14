@@ -5,6 +5,7 @@ const checkinsModel = require('../../../models/checkins.model')
 const usersModel = require('../../../models/users.model')
 const { createSession: createSessionModel } = require('../../../models/sessions.model')
 const { resolveVenue } = require('../venues/venues.service')
+const notificationsService = require('../notifications/notifications.service')
 
 function parseNumber(value, fallback) {
   const n = Number(value)
@@ -141,6 +142,25 @@ async function joinSession({ sessionId, userId }) {
   }
 
   await participantsModel.joinSession({ sessionId, userId })
+  
+  // Notification: Notify Host
+  if (session.host_user_id && session.host_user_id !== userId) {
+    // Fire and forget (or await if guaranteed fast). Service handles errors.
+    usersModel.getUserById(userId).then(actor => {
+      const actorName = actor?.display_name || actor?.name || '有人'
+      notificationsService.createNotification({
+        recipient_user_id: session.host_user_id,
+        actor_user_id: userId,
+        type: 'session_joined',
+        entity_type: 'session',
+        entity_id: sessionId,
+        title: '有人加入你的活動',
+        message: `${actorName} 加入了「${session.title}」`,
+        metadata: { deep_link: `/event/${sessionId}` }
+      })
+    }).catch(err => console.error('Notify join failed', err))
+  }
+
   const meta = await buildSessionMeta({ sessionId, session, userId })
 
   return {
@@ -156,6 +176,24 @@ async function leaveSession({ sessionId, userId }) {
   if (!session) throw Errors.notFound('Session not found')
 
   await participantsModel.leaveSession({ sessionId, userId })
+
+  // Notification: Notify Host
+  if (session.host_user_id && session.host_user_id !== userId) {
+    usersModel.getUserById(userId).then(actor => {
+      const actorName = actor?.display_name || actor?.name || '有人'
+      notificationsService.createNotification({
+        recipient_user_id: session.host_user_id,
+        actor_user_id: userId,
+        type: 'session_left',
+        entity_type: 'session',
+        entity_id: sessionId,
+        title: '有人退出你的活動',
+        message: `${actorName} 退出了「${session.title}」`,
+        metadata: { deep_link: `/event/${sessionId}` }
+      })
+    }).catch(err => console.error('Notify leave failed', err))
+  }
+
   const meta = await buildSessionMeta({ sessionId, session, userId })
 
   return {
@@ -314,7 +352,27 @@ async function deleteSession(sessionId, userId) {
     throw Errors.forbidden('Only host can delete session')
   }
 
-  return sessionsModel.deleteSession(sessionId)
+  // Fetch participants before delete
+  const participants = await participantsModel.listParticipantsBySession(sessionId)
+
+  await sessionsModel.deleteSession(sessionId)
+
+  // Notify all participants
+  participants.forEach(p => {
+    const recipientId = p.user_id
+    if (recipientId && recipientId !== userId) {
+       notificationsService.createNotification({
+        recipient_user_id: recipientId,
+        actor_user_id: userId,
+        type: 'session_cancelled',
+        entity_type: 'session',
+        entity_id: sessionId,
+        title: '活動已取消',
+        message: `「${existing.title}」已被取消`,
+        metadata: {}
+      }).catch(err => console.error('Notify cancel failed', err))
+    }
+  })
 }
 
 module.exports = {

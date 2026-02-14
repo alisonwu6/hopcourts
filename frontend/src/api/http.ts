@@ -77,7 +77,7 @@ export async function http<T>(
     reqHeaders['x-user-id'] = userId
   }
 
-  const response = await fetch(buildUrl(path), {
+  const response = await fetch(buildUrl(path, params), {
     method,
     headers: reqHeaders,
     body: body ? JSON.stringify(body) : undefined,
