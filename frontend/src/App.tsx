@@ -21,6 +21,7 @@ import { AboutPage } from '@/features/profile/pages/AboutPage'
 import { StoryPage } from '@/features/profile/pages/StoryPage'
 import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
 import { ContactUsPage } from '@/features/misc/pages/ContactUsPage'
+import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
@@ -275,6 +276,16 @@ function AuthenticatedApp() {
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>
               <ContactUsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <NotificationsPage />
             </AppChrome>
           </RequireAuth>
         }
