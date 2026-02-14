@@ -14,7 +14,6 @@ import { VenuePage } from '@/features/events/pages/VenuePage'
 import { VenueListPage } from '@/features/events/pages/VenueListPage'
 import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
-import { CirclePage } from '@/features/profile/pages/CirclePage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
@@ -215,18 +214,7 @@ function AuthenticatedApp() {
           </RequireAuth>
         }
       />
-      {/*
-      <Route
-        path="/circle"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false}>
-              <CirclePage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      */}
+
       <Route
         path="/profile"
         element={
@@ -347,17 +335,6 @@ function GuestApp() {
           </AppChrome>
         }
       />
-      {/*
-      <Route
-        path="/circle"
-        element={
-          <AppChrome showActions={false} showHeader={false}>
-            <CirclePage />
-          </AppChrome>
-        }
-      />
-      */}
-
       <Route path="/mates" element={<Navigate to="/" replace />} />
       <Route
         path="/profile"
