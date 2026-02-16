@@ -264,3 +264,33 @@ CREATE TABLE feedback (
 CREATE INDEX idx_sessions_starts_at ON sessions(starts_at);
 CREATE INDEX idx_sessions_sport_key ON sessions(sport_key);
 CREATE INDEX idx_sessions_venue_id ON sessions(venue_id);
+
+-- 8. Notifications
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+
+  recipient_user_id uuid NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  actor_user_id uuid REFERENCES public.users(id) ON DELETE SET NULL,
+
+  type text NOT NULL,
+  
+  entity_type text,         -- 'session' | 'announcement'
+  entity_id uuid,           -- session_id etc.
+  title text NOT NULL,
+  message text,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+
+  is_read boolean NOT NULL DEFAULT false,
+  read_at timestamptz,
+
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_created
+  ON public.notifications(recipient_user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_recipient_unread
+  ON public.notifications(recipient_user_id, is_read, created_at DESC);
