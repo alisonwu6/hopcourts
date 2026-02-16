@@ -34,7 +34,6 @@ type ProfileVM = {
 const isUuid = (str: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
 
-
 const emptyProfile: MateCardProps = {
   name: '',
   location: '',
@@ -60,11 +59,14 @@ export function ProfilePage() {
   const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
-    notificationsService.listNotifications({ limit: 1 }).then((res) => {
+    notificationsService
+      .listNotifications({ limit: 1 })
+      .then((res) => {
         if (res.ok) {
-            setUnreadCount(res.data.unread_count)
+          setUnreadCount(res.data.unread_count)
         }
-    }).catch(console.error)
+      })
+      .catch(console.error)
   }, [])
 
   const [showGoalSheet, setShowGoalSheet] = useState(false)
@@ -79,8 +81,7 @@ export function ProfilePage() {
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
-  const { user, isAuthenticated, isLoading, profileCache, setProfileCache } =
-    useAuthStore()
+  const { user, isAuthenticated, isLoading, profileCache, setProfileCache } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
   const [vm, setVm] = useState<ProfileVM | null>(
@@ -182,12 +183,10 @@ export function ProfilePage() {
     return map
   }, [vibesCatalog])
 
-
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
-
 
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
@@ -250,14 +249,8 @@ export function ProfilePage() {
   const usernameFromVm = vm?.username
   const usernameFromUser = (user as any)?.username
   const username =
-    usernameFromVm ||
-    usernameFromUser ||
-    draftUsername ||
-    (resolvedProfile as any)?.username ||
-    ''
+    usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
 
-
-  
   const [rawProfile, setRawProfile] = useState<any>(null)
 
   // 1. Fetch Data Only (Stable dependencies)
@@ -274,12 +267,11 @@ export function ProfilePage() {
         console.warn('Profile load failed (expected for new users):', err)
         const status = err?.status || err?.response?.status
         if (status === 404) {
-           setShowEditSheet(true)
+          setShowEditSheet(true)
         }
         setVm(null)
         setRawProfile(null) // Clear raw
 
-        
         const prefill: MateCardProps = {
           ...emptyProfile,
           name: (user as any)?.name || '',
@@ -296,48 +288,52 @@ export function ProfilePage() {
         setRawProfile(payload)
 
         const completedAt = data.onboarding_completed_at
-        
+
         if (completedAt) {
-           setShowProfileRequiredSheet(false)
+          setShowProfileRequiredSheet(false)
         } else {
-           setShowProfileRequiredSheet(true)
+          setShowProfileRequiredSheet(true)
         }
 
         // Sync to AuthStore
         const { user: authUser, token, setAuthData } = useAuthStore.getState()
         if (authUser && token) {
-            const newName = data.display_name || authUser.name
-            const newAvatar = data.avatar_url || authUser.avatar
-            const newLocation = data.city_key || authUser.location
-            const newGender = data.gender || authUser.gender
-            const newBio = data.bio || authUser.bio
+          const newName = data.display_name || authUser.name
+          const newAvatar = data.avatar_url || authUser.avatar
+          const newLocation = data.city_key || authUser.location
+          const newGender = data.gender || authUser.gender
+          const newBio = data.bio || authUser.bio
 
-             const isChanged = 
-                authUser.name !== newName ||
-                authUser.avatar !== newAvatar ||
-                authUser.location !== newLocation ||
-                authUser.gender !== newGender ||
-                authUser.bio !== newBio ||
-                authUser.onboarding_completed_at !== data.onboarding_completed_at
+          const isChanged =
+            authUser.name !== newName ||
+            authUser.avatar !== newAvatar ||
+            authUser.location !== newLocation ||
+            authUser.gender !== newGender ||
+            authUser.bio !== newBio ||
+            authUser.onboarding_completed_at !== data.onboarding_completed_at
 
-             if (isChanged) {
-                setAuthData({
-                    ...authUser,
-                    name: newName,
-                    avatar: newAvatar,
-                    location: newLocation,
-                    gender: newGender,
-                    bio: newBio,
-                    onboarding_completed_at: data.onboarding_completed_at || authUser.onboarding_completed_at
-                }, token)
-             }
+          if (isChanged) {
+            setAuthData(
+              {
+                ...authUser,
+                name: newName,
+                avatar: newAvatar,
+                location: newLocation,
+                gender: newGender,
+                bio: newBio,
+                onboarding_completed_at:
+                  data.onboarding_completed_at || authUser.onboarding_completed_at,
+              },
+              token
+            )
+          }
         }
 
         // 3. STOP if Onboarding
         // 3. STOP if Onboarding
         if (!completedAt) {
-           setIsProfileLoaded(true)
-           return
+          setIsProfileLoaded(true)
+          return
         }
       }
 
@@ -363,7 +359,6 @@ export function ProfilePage() {
         setDraftDaySlots(mergedSlots)
         if (preferredTime) setDraftPreferredTime(preferredTime)
       }
-
     } catch (err) {
       console.error('Core profile load failed', err)
       setVm(null)
@@ -385,18 +380,30 @@ export function ProfilePage() {
     const payload = rawProfile
     const data = payload.user ? payload.user : payload
     const sportsRows = payload.sports || []
-    
+
     // Fallback: if data has favorite_sports array (direct format) use it, else use sportsRows
-    const favoriteKeys = payload.favorite_sports || data.favorite_sports || sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
-    const tryingKeys = payload.trying_sports || data.trying_sports || sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-    
+    const favoriteKeys =
+      payload.favorite_sports ||
+      data.favorite_sports ||
+      sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+    const tryingKeys =
+      payload.trying_sports ||
+      data.trying_sports ||
+      sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+
     const vibeKey = data.vibe_key || null
     const vibeUnion = vibeKey
-      ? vibeKeyToUnion.get(vibeKey) || vibeKeyToUnion.get(vibeKey.toLowerCase()) || vibeKeyToUnionFallback(vibeKey)
+      ? vibeKeyToUnion.get(vibeKey) ||
+        vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+        vibeKeyToUnionFallback(vibeKey)
       : null
 
     const mapped: MateCardProps = {
-      name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
+      name:
+        data.display_name ||
+        (isUuid(data.username) ? '' : data.username) ||
+        (user as any)?.name ||
+        '',
       location: data.city_label || data.city || '',
       cityKey: data.city_key || '',
       vibe: vibeUnion,
@@ -413,7 +420,7 @@ export function ProfilePage() {
     }
     const rawUsername = data.username || (user as any)?.username || ''
     const nextUsername = isUuid(rawUsername) ? '' : rawUsername
-    
+
     setVm({
       username: nextUsername,
       usernameUpdatedCount: data.username_updated_count || 0,
@@ -421,20 +428,19 @@ export function ProfilePage() {
       favoriteSportKeys: favoriteKeys || [],
       tryingSportKeys: tryingKeys || [],
     })
-    
+
     // Only update draft if not editing to avoid overwriting user input
     setDraftProfile((prev) => {
-        // Simple heuristic: if names match, assume sync. 
-        // Better: maybe only on initial load? But we want to react to dictionary labels.
-        // We just update it. The fetchProfileData logic previously did this violently.
-        // We'll update it but we rely on showEditSheet state or similar?
-        // Actually, previous logic ALWAYS overwrote draftProfile. We maintain that behavior for now but it's reactive.
-        // To be safe, we just set it.
-        return mapped
+      // Simple heuristic: if names match, assume sync.
+      // Better: maybe only on initial load? But we want to react to dictionary labels.
+      // We just update it. The fetchProfileData logic previously did this violently.
+      // We'll update it but we rely on showEditSheet state or similar?
+      // Actually, previous logic ALWAYS overwrote draftProfile. We maintain that behavior for now but it's reactive.
+      // To be safe, we just set it.
+      return mapped
     })
     setDraftUsername(nextUsername)
     setProfileCache(mapped)
-
   }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar, setProfileCache])
 
   useEffect(() => {
@@ -501,7 +507,7 @@ export function ProfilePage() {
   const handleShare = async () => {
     const shareUsername = username || draftUsername
     if (!shareUsername) return
-    
+
     const url = `${window.location.origin}/mate/${shareUsername}`
     const shareData = {
       title: 'SportsMatch 運動卡',
@@ -532,14 +538,14 @@ export function ProfilePage() {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
     const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
-    
+
     try {
       await navigator.clipboard.writeText(text)
       setAlertDialog({
         open: true,
         title: '已複製',
         description: '連結與文字已複製到剪貼簿',
-        type: 'success'
+        type: 'success',
       })
     } catch (err) {
       window.prompt('請複製連結', text)
@@ -579,16 +585,16 @@ export function ProfilePage() {
         break
       case 'username':
         if (!value) {
-           setFieldError('請輸入使用者名稱')
-           return
+          setFieldError('請輸入使用者名稱')
+          return
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
-           setFieldError('帳號只能包含英文、數字、底線與句號')
-           return
+          setFieldError('帳號只能包含英文、數字、底線與句號')
+          return
         }
-        if (value.length < 3 || value.length > 20) {
-           setFieldError('帳號長度需介於 3 至 20 個字')
-           return
+        if (value.length < 3 || value.length > 10) {
+          setFieldError('帳號長度需介於 3 至 10 個字')
+          return
         }
         setDraftUsername(value)
         payload.username = value
@@ -615,8 +621,8 @@ export function ProfilePage() {
         break
     }
     setDraftProfile(next)
-    
-    // Only patch immediately if profile exists. 
+
+    // Only patch immediately if profile exists.
     // New users (vm=null) will save all at once via handleSaveProfile.
     // For new users (vm=null), we still want to save fields immediately to DB.
     // But we perform client-side username validation first if applicable.
@@ -630,43 +636,48 @@ export function ProfilePage() {
         } catch (err: any) {
           const status = err?.status || err?.response?.status
           if (status !== 404) {
-             console.error('Failed to validate username', err)
+            console.error('Failed to validate username', err)
           }
         }
       }
       // Proceed to save API call below...
     }
 
+    let shouldCloseFieldSheet = false
     try {
       const res = await profileService.saveProfile(payload)
       const data = (res as any)?.data ?? res
       setRawProfile((prev: any) => ({ ...prev, ...data }))
-      
+
       // Update AuthStore immediately without full hydrate (GET)
       const { user: authUser, token, setAuthData } = useAuthStore.getState()
       if (authUser && token) {
-         const savedUser = data.user || data
-         const updatedUser = {
-             ...authUser,
-             name: savedUser.display_name || authUser.name,
-             avatar: savedUser.avatar_url || authUser.avatar,
-             gender: savedUser.gender || authUser.gender,
-             bio: savedUser.bio || authUser.bio,
-             location: savedUser.city_key || authUser.location,
-             onboarding_completed_at: savedUser.onboarding_completed_at || authUser.onboarding_completed_at
-         }
-         setAuthData(updatedUser, token)
+        const savedUser = data.user || data
+        const updatedUser = {
+          ...authUser,
+          name: savedUser.display_name || authUser.name,
+          avatar: savedUser.avatar_url || authUser.avatar,
+          gender: savedUser.gender || authUser.gender,
+          bio: savedUser.bio || authUser.bio,
+          location: savedUser.city_key || authUser.location,
+          onboarding_completed_at:
+            savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
+        }
+        setAuthData(updatedUser, token)
       }
+      shouldCloseFieldSheet = true
     } catch (err: any) {
       const status = err?.status || err?.response?.status
       if (status === 409) {
-        alert('使用者名稱已存在，請選擇其他名稱')
-        // Revert username if needed, but for now just alert allows user to fix
+        setFieldError('使用者名稱已存在，請選擇其他名稱')
       } else {
+        setFieldError('儲存失敗，請稍後再試')
         console.error('Failed to patch profile field', err)
       }
     } finally {
-      setActiveField(null)
+      if (shouldCloseFieldSheet) {
+        setActiveField(null)
+      }
     }
   }
 
@@ -676,12 +687,8 @@ export function ProfilePage() {
       const favSports = (draftProfile.sports || []).filter(Boolean)
       const trySports = (draftProfile.trying || []).filter(Boolean)
 
-      const favoriteKeys = Array.from(new Set(
-        favSports.map((label) => keyForLabel(label))
-      ))
-      const tryingKeys = Array.from(new Set(
-        trySports.map((label) => keyForLabel(label))
-      ))
+      const favoriteKeys = Array.from(new Set(favSports.map((label) => keyForLabel(label))))
+      const tryingKeys = Array.from(new Set(trySports.map((label) => keyForLabel(label))))
       const res = await profileService.saveProfile({
         favorite_sports: favoriteKeys,
         trying_sports: tryingKeys,
@@ -692,11 +699,15 @@ export function ProfilePage() {
       // Update AuthStore immediately without full hydrate (GET)
       const { user: authUser, token, setAuthData } = useAuthStore.getState()
       if (authUser && token) {
-         const savedUser = data.user || data
-         setAuthData({
-             ...authUser,
-             onboarding_completed_at: savedUser.onboarding_completed_at || authUser.onboarding_completed_at
-         }, token)
+        const savedUser = data.user || data
+        setAuthData(
+          {
+            ...authUser,
+            onboarding_completed_at:
+              savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
+          },
+          token
+        )
       }
       setShowSportsSheet(false)
       setShowTryingSheet(false)
@@ -711,35 +722,33 @@ export function ProfilePage() {
     if (isSavingProfile) return
     setIsSavingProfile(true)
     try {
-      const favoriteKeys = Array.from(new Set(
-        (draftProfile.sports || [])
-          .filter(Boolean)
-          .map((label) => keyForLabel(label))
-      ))
-      const tryingKeys = Array.from(new Set(
-        (draftProfile.trying || [])
-          .filter(Boolean)
-          .map((label) => keyForLabel(label))
-      ))
+      const favoriteKeys = Array.from(
+        new Set((draftProfile.sports || []).filter(Boolean).map((label) => keyForLabel(label)))
+      )
+      const tryingKeys = Array.from(
+        new Set((draftProfile.trying || []).filter(Boolean).map((label) => keyForLabel(label)))
+      )
 
       // If updating existing (vm exists) AND onboarding is complete, just close.
-      // Auto-save handles fields. 
+      // Auto-save handles fields.
       if ((user as any)?.onboarding_completed_at) {
-          setShowEditSheet(false)
-          setIsSavingProfile(false)
-          return
+        setShowEditSheet(false)
+        setIsSavingProfile(false)
+        return
       }
 
       // If creating new profile (vm null) or incomplete onboarding, send creation payload.
       let payload: any = {}
-      
+
       if (!(user as any)?.onboarding_completed_at) {
         // For first-time users, we still send the full creation payload
         payload = {
           display_name: draftProfile.name,
           bio: draftProfile.blurb,
           vibe_key:
-            (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined,
+            (draftProfile as any).vibeKey ||
+            vibeUnionToKey.get(draftProfile.vibe as string) ||
+            undefined,
           city_key: draftProfile.cityKey || undefined,
           gender: draftProfile.gender || undefined,
           age_range_key: draftProfile.ageRangeKey || undefined,
@@ -755,11 +764,12 @@ export function ProfilePage() {
       const res = await profileService.saveProfile(payload)
       const responseData = (res as any).data || res
       const savedUser = responseData.user || responseData
-      
+
       // If we got a valid updated count from backend, use it. Otherwise estimate.
-      const newCount = typeof savedUser?.username_updated_count === 'number' 
-        ? savedUser.username_updated_count 
-        : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
+      const newCount =
+        typeof savedUser?.username_updated_count === 'number'
+          ? savedUser.username_updated_count
+          : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
 
       const updated = {
         ...draftProfile,
@@ -774,21 +784,22 @@ export function ProfilePage() {
         tryingSportKeys: tryingKeys,
       })
       setProfileCache(updated)
-      
+
       // Update AuthStore immediately
       const { user: authUser, token, setAuthData } = useAuthStore.getState()
       if (authUser && token) {
-         // savedUser from response has DB fields
-         const updatedUser = {
-             ...authUser,
-             name: savedUser.display_name || authUser.name,
-             avatar: savedUser.avatar_url || authUser.avatar,
-             gender: savedUser.gender || authUser.gender,
-             bio: savedUser.bio || authUser.bio,
-             location: savedUser.city_key || authUser.location,
-             onboarding_completed_at: savedUser.onboarding_completed_at || authUser.onboarding_completed_at
-         }
-         setAuthData(updatedUser, token)
+        // savedUser from response has DB fields
+        const updatedUser = {
+          ...authUser,
+          name: savedUser.display_name || authUser.name,
+          avatar: savedUser.avatar_url || authUser.avatar,
+          gender: savedUser.gender || authUser.gender,
+          bio: savedUser.bio || authUser.bio,
+          location: savedUser.city_key || authUser.location,
+          onboarding_completed_at:
+            savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
+        }
+        setAuthData(updatedUser, token)
       }
 
       setShowEditSheet(false)
@@ -799,12 +810,12 @@ export function ProfilePage() {
       const status = err?.status || err?.response?.status
       const errorData = err?.response?.data?.error || {}
       const constraint = errorData.details?.constraint || ''
-      
+
       if (status === 409) {
         if (constraint.includes('username')) {
-           alert('使用者名稱已存在，請選擇其他名稱')
+          alert('使用者名稱已存在，請選擇其他名稱')
         } else {
-           alert('儲存失敗：資料衝突，請檢查輸入內容')
+          alert('儲存失敗：資料衝突，請檢查輸入內容')
         }
       } else {
         alert('儲存失敗，請稍後再試')
@@ -814,17 +825,12 @@ export function ProfilePage() {
     }
   }
 
-  const isCriticalDataLoading = 
-    isSportsLoading || 
-    isVibesLoading || 
-    isCitiesLoading
+  const isCriticalDataLoading = isSportsLoading || isVibesLoading || isCitiesLoading
 
   if (isLoading || !isProfileLoaded || isCriticalDataLoading) {
     return <PageLoading />
   }
   if (!isAuthenticated) return null
-
-
 
   const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
@@ -848,7 +854,7 @@ export function ProfilePage() {
               </>
             )}
           </div>
-          
+
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -882,11 +888,13 @@ export function ProfilePage() {
 
         <HeroCard
           onShare={handleShare}
-          profile={resolvedProfile ?? {
-            ...emptyProfile,
-            name: (user as any)?.name || '',
-            avatar: userAvatar || '',
-          }}
+          profile={
+            resolvedProfile ?? {
+              ...emptyProfile,
+              name: (user as any)?.name || '',
+              avatar: userAvatar || '',
+            }
+          }
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
           actionLabel="編輯運動卡"
@@ -912,7 +920,7 @@ export function ProfilePage() {
           // 1. Update local UI state immediately
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
           setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
-          
+
           // 2. Update Auth Store immediately so other components (like Header) update
           const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
           if (authUser && token) {
@@ -922,21 +930,24 @@ export function ProfilePage() {
           // 3. Update cache
           const base = (resolvedProfile ?? draftProfile) as MateCardProps
           setProfileCache({ ...base, avatar: url })
-          
+
           // 4. Persist to Backend in background
-          profileService.saveProfile({ avatar_url: url }).then((res) => {
-             // Update rawProfile to match, so useEffect doesn't revert it
-             const data = (res as any)?.data ?? res
-             // Force keep our URL with params, even if backend returns clean URL
-             if (data && data.user) {
-                 data.user.avatar_url = url 
-             } else if (data) {
-                 data.avatar_url = url
-             }
-             setRawProfile((prev: any) => ({ ...prev, ...data }))
-          }).catch((err) => {
-             console.error('Failed to save avatar URL to DB', err)
-          })
+          profileService
+            .saveProfile({ avatar_url: url })
+            .then((res) => {
+              // Update rawProfile to match, so useEffect doesn't revert it
+              const data = (res as any)?.data ?? res
+              // Force keep our URL with params, even if backend returns clean URL
+              if (data && data.user) {
+                data.user.avatar_url = url
+              } else if (data) {
+                data.avatar_url = url
+              }
+              setRawProfile((prev: any) => ({ ...prev, ...data }))
+            })
+            .catch((err) => {
+              console.error('Failed to save avatar URL to DB', err)
+            })
         }}
       />
 
@@ -952,7 +963,7 @@ export function ProfilePage() {
           setShowEditSheet(true)
         }}
       />
-      
+
       <AlertDialog
         open={alertDialog.open}
         onClose={() => setAlertDialog((prev) => ({ ...prev, open: false }))}
@@ -1049,7 +1060,12 @@ export function ProfilePage() {
                 {
                   key: 'gender',
                   label: '性別',
-                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : '未設定',
+                  value:
+                    draftProfile.gender === 'male'
+                      ? '男生'
+                      : draftProfile.gender === 'female'
+                        ? '女生'
+                        : '未設定',
                   valueKey: draftProfile.gender || '',
                 },
               ].map((row) => {
@@ -1097,7 +1113,7 @@ export function ProfilePage() {
                       ''
                   )
                 }
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">運動氛圍</p>
@@ -1114,7 +1130,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowSportsSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">我的最愛</p>
@@ -1127,7 +1143,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowTryingSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">想嘗試</p>
@@ -1146,7 +1162,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">自我介紹</p>
@@ -1305,16 +1321,14 @@ export function ProfilePage() {
                       setFieldError(null)
                     }}
                     className={clsx(
-                      "w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none",
-                      fieldError 
-                        ? "border-red-500 focus:border-red-500" 
-                        : "border-slate-200 focus:border-blue-500"
+                      'w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none',
+                      fieldError
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-slate-200 focus:border-blue-500'
                     )}
                     placeholder="請輸入"
                   />
-                  {fieldError && (
-                    <p className="mt-2 text-sm text-red-500">{fieldError}</p>
-                  )}
+                  {fieldError && <p className="mt-2 text-sm text-red-500">{fieldError}</p>}
                 </div>
               )}
             </SheetLayout>
@@ -1355,7 +1369,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 "
+                    className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -1452,7 +1466,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 "
+                    className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -1531,7 +1545,7 @@ export function ProfilePage() {
             <button
               type="button"
               aria-label="Close"
-              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500 "
+              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500"
               onClick={() => setShowGoalSheet(false)}
             >
               ×
@@ -1646,7 +1660,7 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={() => setShowGoalSheet(false)}
-              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 "
+              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
             >
               取消
             </button>
@@ -1654,7 +1668,7 @@ export function ProfilePage() {
               type="button"
               onClick={handleSaveGoal}
               disabled={isSavingGoal}
-              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition  disabled:cursor-not-allowed disabled:bg-blue-300"
+              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-blue-300"
             >
               {isSavingGoal ? '儲存中...' : '儲存'}
             </button>
