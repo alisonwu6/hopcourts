@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Shield, UserRound } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { AlertDialog } from '@/components/AlertDialog'
 import { useAuthStore } from '@/hooks'
 import { profileService } from '@/features/profile/profile.service'
 
@@ -8,19 +10,17 @@ export function AccountSettingsPage() {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const email = user?.email || '未設定'
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showDeleteFailed, setShowDeleteFailed] = useState(false)
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm('確定要刪除帳號嗎？所有的資料將會被永久刪除且無法復原。')) {
-      return
-    }
-    
+  const confirmDeleteAccount = async () => {
     try {
       await profileService.deleteAccount()
       await logout()
       navigate('/')
     } catch (error) {
       console.error('Failed to delete account:', error)
-      alert('刪除帳號失敗，請稍後再試。')
+      setShowDeleteFailed(true)
     }
   }
 
@@ -43,13 +43,33 @@ export function AccountSettingsPage() {
         <Section title="危險區域" icon={<Shield className="h-5 w-5 text-rose-400" />}>
           <button
             type="button"
-            onClick={handleDeleteAccount}
+            onClick={() => setShowDeleteConfirm(true)}
             className="w-full rounded-lg bg-red-50 px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-100 transition-colors"
           >
             刪除帳號
           </button>
         </Section>
       </div>
+
+      <AlertDialog
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="確定要刪除帳號嗎？"
+        description="所有的資料將會被永久刪除且無法復原。"
+        type="error"
+        actionLabel="確認刪除"
+        cancelLabel="取消"
+        actionLeft
+        onAction={confirmDeleteAccount}
+      />
+
+      <AlertDialog
+        open={showDeleteFailed}
+        onClose={() => setShowDeleteFailed(false)}
+        title="刪除帳號失敗"
+        description="請稍後再試。"
+        type="error"
+      />
     </div>
   )
 }
