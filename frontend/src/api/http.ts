@@ -13,6 +13,12 @@ type RequestOptions = {
 
 const API_PREFIX = '/api/v1'
 
+let onUnauthorizedCallback: (() => void) | null = null
+
+export const setOnUnauthorized = (cb: () => void) => {
+  onUnauthorizedCallback = cb
+}
+
 const getBaseUrl = () => {
   const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
   return base.replace(/\/$/, '')
@@ -92,6 +98,9 @@ export async function http<T>(
   }
 
   if (!response.ok) {
+    if (response.status === 401 && onUnauthorizedCallback) {
+      onUnauthorizedCallback()
+    }
     const details = await parseError()
     const err = new Error(details?.message || 'Request failed')
     ;(err as any).status = response.status
