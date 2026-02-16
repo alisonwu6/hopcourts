@@ -8,7 +8,7 @@ import { profileService } from '@/features/profile/profile.service'
 
 export function AccountSettingsPage() {
   const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
+  const { user, setAuthData } = useAuthStore()
   const email = user?.email || '未設定'
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showDeleteFailed, setShowDeleteFailed] = useState(false)
@@ -16,7 +16,7 @@ export function AccountSettingsPage() {
   const confirmDeleteAccount = async () => {
     try {
       await profileService.deleteAccount()
-      await logout()
+      setAuthData(null, null)
       navigate('/')
     } catch (error) {
       console.error('Failed to delete account:', error)
