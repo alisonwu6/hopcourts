@@ -1,4 +1,4 @@
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 
 const BASE_FIELDS = [
   'id',

@@ -1,4 +1,4 @@
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 
 function buildLocaleColumn(locale = 'zh') {
   return locale === 'en' ? 'label_en' : 'label_zh'

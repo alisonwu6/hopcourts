@@ -1,4 +1,4 @@
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 
 async function listAgeRanges({ lang = 'zh', onlyActive = true } = {}) {
   const labelField = lang === 'en' ? 'label_en' : 'label_zh'

@@ -1,6 +1,6 @@
 const venuesModel = require('../../../models/venues.model')
 const usersModel = require('../../../models/users.model')
-const { query } = require('../../../db/client')
+const { query } = require('../../lib/db')
 
 // Simple Levenshtein distance for string similarity
 function levenshtein(a, b) {

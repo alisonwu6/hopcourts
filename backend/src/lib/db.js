@@ -1,6 +1,6 @@
 const { Pool } = require('pg')
 
-// Simple shared pg pool. Fail fast if config is missing.
+// Shared pg pool. Fail fast if config is missing.
 const hasPgConfig =
   process.env.PGHOST &&
   process.env.PGPORT &&

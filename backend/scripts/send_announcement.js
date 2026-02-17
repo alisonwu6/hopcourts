@@ -10,9 +10,9 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 // Use require(path) to load service
-// But service requires model, model requires db/client.
+// But service requires model, model requires src/lib/db.
 // Need to make sure paths inside service/model resolve correctly.
 // Relative imports in modules define their own context so it is fine.
 
