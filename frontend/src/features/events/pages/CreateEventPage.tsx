@@ -830,6 +830,7 @@ export default function CreateEventPage() {
           submittingStatus={submittingStatus}
           onDraft={() => handleSubmit(undefined, 'draft')}
           onPublish={() => handleSubmit(undefined, 'published')}
+          isEditMode={!!editId}
         />
       </div>
       <LoginPromptSheet
@@ -1012,11 +1013,13 @@ function ActionBar({
   submittingStatus,
   onDraft,
   onPublish,
+  isEditMode,
 }: {
   canSubmit: boolean
   submittingStatus: 'draft' | 'published' | null
   onDraft: () => void
   onPublish: () => void
+  isEditMode: boolean
 }) {
   const isSubmitting = submittingStatus !== null
   return (
@@ -1039,7 +1042,7 @@ function ActionBar({
           disabled={isSubmitting}
           className={clsx('flex-1 rounded-full px-6', !canSubmit && 'opacity-50')}
         >
-          {submittingStatus === 'published' ? '發布中…' : '發佈'}
+          {submittingStatus === 'published' ? (isEditMode ? '更新中…' : '發布中…') : isEditMode ? '更新活動' : '發佈'}
         </Button>
       </div>
     </div>

@@ -223,7 +223,7 @@ export function EventDetailPage() {
 
   /* DEBUG: Check why isJoined is false -- REMOVED */
 
-  const isJoined = (event?.joined || isHost || isParticipant) ?? false
+  const isJoined = (event?.joined || isParticipant) ?? false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
 
   // Check if current user is checked in based on event data
@@ -645,19 +645,29 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       加入活動
     </Button>
   )
+  let secondaryButton: React.ReactElement | null = null
 
   let statusText: React.ReactNode = null
 
   if (hasCheckedIn) {
     mainButton = (
-      <Button disabled className="bg-emerald-500 text-white opacity-100">
+      <Button disabled className="bg-emerald-600 text-white opacity-100">
         已報到 ✓
       </Button>
     )
   } else if (isJoined) {
     if (isCheckInOpen) {
       mainButton = (
-        <Button onClick={onCheckIn} disabled={isCheckingIn} className="bg-emerald-600 text-white">
+        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
+          已加入
+        </Button>
+      )
+      secondaryButton = (
+        <Button
+          onClick={onCheckIn}
+          disabled={isCheckingIn}
+          className="!bg-emerald-600 !text-white !hover:bg-emerald-600 !active:bg-emerald-600 !focus:bg-emerald-600"
+        >
           {isCheckingIn ? (
             '定位中...'
           ) : (
@@ -675,15 +685,34 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       )
     } else if (now > closeTime) {
       mainButton = (
-        <Button disabled className="cursor-not-allowed bg-slate-400 text-white opacity-80">
+        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
+          已加入
+        </Button>
+      )
+      secondaryButton = (
+        <Button
+          disabled
+          className="cursor-not-allowed !bg-emerald-300 !text-white !hover:bg-emerald-300 !active:bg-emerald-300 !focus:bg-emerald-300 opacity-90 disabled:opacity-90"
+        >
           缺席
         </Button>
       )
     } else {
       // Joined but not yet time to check in (now < openTime)
       mainButton = (
-        <Button disabled={false} onClick={onJoin} className="bg-player-600 text-white shadow-sm">
+        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
           已加入
+        </Button>
+      )
+      secondaryButton = (
+        <Button
+          disabled
+          className="cursor-not-allowed !bg-emerald-500 !text-white !hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 opacity-100 disabled:opacity-100"
+        >
+          <span className="flex flex-col items-center leading-tight">
+            <span className="text-sm font-semibold">點我報到</span>
+            <span className="mt-1 text-xs font-medium">(將於 {formatTime(openTime)} 開放)</span>
+          </span>
         </Button>
       )
       statusText = (
@@ -710,12 +739,29 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
     <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
       <div className="relative flex w-full flex-col gap-2 px-4">
         {statusText}
-        {React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
-          className: clsx(
-            'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-            (mainButton as React.ReactElement<{ className?: string }>).props.className
-          ),
-        })}
+        {secondaryButton ? (
+          <div className="grid grid-cols-2 gap-3">
+            {React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
+              className: clsx(
+                'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+                (mainButton as React.ReactElement<{ className?: string }>).props.className
+              ),
+            })}
+            {React.cloneElement(secondaryButton as React.ReactElement<{ className?: string }>, {
+              className: clsx(
+                'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+                (secondaryButton as React.ReactElement<{ className?: string }>).props.className
+              ),
+            })}
+          </div>
+        ) : (
+          React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
+            className: clsx(
+              'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+              (mainButton as React.ReactElement<{ className?: string }>).props.className
+            ),
+          })
+        )}
       </div>
     </div>
   )
