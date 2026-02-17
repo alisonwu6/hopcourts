@@ -22,6 +22,12 @@ const wrapEmptyEvents = (): ApiResponse<PaginatedResponse<PlayerEvent>> =>
     hasMore: false,
   })
 
+const formatTwdNoDecimal = (value: unknown): string => {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return '0'
+  return Math.round(n).toLocaleString('zh-TW')
+}
+
 const buildFallbackEvent = (id: string): PlayerEvent => {
   const now = new Date()
   const end = new Date(now.getTime() + 60 * 60 * 1000)
@@ -132,7 +138,12 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     pricePerPerson: session.price_per_person ?? undefined,
     priceMode: session.price_mode ?? 'total',
     priceNote: session.price_note,
-    priceRange: session.is_free ? '免費參加' : session.price_per_person ? `$${session.price_per_person}` : '收費活動',
+    priceRange:
+      session.is_free
+        ? '免費參加'
+        : session.price_per_person
+          ? `$${formatTwdNoDecimal(session.price_per_person)}`
+          : '收費活動',
     description: session.description ?? '',
     participants: [],
     status: session.status as any,

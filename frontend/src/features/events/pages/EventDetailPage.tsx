@@ -15,8 +15,7 @@ import {
   Trash2,
   LandPlot,
   Pencil,
-  Check,
-  X,
+  Share,
   Smile,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -47,10 +46,6 @@ export function EventDetailPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
   const [showProfileRequired, setShowProfileRequired] = useState(false)
-
-  const [isEditingDesc, setIsEditingDesc] = useState(false)
-  const [descValue, setDescValue] = useState('')
-  const [isSavingDesc, setIsSavingDesc] = useState(false)
 
   const { isAuthenticated, currentUserId, user } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
@@ -208,25 +203,6 @@ export function EventDetailPage() {
     )
   }
 
-  const handleSaveDesc = async () => {
-    if (!event) return
-    setIsSavingDesc(true)
-    try {
-      const res = await eventsService.updateEvent(event.id, { description: descValue })
-      if (res.success) {
-        await fetchEventById(event.id)
-        setIsEditingDesc(false)
-      } else {
-        alert(res.error?.message || '更新失敗')
-      }
-    } catch (err) {
-      console.error(err)
-      alert('更新失敗')
-    } finally {
-      setIsSavingDesc(false)
-    }
-  }
-
   const handleDelete = async () => {
     if (!id) return
     setIsDeleting(true)
@@ -286,10 +262,7 @@ export function EventDetailPage() {
   const maxPeople = Math.max(minPeople, event.maxAttendees ?? minPeople)
   const formatMoney = (value?: number | null) => {
     if (value == null || Number.isNaN(Number(value))) return ''
-    return Number(value).toLocaleString('zh-TW', {
-      minimumFractionDigits: Number.isInteger(Number(value)) ? 0 : 2,
-      maximumFractionDigits: 2,
-    })
+    return Math.round(Number(value)).toLocaleString('zh-TW')
   }
   const feeLine2 = (() => {
     if (event.isFree) return '免費活動'
@@ -323,20 +296,40 @@ export function EventDetailPage() {
         onShare={handleShare}
         onToggleFavorite={() => setIsFavorite((prev) => !prev)}
         isFavorite={isFavorite}
-        showShare
+        showShare={false}
         showFavorite={false}
         contentClassName="w-full"
         rightContent={
-          event.host.id === currentUserId && (
+          <>
+            {event.host.id === currentUserId && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="rounded-full bg-slate-100 p-2 text-slate-500 transition"
+                  aria-label="Delete event"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/create-event?id=${event.id}`)}
+                  className="rounded-full bg-blue-50 p-2 text-blue-600 transition"
+                  aria-label="Edit event"
+                >
+                  <Pencil className="h-5 w-5" />
+                </button>
+              </>
+            )}
             <button
               type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 text-slate-400 transition"
-              aria-label="Delete event"
+              onClick={handleShare}
+              className="rounded-full bg-blue-50 p-2 text-blue-600 transition"
+              aria-label="Share"
             >
-              <Trash2 className="h-5 w-5" />
+              <Share className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </button>
-          )
+          </>
         }
       />
       <div className="w-full space-y-6">
@@ -352,6 +345,11 @@ export function EventDetailPage() {
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
+            {event.updatedAt && (
+              <p className="text-right text-xs text-slate-400">
+                最後更新時間 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
+              </p>
+            )}
             <div
               className="flex cursor-pointer items-center gap-3 transition"
               onClick={() => {
@@ -383,11 +381,11 @@ export function EventDetailPage() {
               </span>
             </div>
 
-            <div className="mt-4">
+            <div className="my-4">
               <h1 className="text-[28px] font-semibold text-slate-900">{event.title}</h1>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="space-y-3">
               <InfoRow
                 icon={Calendar}
                 label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
@@ -423,10 +421,7 @@ export function EventDetailPage() {
                   }
                 />
               </div>
-              <InfoRow
-                icon={CircleDollarSign}
-                label={feeLine2}
-              />
+              <InfoRow icon={CircleDollarSign} label={feeLine2} />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                 <p className="text-xs font-semibold tracking-wide text-slate-500">收費說明</p>
                 <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
@@ -486,7 +481,7 @@ export function EventDetailPage() {
                   )
                 })
               ) : (
-                <p className="pl-14 text-sm text-slate-500">還沒有人報名，快來搶頭香！</p>
+                <p className="pl-14 text-xs text-slate-300">還沒有人報名</p>
               )}
             </div>
 
@@ -500,63 +495,10 @@ export function EventDetailPage() {
                   </span>
                   <span>活動說明</span>
                 </div>
-                {event.host.id === currentUserId && !isEditingDesc && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDescValue(event.detail?.description || event.description || '')
-                      setIsEditingDesc(true)
-                    }}
-                    className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-blue-600"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                )}
               </div>
-
-              {isEditingDesc ? (
-                <div className="space-y-3 duration-200 animate-in fade-in zoom-in-95">
-                  <textarea
-                    value={descValue}
-                    onChange={(e) => setDescValue(e.target.value)}
-                    className="min-h-[120px] w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="輸入活動說明..."
-                  />
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setIsEditingDesc(false)}
-                      className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
-                      disabled={isSavingDesc}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                      取消
-                    </button>
-                    <button
-                      onClick={handleSaveDesc}
-                      className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-70"
-                      disabled={isSavingDesc}
-                    >
-                      {isSavingDesc ? (
-                        '儲存中...'
-                      ) : (
-                        <>
-                          <Check className="h-3.5 w-3.5" />
-                          儲存更新
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                  {event.detail?.description || event.description || '沒有描述'}
-                </p>
-              )}
-              {event.updatedAt && (
-                <p className="mt-2 text-right text-xs text-slate-400">
-                  活動說明最後更新於 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
-                </p>
-              )}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                {event.detail?.description || event.description || '沒有描述'}
+              </p>
             </div>
 
             {/* Photos Section if multiple */}
@@ -588,7 +530,7 @@ export function EventDetailPage() {
                 }}
               >
                 <div className="py-2 text-sm text-slate-500">
-                  若有異動需求，建議您直接更新活動說明欄位告知參與夥伴。
+                  若有異動需求，請使用上方編輯按鈕更新活動內容並告知參與夥伴。
                 </div>
               </SheetLayout>
             )

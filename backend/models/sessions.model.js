@@ -338,7 +338,7 @@ async function updateSession(sessionId, patch = {}) {
   params.push(sessionId)
 
   const { rows } = await query(
-    `update public.sessions set ${sets.join(', ')} where id = $${params.length} returning ${BASE_FIELDS.join(', ')}`,
+    `update public.sessions set ${sets.join(', ')}, updated_at = NOW() where id = $${params.length} returning ${BASE_FIELDS.join(', ')}`,
     params
   )
   return rows[0] || null
@@ -348,7 +348,7 @@ async function setSessionStatus(sessionId, status) {
   const allowed = ['draft', 'published', 'cancelled', 'completed']
   if (!allowed.includes(status)) throw new Error('Invalid status')
   const { rows } = await query(
-    `update public.sessions set status = $1 where id = $2 returning ${BASE_FIELDS.join(', ')}`,
+    `update public.sessions set status = $1, updated_at = NOW() where id = $2 returning ${BASE_FIELDS.join(', ')}`,
     [status, sessionId]
   )
   return rows[0] || null
