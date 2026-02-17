@@ -353,6 +353,7 @@ async function updateSession(sessionId, input) {
   }
 
   const patch = {
+    sportKey: input.sportKey,
     title: input.title,
     description: input.description,
     startAt: input.startAt ? new Date(input.startAt) : undefined,

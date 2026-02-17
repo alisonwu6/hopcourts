@@ -302,6 +302,7 @@ async function createSession(input) {
 
 async function updateSession(sessionId, patch = {}) {
   const entries = Object.entries({
+    sport_key: patch.sportKey,
     title: patch.title,
     venue_id: patch.venueId,
     notes: patch.description,
