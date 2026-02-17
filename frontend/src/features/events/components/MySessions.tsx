@@ -3,9 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { PlayerEvent } from '@/types'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useAuthStore } from '@/hooks'
+import { useSports } from '@/features/dictionaries/hooks'
 import { BottomSheet } from '@/components/BottomSheet'
 import { LoginPanel } from '@/components/LoginPanel'
-import { Calendar, MapPin, PersonStanding, type LucideIcon } from 'lucide-react'
+import { Calendar, MapPin, PersonStanding, CircleDollarSign, ChartColumnIncreasing, type LucideIcon } from 'lucide-react'
 
 type TabKey = 'upcoming' | 'history'
 
@@ -30,11 +31,17 @@ function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string })
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-        <Icon className="h-5 w-5" strokeWidth={2} />
+        <Icon className="h-4.5 w-4.5" strokeWidth={2.5} />
       </div>
-      <div className="text-sm font-medium text-slate-600">{label}</div>
+      <div className="text-sm font-normal text-slate-700">{label}</div>
     </div>
   )
+}
+
+const formatTwdNoDecimal = (value: unknown): string => {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return '0'
+  return Math.round(n).toLocaleString('zh-TW')
 }
 
 export function MySessions() {
@@ -60,6 +67,7 @@ export function MySessions() {
     isAuthenticated: state.isAuthenticated,
     currentUserId: state.user?.id,
   }))
+  const { items: sportsCatalog } = useSports('zh')
   const [showLoginSheet, setShowLoginSheet] = useState(false)
 
 
@@ -144,6 +152,7 @@ export function MySessions() {
           <EventGroupList
             groups={groupByDate(upcomingEvents)}
             currentUserId={currentUserId}
+            sportsCatalog={sportsCatalog}
             emptyState={
               <EmptyState icon="📭" title="目前沒有場次" description="去看看其他活動並加入吧" />
             }
@@ -152,6 +161,7 @@ export function MySessions() {
           <EventGroupList
             groups={groupByDate(historyEvents)}
             currentUserId={currentUserId}
+            sportsCatalog={sportsCatalog}
             emptyState={
               <EmptyState
                 icon="📜"
@@ -170,10 +180,12 @@ function EventGroupList({
   groups,
   emptyState,
   currentUserId,
+  sportsCatalog,
 }: {
   groups: Array<[string, PlayerEvent[]]>
   emptyState: React.ReactNode
   currentUserId?: string
+  sportsCatalog: Array<{ key: string; label: string; icon?: string | null }>
 }) {
   const navigate = useNavigate()
 
@@ -238,6 +250,34 @@ function EventGroupList({
             {groupedEvents.map((event) => {
               const status = getEventStatus(event)
               const active = status !== null
+              const sportItem = sportsCatalog.find(
+                (s) => s.key.toUpperCase() === event.sport.toUpperCase()
+              )
+              const sportLabel = sportItem?.label || event.sport
+              const sportIcon = sportItem?.icon || '🎯'
+              const skillLabel =
+                event.skillLevel === 'beginner'
+                  ? '初階'
+                  : event.skillLevel === 'intermediate'
+                    ? '中階步調'
+                    : event.skillLevel === 'advanced'
+                      ? '進階'
+                      : '不限程度'
+              const genderLabel =
+                event.gender === 'female' ? '女性專屬' : event.gender === 'male' ? '男性專屬' : '性別混合'
+              const locationLine1 =
+                event.location.name && event.location.name !== event.location.address
+                  ? event.location.name
+                  : event.location.name || event.location.address || '地點待確認'
+              const locationLine2 =
+                event.location.name &&
+                event.location.address &&
+                event.location.name !== event.location.address
+                  ? event.location.address
+                  : ''
+              const priceLabel = event.isFree
+                ? '免費體驗'
+                : event.priceRange || `$${formatTwdNoDecimal(event.pricePerPerson)} /人`
               return (
                 <div key={event.id} className="relative pl-6">
                   <span
@@ -281,26 +321,48 @@ function EventGroupList({
                       )}
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="mb-3 flex items-center gap-1.5 overflow-hidden">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                        <span>{sportIcon}</span>
+                        {sportLabel}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                        <ChartColumnIncreasing className="h-3 w-3" strokeWidth={2.5} />
+                        {skillLabel}
+                      </span>
+                      <span className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2 py-0.5 text-[11px] font-medium text-pink-700">
+                        {genderLabel}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
                       <CardInfoRow
                         icon={Calendar}
                         label={formatTimeRange(event.startTime, event.endTime)}
                       />
-                      <CardInfoRow
-                        icon={MapPin}
-                        label={`${event.location.name} (${event.location.address || ''})`}
-                      />
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
+                          <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
+                        </div>
+                        <div className="min-w-0 text-sm font-normal leading-snug text-slate-700">
+                          <p className="break-words">{locationLine1}</p>
+                          {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
+                        </div>
+                      </div>
                       <div className="flex items-center gap-3">
                         <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-                          <PersonStanding className="h-5 w-5" strokeWidth={2} />
+                          <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-600">
-                            {event.attendeeCount}/{event.maxAttendees} 人
-                          </span>
-                          <span className="text-xs font-medium text-slate-500">
-                            剩餘名額 {Math.max(0, event.maxAttendees - event.attendeeCount)} 人
-                          </span>
+                        <div className="text-sm font-normal text-slate-700">
+                          {event.attendeeCount}/{event.maxAttendees} 人已加入
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
+                          <CircleDollarSign className="h-4.5 w-4.5" strokeWidth={2.5} />
+                        </div>
+                        <div className="text-sm font-normal text-slate-700">
+                          {priceLabel}
                         </div>
                       </div>
                     </div>
