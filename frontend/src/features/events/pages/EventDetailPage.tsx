@@ -666,7 +666,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         <Button
           onClick={onCheckIn}
           disabled={isCheckingIn}
-          className="!bg-emerald-600 !text-white !hover:bg-emerald-600 !active:bg-emerald-600 !focus:bg-emerald-600"
+          className="!hover:bg-emerald-600 !active:bg-emerald-600 !focus:bg-emerald-600 !bg-emerald-600 !text-white"
         >
           {isCheckingIn ? (
             '定位中...'
@@ -692,7 +692,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       secondaryButton = (
         <Button
           disabled
-          className="cursor-not-allowed !bg-emerald-300 !text-white !hover:bg-emerald-300 !active:bg-emerald-300 !focus:bg-emerald-300 opacity-90 disabled:opacity-90"
+          className="!hover:bg-emerald-300 !active:bg-emerald-300 !focus:bg-emerald-300 cursor-not-allowed !bg-emerald-300 !text-white opacity-90 disabled:opacity-90"
         >
           缺席
         </Button>
@@ -707,11 +707,11 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       secondaryButton = (
         <Button
           disabled
-          className="cursor-not-allowed !bg-emerald-500 !text-white !hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 opacity-100 disabled:opacity-100"
+          className="!hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 cursor-not-allowed !bg-emerald-500 !text-white opacity-100 disabled:opacity-100"
         >
           <span className="flex flex-col items-center leading-tight">
             <span className="text-sm font-semibold">點我報到</span>
-            <span className="mt-1 text-xs font-medium">(將於 {formatTime(openTime)} 開放)</span>
+            <span className="mt-1 text-xs font-medium">於{formatTime(openTime)}開放按鈕</span>
           </span>
         </Button>
       )
