@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Countries
 CREATE TABLE countries (
-  key TEXT PRIMARY KEY, -- 'TW'
+  key TEXT PRIMARY KEY CHECK (key = UPPER(key)), -- 'TW'
   name_zh TEXT NOT NULL,
   name_en TEXT NOT NULL,
   sort INTEGER DEFAULT 0,
@@ -20,7 +20,7 @@ CREATE TABLE countries (
 
 -- Cities
 CREATE TABLE cities (
-  key TEXT PRIMARY KEY,
+  key TEXT PRIMARY KEY CHECK (key = UPPER(key)),
   country_key TEXT REFERENCES countries(key),
   name_zh TEXT NOT NULL,
   name_en TEXT NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE vibes (
 
 -- Age Ranges
 CREATE TABLE age_ranges (
-  key TEXT PRIMARY KEY,
+  key TEXT PRIMARY KEY CHECK (key = UPPER(key)),
   label_zh TEXT NOT NULL, -- Matched model expectation
   label_en TEXT NOT NULL,
   min_age INTEGER,
@@ -55,7 +55,7 @@ CREATE TABLE age_ranges (
 
 -- Sports Catalog
 CREATE TABLE sports (
-  key TEXT PRIMARY KEY,
+  key TEXT PRIMARY KEY CHECK (key = UPPER(key)),
   label_zh TEXT NOT NULL,
   label_en TEXT NOT NULL,
   category TEXT, -- 'social_competitive', etc.
@@ -276,25 +276,25 @@ ON CONFLICT (key) DO NOTHING;
 
 -- 2. Cities
 INSERT INTO cities (key, country_key, name_zh, name_en, sort, is_active) VALUES
-('keelung', 'TW', '基隆市', 'Keelung', 10, true),
-('taipei', 'TW', '台北市', 'Taipei', 20, true),
-('new_taipei', 'TW', '新北市', 'New Taipei', 30, true),
-('taoyuan', 'TW', '桃園市', 'Taoyuan', 40, true),
-('hsinchu', 'TW', '新竹市', 'Hsinchu City', 50, true),
-('hsinchu_county', 'TW', '新竹縣', 'Hsinchu County', 60, true),
-('miaoli', 'TW', '苗栗縣', 'Miaoli County', 70, true),
-('taichung', 'TW', '台中市', 'Taichung', 80, true),
-('changhua', 'TW', '彰化縣', 'Changhua County', 90, true),
-('nantou', 'TW', '南投縣', 'Nantou County', 100, true),
-('yunlin', 'TW', '雲林縣', 'Yunlin County', 110, true),
-('chiayi', 'TW', '嘉義市', 'Chiayi City', 120, true),
-('chiayi_county', 'TW', '嘉義縣', 'Chiayi County', 130, true),
-('tainan', 'TW', '台南市', 'Tainan', 140, true),
-('kaohsiung', 'TW', '高雄市', 'Kaohsiung', 150, true),
-('pingtung', 'TW', '屏東縣', 'Pingtung County', 160, true),
-('yilan', 'TW', '宜蘭縣', 'Yilan County', 170, true),
-('hualien', 'TW', '花蓮縣', 'Hualien County', 180, true),
-('taitung', 'TW', '台東縣', 'Taitung County', 190, true)
+('KEELUNG', 'TW', '基隆市', 'Keelung', 10, true),
+('TAIPEI', 'TW', '台北市', 'Taipei', 20, true),
+('NEW_TAIPEI', 'TW', '新北市', 'New Taipei', 30, true),
+('TAOYUAN', 'TW', '桃園市', 'Taoyuan', 40, true),
+('HSINCHU', 'TW', '新竹市', 'Hsinchu City', 50, true),
+('HSINCHU_COUNTY', 'TW', '新竹縣', 'Hsinchu County', 60, true),
+('MIAOLI', 'TW', '苗栗縣', 'Miaoli County', 70, true),
+('TAICHUNG', 'TW', '台中市', 'Taichung', 80, true),
+('CHANGHUA', 'TW', '彰化縣', 'Changhua County', 90, true),
+('NANTOU', 'TW', '南投縣', 'Nantou County', 100, true),
+('YUNLIN', 'TW', '雲林縣', 'Yunlin County', 110, true),
+('CHIAYI', 'TW', '嘉義市', 'Chiayi City', 120, true),
+('CHIAYI_COUNTY', 'TW', '嘉義縣', 'Chiayi County', 130, true),
+('TAINAN', 'TW', '台南市', 'Tainan', 140, true),
+('KAOHSIUNG', 'TW', '高雄市', 'Kaohsiung', 150, true),
+('PINGTUNG', 'TW', '屏東縣', 'Pingtung County', 160, true),
+('YILAN', 'TW', '宜蘭縣', 'Yilan County', 170, true),
+('HUALIEN', 'TW', '花蓮縣', 'Hualien County', 180, true),
+('TAITUNG', 'TW', '台東縣', 'Taitung County', 190, true)
 ON CONFLICT (key) DO NOTHING;
 
 -- 3. Vibes
