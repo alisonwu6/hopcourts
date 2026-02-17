@@ -337,7 +337,9 @@ components:
         skill_level: { type: string, enum: [any, beginner, intermediate, advanced] }
         is_official: { type: boolean }
         photos: { type: array, items: { type: string } }
-        price: { type: number }
+        price_total: { type: number }
+        price_per_person: { type: number }
+        price_mode: { type: string, enum: [total, person] }
         price_note: { type: string }
         is_free: { type: boolean }
         min_people: { type: integer }

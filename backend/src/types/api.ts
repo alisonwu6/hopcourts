@@ -927,7 +927,10 @@ export interface components {
             skill_level?: "any" | "beginner" | "intermediate" | "advanced";
             is_official?: boolean;
             photos?: string[];
-            price?: number;
+            price_total?: number;
+            price_per_person?: number;
+            /** @enum {string} */
+            price_mode?: "total" | "person";
             price_note?: string;
             is_free?: boolean;
             min_people?: number;

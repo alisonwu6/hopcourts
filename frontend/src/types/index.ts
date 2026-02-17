@@ -282,7 +282,9 @@ export interface PlayerEvent {
   minPeople?: number
   difficulty: 1 | 2 | 3 | 4 | 5
   isFree: boolean
-  price?: number
+  priceTotal?: number
+  pricePerPerson?: number
+  priceMode?: 'total' | 'person'
   priceNote?: string | null
   priceRange?: string
   description?: string
@@ -352,7 +354,8 @@ export interface EventApi {
   start_time: string
   end_time: string
   max_players: number
-  price?: number | null
+  price_total?: number | null
+  price_per_person?: number | null
   price_type?: string | null
   currency?: string | null
   status?: string | null
@@ -408,7 +411,9 @@ export interface CreateEventInput {
   }
   venueId?: string
   isFree: boolean
+  priceTotal?: number
   pricePerPerson?: number
+  priceMode?: 'total' | 'person'
   priceNote?: string
   notesForAttendees?: string
   coverPhotoUrl?: string | null

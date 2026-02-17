@@ -47,7 +47,7 @@ export function EventDetailPage() {
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
   const [showProfileRequired, setShowProfileRequired] = useState(false)
-  
+
   const [isEditingDesc, setIsEditingDesc] = useState(false)
   const [descValue, setDescValue] = useState('')
   const [isSavingDesc, setIsSavingDesc] = useState(false)
@@ -108,20 +108,12 @@ export function EventDetailPage() {
       const userGender = user?.gender
 
       if (event.gender === 'male' && userGender !== 'male') {
-        showAlert(
-          '',
-          '此活動為男生專場。',
-          'warning'
-        )
+        showAlert('', '此活動為男生專場。', 'warning')
         return
       }
 
       if (event.gender === 'female' && userGender !== 'female') {
-        showAlert(
-          '',
-          '此活動為女生專場。',
-          'warning'
-        )
+        showAlert('', '此活動為女生專場。', 'warning')
         return
       }
     }
@@ -216,7 +208,6 @@ export function EventDetailPage() {
     )
   }
 
-
   const handleSaveDesc = async () => {
     if (!event) return
     setIsSavingDesc(true)
@@ -255,7 +246,7 @@ export function EventDetailPage() {
   const isParticipant = event?.participants.some((p) => p.id === currentUserId)
 
   /* DEBUG: Check why isJoined is false -- REMOVED */
-  
+
   const isJoined = (event?.joined || isHost || isParticipant) ?? false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
 
@@ -286,14 +277,37 @@ export function EventDetailPage() {
           : '不限程度'
 
   const genderLabel =
-    event.gender === 'female'
-      ? '女性專屬'
-      : event.gender === 'male'
-        ? '男性專屬'
-        : '性別混合'
+    event.gender === 'female' ? '女性專屬' : event.gender === 'male' ? '男性專屬' : '性別混合'
 
   const sportLabel =
     sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
+
+  const minPeople = Math.max(1, event.minPeople ?? 1)
+  const maxPeople = Math.max(minPeople, event.maxAttendees ?? minPeople)
+  const formatMoney = (value?: number | null) => {
+    if (value == null || Number.isNaN(Number(value))) return ''
+    return Number(value).toLocaleString('zh-TW', {
+      minimumFractionDigits: Number.isInteger(Number(value)) ? 0 : 2,
+      maximumFractionDigits: 2,
+    })
+  }
+  const feeLine2 = (() => {
+    if (event.isFree) return '免費活動'
+    const total = event.priceTotal
+    const perPerson = event.pricePerPerson
+    if (event.priceMode === 'person') {
+      if (perPerson) return `每人費用 $${formatMoney(perPerson)}`
+      return '收費活動（每人計費）'
+    }
+    if (total != null) return `總費用 $${formatMoney(total)}`
+    if (perPerson) return `總費用未提供（每人約 $${formatMoney(perPerson)}）`
+    return '收費活動'
+  })()
+  const feeLine3 = event.priceNote?.trim()
+    ? `收費說明：${event.priceNote.trim()}`
+    : '收費說明：無'
+  const participantRule =
+    minPeople === 1 ? `保證開團｜上限${maxPeople}人` : `${minPeople}人成團｜上限${maxPeople}人`
 
   // Photos: using heroImage as main, maybe carousel later?
   // Current UI only shows one hero image.
@@ -319,7 +333,7 @@ export function EventDetailPage() {
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 text-slate-400 transition "
+              className="p-2 text-slate-400 transition"
               aria-label="Delete event"
             >
               <Trash2 className="h-5 w-5" />
@@ -333,7 +347,7 @@ export function EventDetailPage() {
             images={
               event.photos && event.photos.length > 0
                 ? event.photos
-                : [event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[]
+                : ([event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[])
             }
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
@@ -341,7 +355,7 @@ export function EventDetailPage() {
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
             <div
-              className="flex cursor-pointer items-center gap-3 transition "
+              className="flex cursor-pointer items-center gap-3 transition"
               onClick={() => {
                 if (event.host.username) {
                   navigate(`/mate/${event.host.username}`)
@@ -380,18 +394,24 @@ export function EventDetailPage() {
                 icon={Calendar}
                 label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
               />
-              <div 
+              <div
                 className={clsx(
-                  "cursor-pointer active:opacity-70 transition group",
-                  event.venueId ? "hover:text-blue-600" : "hover:text-slate-900"
+                  'group cursor-pointer transition active:opacity-70',
+                  event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
                 )}
                 onClick={() => {
                   if (event.location.lat && event.location.lng) {
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`, '_blank')
+                    window.open(
+                      `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
+                      '_blank'
+                    )
                   } else {
                     const query = event.location.address || event.location.name
                     if (query) {
-                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank')
+                      window.open(
+                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
+                        '_blank'
+                      )
                     }
                   }
                 }}
@@ -408,11 +428,10 @@ export function EventDetailPage() {
               <InfoRow
                 icon={CircleDollarSign}
                 label={
-                  event.isFree
-                    ? '免費'
-                    : event.price
-                      ? `若達人數上限，每人$${event.price}`
-                      : '收費活動'
+                  <span className="flex flex-col gap-0.5 leading-relaxed">
+                    <span>{feeLine2}</span>
+                    <span>{feeLine3}</span>
+                  </span>
                 }
               />
             </div>
@@ -420,11 +439,16 @@ export function EventDetailPage() {
             <hr className="my-6 border-slate-200" />
 
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <div className="flex items-start gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
                   <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
-                <span>目前報名（剩 {spotsRemaining} 位）</span>
+                <span className="flex flex-col gap-1">
+                  <span>目前報名（剩 {spotsRemaining} 位）</span>
+                  <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
+                    {participantRule}
+                  </span>
+                </span>
               </div>
 
               {event.participants.length > 0 ? (
@@ -439,7 +463,7 @@ export function EventDetailPage() {
                   return (
                     <div
                       key={p.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition "
+                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition"
                       onClick={() => {
                         if (p.username) {
                           navigate(`/mate/${p.username}`)
@@ -480,55 +504,55 @@ export function EventDetailPage() {
                   <span>活動說明</span>
                 </div>
                 {event.host.id === currentUserId && !isEditingDesc && (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setDescValue(event.detail?.description || event.description || '')
-                            setIsEditingDesc(true)
-                        }}
-                        className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-600 transition"
-                    >
-                        <Pencil className="h-4 w-4" />
-                    </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDescValue(event.detail?.description || event.description || '')
+                      setIsEditingDesc(true)
+                    }}
+                    className="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-blue-600"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
                 )}
               </div>
-              
+
               {isEditingDesc ? (
-                <div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                    <textarea
-                        value={descValue}
-                        onChange={(e) => setDescValue(e.target.value)}
-                        className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
-                        placeholder="輸入活動說明..."
-                    />
-                    <div className="flex justify-end gap-2">
-                        <button
-                            onClick={() => setIsEditingDesc(false)}
-                            className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition"
-                            disabled={isSavingDesc}
-                        >
-                            <X className="h-3.5 w-3.5" />
-                            取消
-                        </button>
-                        <button
-                            onClick={handleSaveDesc}
-                            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-blue-500 transition disabled:opacity-70"
-                            disabled={isSavingDesc}
-                        >
-                            {isSavingDesc ? (
-                                '儲存中...'
-                            ) : (
-                                <>
-                                    <Check className="h-3.5 w-3.5" />
-                                    儲存更新
-                                </>
-                            )}
-                        </button>
-                    </div>
+                <div className="space-y-3 duration-200 animate-in fade-in zoom-in-95">
+                  <textarea
+                    value={descValue}
+                    onChange={(e) => setDescValue(e.target.value)}
+                    className="min-h-[120px] w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="輸入活動說明..."
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setIsEditingDesc(false)}
+                      className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100"
+                      disabled={isSavingDesc}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      取消
+                    </button>
+                    <button
+                      onClick={handleSaveDesc}
+                      className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-blue-500 disabled:opacity-70"
+                      disabled={isSavingDesc}
+                    >
+                      {isSavingDesc ? (
+                        '儲存中...'
+                      ) : (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          儲存更新
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                   {event.detail?.description || event.description || '沒有描述'}
+                  {event.detail?.description || event.description || '沒有描述'}
                 </p>
               )}
               {event.updatedAt && (
@@ -537,8 +561,6 @@ export function EventDetailPage() {
                 </p>
               )}
             </div>
-
-
 
             {/* Photos Section if multiple */}
           </div>
@@ -641,7 +663,7 @@ function AvatarCircle({ name, src }: { name: string; src?: string }) {
   )
 }
 
-function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 text-sm font-medium text-slate-700">
       <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
@@ -677,11 +699,10 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time
   const isCheckInOpen = now >= openTime && now <= closeTime
 
-  const formatTime = (date: Date) =>
-    format(date, 'MM/dd HH:mm', { locale: zhTW })
+  const formatTime = (date: Date) => format(date, 'MM/dd HH:mm', { locale: zhTW })
 
   let mainButton = (
-    <Button onClick={onJoin} className="bg-blue-600 text-white ">
+    <Button onClick={onJoin} className="bg-blue-600 text-white">
       加入活動
     </Button>
   )
@@ -697,11 +718,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   } else if (isJoined) {
     if (isCheckInOpen) {
       mainButton = (
-        <Button
-          onClick={onCheckIn}
-          disabled={isCheckingIn}
-          className="bg-emerald-600 text-white "
-        >
+        <Button onClick={onCheckIn} disabled={isCheckingIn} className="bg-emerald-600 text-white">
           {isCheckingIn ? (
             '定位中...'
           ) : (
@@ -726,11 +743,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
     } else {
       // Joined but not yet time to check in (now < openTime)
       mainButton = (
-        <Button
-          disabled={false}
-          onClick={onJoin}
-          className="bg-player-600 text-white shadow-sm "
-        >
+        <Button disabled={false} onClick={onJoin} className="bg-player-600 text-white shadow-sm">
           已加入
         </Button>
       )

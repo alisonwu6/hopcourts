@@ -25,7 +25,9 @@ const BASE_FIELDS = [
   'gender',
   'photos',
   'is_free',
-  'price',
+  'price_total',
+  'price_per_person',
+  'price_mode',
   'venue_id',
   'location_source',
   'price_note', // New Field
@@ -252,12 +254,14 @@ async function createSession(input) {
       gender,
       photos,
       is_free,
-      price,
+      price_total,
+      price_per_person,
+      price_mode,
       location_source,
       is_official,
       price_note
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28
     )
     returning ${BASE_FIELDS.join(', ')}
   `
@@ -284,7 +288,9 @@ async function createSession(input) {
     input.gender ?? 'mixed',
     input.photos ?? null,
     input.isFree ?? true,
-    input.price ?? null,
+    input.priceTotal ?? null,
+    input.pricePerPerson ?? null,
+    input.priceMode ?? 'total',
     input.locationSource ?? null,
     input.isOfficial ?? false,
     input.priceNote ?? null,
@@ -316,7 +322,9 @@ async function updateSession(sessionId, patch = {}) {
     gender: patch.gender,
     photos: patch.photos,
     is_free: patch.isFree,
-    price: patch.price,
+    price_total: patch.priceTotal,
+    price_per_person: patch.pricePerPerson,
+    price_mode: patch.priceMode,
     is_official: patch.isOfficial,
     price_note: patch.priceNote,
   }).filter(([, value]) => value !== undefined)

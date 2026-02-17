@@ -211,6 +211,7 @@ async function createSession(input) {
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
   const allowedGender = ['mixed', 'female', 'male']
+  const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
     throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })
@@ -218,13 +219,28 @@ async function createSession(input) {
   if (input.gender && !allowedGender.includes(input.gender)) {
     throw Errors.validation('invalid gender', { gender: input.gender })
   }
+  if (input.priceMode && !allowedPriceMode.includes(input.priceMode)) {
+    throw Errors.validation('invalid price_mode', { price_mode: input.priceMode })
+  }
   if (input.photos && (!Array.isArray(input.photos) || input.photos.length > 3)) {
     throw Errors.validation('photos must be an array with at most 3 items')
+  }
+  if (input.minPeople != null && Number(input.minPeople) < 1) {
+    throw Errors.validation('min_people must be >= 1')
+  }
+  if (
+    input.maxPeople != null &&
+    input.minPeople != null &&
+    Number(input.maxPeople) < Number(input.minPeople)
+  ) {
+    throw Errors.validation('max_people must be >= min_people')
   }
 
   // Cost validation
   if (input.isFree === false) {
-    if (!input.price || Number(input.price) <= 0) {
+    const total = input.priceTotal == null ? null : Number(input.priceTotal)
+    const perPerson = input.pricePerPerson == null ? null : Number(input.pricePerPerson)
+    if ((total == null || !Number.isFinite(total) || total <= 0) && (perPerson == null || !Number.isFinite(perPerson) || perPerson <= 0)) {
       throw Errors.validation('Price is required for paid sessions')
     }
     if (!input.priceNote) {
@@ -275,9 +291,15 @@ async function createSession(input) {
     gender: input.gender ?? 'mixed',
     photos: input.photos ?? null,
     isFree: input.isFree ?? true,
-    price: input.price ?? null,
+    priceTotal: input.priceTotal ?? null,
+    pricePerPerson: input.pricePerPerson ?? null,
+    priceMode: input.priceMode ?? 'total',
     locationSource: input.locationSource,
     priceNote: input.priceNote ?? null,
+  }
+
+  if (payload.priceMode === 'person') {
+    payload.priceTotal = null
   }
 
   const session = await createSessionModel(payload)
@@ -305,6 +327,7 @@ async function updateSession(sessionId, input) {
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
   const allowedGender = ['mixed', 'female', 'male']
+  const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
     throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })
@@ -312,8 +335,21 @@ async function updateSession(sessionId, input) {
   if (input.gender && !allowedGender.includes(input.gender)) {
     throw Errors.validation('invalid gender', { gender: input.gender })
   }
+  if (input.priceMode && !allowedPriceMode.includes(input.priceMode)) {
+    throw Errors.validation('invalid price_mode', { price_mode: input.priceMode })
+  }
   if (input.photos && (!Array.isArray(input.photos) || input.photos.length > 3)) {
     throw Errors.validation('photos must be an array with at most 3 items')
+  }
+  if (input.minPeople != null && Number(input.minPeople) < 1) {
+    throw Errors.validation('min_people must be >= 1')
+  }
+  if (
+    input.maxPeople != null &&
+    input.minPeople != null &&
+    Number(input.maxPeople) < Number(input.minPeople)
+  ) {
+    throw Errors.validation('max_people must be >= min_people')
   }
 
   const patch = {
@@ -336,8 +372,14 @@ async function updateSession(sessionId, input) {
     gender: input.gender,
     photos: input.photos,
     isFree: input.isFree,
-    price: input.price,
+    priceTotal: input.priceTotal,
+    pricePerPerson: input.pricePerPerson,
+    priceMode: input.priceMode,
     priceNote: input.priceNote,
+  }
+
+  if (patch.priceMode === 'person') {
+    patch.priceTotal = null
   }
 
   return sessionsModel.updateSession(sessionId, patch)

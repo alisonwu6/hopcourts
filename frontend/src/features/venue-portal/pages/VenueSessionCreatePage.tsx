@@ -26,7 +26,7 @@ export function VenueSessionCreatePage() {
     endTime: '21:00',
     minPeople: 2,
     maxPeople: 4,
-    price: 0,
+    pricePerPerson: 0,
     isFree: true
   })
 
@@ -68,7 +68,8 @@ export function VenueSessionCreatePage() {
       lng: 0,
       minPeople: formData.minPeople,
       maxPeople: formData.maxPeople,
-      price: formData.isFree ? 0 : formData.price,
+      pricePerPerson: formData.isFree ? 0 : formData.pricePerPerson,
+      priceMode: 'person',
       isFree: formData.isFree,
       status: 'published',
       visibility: 'public',
@@ -219,7 +220,7 @@ export function VenueSessionCreatePage() {
                                 <input 
                                     type="radio" 
                                     checked={formData.isFree} 
-                                    onChange={() => setFormData({...formData, isFree: true, price: 0})}
+                                    onChange={() => setFormData({...formData, isFree: true, pricePerPerson: 0})}
                                     className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                                 />
                                 <span className="text-sm text-slate-700">免費</span>
@@ -243,8 +244,8 @@ export function VenueSessionCreatePage() {
                                 min="0"
                                 placeholder="TWD"
                                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                value={formData.price}
-                                onChange={e => setFormData({...formData, price: parseInt(e.target.value)})}
+                                value={formData.pricePerPerson}
+                                onChange={e => setFormData({...formData, pricePerPerson: parseInt(e.target.value)})}
                             />
                         </div>
                      )}

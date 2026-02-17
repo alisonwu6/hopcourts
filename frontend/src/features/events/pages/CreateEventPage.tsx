@@ -136,13 +136,20 @@ export default function CreateEventPage() {
             capacity: String(draft.maxAttendees || 3),
             minPeople: String(draft.minPeople || 3),
             isFree: draft.isFree ?? true,
-            price: draft.price && draft.maxAttendees ? String(draft.price * draft.maxAttendees) : '',
+            price: (draft.priceMode === 'person' ? draft.pricePerPerson : (draft.priceTotal ?? draft.pricePerPerson))
+              ? draft.priceMode === 'person'
+                  ? String(draft.pricePerPerson)
+                  : draft.maxAttendees
+                    ? String(draft.priceTotal ?? draft.pricePerPerson * draft.maxAttendees)
+                    : String(draft.priceTotal ?? draft.pricePerPerson)
+                : '',
             priceNote: (draft as any).priceNote || '',
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
             gender: draft.gender || 'mixed',
             notes: draft.detail?.description || draft.description || '',
             placeName: draft.location.name || '',
           })
+          setCostMode(draft.priceMode === 'person' ? 'person' : 'total')
 
           if (draft.location.address || draft.location.name) {
             setSelectedAddress(draft.location.address || draft.location.name || '')
@@ -209,10 +216,10 @@ export default function CreateEventPage() {
     if (!selectedLocation) return
 
     const handle = setTimeout(async () => {
-       const addr = await reverseGeocode(selectedLocation)
-       if (addr) {
-         setSelectedAddress(addr)
-       }
+      const addr = await reverseGeocode(selectedLocation)
+      if (addr) {
+        setSelectedAddress(addr)
+      }
     }, 800) // Debounce lightly
 
     return () => clearTimeout(handle)
@@ -405,10 +412,10 @@ export default function CreateEventPage() {
       setError('人數上限必須大於 0')
       return
     }
-    
+
     const minPeople = Number(form.minPeople)
-    if (minPeople <= 0) {
-      setError('最少成團人數必須大於 0')
+    if (minPeople < 1) {
+      setError('最少成團人數不可小於 1')
       return
     }
     if (minPeople > capacity) {
@@ -448,12 +455,15 @@ export default function CreateEventPage() {
 
     // Calculate per-person price
     let pricePerPerson: number | undefined
+    let priceTotal: number | undefined
     if (!form.isFree && form.price) {
       const priceVal = parseFloat(form.price)
       if (!Number.isNaN(priceVal) && capacity > 0) {
         if (costMode === 'total') {
+          priceTotal = priceVal
           pricePerPerson = Math.round(priceVal / capacity)
         } else {
+          priceTotal = undefined
           pricePerPerson = priceVal
         }
       }
@@ -475,7 +485,7 @@ export default function CreateEventPage() {
 
       // Combine: Existing first, then new
       uploadedPhotoUrls = [...existingPhotoUrls, ...newPhotoUrls]
-      
+
       const commonPayload = {
         title: form.title.trim(),
         sport: form.sportKey.trim(),
@@ -494,7 +504,9 @@ export default function CreateEventPage() {
           source: 'map_select',
         },
         isFree: form.isFree,
+        priceTotal,
         pricePerPerson,
+        priceMode: costMode,
         skillLevel: form.skillLevel,
         gender: form.gender,
         coverPhotoUrl: uploadedPhotoUrls[0],
@@ -533,7 +545,7 @@ export default function CreateEventPage() {
       setSubmittingStatus(null)
     }
   }
-  
+
   const handleDelete = async () => {
     if (!editId) return
     setIsDeleting(true)
@@ -557,19 +569,19 @@ export default function CreateEventPage() {
   const handleRemoveImage = (index: number) => {
     const targetUrl = heroPreviews[index]
     const isBlob = targetUrl.startsWith('blob:')
-    
+
     if (isBlob) {
-        // Find which selectedFile index this corresponds to
-        // Count how many blobs are before this index in heroPreviews
-        let blobIndex = 0
-        for (let i = 0; i < index; i++) {
-            if (heroPreviews[i].startsWith('blob:')) {
-                blobIndex++
-            }
+      // Find which selectedFile index this corresponds to
+      // Count how many blobs are before this index in heroPreviews
+      let blobIndex = 0
+      for (let i = 0; i < index; i++) {
+        if (heroPreviews[i].startsWith('blob:')) {
+          blobIndex++
         }
-        setSelectedFiles((prev) => prev.filter((_, i) => i !== blobIndex))
+      }
+      setSelectedFiles((prev) => prev.filter((_, i) => i !== blobIndex))
     }
-    
+
     setHeroPreviews((prev) => prev.filter((_, i) => i !== index))
   }
 
@@ -600,7 +612,7 @@ export default function CreateEventPage() {
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition  "
+                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition"
                 aria-label="Delete Event"
               >
                 <Trash2 className="h-5 w-5" strokeWidth={2} />
@@ -621,10 +633,10 @@ export default function CreateEventPage() {
           )}
 
           <div className="space-y-8">
-            <FieldSection title="活動相關照片" description="最多3張">
-              <CoverUploader 
-                previews={heroPreviews} 
-                onChange={handleImageChange} 
+            <FieldSection title="活動相關照片(選填)" description="最多3張">
+              <CoverUploader
+                previews={heroPreviews}
+                onChange={handleImageChange}
                 onRemove={handleRemoveImage}
               />
             </FieldSection>
@@ -646,62 +658,62 @@ export default function CreateEventPage() {
                 placeholder="選擇運動"
                 required
               />
-               <div className="flex gap-4">
-                 <div className="flex-1">
-                    <FloatingField
-                      label="人數上限"
-                      name="capacity"
-                      type="number"
-                      min={1}
-                      value={form.capacity}
-                      onChange={handleInputChange}
-                      required
-                    />
-                 </div>
-                 <div className="flex-1">
-                    <FloatingField
-                      label="最少人數(未達則取消)"
-                      name="minPeople"
-                      type="number"
-                      min={1}
-                      value={form.minPeople}
-                      onChange={handleInputChange}
-                      required
-                    />
-                 </div>
-               </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <FloatingField
+                    label="人數上限"
+                    name="capacity"
+                    type="number"
+                    min={1}
+                    value={form.capacity}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <FloatingField
+                    label="最少人數(未達則取消)"
+                    name="minPeople"
+                    type="number"
+                    min={1}
+                    value={form.minPeople}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+              </div>
               <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
               <GenderSelector selected={form.gender} onSelect={handleGenderSelect} />
             </FieldSection>
 
             <FieldSection title="地點與時間" description="">
               <div className="space-y-4">
-                 <button
-                    type="button"
-                    onClick={openLocationPicker}
-                    className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition "
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
-                        <MapPin className="h-5 w-5" />
-                      </div>
-                      <div className="flex flex-col text-left">
-                        <span className="text-sm font-bold text-slate-900 leading-tight mb-0.5">
-                          {form.location || '點擊選擇位置'}
-                        </span>
-                      </div>
+                <button
+                  type="button"
+                  onClick={openLocationPicker}
+                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
+                      <MapPin className="h-5 w-5" />
                     </div>
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
-                  </button>
-                  {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
-                  
-                  <FloatingField
-                    label="場地名稱 (非必填)"
-                    name="placeName"
-                    placeholder="若知道場地具體名稱，請填寫於此。"
-                    value={form.placeName}
-                    onChange={handleInputChange}
-                  />
+                    <div className="flex flex-col text-left">
+                      <span className="mb-0.5 text-sm font-bold leading-tight text-slate-900">
+                        {form.location || '點擊選擇位置'}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-slate-400" />
+                </button>
+                {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
+
+                <FloatingField
+                  label="場地名稱 (選填)"
+                  name="placeName"
+                  placeholder="若知道場地具體名稱，請填寫於此。"
+                  value={form.placeName}
+                  onChange={handleInputChange}
+                />
               </div>
 
               <div className="space-y-4">
@@ -724,7 +736,7 @@ export default function CreateEventPage() {
 
             <FieldSection title="費用" description="設定活動的費用資訊。">
               <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition ">
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
                   <input
                     id="is-free-checkbox"
                     type="checkbox"
@@ -803,7 +815,6 @@ export default function CreateEventPage() {
                 value={form.notes}
                 onChange={handleInputChange}
               />
-
             </FieldSection>
           </div>
         </form>
@@ -932,7 +943,7 @@ export default function CreateEventPage() {
                 <button
                   type="button"
                   aria-label="Clear address"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500 "
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500"
                   onClick={() => {
                     setIsAddressClearing(true)
                     setSelectedAddress('')
@@ -1010,7 +1021,7 @@ function ActionBar({
           size="sm"
           type="button"
           onClick={onDraft}
-          className="flex-1 rounded-full border-slate-200 text-slate-600 "
+          className="flex-1 rounded-full border-slate-200 text-slate-600"
           disabled={!canSubmit || isSubmitting}
         >
           {submittingStatus === 'draft' ? '儲存中...' : '草稿'}
@@ -1041,7 +1052,7 @@ function FieldSection({
   return (
     <div className="space-y-4 py-2">
       <div className="space-y-1">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-600">{title}</p>
+        <p className="text-md font-semibold uppercase tracking-wide text-slate-600">{title}</p>
         <p className="text-xs text-slate-400">{description}</p>
       </div>
       <div className="space-y-4">{children}</div>
@@ -1154,7 +1165,7 @@ function CoverUploader({
                   e.stopPropagation()
                   onRemove(idx)
                 }}
-                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition "
+                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -1164,13 +1175,11 @@ function CoverUploader({
 
         {/* Upload Button */}
         {!isFull && (
-          <label className="group relative box-border flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 transition  ">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 group-">
+          <label className="group relative box-border flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 transition">
+            <div className="group- flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
               <ImagePlus className="h-4 w-4" />
             </div>
-            <p className="text-[10px] font-semibold text-slate-500 group-">
-              上傳照片
-            </p>
+            <p className="group- text-[10px] font-semibold text-slate-500">上傳照片</p>
             <input type="file" accept="image/*" multiple className="hidden" onChange={onChange} />
           </label>
         )}
@@ -1178,7 +1187,6 @@ function CoverUploader({
     </div>
   )
 }
-
 
 type FloatingFieldProps =
   | ({
@@ -1288,7 +1296,7 @@ function DateTimeField({
   required?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null) // Typed ref
-  
+
   const displayValue = useMemo(() => {
     if (!value) return ''
     try {
@@ -1303,7 +1311,7 @@ function DateTimeField({
     if (inputRef.current) {
       if ('showPicker' in inputRef.current) {
         try {
-          (inputRef.current as any).showPicker()
+          ;(inputRef.current as any).showPicker()
         } catch (err) {
           // Fallback or ignore if not supported/allowed
           inputRef.current.focus()
@@ -1315,11 +1323,11 @@ function DateTimeField({
   }
 
   return (
-    <div 
+    <div
       onClick={handleClick}
-      className="relative w-full rounded-[14px] border-2 border-slate-300 bg-white px-4 pt-7 pb-3 transition focus-within:border-slate-900 focus-within:shadow-[0_0_0_1px_rgba(0,0,0,0.2)]"
+      className="relative w-full rounded-[14px] border-2 border-slate-300 bg-white px-4 pb-3 pt-7 transition focus-within:border-slate-900 focus-within:shadow-[0_0_0_1px_rgba(0,0,0,0.2)]"
     >
-      <label className="pointer-events-none absolute left-4 top-2 text-sm font-semibold text-slate-600 bg-white px-1">
+      <label className="pointer-events-none absolute left-4 top-2 bg-white px-1 text-sm font-semibold text-slate-600">
         {label}
       </label>
       <div className={clsx('min-h-[1.5rem] w-full text-base', !displayValue && 'text-slate-400')}>

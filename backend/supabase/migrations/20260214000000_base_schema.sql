@@ -199,7 +199,9 @@ CREATE TABLE sessions (
   photos TEXT[],
   
   is_free BOOLEAN DEFAULT true,
-  price NUMERIC(10, 2),
+  price_total NUMERIC(10, 2),
+  price_per_person NUMERIC(10, 2),
+  price_mode TEXT DEFAULT 'total' CHECK (price_mode IN ('total', 'person')),
   price_note TEXT,
   currency TEXT DEFAULT 'TWD',
   

@@ -205,7 +205,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             </div>
             <div className="text-sm">
                <span className={clsx(event.isFree ? "text-green-600" : "text-slate-900")}>
-                 {event.isFree ? '免費體驗' : `${event.priceRange || `$${event.price}`} /人`}
+                 {event.isFree ? '免費體驗' : `${event.priceRange || `$${event.pricePerPerson}`} /人`}
                </span>
             </div>
           </div>
