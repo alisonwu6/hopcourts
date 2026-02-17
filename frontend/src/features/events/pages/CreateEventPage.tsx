@@ -136,13 +136,17 @@ export default function CreateEventPage() {
             capacity: String(draft.maxAttendees || 3),
             minPeople: String(draft.minPeople || 3),
             isFree: draft.isFree ?? true,
-            price: (draft.priceMode === 'person' ? draft.pricePerPerson : (draft.priceTotal ?? draft.pricePerPerson))
+            price: (
+              draft.priceMode === 'person'
+                ? draft.pricePerPerson
+                : (draft.priceTotal ?? draft.pricePerPerson)
+            )
               ? draft.priceMode === 'person'
-                  ? String(draft.pricePerPerson)
-                  : draft.maxAttendees
-                    ? String(draft.priceTotal ?? draft.pricePerPerson * draft.maxAttendees)
-                    : String(draft.priceTotal ?? draft.pricePerPerson)
-                : '',
+                ? String(draft.pricePerPerson)
+                : draft.maxAttendees
+                  ? String(draft.priceTotal ?? draft.pricePerPerson * draft.maxAttendees)
+                  : String(draft.priceTotal ?? draft.pricePerPerson)
+              : '',
             priceNote: (draft as any).priceNote || '',
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
             gender: draft.gender || 'mixed',
@@ -774,7 +778,7 @@ export default function CreateEventPage() {
                       </div>
                       <span className="text-xs text-slate-400">
                         {costMode === 'total'
-                          ? '輸入總金額，系統自動計算每人均攤。'
+                          ? '輸入總金額，將依照總參與人數分攤。'
                           : '輸入單人金額，直接設定每人費用。'}
                       </span>
                     </div>
@@ -795,11 +799,13 @@ export default function CreateEventPage() {
                       }
                     />
                     <FloatingField
+                      as="textarea"
+                      rows={3}
                       label="收費說明"
                       name="priceNote"
                       value={form.priceNote}
                       onChange={handleInputChange}
-                      placeholder="例如: 預收、現場收費等"
+                      placeholder="例如: 現場收費等"
                     />
                   </div>
                 )}

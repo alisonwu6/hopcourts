@@ -303,9 +303,7 @@ export function EventDetailPage() {
     if (perPerson) return `總費用未提供（每人約 $${formatMoney(perPerson)}）`
     return '收費活動'
   })()
-  const feeLine3 = event.priceNote?.trim()
-    ? `收費說明：${event.priceNote.trim()}`
-    : '收費說明：無'
+  const feeNote = event.priceNote?.trim() || '無'
   const participantRule =
     minPeople === 1 ? `保證開團｜上限${maxPeople}人` : `${minPeople}人成團｜上限${maxPeople}人`
 
@@ -427,13 +425,12 @@ export function EventDetailPage() {
               </div>
               <InfoRow
                 icon={CircleDollarSign}
-                label={
-                  <span className="flex flex-col gap-0.5 leading-relaxed">
-                    <span>{feeLine2}</span>
-                    <span>{feeLine3}</span>
-                  </span>
-                }
+                label={feeLine2}
               />
+              <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <p className="text-xs font-semibold tracking-wide text-slate-500">收費說明</p>
+                <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
+              </div>
             </div>
 
             <hr className="my-6 border-slate-200" />
