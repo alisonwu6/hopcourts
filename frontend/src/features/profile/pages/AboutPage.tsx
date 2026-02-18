@@ -1,6 +1,6 @@
 import {
   CalendarCheck,
-  ShieldCheck,
+  IdCard,
   Sparkles,
   UsersRound,
 } from 'lucide-react'
@@ -60,21 +60,21 @@ export function AboutPage() {
                 <UsersRound className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">運動夥伴</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  找到興趣與時間都契合的運動夥伴。
+                  找到運動興趣與程度契合的運動夥伴。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">輕鬆成局</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  直觀的開局與參加流程。設定時間、地點、程度，剩下的交給我們。
+                  輕鬆開團與參加流程。設定時間、地點、程度。
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
-                <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">真實信用</h3>
+                <IdCard className="h-5 w-5 text-emerald-600" />
+                <h3 className="mt-3 text-base font-semibold text-slate-900">運動卡</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  建立可靠的運動履歷。每一次準時出席與友善互動，都是你的最佳背書。
+                  每一場參與都是對自我運動旅程的肯定。
                 </p>
               </div>
             </div>

@@ -1,3 +1,0 @@
--- 155_fix_users_email_role.sql
-ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT UNIQUE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';

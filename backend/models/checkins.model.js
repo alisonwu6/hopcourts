@@ -1,4 +1,4 @@
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 
 async function createCheckIn({ sessionId, userId, lat, lng }) {
   const { rows } = await query(

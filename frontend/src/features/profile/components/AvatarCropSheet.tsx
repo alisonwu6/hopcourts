@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Cropper from 'react-easy-crop'
@@ -25,13 +26,20 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
   if (!ctx) throw new Error('Canvas not supported')
 
   const { width, height, x, y } = croppedAreaPixels
-  canvas.width = width
-  canvas.height = height
+  // Force resize to max 512x512 for avatar optimization
+  const MAX_SIZE = 512
+  canvas.width = MAX_SIZE
+  canvas.height = MAX_SIZE
 
-  ctx.translate(width / 2, height / 2)
+  ctx.translate(MAX_SIZE / 2, MAX_SIZE / 2)
   ctx.rotate((rotation * Math.PI) / 180)
-  ctx.translate(-width / 2, -height / 2)
-  ctx.drawImage(image, x, y, width, height, 0, 0, width, height)
+  ctx.translate(-MAX_SIZE / 2, -MAX_SIZE / 2)
+  
+  // Draw the image into the 512x512 canvas
+  // We draw the full source image onto the canvas, but transformed by crop coordinates
+  // Actually, 'x, y, width, height' are the coordinates ON THE SOURCE IMAGE.
+  // So we draw that specific chunk into our entire 512x512 canvas.
+  ctx.drawImage(image, x, y, width, height, 0, 0, MAX_SIZE, MAX_SIZE)
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
@@ -43,7 +51,7 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
         resolve(file)
       },
       'image/webp',
-      0.92
+      0.85
     )
   })
 }
@@ -126,26 +134,25 @@ export function AvatarCropSheet({
       onClose()
       return
     }
-    if (!supabase || !userId) {
-      alert('尚未設定 Supabase 或未登入，請改貼上圖片網址。')
+    if (!supabase) {
+      alert('Supabase 未初始化')
       onClose()
       return
     }
+
     setUploading(true)
     try {
-      const [{ data: supabaseUser, error: userError }, { data: sessionData }] = await Promise.all([
-        supabase.auth.getUser(),
-        supabase.auth.getSession(),
-      ])
-      console.log('[avatar] supabase auth.getUser()', { supabaseUser, userError })
-      console.log('[avatar] supabase auth.getSession()', { sessionData })
-      if (userError || !supabaseUser?.user) {
-        throw new Error('未取得 Supabase 使用者，請重新登入後再試')
+      const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser()
+      
+      const targetUserId = supabaseUser?.id || userId
+      
+      if (!targetUserId) {
+         console.error('[avatar] No user ID found via prop or supabase.auth', { supabaseUser, userId, userError })
+         throw new Error('無法確認使用者身分，請重新登入')
       }
-      const storageUserId = supabaseUser.user.id || userId
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels, rotation)
       const file = new File([croppedBlob], 'avatar.webp', { type: 'image/webp' })
-      const path = `${storageUserId}/avatar.webp`
+      const path = `${targetUserId}/avatar.webp`
       console.log('[avatar] upload path', path, 'size', file.size, 'type', file.type)
       const { error } = await supabase.storage.from('avatars').upload(path, file, {
         upsert: true,
@@ -190,50 +197,73 @@ export function AvatarCropSheet({
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-4"
-          primaryButton={{
-            label: uploading ? '上傳中...' : '套用',
-            onClick: handleSave,
-            disabled: uploading,
-          }}
+          primaryButton={undefined} // We implement custom button below for styles
           showHandle={false}
         >
           {imageSrc && (
-            <div className="space-y-4">
-              <div className="relative h-[360px] w-full overflow-hidden rounded-2xl bg-slate-900/5">
-                <Cropper
-                  image={imageSrc}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  rotation={rotation}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onRotationChange={setRotation}
-                  onCropComplete={onCropComplete}
-                  cropShape="round"
-                  showGrid={false}
-                />
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 "
-                >
-                  重新選擇
-                </button>
-                <div className="flex-1 space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">縮放</label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={3}
-                    step={0.1}
-                    value={zoom}
-                    onChange={(e) => setZoom(Number(e.target.value))}
-                    className="w-full accent-blue-600"
+            <div className="flex h-full flex-col">
+              <div className="flex-1 space-y-4">
+                <div className="relative h-[360px] w-full overflow-hidden rounded-2xl bg-slate-900/5">
+                  <Cropper
+                    image={imageSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    rotation={rotation}
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onRotationChange={setRotation}
+                    onCropComplete={onCropComplete}
+                    cropShape="round"
+                    showGrid={false}
                   />
                 </div>
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className={clsx(
+                      'rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition',
+                      uploading && 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400'
+                    )}
+                  >
+                    重新選擇
+                  </button>
+                  <div className="flex-1 space-y-2">
+                    <label className="text-sm font-semibold text-slate-700">縮放</label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={3}
+                      step={0.1}
+                      value={zoom}
+                      onChange={(e) => setZoom(Number(e.target.value))}
+                      disabled={uploading}
+                      className={clsx(
+                        'w-full accent-blue-600',
+                        uploading && 'opacity-50 cursor-not-allowed'
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Sticky Button Area */}
+              <div className="sticky bottom-0 -mx-5 -mb-4 mt-4 border-t border-slate-200 bg-white px-5 pb-5 pt-3">
+                 <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={uploading}
+                    className={clsx(
+                      'h-12 w-full rounded-2xl px-4 text-base font-semibold shadow-sm transition',
+                      uploading
+                        ? 'bg-slate-100 text-slate-400 border-transparent cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-500'
+                    )}
+                 >
+                    {uploading ? '上傳中...' : '套用'}
+                 </button>
               </div>
             </div>
           )}

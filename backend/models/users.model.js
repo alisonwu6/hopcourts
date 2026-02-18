@@ -1,8 +1,8 @@
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 
 async function getUserById(id) {
   const { rows } = await query(
-    `select id, username, display_name, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at
+    `select id, email, username, display_name, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at, onboarding_completed_at
      from public.users where id = $1`,
     [id]
   )
@@ -11,7 +11,7 @@ async function getUserById(id) {
 
 async function getUserByUsername(username) {
   const { rows } = await query(
-    `select id, username, display_name, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at
+    `select id, username, display_name, city_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at, onboarding_completed_at
      from public.users where username = $1`,
     [username]
   )
@@ -21,9 +21,9 @@ async function getUserByUsername(username) {
 async function upsertUser(user) {
   const sql = `
     insert into public.users (
-      id, email, username, display_name, city_key, age_range_key, gender, vibe_key, bio, avatar_url
+      id, email, username, display_name, city_key, age_range_key, gender, vibe_key, bio, avatar_url, onboarding_completed_at
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9, $10
+      $1,$2,$3,$4,$5,$6,$7,$8,$9, $10, $11
     )
     on conflict (id) do update set
       email = coalesce(excluded.email, users.email),
@@ -34,7 +34,8 @@ async function upsertUser(user) {
       gender = excluded.gender,
       vibe_key = excluded.vibe_key,
       bio = excluded.bio,
-      avatar_url = excluded.avatar_url
+      avatar_url = excluded.avatar_url,
+      onboarding_completed_at = coalesce(excluded.onboarding_completed_at, users.onboarding_completed_at)
     returning *
   `
   const params = [
@@ -47,7 +48,8 @@ async function upsertUser(user) {
     user.gender ?? null,
     user.vibe_key ?? null,
     user.bio ?? null,
-    user.avatar_url ?? null
+    user.avatar_url ?? null,
+    user.onboarding_completed_at ?? null
   ]
   const { rows } = await query(sql, params)
   return rows[0]
@@ -65,18 +67,20 @@ async function findUserByEmail(email) {
 async function createUserFromSupabaseProfile(profile) {
   const sql = `
     insert into public.users (
-      email, display_name, username, city_key, gender
+      id, email, display_name, username, city_key, gender, avatar_url
     ) values (
-      $1, $2, $3, $4, $5
+      $1, $2, $3, $4, $5, $6, $7
     )
     returning *
   `
   const params = [
+    profile.id, // Must provide Supabase Auth UUID
     profile.email,
     profile.fullName || profile.email.split('@')[0],
     profile.username || null,
     profile.city || null,
     profile.gender || null,
+    profile.avatarUrl || null,
   ]
   const { rows } = await query(sql, params)
   return rows[0]

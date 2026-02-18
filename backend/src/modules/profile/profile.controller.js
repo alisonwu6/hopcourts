@@ -25,7 +25,9 @@ async function handleGetMeProfile(req, res, next) {
 
 async function handlePutMeProfile(req, res, next) {
   try {
+    console.log('[handlePutMeProfile] Request body:', req.body)
     const userId = resolveUserId(req)
+    console.log('[handlePutMeProfile] UserId:', userId)
     const data = await upsertProfile(userId, { ...req.body, auth_user: req.authUser })
     return ok(res, data)
   } catch (err) {

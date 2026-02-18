@@ -99,7 +99,10 @@ async function handleCreateSession(req, res, next) {
       gender: body.gender,
       photos: Array.isArray(body.photos) ? body.photos : undefined,
       isFree: body.is_free ?? body.isFree,
-      price: body.price,
+      priceTotal: body.price_total ?? body.priceTotal,
+      pricePerPerson: body.price_per_person ?? body.pricePerPerson,
+      priceMode: body.price_mode ?? body.priceMode,
+      priceNote: body.price_note ?? body.priceNote,
     })
     return ok(res, { session })
   } catch (err) {
@@ -168,7 +171,10 @@ async function handleUpdateSession(req, res, next) {
       gender: body.gender,
       photos: Array.isArray(body.photos) ? body.photos : undefined,
       isFree: body.is_free ?? body.isFree,
-      price: body.price,
+      priceTotal: body.price_total ?? body.priceTotal,
+      pricePerPerson: body.price_per_person ?? body.pricePerPerson,
+      priceMode: body.price_mode ?? body.priceMode,
+      priceNote: body.price_note ?? body.priceNote,
     })
     return ok(res, { session })
   } catch (err) {

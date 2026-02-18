@@ -83,7 +83,10 @@ export function DiscoverEventsPage() {
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
   const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
-  const { isAuthenticated, profileCache, setProfileCache } = useAuthStore()
+  const { isAuthenticated, user } = useAuthStore((state) => ({
+    isAuthenticated: state.isAuthenticated,
+    user: state.user,
+  }))
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
 
@@ -109,38 +112,10 @@ export function DiscoverEventsPage() {
       return
     }
 
-    if (profileCache?.name) {
+    if (user?.onboarding_completed_at) {
       navigate('/create-event')
-      return
-    }
-
-    try {
-      const res = await profileService.getProfile()
-      const data: any = (res as any).data ?? res
-      
-      // Check if profile is valid. Username is unique and required for valid
-      const hasUsername = !!data.username
-      const hasName = !!data.display_name
-      
-      if (hasName || hasUsername) {
-        setProfileCache({ ...data, name: data.display_name || data.username })
-        navigate('/create-event')
-      } else {
-        setShowProfileRequiredSheet(true)
-      }
-    } catch (err: any) {
-      // If 404, definitely needs profile creation
-      if (err?.status === 404 || err?.response?.status === 404) {
-        setShowProfileRequiredSheet(true)
-      } else {
-        // For other errors, we might let them proceed or show validation
-        // But safer to assume they might need to check profile
-         console.error('Check profile failed', err)
-         // Fallback: let them try, or blocking? 
-         // User wants strict check. Let's show sheet if we fail to confirm profile.
-         // But maybe network error? Let's just navigate and let CreateEvent handle it if network error.
-         navigate('/create-event')
-      }
+    } else {
+      setShowProfileRequiredSheet(true)
     }
   }
 
@@ -293,6 +268,15 @@ export function DiscoverEventsPage() {
               { replace: true }
             )
           }}
+          onClickDetail={(event) => {
+            if (!isAuthenticated) {
+              setShowLoginPrompt(true)
+            } else if (!user?.onboarding_completed_at) {
+              setShowProfileRequiredSheet(true)
+            } else {
+              navigate(`/event/${event.id}`)
+            }
+          }}
         />
       ) : (
         <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">
@@ -329,10 +313,12 @@ export function DiscoverEventsPage() {
                 key={event.id}
                 event={event}
                 onViewDetails={() => {
-                  if (isAuthenticated) {
-                    navigate(`/event/${event.id}`)
-                  } else {
+                  if (!isAuthenticated) {
                     setShowLoginPrompt(true)
+                  } else if (!user?.onboarding_completed_at) {
+                    setShowProfileRequiredSheet(true)
+                  } else {
+                    navigate(`/event/${event.id}`)
                   }
                 }}
               />

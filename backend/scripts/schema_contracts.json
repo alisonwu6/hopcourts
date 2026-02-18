@@ -1,0 +1,59 @@
+{
+  "schemaSqlPath": "../supabase/migrations/20260214000000_base_schema.sql",
+  "openApiPath": "../docs/openapi.yaml",
+  "globalMappings": {
+    "notes": "description"
+  },
+  "contracts": [
+    {
+      "table": "sessions",
+      "schema": "Session"
+    },
+    {
+      "table": "users",
+      "schema": "User",
+      "ignoreDbColumns": [
+        "email",
+        "username_updated_at",
+        "bio",
+        "city_key",
+        "birth_date",
+        "age_range_key",
+        "vibe_key",
+        "created_at",
+        "updated_at",
+        "role",
+        "onboarding_completed_at"
+      ],
+      "virtualApiProps": [
+        "teammate_count"
+      ]
+    },
+    {
+      "table": "venues",
+      "schema": "Venue",
+      "ignoreDbColumns": [
+        "name",
+        "logo_url",
+        "address",
+        "city_key",
+        "lat",
+        "lng",
+        "description",
+        "cover_image",
+        "images",
+        "amenities",
+        "website_url",
+        "phone",
+        "is_official",
+        "owner_user_id",
+        "created_at",
+        "updated_at"
+      ]
+    }
+  ],
+  "allowUnmappedSchemas": [
+    "VenueClaim",
+    "VenueClaimRequest"
+  ]
+}

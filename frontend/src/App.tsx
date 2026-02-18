@@ -13,14 +13,15 @@ import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { VenuePage } from '@/features/events/pages/VenuePage'
 import { VenueListPage } from '@/features/events/pages/VenueListPage'
 import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
-import { MyEventsPage } from '@/features/events/pages/MyEventsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
-import { CirclePage } from '@/features/profile/pages/CirclePage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import { AboutPage } from '@/features/profile/pages/AboutPage'
+import { StoryPage } from '@/features/profile/pages/StoryPage'
+import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
 import { ContactUsPage } from '@/features/misc/pages/ContactUsPage'
+import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
@@ -61,6 +62,8 @@ export default function App() {
       */}
       
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/story" element={<StoryPage />} />
+      <Route path="/rules" element={<UsageRulesPage />} />
 
       {/* Admin / Governance (C0) */}
       {/*
@@ -123,7 +126,7 @@ function AppChrome({
     window.scrollTo(0, 0)
   }, [pathname])
 
-  const noHeaderPaths = ['/events', '/my-events', '/event/', '/create-event']
+  const noHeaderPaths = ['/events', '/event/', '/create-event']
   const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
   const headerVisible = showHeader && !hideHeader
   const navVisible = showNav && !pathname.startsWith('/event/')
@@ -142,9 +145,18 @@ function AppChrome({
   )
 }
 
+
+
 function AuthenticatedApp() {
+  const { user } = useAuthStore()
+  const location = useLocation()
+
+  // No global onboarding guard - handled within ProfilePage flow
+
   return (
     <Routes>
+
+      
       <Route
         path="/"
         element={
@@ -196,16 +208,7 @@ function AuthenticatedApp() {
           </AppChrome>
         }
       />
-      <Route
-        path="/my-events"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false}>
-              <MyEventsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
+
       <Route
         path="/create-event"
         element={
@@ -216,18 +219,7 @@ function AuthenticatedApp() {
           </RequireAuth>
         }
       />
-      {/*
-      <Route
-        path="/circle"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false}>
-              <CirclePage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      */}
+
       <Route
         path="/profile"
         element={
@@ -239,7 +231,7 @@ function AuthenticatedApp() {
         }
       />
       <Route
-        path="/profile/teammates"
+        path="/circle"
         element={
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>
@@ -284,6 +276,16 @@ function AuthenticatedApp() {
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>
               <ContactUsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <NotificationsPage />
             </AppChrome>
           </RequireAuth>
         }
@@ -345,24 +347,6 @@ function GuestApp() {
         element={
           <AppChrome showActions={false} showHeader={false} showNav={false}>
             <CreateEventPage />
-          </AppChrome>
-        }
-      />
-      {/*
-      <Route
-        path="/circle"
-        element={
-          <AppChrome showActions={false} showHeader={false}>
-            <CirclePage />
-          </AppChrome>
-        }
-      />
-      */}
-      <Route
-        path="/my-events"
-        element={
-          <AppChrome showActions={false} showHeader={false}>
-            <MyEventsPage />
           </AppChrome>
         }
       />

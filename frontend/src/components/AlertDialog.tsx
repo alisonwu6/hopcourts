@@ -1,5 +1,4 @@
 import { AlertCircle, Check, Info, AlertTriangle } from 'lucide-react'
-import { Button } from './Button'
 import clsx from 'clsx'
 
 export interface AlertDialogProps {
@@ -10,6 +9,9 @@ export interface AlertDialogProps {
   type?: 'success' | 'error' | 'info' | 'warning'
   actionLabel?: string
   onAction?: () => void
+  cancelLabel?: string
+  onCancel?: () => void
+  actionLeft?: boolean
 }
 
 export function AlertDialog({
@@ -20,11 +22,21 @@ export function AlertDialog({
   type = 'info',
   actionLabel = '確定',
   onAction,
+  cancelLabel,
+  onCancel,
+  actionLeft = false,
 }: AlertDialogProps) {
   if (!open) return null
 
+  const hasCancel = Boolean(cancelLabel)
+
   const handleAction = () => {
     onAction?.()
+    onClose()
+  }
+
+  const handleCancel = () => {
+    onCancel?.()
     onClose()
   }
 
@@ -61,21 +73,48 @@ export function AlertDialog({
             </div>
           )}
 
-          <div className="mt-6 w-full space-y-3">
-            <Button
-              onClick={handleAction}
-              className={clsx(
-                "w-full rounded-2xl py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98]",
-                type === 'error' ? "bg-red-500 hover:bg-red-600 text-white" :
-                type === 'success' ? "bg-emerald-500 hover:bg-emerald-600 text-white" :
-                type === 'warning' ? "bg-amber-500 hover:bg-amber-600 text-white" :
-                "bg-blue-600 hover:bg-blue-700 text-white"
-              )}
-            >
-              {actionLabel}
-            </Button>
-            
-            {/* Optional Cancel for non-critical confirmations? For now, just OK */}
+          <div className={clsx("mt-6 w-full", hasCancel ? "grid grid-cols-2 gap-3" : "space-y-3")}>
+            {hasCancel && actionLeft && (
+              <button
+                type="button"
+                onClick={handleAction}
+                className={clsx(
+                  "w-full rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98]",
+                  type === 'error' ? "bg-red-500 hover:bg-red-600 text-white" :
+                  type === 'success' ? "bg-emerald-500 hover:bg-emerald-600 text-white" :
+                  type === 'warning' ? "bg-amber-500 hover:bg-amber-600 text-white" :
+                  "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
+              >
+                {actionLabel}
+              </button>
+            )}
+
+            {hasCancel && (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="w-full rounded-[20px] border border-slate-200 bg-white py-3 text-base font-bold text-slate-700 shadow-sm transition-transform hover:bg-slate-50 active:scale-[0.98]"
+              >
+                {cancelLabel}
+              </button>
+            )}
+
+            {(!hasCancel || !actionLeft) && (
+              <button
+                type="button"
+                onClick={handleAction}
+                className={clsx(
+                  "w-full rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98]",
+                  type === 'error' ? "bg-red-500 hover:bg-red-600 text-white" :
+                  type === 'success' ? "bg-emerald-500 hover:bg-emerald-600 text-white" :
+                  type === 'warning' ? "bg-amber-500 hover:bg-amber-600 text-white" :
+                  "bg-blue-600 hover:bg-blue-700 text-white"
+                )}
+              >
+                {actionLabel}
+              </button>
+            )}
           </div>
         </div>
       </div>

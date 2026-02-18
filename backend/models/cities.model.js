@@ -1,4 +1,4 @@
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 
 async function listCities({ country, lang = 'zh', onlyActive = true } = {}) {
   const labelField = lang === 'en' ? 'name_en' : 'name_zh'

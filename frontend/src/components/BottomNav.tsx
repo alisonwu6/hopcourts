@@ -33,7 +33,7 @@ export function BottomNav() {
       label: '活動',
       icon: Compass,
       path: '/events',
-      matchPaths: ['/events', '/event', '/my-events', '/create-event'],
+      matchPaths: ['/events', '/event', '/create-event'],
     },
     // {
     //   label: '場館',

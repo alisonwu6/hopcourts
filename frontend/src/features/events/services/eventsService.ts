@@ -22,6 +22,12 @@ const wrapEmptyEvents = (): ApiResponse<PaginatedResponse<PlayerEvent>> =>
     hasMore: false,
   })
 
+const formatTwdNoDecimal = (value: unknown): string => {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return '0'
+  return Math.round(n).toLocaleString('zh-TW')
+}
+
 const buildFallbackEvent = (id: string): PlayerEvent => {
   const now = new Date()
   const end = new Date(now.getTime() + 60 * 60 * 1000)
@@ -82,7 +88,9 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
     maxAttendees: input.maxAttendees,
     difficulty: 2,
     isFree: input.isFree,
-    price: input.pricePerPerson ?? undefined,
+    priceTotal: input.priceTotal,
+    pricePerPerson: input.pricePerPerson ?? undefined,
+    priceNote: input.priceNote,
     priceRange: input.isFree ? 'Free to join' : `$${(input.pricePerPerson ?? 0).toFixed(2)}`,
     description: input.description ?? '',
     participants: [],
@@ -126,8 +134,16 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     maxAttendees: session.max_people ?? 10,
     difficulty: 2,
     isFree: session.is_free ?? true,
-    price: session.price,
-    priceRange: session.is_free ? '免費參加' : session.price ? `$${session.price}` : '收費活動',
+    priceTotal: session.price_total ?? undefined,
+    pricePerPerson: session.price_per_person ?? undefined,
+    priceMode: session.price_mode ?? 'total',
+    priceNote: session.price_note,
+    priceRange:
+      session.is_free
+        ? '免費參加'
+        : session.price_per_person
+          ? `$${formatTwdNoDecimal(session.price_per_person)}`
+          : '收費活動',
     description: session.description ?? '',
     participants: [],
     status: session.status as any,
@@ -142,6 +158,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     },
     // Extended properties for Official Events
     isOfficial: session.is_official,
+    minPeople: session.min_people || 3,
     venueNameDisplay: session.venue_name_display,
     venueLogoUrl: session.venue_logo_url,
   } as PlayerEvent
@@ -279,14 +296,17 @@ export const eventsService = {
         address: input.location?.address || '',
         lat: input.location?.lat ?? 0,
         lng: input.location?.lng ?? 0,
-        min_people: 1,
+        min_people: input.minPeople ?? 3,
         max_people: input.maxAttendees,
         status: input.status || 'published',
         visibility: 'public',
         skill_level: (input.skillLevel as any) ?? 'any',
         gender: input.gender ?? 'mixed',
-        is_free: input.isFree ?? true,
-        price: input.pricePerPerson ?? undefined,
+        isFree: input.isFree ?? true,
+        price_total: input.priceTotal ?? undefined,
+        price_per_person: input.pricePerPerson ?? undefined,
+        price_mode: input.priceMode ?? 'total',
+        priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
         location: input.location, // Pass the full location object (including source) for backend to handle
       }
@@ -326,12 +346,16 @@ export const eventsService = {
         lat: input.location?.lat,
         lng: input.location?.lng,
         max_people: input.maxAttendees,
+        min_people: input.minPeople,
         status: input.status,
         visibility: 'public',
         skill_level: input.skillLevel,
         gender: input.gender,
         is_free: input.isFree,
-        price: input.pricePerPerson,
+        price_total: input.priceTotal,
+        price_per_person: input.pricePerPerson,
+        price_mode: input.priceMode,
+        priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
         location: input.location,
       }

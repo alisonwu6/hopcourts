@@ -3,7 +3,7 @@ const citiesModel = require('../../../models/cities.model')
 const vibesModel = require('../../../models/vibes.model')
 const ageRangesModel = require('../../../models/ageRanges.model')
 const sportsModel = require('../../../models/sports.model')
-const { query } = require('../../../db/client')
+const { query } = require('../../lib/db')
 
 function parseLang(query) {
   const lang = (query.lang || 'zh').toString()

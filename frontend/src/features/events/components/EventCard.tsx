@@ -45,10 +45,14 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
 
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
-  const locationLabel =
+  const locationLine1 =
     event.location.name && event.location.name !== event.location.address
-      ? `${event.location.name} (${event.location.address})`
+      ? event.location.name
       : event.location.name || event.location.address || '地點待確認'
+  const locationLine2 =
+    event.location.name && event.location.address && event.location.name !== event.location.address
+      ? event.location.address
+      : ''
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
   const priceLabel = event.priceRange ?? (event.isFree ? '免費參加' : '付費活動')
   const cityLabel = event.host.cityName || locationCity || '城市待確認'
@@ -168,11 +172,14 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
              <span className="text-sm">{scheduleLabel}</span>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
              <div className="flex h-5 w-5 items-center justify-center text-blue-600">
                <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
              </div>
-             <span className="text-sm line-clamp-1">{locationLabel}</span>
+             <div className="min-w-0 text-sm leading-snug">
+               <p className="break-words">{locationLine1}</p>
+               {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
+             </div>
           </div>
 
           {/* Attendance Area */}
@@ -205,7 +212,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             </div>
             <div className="text-sm">
                <span className={clsx(event.isFree ? "text-green-600" : "text-slate-900")}>
-                 {event.isFree ? '免費體驗' : `${event.priceRange || `$${event.price}`} /人`}
+                 {event.isFree ? '免費體驗' : `${event.priceRange || `$${event.pricePerPerson}`} /人`}
                </span>
             </div>
           </div>

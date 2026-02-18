@@ -1,4 +1,4 @@
-const { query } = require('../db/client')
+const { query } = require('../src/lib/db')
 
 const BASE_FIELDS = [
   'id',
@@ -25,9 +25,12 @@ const BASE_FIELDS = [
   'gender',
   'photos',
   'is_free',
-  'price',
+  'price_total',
+  'price_per_person',
+  'price_mode',
   'venue_id',
   'location_source',
+  'price_note', // New Field
   'is_official', // New Field
 ]
 
@@ -251,11 +254,14 @@ async function createSession(input) {
       gender,
       photos,
       is_free,
-      price,
+      price_total,
+      price_per_person,
+      price_mode,
       location_source,
-      is_official
+      is_official,
+      price_note
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28
     )
     returning ${BASE_FIELDS.join(', ')}
   `
@@ -282,9 +288,12 @@ async function createSession(input) {
     input.gender ?? 'mixed',
     input.photos ?? null,
     input.isFree ?? true,
-    input.price ?? null,
+    input.priceTotal ?? null,
+    input.pricePerPerson ?? null,
+    input.priceMode ?? 'total',
     input.locationSource ?? null,
     input.isOfficial ?? false,
+    input.priceNote ?? null,
   ]
 
   const { rows } = await query(sql, params)
@@ -293,6 +302,7 @@ async function createSession(input) {
 
 async function updateSession(sessionId, patch = {}) {
   const entries = Object.entries({
+    sport_key: patch.sportKey,
     title: patch.title,
     venue_id: patch.venueId,
     notes: patch.description,
@@ -313,8 +323,11 @@ async function updateSession(sessionId, patch = {}) {
     gender: patch.gender,
     photos: patch.photos,
     is_free: patch.isFree,
-    price: patch.price,
+    price_total: patch.priceTotal,
+    price_per_person: patch.pricePerPerson,
+    price_mode: patch.priceMode,
     is_official: patch.isOfficial,
+    price_note: patch.priceNote,
   }).filter(([, value]) => value !== undefined)
 
   if (!entries.length) return getSessionById(sessionId)
@@ -326,7 +339,7 @@ async function updateSession(sessionId, patch = {}) {
   params.push(sessionId)
 
   const { rows } = await query(
-    `update public.sessions set ${sets.join(', ')} where id = $${params.length} returning ${BASE_FIELDS.join(', ')}`,
+    `update public.sessions set ${sets.join(', ')}, updated_at = NOW() where id = $${params.length} returning ${BASE_FIELDS.join(', ')}`,
     params
   )
   return rows[0] || null
@@ -336,7 +349,7 @@ async function setSessionStatus(sessionId, status) {
   const allowed = ['draft', 'published', 'cancelled', 'completed']
   if (!allowed.includes(status)) throw new Error('Invalid status')
   const { rows } = await query(
-    `update public.sessions set status = $1 where id = $2 returning ${BASE_FIELDS.join(', ')}`,
+    `update public.sessions set status = $1, updated_at = NOW() where id = $2 returning ${BASE_FIELDS.join(', ')}`,
     [status, sessionId]
   )
   return rows[0] || null
@@ -358,6 +371,14 @@ async function deleteSession(sessionId) {
   return rows[0] || null
 }
 
+async function countHostedSessions(userId) {
+  const { rows } = await query(
+    "select count(*)::int as count from public.sessions where host_user_id = $1 and status != 'draft'",
+    [userId]
+  )
+  return rows[0]?.count ?? 0
+}
+
 module.exports = {
   listUpcomingSessions,
   listMyUpcomingSessions,
@@ -370,4 +391,5 @@ module.exports = {
   countSessionParticipants,
   getParticipantCount,
   deleteSession,
+  countHostedSessions,
 }

@@ -1,17 +1,11 @@
 import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { Menu, PlusSquare, Lock, Copy, MessageCircle } from 'lucide-react'
+import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
-type ProfileVM = {
-  username: string
-  usernameUpdatedCount: number
-  card: MateCardProps
-  favoriteSportKeys: string[]
-  tryingSportKeys: string[]
-}
+import { notificationsService } from '@/features/notifications/services/notificationsService'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
@@ -22,18 +16,23 @@ import { useCities, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
+import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import type { ApiResponse } from '@/api/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
-const arraysEqual = (a: string[], b: string[]) =>
-  a.length === b.length && a.every((v, i) => v === b[i])
+type ProfileVM = {
+  username: string
+  usernameUpdatedCount: number
+  card: MateCardProps
+  favoriteSportKeys: string[]
+  tryingSportKeys: string[]
+}
 
 const isUuid = (str: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
-
 
 const emptyProfile: MateCardProps = {
   name: '',
@@ -49,9 +48,6 @@ const emptyProfile: MateCardProps = {
   ageRangeKey: null,
 }
 
-const SAMPLE_AVATAR =
-  'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
-
 export function ProfilePage() {
   const [alertDialog, setAlertDialog] = useState<{
     open: boolean
@@ -59,6 +55,19 @@ export function ProfilePage() {
     description: React.ReactNode
     type: 'success' | 'error' | 'info' | 'warning'
   }>({ open: false, title: '', description: '', type: 'info' })
+
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    notificationsService
+      .listNotifications({ limit: 1 })
+      .then((res) => {
+        if (res.ok) {
+          setUnreadCount(res.data.unread_count)
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const [showShareSheet, setShowShareSheet] = useState(false)
@@ -72,11 +81,9 @@ export function ProfilePage() {
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
-  const { user, isAuthenticated, isLoading, profileCache, setProfileCache } =
-    useAuthStore()
+  const { user, isAuthenticated, isLoading, profileCache, setProfileCache } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
-  const [stats, setStats] = useState<ApiResponse<any>['data'] | null>(null)
   const [vm, setVm] = useState<ProfileVM | null>(
     profileCache
       ? {
@@ -105,6 +112,8 @@ export function ProfilePage() {
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
+  const [showCompletionSheet, setShowCompletionSheet] = useState(false)
+
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
     null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender'
@@ -117,6 +126,7 @@ export function ProfilePage() {
   const { items: citiesCatalog, isLoading: isCitiesLoading } = useCities(undefined, 'zh')
   const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const navigate = useNavigate()
+  const location = useLocation()
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
     const labelMap = new Map<string, string>()
@@ -173,12 +183,10 @@ export function ProfilePage() {
     return map
   }, [vibesCatalog])
 
-
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
-
 
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
@@ -241,110 +249,99 @@ export function ProfilePage() {
   const usernameFromVm = vm?.username
   const usernameFromUser = (user as any)?.username
   const username =
-    usernameFromVm ||
-    usernameFromUser ||
-    draftUsername ||
-    (resolvedProfile as any)?.username ||
-    ''
+    usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
 
-  const loadProfileData = useCallback(async () => {
+  const [rawProfile, setRawProfile] = useState<any>(null)
+
+  // 1. Fetch Data Only (Stable dependencies)
+  const fetchProfileData = useCallback(async () => {
     if (!isAuthenticated) return
+
     try {
-      const [profileRes, preferencesRes, statsRes] = await Promise.allSettled([
-        profileService.getProfile(),
-        profileService.getPreferences(),
-        profileService.getStats(),
-        fetchMyEvents(),
-      ])
-
-      if (profileRes.status === 'fulfilled') {
-        const payload: any = (profileRes.value as any)?.data ?? profileRes.value
-        if (payload) {
-          const data = payload.user ? payload.user : payload
-          const sportsRows = payload.sports || []
-          const favoriteKeys =
-            payload.favorite_sports ||
-            sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
-          const tryingKeys =
-            payload.trying_sports ||
-            sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-          const vibeKey = data.vibe_key || null
-          const vibeUnion = vibeKey
-            ? vibeKeyToUnion.get(vibeKey) ||
-              vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
-              vibeKeyToUnionFallback(vibeKey)
-            : null
-
-          const mapped: MateCardProps = {
-            name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
-            location: data.city_label || data.city || '',
-            cityKey: data.city_key || '',
-            vibe: vibeUnion,
-            vibeKey,
-            sports: (favoriteKeys || []).map(labelForSport),
-            trying: (tryingKeys || []).map(labelForSport),
-            blurb: data.bio || '',
-            avatar: data.avatar_url || userAvatar || '',
-            friendCount: data.teammate_count || 0,
-            gender: data.gender || null,
-            ageRangeKey: data.age_range_key || null,
-          }
-          const rawUsername = data.username || (user as any)?.username || ''
-          const nextUsername = isUuid(rawUsername) ? '' : rawUsername
-          setVm({
-            username: nextUsername,
-            usernameUpdatedCount: data.username_updated_count || 0,
-            card: mapped,
-            favoriteSportKeys: favoriteKeys || [],
-            tryingSportKeys: tryingKeys || [],
-          })
-          setDraftProfile(mapped)
-          setDraftUsername(nextUsername)
-          setProfileCache(mapped)
-          
-          // Sync to AuthStore so other components (EventDetailPage) have access to gender/etc.
-          const { user: authUser, token, setAuthData } = useAuthStore.getState()
-          if (authUser && token) {
-             const newName = data.display_name || authUser.name
-             const newAvatar = data.avatar_url || authUser.avatar
-             const newLocation = data.city_key || authUser.location
-             const newGender = data.gender || authUser.gender
-             const newBio = data.bio || authUser.bio
-
-             const isChanged = 
-                authUser.name !== newName ||
-                authUser.avatar !== newAvatar ||
-                authUser.location !== newLocation ||
-                authUser.gender !== newGender ||
-                authUser.bio !== newBio
-
-             if (isChanged) {
-                const updatedUser = {
-                    ...authUser,
-                    name: newName,
-                    avatar: newAvatar,
-                    location: newLocation,
-                    gender: newGender,
-                    bio: newBio
-                }
-                setAuthData(updatedUser, token)
-             }
-          }
-        }
-      } else if (profileRes.status === 'rejected') {
-        const err: any = profileRes.reason
+      // 1. Fetch Profile
+      let payload: any = null
+      try {
+        const profileRes = await profileService.getProfile()
+        payload = (profileRes as any)?.data ?? profileRes
+      } catch (err: any) {
+        console.warn('Profile load failed (expected for new users):', err)
         const status = err?.status || err?.response?.status
         if (status === 404) {
           setShowEditSheet(true)
         }
         setVm(null)
+        setRawProfile(null) // Clear raw
+
         const prefill: MateCardProps = {
           ...emptyProfile,
           name: (user as any)?.name || '',
           avatar: userAvatar || '',
         }
         setDraftProfile(prefill)
+        setIsProfileLoaded(true)
+        return
       }
+
+      // 2. Process Onboarding & Sync User
+      if (payload) {
+        const data = payload.user || payload
+        setRawProfile(payload)
+
+        const completedAt = data.onboarding_completed_at
+
+        if (completedAt) {
+          setShowProfileRequiredSheet(false)
+        } else {
+          setShowProfileRequiredSheet(true)
+        }
+
+        // Sync to AuthStore
+        const { user: authUser, token, setAuthData } = useAuthStore.getState()
+        if (authUser && token) {
+          const newName = data.display_name || authUser.name
+          const newAvatar = data.avatar_url || authUser.avatar
+          const newLocation = data.city_key || authUser.location
+          const newGender = data.gender || authUser.gender
+          const newBio = data.bio || authUser.bio
+
+          const isChanged =
+            authUser.name !== newName ||
+            authUser.avatar !== newAvatar ||
+            authUser.location !== newLocation ||
+            authUser.gender !== newGender ||
+            authUser.bio !== newBio ||
+            authUser.onboarding_completed_at !== data.onboarding_completed_at
+
+          if (isChanged) {
+            setAuthData(
+              {
+                ...authUser,
+                name: newName,
+                avatar: newAvatar,
+                location: newLocation,
+                gender: newGender,
+                bio: newBio,
+                onboarding_completed_at:
+                  data.onboarding_completed_at || authUser.onboarding_completed_at,
+              },
+              token
+            )
+          }
+        }
+
+        // 3. STOP if Onboarding
+        // 3. STOP if Onboarding
+        if (!completedAt) {
+          setIsProfileLoaded(true)
+          return
+        }
+      }
+
+      // 4. Fetch Rest
+      const [preferencesRes] = await Promise.allSettled([
+        profileService.getPreferences(),
+        fetchMyEvents(),
+      ])
 
       if (preferencesRes.status === 'fulfilled') {
         const preferencesPayload: any =
@@ -357,20 +354,13 @@ export function ProfilePage() {
           timeOfDay: preferredTime || '早上',
           days: [],
         })
-        const mergedSlots: Record<string, string[]> = {
-          ...createDaySlots(),
-          ...daySlots,
-        }
+        const mergedSlots: Record<string, string[]> = { ...createDaySlots(), ...daySlots }
         setGoalDaySlots(mergedSlots)
         setDraftDaySlots(mergedSlots)
         if (preferredTime) setDraftPreferredTime(preferredTime)
       }
-
-      if (statsRes.status === 'fulfilled') {
-        const statsPayload: any = (statsRes.value as any)?.data ?? statsRes.value ?? null
-        setStats(statsPayload)
-      }
     } catch (err) {
+      console.error('Core profile load failed', err)
       setVm(null)
       const prefill: MateCardProps = {
         ...emptyProfile,
@@ -381,11 +371,103 @@ export function ProfilePage() {
     } finally {
       setIsProfileLoaded(true)
     }
-  }, [isAuthenticated, labelForSport, vibeKeyToUnion, fetchMyEvents, setProfileCache, userAvatar, user])
+  }, [isAuthenticated, fetchMyEvents])
+
+  // 2. Map Data to VM (Reactive to dictionary changes)
+  useEffect(() => {
+    if (!rawProfile) return
+
+    const payload = rawProfile
+    const data = payload.user ? payload.user : payload
+    const sportsRows = payload.sports || []
+
+    // Fallback: if data has favorite_sports array (direct format) use it, else use sportsRows
+    const favoriteKeys =
+      payload.favorite_sports ||
+      data.favorite_sports ||
+      sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+    const tryingKeys =
+      payload.trying_sports ||
+      data.trying_sports ||
+      sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+
+    const vibeKey = data.vibe_key || null
+    const vibeUnion = vibeKey
+      ? vibeKeyToUnion.get(vibeKey) ||
+        vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+        vibeKeyToUnionFallback(vibeKey)
+      : null
+
+    const mapped: MateCardProps = {
+      name:
+        data.display_name ||
+        (isUuid(data.username) ? '' : data.username) ||
+        (user as any)?.name ||
+        '',
+      location: data.city_label || data.city || '',
+      cityKey: data.city_key || '',
+      vibe: vibeUnion,
+      vibeKey,
+      sports: (favoriteKeys || []).map(labelForSport),
+      trying: (tryingKeys || []).map(labelForSport),
+      blurb: data.bio || '',
+      avatar: data.avatar_url || userAvatar || '',
+      friendCount: data.teammate_count || 0,
+      joinedCount: data.joined_count || 0,
+      hostedCount: data.hosted_count || 0,
+      gender: data.gender || null,
+      ageRangeKey: data.age_range_key || null,
+    }
+    const rawUsername = data.username || (user as any)?.username || ''
+    const nextUsername = isUuid(rawUsername) ? '' : rawUsername
+
+    setVm({
+      username: nextUsername,
+      usernameUpdatedCount: data.username_updated_count || 0,
+      card: mapped,
+      favoriteSportKeys: favoriteKeys || [],
+      tryingSportKeys: tryingKeys || [],
+    })
+
+    // Only update draft if not editing to avoid overwriting user input
+    setDraftProfile((prev) => {
+      // Simple heuristic: if names match, assume sync.
+      // Better: maybe only on initial load? But we want to react to dictionary labels.
+      // We just update it. The fetchProfileData logic previously did this violently.
+      // We'll update it but we rely on showEditSheet state or similar?
+      // Actually, previous logic ALWAYS overwrote draftProfile. We maintain that behavior for now but it's reactive.
+      // To be safe, we just set it.
+      return mapped
+    })
+    setDraftUsername(nextUsername)
+    setProfileCache(mapped)
+  }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar, setProfileCache])
 
   useEffect(() => {
-    loadProfileData()
-  }, [loadProfileData])
+    fetchProfileData()
+  }, [])
+
+  // 1.5 Handle deep link from ProfileRequiredSheet (navigation from other pages)
+  useEffect(() => {
+    if (location.state?.openEdit) {
+      setShowEditSheet(true)
+      // Clear state so it doesn't re-trigger
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
+
+  // Monitor first-time onboarding completion via global state
+  const prevOnboardedRef = React.useRef(!!(user as any)?.onboarding_completed_at)
+  useEffect(() => {
+    const isNowOnboarded = !!(user as any)?.onboarding_completed_at
+    if (!prevOnboardedRef.current && isNowOnboarded) {
+      // Immediate trigger for overlap effect
+      setShowEditSheet(false)
+      setShowCompletionSheet(true)
+      setShowProfileRequiredSheet(false)
+    }
+    prevOnboardedRef.current = isNowOnboarded
+  }, [(user as any)?.onboarding_completed_at])
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
@@ -425,7 +507,7 @@ export function ProfilePage() {
   const handleShare = async () => {
     const shareUsername = username || draftUsername
     if (!shareUsername) return
-    
+
     const url = `${window.location.origin}/mate/${shareUsername}`
     const shareData = {
       title: 'SportsMatch 運動卡',
@@ -456,14 +538,14 @@ export function ProfilePage() {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
     const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
-    
+
     try {
       await navigator.clipboard.writeText(text)
       setAlertDialog({
         open: true,
         title: '已複製',
         description: '連結與文字已複製到剪貼簿',
-        type: 'success'
+        type: 'success',
       })
     } catch (err) {
       window.prompt('請複製連結', text)
@@ -503,16 +585,16 @@ export function ProfilePage() {
         break
       case 'username':
         if (!value) {
-           setFieldError('請輸入使用者名稱')
-           return
+          setFieldError('請輸入使用者名稱')
+          return
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
-           setFieldError('帳號只能包含英文、數字、底線與句號')
-           return
+          setFieldError('帳號只能包含英文、數字、底線與句號')
+          return
         }
-        if (value.length < 3 || value.length > 20) {
-           setFieldError('帳號長度需介於 3 至 20 個字')
-           return
+        if (value.length < 3 || value.length > 10) {
+          setFieldError('帳號長度需介於 3 至 10 個字')
+          return
         }
         setDraftUsername(value)
         payload.username = value
@@ -539,9 +621,11 @@ export function ProfilePage() {
         break
     }
     setDraftProfile(next)
-    
-    // Only patch immediately if profile exists. 
+
+    // Only patch immediately if profile exists.
     // New users (vm=null) will save all at once via handleSaveProfile.
+    // For new users (vm=null), we still want to save fields immediately to DB.
+    // But we perform client-side username validation first if applicable.
     if (!vm) {
       if (activeField === 'username' && fieldValue) {
         try {
@@ -552,30 +636,85 @@ export function ProfilePage() {
         } catch (err: any) {
           const status = err?.status || err?.response?.status
           if (status !== 404) {
-             console.error('Failed to validate username', err)
+            console.error('Failed to validate username', err)
           }
         }
       }
-      setFieldError(null)
-      setActiveField(null)
-      return
+      // Proceed to save API call below...
     }
 
+    let shouldCloseFieldSheet = false
     try {
       const res = await profileService.saveProfile(payload)
-      
-      // Sync latest profile data to global store
-      await useAuthStore.getState().hydrate()
+      const data = (res as any)?.data ?? res
+      setRawProfile((prev: any) => ({ ...prev, ...data }))
+
+      // Update AuthStore immediately without full hydrate (GET)
+      const { user: authUser, token, setAuthData } = useAuthStore.getState()
+      if (authUser && token) {
+        const savedUser = data.user || data
+        const updatedUser = {
+          ...authUser,
+          name: savedUser.display_name || authUser.name,
+          avatar: savedUser.avatar_url || authUser.avatar,
+          gender: savedUser.gender || authUser.gender,
+          bio: savedUser.bio || authUser.bio,
+          location: savedUser.city_key || authUser.location,
+          onboarding_completed_at:
+            savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
+        }
+        setAuthData(updatedUser, token)
+      }
+      shouldCloseFieldSheet = true
     } catch (err: any) {
       const status = err?.status || err?.response?.status
       if (status === 409) {
-        alert('使用者名稱已存在，請選擇其他名稱')
-        // Revert username if needed, but for now just alert allows user to fix
+        setFieldError('使用者名稱已存在，請選擇其他名稱')
       } else {
+        setFieldError('儲存失敗，請稍後再試')
         console.error('Failed to patch profile field', err)
       }
     } finally {
-      setActiveField(null)
+      if (shouldCloseFieldSheet) {
+        setActiveField(null)
+      }
+    }
+  }
+
+  const saveSports = async () => {
+    setIsSavingProfile(true)
+    try {
+      const favSports = (draftProfile.sports || []).filter(Boolean)
+      const trySports = (draftProfile.trying || []).filter(Boolean)
+
+      const favoriteKeys = Array.from(new Set(favSports.map((label) => keyForLabel(label))))
+      const tryingKeys = Array.from(new Set(trySports.map((label) => keyForLabel(label))))
+      const res = await profileService.saveProfile({
+        favorite_sports: favoriteKeys,
+        trying_sports: tryingKeys,
+      })
+      const data = (res as any)?.data ?? res
+      setRawProfile((prev: any) => ({ ...prev, ...data }))
+
+      // Update AuthStore immediately without full hydrate (GET)
+      const { user: authUser, token, setAuthData } = useAuthStore.getState()
+      if (authUser && token) {
+        const savedUser = data.user || data
+        setAuthData(
+          {
+            ...authUser,
+            onboarding_completed_at:
+              savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
+          },
+          token
+        )
+      }
+      setShowSportsSheet(false)
+      setShowTryingSheet(false)
+    } catch (err) {
+      console.error('Failed to save sports', err)
+    } finally {
+      setIsSavingProfile(false)
     }
   }
 
@@ -583,41 +722,33 @@ export function ProfilePage() {
     if (isSavingProfile) return
     setIsSavingProfile(true)
     try {
-      const favoriteKeys = Array.from(new Set(
-        (draftProfile.sports || [])
-          .filter(Boolean)
-          .map((label) => keyForLabel(label))
-      ))
-      const tryingKeys = Array.from(new Set(
-        (draftProfile.trying || [])
-          .filter(Boolean)
-          .map((label) => keyForLabel(label))
-      ))
+      const favoriteKeys = Array.from(
+        new Set((draftProfile.sports || []).filter(Boolean).map((label) => keyForLabel(label)))
+      )
+      const tryingKeys = Array.from(
+        new Set((draftProfile.trying || []).filter(Boolean).map((label) => keyForLabel(label)))
+      )
 
-      // If creating new profile (vm null), send EVERYTHING.
-      // If updating existing (vm exists), only send fields that aren't auto-saved (Sports, Avatar).
-      // Note: Other fields (Name, Bio, etc.) are saved immediately in handleSaveField.
-      
+      // If updating existing (vm exists) AND onboarding is complete, just close.
+      // Auto-save handles fields.
+      if ((user as any)?.onboarding_completed_at) {
+        setShowEditSheet(false)
+        setIsSavingProfile(false)
+        return
+      }
+
+      // If creating new profile (vm null) or incomplete onboarding, send creation payload.
       let payload: any = {}
-      
-      if (!vm) {
-        // Validate required fields for new user creation
-        const { name, cityKey, vibe, gender } = draftProfile
-        const hasVibe = vibe || (draftProfile as any).vibeKey
-        const hasSports = favoriteKeys.length > 0
-        
-        if (!name || !draftUsername || !cityKey || !hasVibe || !gender || !hasSports) {
-          alert('請填寫完整個人資料')
-          setIsSavingProfile(false)
-          return
-        }
 
-        // Full create payload
+      if (!(user as any)?.onboarding_completed_at) {
+        // For first-time users, we still send the full creation payload
         payload = {
           display_name: draftProfile.name,
           bio: draftProfile.blurb,
           vibe_key:
-            (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined,
+            (draftProfile as any).vibeKey ||
+            vibeUnionToKey.get(draftProfile.vibe as string) ||
+            undefined,
           city_key: draftProfile.cityKey || undefined,
           gender: draftProfile.gender || undefined,
           age_range_key: draftProfile.ageRangeKey || undefined,
@@ -628,25 +759,17 @@ export function ProfilePage() {
         if (draftUsername && !isUuid(draftUsername)) {
           payload.username = draftUsername
         }
-      } else {
-        // Update payload: only Sports and Avatar (and sync any potentially desynced fields if we want to be safe, but user asked for minimal)
-        // Let's just send Sports and Avatar as they are the ones not immediately calling saveProfile() in their handlers.
-        payload = {
-          favorite_sports: favoriteKeys,
-          trying_sports: tryingKeys,
-          avatar_url: draftProfile.avatar || undefined,
-          // We can optionally include others if we suspect drift, but per request, minimize.
-        }
       }
 
       const res = await profileService.saveProfile(payload)
       const responseData = (res as any).data || res
       const savedUser = responseData.user || responseData
-      
+
       // If we got a valid updated count from backend, use it. Otherwise estimate.
-      const newCount = typeof savedUser?.username_updated_count === 'number' 
-        ? savedUser.username_updated_count 
-        : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
+      const newCount =
+        typeof savedUser?.username_updated_count === 'number'
+          ? savedUser.username_updated_count
+          : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
 
       const updated = {
         ...draftProfile,
@@ -661,36 +784,38 @@ export function ProfilePage() {
         tryingSportKeys: tryingKeys,
       })
       setProfileCache(updated)
-      
+
       // Update AuthStore immediately
       const { user: authUser, token, setAuthData } = useAuthStore.getState()
       if (authUser && token) {
-         // savedUser from response has DB fields
-         const updatedUser = {
-             ...authUser,
-             name: savedUser.display_name || authUser.name,
-             avatar: savedUser.avatar_url || authUser.avatar,
-             gender: savedUser.gender || authUser.gender,
-             bio: savedUser.bio || authUser.bio,
-             location: savedUser.city_key || authUser.location
-         }
-         setAuthData(updatedUser, token)
+        // savedUser from response has DB fields
+        const updatedUser = {
+          ...authUser,
+          name: savedUser.display_name || authUser.name,
+          avatar: savedUser.avatar_url || authUser.avatar,
+          gender: savedUser.gender || authUser.gender,
+          bio: savedUser.bio || authUser.bio,
+          location: savedUser.city_key || authUser.location,
+          onboarding_completed_at:
+            savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
+        }
+        setAuthData(updatedUser, token)
       }
 
       setShowEditSheet(false)
-      loadProfileData()
+      setRawProfile((prev: any) => ({ ...prev, ...responseData }))
     } catch (err: any) {
       // keep sheet open for retry
       console.error('Failed to save profile', err)
       const status = err?.status || err?.response?.status
       const errorData = err?.response?.data?.error || {}
       const constraint = errorData.details?.constraint || ''
-      
+
       if (status === 409) {
         if (constraint.includes('username')) {
-           alert('使用者名稱已存在，請選擇其他名稱')
+          alert('使用者名稱已存在，請選擇其他名稱')
         } else {
-           alert('儲存失敗：資料衝突，請檢查輸入內容')
+          alert('儲存失敗：資料衝突，請檢查輸入內容')
         }
       } else {
         alert('儲存失敗，請稍後再試')
@@ -700,43 +825,38 @@ export function ProfilePage() {
     }
   }
 
-  const isCriticalDataLoading = 
-    isSportsLoading || 
-    isVibesLoading || 
-    isCitiesLoading
+  const isCriticalDataLoading = isSportsLoading || isVibesLoading || isCitiesLoading
 
   if (isLoading || !isProfileLoaded || isCriticalDataLoading) {
     return <PageLoading />
   }
   if (!isAuthenticated) return null
 
-
-
   const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="flex items-center justify-between bg-white px-4 py-4">
-          <div className="flex items-center gap-2">
-            {username && (
-              <>
-                <Lock className="h-5 w-5 text-slate-700" aria-hidden="true" />
-                <span className="text-2xl font-bold text-slate-900">{username}</span>
-              </>
-            )}
+        <div className="relative flex items-center justify-between bg-white px-4 py-4">
+          <div className="flex items-center">
+            <Link
+              to="/settings"
+              aria-label="Menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+            >
+              <Menu className="h-6 w-6" />
+            </Link>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2">
+            <span className="text-xl font-bold text-slate-900">{username}</span>
+          </div>
+
+          <div className="flex items-center gap-1">
             <button
               type="button"
               aria-label="Add game"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800 hover:bg-slate-50 active:bg-slate-100"
               onClick={() => {
-                const isProfileComplete = 
-                  vm?.card.name && 
-                  vm?.username && 
-                  vm?.card.cityKey && 
-                  (vm?.card.vibe || vm?.card.vibeKey) && 
-                  vm?.card.gender && 
-                  (vm?.card.sports && vm.card.sports.length > 0)
+                const isProfileComplete = !!(user as any)?.onboarding_completed_at
 
                 if (!isProfileComplete) {
                   setShowProfileRequiredSheet(true)
@@ -748,27 +868,33 @@ export function ProfilePage() {
               <PlusSquare className="h-6 w-6" />
             </button>
             <Link
-              to="/settings"
-              aria-label="Menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700"
+              to="/notifications"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-800 hover:bg-slate-50 active:bg-slate-100"
             >
-              <Menu className="h-6 w-6" />
+              <div className="relative">
+                <Bell className="h-6 w-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute right-0 top-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                )}
+              </div>
             </Link>
           </div>
         </div>
 
         <HeroCard
           onShare={handleShare}
-          profile={resolvedProfile ?? {
-            ...emptyProfile,
-            name: (user as any)?.name || '',
-            avatar: userAvatar || '',
-          }}
+          profile={
+            resolvedProfile ?? {
+              ...emptyProfile,
+              name: (user as any)?.name || '',
+              avatar: userAvatar || '',
+            }
+          }
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
           actionLabel="編輯運動卡"
           actionClassName=""
-          onTeammatesClick={() => navigate('/profile/teammates')}
+          onTeammatesClick={() => navigate('/circle')}
         />
         <div className="mt-4 space-y-4 px-3">
           <MySessions />
@@ -784,22 +910,55 @@ export function ProfilePage() {
         open={showAvatarCropper}
         onClose={() => setShowAvatarCropper(false)}
         userId={userId}
-        defaultAvatar={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+        defaultAvatar={draftProfile.avatar || userAvatar || ''}
         onAvatarUpdated={(url) => {
+          // 1. Update local UI state immediately
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
           setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
+
+          // 2. Update Auth Store immediately so other components (like Header) update
+          const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
+          if (authUser && token) {
+            setAuth({ ...authUser, avatar: url }, token)
+          }
+
+          // 3. Update cache
           const base = (resolvedProfile ?? draftProfile) as MateCardProps
           setProfileCache({ ...base, avatar: url })
+
+          // 4. Persist to Backend in background
+          profileService
+            .saveProfile({ avatar_url: url })
+            .then((res) => {
+              // Update rawProfile to match, so useEffect doesn't revert it
+              const data = (res as any)?.data ?? res
+              // Force keep our URL with params, even if backend returns clean URL
+              if (data && data.user) {
+                data.user.avatar_url = url
+              } else if (data) {
+                data.avatar_url = url
+              }
+              setRawProfile((prev: any) => ({ ...prev, ...data }))
+            })
+            .catch((err) => {
+              console.error('Failed to save avatar URL to DB', err)
+            })
         }}
       />
 
       {/* Profile Required Bottom Sheet */}
       <ProfileRequiredSheet
         open={showProfileRequiredSheet}
-        onClose={() => setShowProfileRequiredSheet(false)}
-        onConfirm={() => setShowEditSheet(true)}
+        dismissible={true}
+        onClose={() => {
+          setShowProfileRequiredSheet(false)
+        }}
+        onConfirm={() => {
+          setShowProfileRequiredSheet(false)
+          setShowEditSheet(true)
+        }}
       />
-      
+
       <AlertDialog
         open={alertDialog.open}
         onClose={() => setAlertDialog((prev) => ({ ...prev, open: false }))}
@@ -837,19 +996,25 @@ export function ProfilePage() {
 
       <BottomSheet
         open={showEditSheet}
-        onClose={() => setShowEditSheet(false)}
+        onClose={() => {
+          setShowEditSheet(false)
+          fetchProfileData()
+        }}
         showHandle={false}
         disableContainer
       >
         <SheetLayout
-          onClose={() => setShowEditSheet(false)}
+          onClose={() => {
+            setShowEditSheet(false)
+            fetchProfileData()
+          }}
           title="我的運動卡"
           subtitle="保持最新運動狀態"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 min-h-0 overflow-y-auto px-5 pb-24 pt-4 space-y-4"
           primaryButton={{
-            label: isSavingProfile ? '儲存中...' : '儲存卡片',
+            label: '完成',
             onClick: handleSaveProfile,
             disabled: isSavingProfile,
           }}
@@ -857,7 +1022,7 @@ export function ProfilePage() {
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
               <img
-                src={draftProfile.avatar || userAvatar || SAMPLE_AVATAR}
+                src={draftProfile.avatar || userAvatar || ''}
                 alt="Avatar"
                 className="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-white"
               />
@@ -890,7 +1055,12 @@ export function ProfilePage() {
                 {
                   key: 'gender',
                   label: '性別',
-                  value: draftProfile.gender === 'male' ? '男生' : draftProfile.gender === 'female' ? '女生' : '未設定',
+                  value:
+                    draftProfile.gender === 'male'
+                      ? '男生'
+                      : draftProfile.gender === 'female'
+                        ? '女生'
+                        : '未設定',
                   valueKey: draftProfile.gender || '',
                 },
               ].map((row) => {
@@ -938,7 +1108,7 @@ export function ProfilePage() {
                       ''
                   )
                 }
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">運動氛圍</p>
@@ -955,7 +1125,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowSportsSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">我的最愛</p>
@@ -968,7 +1138,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowTryingSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">想嘗試</p>
@@ -987,7 +1157,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
-                className="flex w-full items-center justify-between px-4 py-4 text-left "
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">自我介紹</p>
@@ -1146,16 +1316,14 @@ export function ProfilePage() {
                       setFieldError(null)
                     }}
                     className={clsx(
-                      "w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none",
-                      fieldError 
-                        ? "border-red-500 focus:border-red-500" 
-                        : "border-slate-200 focus:border-blue-500"
+                      'w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none',
+                      fieldError
+                        ? 'border-red-500 focus:border-red-500'
+                        : 'border-slate-200 focus:border-blue-500'
                     )}
                     placeholder="請輸入"
                   />
-                  {fieldError && (
-                    <p className="mt-2 text-sm text-red-500">{fieldError}</p>
-                  )}
+                  {fieldError && <p className="mt-2 text-sm text-red-500">{fieldError}</p>}
                 </div>
               )}
             </SheetLayout>
@@ -1177,7 +1345,7 @@ export function ProfilePage() {
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
           primaryButton={{
             label: '儲存',
-            onClick: () => setShowSportsSheet(false),
+            onClick: saveSports,
             disabled: isSavingProfile,
           }}
           showHandle={false}
@@ -1196,7 +1364,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 "
+                    className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -1274,7 +1442,7 @@ export function ProfilePage() {
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
           primaryButton={{
             label: '儲存',
-            onClick: () => setShowTryingSheet(false),
+            onClick: saveSports,
             disabled: isSavingProfile,
           }}
           showHandle={false}
@@ -1293,7 +1461,7 @@ export function ProfilePage() {
                   <button
                     type="button"
                     aria-label="移除"
-                    className="text-slate-400 "
+                    className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
                         ...prev,
@@ -1372,7 +1540,7 @@ export function ProfilePage() {
             <button
               type="button"
               aria-label="Close"
-              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500 "
+              className="rounded-full px-3 py-1 text-sm font-semibold text-slate-500"
               onClick={() => setShowGoalSheet(false)}
             >
               ×
@@ -1487,7 +1655,7 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={() => setShowGoalSheet(false)}
-              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 "
+              className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
             >
               取消
             </button>
@@ -1495,13 +1663,19 @@ export function ProfilePage() {
               type="button"
               onClick={handleSaveGoal}
               disabled={isSavingGoal}
-              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition  disabled:cursor-not-allowed disabled:bg-blue-300"
+              className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-blue-300"
             >
               {isSavingGoal ? '儲存中...' : '儲存'}
             </button>
           </div>
         </div>
       </BottomSheet>
+
+      {/* Profile Completion Bottom Sheet */}
+      <ProfileCompletionSheet
+        open={showCompletionSheet}
+        onClose={() => setShowCompletionSheet(false)}
+      />
     </div>
   )
 }

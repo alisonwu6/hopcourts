@@ -120,6 +120,8 @@ export function MateProfilePage() {
           location: user.city_key || user.location || data.location || mate?.location || '',
           blurb: user.bio || user.blurb || data.blurb || mate?.blurb || '',
           friendCount: user.teammate_count || user.friend_count || 0,
+          joinedCount: user.joined_count || 0,
+          hostedCount: user.hosted_count || 0,
           avatar:
             user.avatar_url ||
             user.avatar ||
@@ -185,6 +187,8 @@ export function MateProfilePage() {
         location: mate?.location ?? '台北',
         blurb: mate?.blurb ?? '',
         friendCount: 0,
+        joinedCount: 0,
+        hostedCount: 0,
         avatar:
           mate?.avatar ??
           '',

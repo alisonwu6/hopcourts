@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
 import { ArrowLeft, Heart, Share } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 type ActionToolbarProps = {
   onBack?: () => void
@@ -33,6 +34,8 @@ export function ActionToolbar({
   rightContent,
   borderBottom = false,
 }: ActionToolbarProps) {
+  const navigate = useNavigate()
+
   return (
     <div
       className={clsx(
@@ -52,7 +55,7 @@ export function ActionToolbar({
         ) : showBack ? (
           <button
             type="button"
-            onClick={onBack}
+            onClick={onBack || (() => navigate(-1))}
             className="flex h-10 w-10 items-center justify-center text-slate-600 transition hover:text-slate-900"
             aria-label="Go back"
           >
@@ -63,7 +66,7 @@ export function ActionToolbar({
         )}
 
         <div className="flex min-w-0 flex-1 items-center justify-center px-2">
-          {title && <div className="truncate text-sm font-semibold text-slate-800">{title}</div>}
+          {title && <div className="text-lg font-semibold text-slate-900">{title}</div>}
         </div>
 
         <div className="flex items-center gap-3">
@@ -92,6 +95,10 @@ export function ActionToolbar({
                 aria-hidden="true"
               />
             </button>
+          )}
+          {/* Auto-balance: if back button exists (w-10) but no right content, add spacer */}
+          {!rightContent && !showShare && !showFavorite && showBack && (
+            <span className="h-10 w-10" aria-hidden="true" />
           )}
         </div>
       </div>

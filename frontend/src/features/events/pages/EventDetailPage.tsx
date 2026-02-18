@@ -15,8 +15,8 @@ import {
   Trash2,
   LandPlot,
   Pencil,
-  Check,
-  X,
+  Share,
+  Smile,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -26,6 +26,7 @@ import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
@@ -44,14 +45,12 @@ export function EventDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
-  
-  const [isEditingDesc, setIsEditingDesc] = useState(false)
-  const [descValue, setDescValue] = useState('')
-  const [isSavingDesc, setIsSavingDesc] = useState(false)
+  const [showProfileRequired, setShowProfileRequired] = useState(false)
 
-  const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
+  const { isAuthenticated, currentUserId, user } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
     currentUserId: state.user?.id,
+    user: state.user,
   }))
   const {
     selectedEvent: event,
@@ -68,6 +67,13 @@ export function EventDetailPage() {
       fetchEventById(id)
     }
   }, [id, fetchEventById])
+
+  useEffect(() => {
+    console.log('user', user)
+    if (isAuthenticated && !user?.onboarding_completed_at) {
+      setShowProfileRequired(true)
+    }
+  }, [isAuthenticated, user?.onboarding_completed_at])
 
   const handleShare = () => {
     // navigator.share usually requires HTTPS
@@ -96,30 +102,13 @@ export function EventDetailPage() {
       const user = useAuthStore.getState().user
       const userGender = user?.gender
 
-      if (!userGender) {
-        showAlert(
-          '需完善個人資料',
-          '此活動設有性別限制。請先至「個人檔案 > 編輯運動卡」設定您的性別，以便確認是否符合參加資格。',
-          'warning'
-        )
-        return
-      }
-
       if (event.gender === 'male' && userGender !== 'male') {
-        showAlert(
-          '無法參加',
-          '本活動僅限男性參加。',
-          'error'
-        )
+        showAlert('', '此活動為男生專場。', 'warning')
         return
       }
 
       if (event.gender === 'female' && userGender !== 'female') {
-        showAlert(
-          '無法參加',
-          '本活動僅限女性參加。',
-          'error'
-        )
+        showAlert('', '此活動為女生專場。', 'warning')
         return
       }
     }
@@ -214,26 +203,6 @@ export function EventDetailPage() {
     )
   }
 
-
-  const handleSaveDesc = async () => {
-    if (!event) return
-    setIsSavingDesc(true)
-    try {
-      const res = await eventsService.updateEvent(event.id, { description: descValue })
-      if (res.success) {
-        await fetchEventById(event.id)
-        setIsEditingDesc(false)
-      } else {
-        alert(res.error?.message || '更新失敗')
-      }
-    } catch (err) {
-      console.error(err)
-      alert('更新失敗')
-    } finally {
-      setIsSavingDesc(false)
-    }
-  }
-
   const handleDelete = async () => {
     if (!id) return
     setIsDeleting(true)
@@ -249,7 +218,12 @@ export function EventDetailPage() {
     }
   }
 
-  const isJoined = event?.joined ?? false
+  const isHost = event?.host?.id === currentUserId
+  const isParticipant = event?.participants.some((p) => p.id === currentUserId)
+
+  /* DEBUG: Check why isJoined is false -- REMOVED */
+
+  const isJoined = (event?.joined || isParticipant) ?? false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
 
   // Check if current user is checked in based on event data
@@ -279,14 +253,32 @@ export function EventDetailPage() {
           : '不限程度'
 
   const genderLabel =
-    event.gender === 'female'
-      ? '女性專屬'
-      : event.gender === 'male'
-        ? '男性專屬'
-        : '性別混合'
+    event.gender === 'female' ? '女性專屬' : event.gender === 'male' ? '男性專屬' : '性別混合'
 
   const sportLabel =
     sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
+
+  const minPeople = Math.max(1, event.minPeople ?? 1)
+  const maxPeople = Math.max(minPeople, event.maxAttendees ?? minPeople)
+  const formatMoney = (value?: number | null) => {
+    if (value == null || Number.isNaN(Number(value))) return ''
+    return Math.round(Number(value)).toLocaleString('zh-TW')
+  }
+  const feeLine2 = (() => {
+    if (event.isFree) return '免費活動'
+    const total = event.priceTotal
+    const perPerson = event.pricePerPerson
+    if (event.priceMode === 'person') {
+      if (perPerson) return `每人費用 $${formatMoney(perPerson)}`
+      return '收費活動（每人計費）'
+    }
+    if (total != null) return `總費用 $${formatMoney(total)}`
+    if (perPerson) return `總費用未提供（每人約 $${formatMoney(perPerson)}）`
+    return '收費活動'
+  })()
+  const feeNote = event.priceNote?.trim() || '無'
+  const participantRule =
+    minPeople === 1 ? `保證開團｜上限${maxPeople}人` : `${minPeople}人成團｜上限${maxPeople}人`
 
   // Photos: using heroImage as main, maybe carousel later?
   // Current UI only shows one hero image.
@@ -304,20 +296,40 @@ export function EventDetailPage() {
         onShare={handleShare}
         onToggleFavorite={() => setIsFavorite((prev) => !prev)}
         isFavorite={isFavorite}
-        showShare
+        showShare={false}
         showFavorite={false}
         contentClassName="w-full"
         rightContent={
-          event.host.id === currentUserId && (
+          <>
+            {event.host.id === currentUserId && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="rounded-full bg-slate-100 p-2 text-slate-500 transition"
+                  aria-label="Delete event"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/create-event?id=${event.id}`)}
+                  className="rounded-full bg-blue-50 p-2 text-blue-600 transition"
+                  aria-label="Edit event"
+                >
+                  <Pencil className="h-5 w-5" />
+                </button>
+              </>
+            )}
             <button
               type="button"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 text-slate-400 transition "
-              aria-label="Delete event"
+              onClick={handleShare}
+              className="rounded-full bg-blue-50 p-2 text-blue-600 transition"
+              aria-label="Share"
             >
-              <Trash2 className="h-5 w-5" />
+              <Share className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
             </button>
-          )
+          </>
         }
       />
       <div className="w-full space-y-6">
@@ -326,15 +338,20 @@ export function EventDetailPage() {
             images={
               event.photos && event.photos.length > 0
                 ? event.photos
-                : [event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[]
+                : ([event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[])
             }
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
+            {event.updatedAt && (
+              <p className="text-right text-xs text-slate-400">
+                最後更新時間 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
+              </p>
+            )}
             <div
-              className="flex cursor-pointer items-center gap-3 transition "
+              className="flex cursor-pointer items-center gap-3 transition"
               onClick={() => {
                 if (event.host.username) {
                   navigate(`/mate/${event.host.username}`)
@@ -364,27 +381,33 @@ export function EventDetailPage() {
               </span>
             </div>
 
-            <div className="mt-4">
+            <div className="my-4">
               <h1 className="text-[28px] font-semibold text-slate-900">{event.title}</h1>
             </div>
 
-            <div className="mt-6 space-y-3">
+            <div className="space-y-3">
               <InfoRow
                 icon={Calendar}
                 label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
               />
-              <div 
+              <div
                 className={clsx(
-                  "cursor-pointer active:opacity-70 transition group",
-                  event.venueId ? "hover:text-blue-600" : "hover:text-slate-900"
+                  'group cursor-pointer transition active:opacity-70',
+                  event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
                 )}
                 onClick={() => {
                   if (event.location.lat && event.location.lng) {
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`, '_blank')
+                    window.open(
+                      `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
+                      '_blank'
+                    )
                   } else {
                     const query = event.location.address || event.location.name
                     if (query) {
-                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`, '_blank')
+                      window.open(
+                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
+                        '_blank'
+                      )
                     }
                   }
                 }}
@@ -398,26 +421,26 @@ export function EventDetailPage() {
                   }
                 />
               </div>
-              <InfoRow
-                icon={CircleDollarSign}
-                label={
-                  event.isFree
-                    ? '免費'
-                    : event.price
-                      ? `若達人數上限，每人$${event.price}`
-                      : '收費活動'
-                }
-              />
+              <InfoRow icon={CircleDollarSign} label={feeLine2} />
+              <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <p className="text-xs font-semibold tracking-wide text-slate-500">收費說明</p>
+                <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
+              </div>
             </div>
 
             <hr className="my-6 border-slate-200" />
 
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <div className="flex items-start gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
                   <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
-                <span>目前報名（剩 {spotsRemaining} 位）</span>
+                <span className="flex flex-col gap-1">
+                  <span>目前報名（剩 {spotsRemaining} 位）</span>
+                  <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
+                    {participantRule}
+                  </span>
+                </span>
               </div>
 
               {event.participants.length > 0 ? (
@@ -432,7 +455,7 @@ export function EventDetailPage() {
                   return (
                     <div
                       key={p.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition "
+                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition"
                       onClick={() => {
                         if (p.username) {
                           navigate(`/mate/${p.username}`)
@@ -458,7 +481,7 @@ export function EventDetailPage() {
                   )
                 })
               ) : (
-                <p className="pl-14 text-sm text-slate-500">還沒有人報名，快來搶頭香！</p>
+                <p className="pl-14 text-xs text-slate-300">還沒有人報名</p>
               )}
             </div>
 
@@ -472,66 +495,11 @@ export function EventDetailPage() {
                   </span>
                   <span>活動說明</span>
                 </div>
-                {event.host.id === currentUserId && !isEditingDesc && (
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setDescValue(event.detail?.description || event.description || '')
-                            setIsEditingDesc(true)
-                        }}
-                        className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-600 transition"
-                    >
-                        <Pencil className="h-4 w-4" />
-                    </button>
-                )}
               </div>
-              
-              {isEditingDesc ? (
-                <div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
-                    <textarea
-                        value={descValue}
-                        onChange={(e) => setDescValue(e.target.value)}
-                        className="w-full rounded-xl border border-slate-300 p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
-                        placeholder="輸入活動說明..."
-                    />
-                    <div className="flex justify-end gap-2">
-                        <button
-                            onClick={() => setIsEditingDesc(false)}
-                            className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 transition"
-                            disabled={isSavingDesc}
-                        >
-                            <X className="h-3.5 w-3.5" />
-                            取消
-                        </button>
-                        <button
-                            onClick={handleSaveDesc}
-                            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-blue-500 transition disabled:opacity-70"
-                            disabled={isSavingDesc}
-                        >
-                            {isSavingDesc ? (
-                                '儲存中...'
-                            ) : (
-                                <>
-                                    <Check className="h-3.5 w-3.5" />
-                                    儲存更新
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </div>
-              ) : (
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                   {event.detail?.description || event.description || '沒有描述'}
-                </p>
-              )}
-              {event.updatedAt && (
-                <p className="mt-2 text-right text-xs text-slate-400">
-                  活動說明最後更新於 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
-                </p>
-              )}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                {event.detail?.description || event.description || '沒有描述'}
+              </p>
             </div>
-
-
 
             {/* Photos Section if multiple */}
           </div>
@@ -562,7 +530,7 @@ export function EventDetailPage() {
                 }}
               >
                 <div className="py-2 text-sm text-slate-500">
-                  若有異動需求，建議您直接更新活動說明欄位告知參與夥伴。
+                  若有異動需求，請使用上方編輯按鈕更新活動內容並告知參與夥伴。
                 </div>
               </SheetLayout>
             )
@@ -603,6 +571,11 @@ export function EventDetailPage() {
         description={alertDialog.description}
         type={alertDialog.type}
       />
+
+      <ProfileRequiredSheet
+        open={showProfileRequired}
+        onClose={() => setShowProfileRequired(false)}
+      />
     </div>
   )
 }
@@ -610,7 +583,10 @@ export function EventDetailPage() {
 function AvatarCircle({ name, src }: { name: string; src?: string }) {
   return (
     <div
-      className="flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-slate-700"
+      className={clsx(
+        'flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-slate-700',
+        !src && 'bg-slate-100'
+      )}
       style={
         src
           ? {
@@ -621,12 +597,12 @@ function AvatarCircle({ name, src }: { name: string; src?: string }) {
           : undefined
       }
     >
-      {!src && name.charAt(0).toUpperCase()}
+      {!src && <Smile className="h-6 w-6 text-slate-400" strokeWidth={1.5} />}
     </div>
   )
 }
 
-function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 text-sm font-medium text-slate-700">
       <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
@@ -662,30 +638,35 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time
   const isCheckInOpen = now >= openTime && now <= closeTime
 
-  const formatTime = (date: Date) =>
-    format(date, 'MM/dd HH:mm', { locale: zhTW })
+  const formatTime = (date: Date) => format(date, 'MM/dd HH:mm', { locale: zhTW })
 
   let mainButton = (
-    <Button onClick={onJoin} className="bg-blue-600 text-white ">
+    <Button onClick={onJoin} className="bg-blue-600 text-white">
       加入活動
     </Button>
   )
+  let secondaryButton: React.ReactElement | null = null
 
   let statusText: React.ReactNode = null
 
   if (hasCheckedIn) {
     mainButton = (
-      <Button disabled className="bg-emerald-500 text-white opacity-100">
+      <Button disabled className="bg-emerald-600 text-white opacity-100">
         已報到 ✓
       </Button>
     )
   } else if (isJoined) {
     if (isCheckInOpen) {
       mainButton = (
+        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
+          已加入
+        </Button>
+      )
+      secondaryButton = (
         <Button
           onClick={onCheckIn}
           disabled={isCheckingIn}
-          className="bg-emerald-600 text-white "
+          className="!hover:bg-emerald-600 !active:bg-emerald-600 !focus:bg-emerald-600 !bg-emerald-600 !text-white"
         >
           {isCheckingIn ? (
             '定位中...'
@@ -704,19 +685,34 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       )
     } else if (now > closeTime) {
       mainButton = (
-        <Button disabled className="cursor-not-allowed bg-slate-400 text-white opacity-80">
+        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
+          已加入
+        </Button>
+      )
+      secondaryButton = (
+        <Button
+          disabled
+          className="!hover:bg-emerald-300 !active:bg-emerald-300 !focus:bg-emerald-300 cursor-not-allowed !bg-emerald-300 !text-white opacity-90 disabled:opacity-90"
+        >
           缺席
         </Button>
       )
     } else {
       // Joined but not yet time to check in (now < openTime)
       mainButton = (
-        <Button
-          disabled={false}
-          onClick={onJoin}
-          className="bg-player-600 text-white shadow-sm "
-        >
+        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
           已加入
+        </Button>
+      )
+      secondaryButton = (
+        <Button
+          disabled
+          className="!hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 cursor-not-allowed !bg-emerald-500 !text-white opacity-100 disabled:opacity-100"
+        >
+          <span className="flex flex-col items-center leading-tight">
+            <span className="text-sm font-semibold">點我報到</span>
+            <span className="mt-1 text-xs font-medium">於{formatTime(openTime)}開放按鈕</span>
+          </span>
         </Button>
       )
       statusText = (
@@ -743,12 +739,29 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
     <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
       <div className="relative flex w-full flex-col gap-2 px-4">
         {statusText}
-        {React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
-          className: clsx(
-            'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-            (mainButton as React.ReactElement<{ className?: string }>).props.className
-          ),
-        })}
+        {secondaryButton ? (
+          <div className="grid grid-cols-2 gap-3">
+            {React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
+              className: clsx(
+                'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+                (mainButton as React.ReactElement<{ className?: string }>).props.className
+              ),
+            })}
+            {React.cloneElement(secondaryButton as React.ReactElement<{ className?: string }>, {
+              className: clsx(
+                'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+                (secondaryButton as React.ReactElement<{ className?: string }>).props.className
+              ),
+            })}
+          </div>
+        ) : (
+          React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
+            className: clsx(
+              'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+              (mainButton as React.ReactElement<{ className?: string }>).props.className
+            ),
+          })
+        )}
       </div>
     </div>
   )

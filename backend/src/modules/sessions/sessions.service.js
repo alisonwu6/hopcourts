@@ -5,6 +5,7 @@ const checkinsModel = require('../../../models/checkins.model')
 const usersModel = require('../../../models/users.model')
 const { createSession: createSessionModel } = require('../../../models/sessions.model')
 const { resolveVenue } = require('../venues/venues.service')
+const notificationsService = require('../notifications/notifications.service')
 
 function parseNumber(value, fallback) {
   const n = Number(value)
@@ -141,6 +142,25 @@ async function joinSession({ sessionId, userId }) {
   }
 
   await participantsModel.joinSession({ sessionId, userId })
+  
+  // Notification: Notify Host
+  if (session.host_user_id && session.host_user_id !== userId) {
+    // Fire and forget (or await if guaranteed fast). Service handles errors.
+    usersModel.getUserById(userId).then(actor => {
+      const actorName = actor?.display_name || actor?.name || '有人'
+      notificationsService.createNotification({
+        recipient_user_id: session.host_user_id,
+        actor_user_id: userId,
+        type: 'session_joined',
+        entity_type: 'session',
+        entity_id: sessionId,
+        title: '有人加入你的活動',
+        message: `${actorName} 加入了「${session.title}」`,
+        metadata: { deep_link: `/event/${sessionId}` }
+      })
+    }).catch(err => console.error('Notify join failed', err))
+  }
+
   const meta = await buildSessionMeta({ sessionId, session, userId })
 
   return {
@@ -156,6 +176,24 @@ async function leaveSession({ sessionId, userId }) {
   if (!session) throw Errors.notFound('Session not found')
 
   await participantsModel.leaveSession({ sessionId, userId })
+
+  // Notification: Notify Host
+  if (session.host_user_id && session.host_user_id !== userId) {
+    usersModel.getUserById(userId).then(actor => {
+      const actorName = actor?.display_name || actor?.name || '有人'
+      notificationsService.createNotification({
+        recipient_user_id: session.host_user_id,
+        actor_user_id: userId,
+        type: 'session_left',
+        entity_type: 'session',
+        entity_id: sessionId,
+        title: '有人退出你的活動',
+        message: `${actorName} 退出了「${session.title}」`,
+        metadata: { deep_link: `/event/${sessionId}` }
+      })
+    }).catch(err => console.error('Notify leave failed', err))
+  }
+
   const meta = await buildSessionMeta({ sessionId, session, userId })
 
   return {
@@ -173,6 +211,7 @@ async function createSession(input) {
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
   const allowedGender = ['mixed', 'female', 'male']
+  const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
     throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })
@@ -180,8 +219,33 @@ async function createSession(input) {
   if (input.gender && !allowedGender.includes(input.gender)) {
     throw Errors.validation('invalid gender', { gender: input.gender })
   }
+  if (input.priceMode && !allowedPriceMode.includes(input.priceMode)) {
+    throw Errors.validation('invalid price_mode', { price_mode: input.priceMode })
+  }
   if (input.photos && (!Array.isArray(input.photos) || input.photos.length > 3)) {
     throw Errors.validation('photos must be an array with at most 3 items')
+  }
+  if (input.minPeople != null && Number(input.minPeople) < 1) {
+    throw Errors.validation('min_people must be >= 1')
+  }
+  if (
+    input.maxPeople != null &&
+    input.minPeople != null &&
+    Number(input.maxPeople) < Number(input.minPeople)
+  ) {
+    throw Errors.validation('max_people must be >= min_people')
+  }
+
+  // Cost validation
+  if (input.isFree === false) {
+    const total = input.priceTotal == null ? null : Number(input.priceTotal)
+    const perPerson = input.pricePerPerson == null ? null : Number(input.pricePerPerson)
+    if ((total == null || !Number.isFinite(total) || total <= 0) && (perPerson == null || !Number.isFinite(perPerson) || perPerson <= 0)) {
+      throw Errors.validation('Price is required for paid sessions')
+    }
+    if (!input.priceNote) {
+      throw Errors.validation('Price note is required for paid sessions')
+    }
   }
 
   // Resolve Venue ID
@@ -219,7 +283,7 @@ async function createSession(input) {
     checkinRadiusM: input.checkinRadiusM ?? 100,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 20,
     checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 20,
-    minPeople: input.minPeople ?? 2,
+    minPeople: input.minPeople ?? 3,
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',
     visibility: input.visibility ?? 'public',
@@ -227,8 +291,15 @@ async function createSession(input) {
     gender: input.gender ?? 'mixed',
     photos: input.photos ?? null,
     isFree: input.isFree ?? true,
-    price: input.price ?? null,
+    priceTotal: input.priceTotal ?? null,
+    pricePerPerson: input.pricePerPerson ?? null,
+    priceMode: input.priceMode ?? 'total',
     locationSource: input.locationSource,
+    priceNote: input.priceNote ?? null,
+  }
+
+  if (payload.priceMode === 'person') {
+    payload.priceTotal = null
   }
 
   const session = await createSessionModel(payload)
@@ -256,6 +327,7 @@ async function updateSession(sessionId, input) {
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
   const allowedGender = ['mixed', 'female', 'male']
+  const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
     throw Errors.validation('invalid skill_level', { skill_level: input.skillLevel })
@@ -263,11 +335,25 @@ async function updateSession(sessionId, input) {
   if (input.gender && !allowedGender.includes(input.gender)) {
     throw Errors.validation('invalid gender', { gender: input.gender })
   }
+  if (input.priceMode && !allowedPriceMode.includes(input.priceMode)) {
+    throw Errors.validation('invalid price_mode', { price_mode: input.priceMode })
+  }
   if (input.photos && (!Array.isArray(input.photos) || input.photos.length > 3)) {
     throw Errors.validation('photos must be an array with at most 3 items')
   }
+  if (input.minPeople != null && Number(input.minPeople) < 1) {
+    throw Errors.validation('min_people must be >= 1')
+  }
+  if (
+    input.maxPeople != null &&
+    input.minPeople != null &&
+    Number(input.maxPeople) < Number(input.minPeople)
+  ) {
+    throw Errors.validation('max_people must be >= min_people')
+  }
 
   const patch = {
+    sportKey: input.sportKey,
     title: input.title,
     description: input.description,
     startAt: input.startAt ? new Date(input.startAt) : undefined,
@@ -287,7 +373,14 @@ async function updateSession(sessionId, input) {
     gender: input.gender,
     photos: input.photos,
     isFree: input.isFree,
-    price: input.price,
+    priceTotal: input.priceTotal,
+    pricePerPerson: input.pricePerPerson,
+    priceMode: input.priceMode,
+    priceNote: input.priceNote,
+  }
+
+  if (patch.priceMode === 'person') {
+    patch.priceTotal = null
   }
 
   return sessionsModel.updateSession(sessionId, patch)
@@ -302,7 +395,27 @@ async function deleteSession(sessionId, userId) {
     throw Errors.forbidden('Only host can delete session')
   }
 
-  return sessionsModel.deleteSession(sessionId)
+  // Fetch participants before delete
+  const participants = await participantsModel.listParticipantsBySession(sessionId)
+
+  await sessionsModel.deleteSession(sessionId)
+
+  // Notify all participants
+  participants.forEach(p => {
+    const recipientId = p.user_id
+    if (recipientId && recipientId !== userId) {
+       notificationsService.createNotification({
+        recipient_user_id: recipientId,
+        actor_user_id: userId,
+        type: 'session_cancelled',
+        entity_type: 'session',
+        entity_id: sessionId,
+        title: '活動已取消',
+        message: `「${existing.title}」已被取消`,
+        metadata: {}
+      }).catch(err => console.error('Notify cancel failed', err))
+    }
+  })
 }
 
 module.exports = {

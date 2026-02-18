@@ -2,6 +2,7 @@ const usersModel = require('../../../models/users.model')
 const userSportsModel = require('../../../models/userSports.model')
 const userPreferencesModel = require('../../../models/userPreferences.model')
 const participantsModel = require('../../../models/participants.model')
+const sessionsModel = require('../../../models/sessions.model')
 const { Errors } = require('../../lib/errors')
 const supabase = require('../../utils/supabase')
 
@@ -34,9 +35,11 @@ async function getProfile(userId) {
 
   const sports = await userSportsModel.listUserSports(userId)
   const teammate_count = await participantsModel.countTeammates(userId)
+  const joined_count = await participantsModel.countJoinedSessions(userId)
+  const hosted_count = await sessionsModel.countHostedSessions(userId)
   return {
-    user: { ...user, teammate_count },
-    sports,
+    user: { ...user, teammate_count, joined_count, hosted_count },
+    sports
   }
 }
 
@@ -45,12 +48,15 @@ async function getProfileByUsername(username) {
   if (!user) throw Errors.notFound('User not found')
   const sports = await userSportsModel.listUserSports(user.id)
   const teammate_count = await participantsModel.countTeammates(user.id)
-  return { user: { ...user, teammate_count }, sports }
+  const joined_count = await participantsModel.countJoinedSessions(user.id)
+  const hosted_count = await sessionsModel.countHostedSessions(user.id)
+  return { user: { ...user, teammate_count, joined_count, hosted_count }, sports }
 }
 
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
+  console.log('[upsertProfile] Current User:', JSON.stringify(current, null, 2))
 
   // Enforce single username update rule (Removed as column doesn't exist)
   /*
@@ -102,6 +108,36 @@ async function upsertProfile(userId, body = {}) {
     }
   }
 
+  // Check for sports presence (Incoming or Existing)
+  const incomingFavs = Array.isArray(body.favorite_sports) ? body.favorite_sports : []
+  const incomingTrying = Array.isArray(body.trying_sports) ? body.trying_sports : []
+  
+  // If sports field is used (legacy/bulk), it might contain both
+  const incomingBulk = Array.isArray(body.sports) ? body.sports : []
+  const bulkFavs = incomingBulk.filter(s => s.kind === 'FAVORITE' || s.type === 'FAVORITE')
+  const bulkTrying = incomingBulk.filter(s => s.kind === 'TRYING' || s.type === 'TRYING')
+
+  let hasFavorite = (incomingFavs.length + bulkFavs.length) > 0
+  let hasTrying = (incomingTrying.length + bulkTrying.length) > 0
+
+  if (!hasFavorite || !hasTrying) {
+     const existingSports = await userSportsModel.listUserSports(userId)
+     if (!hasFavorite) hasFavorite = existingSports.some(s => s.kind === 'FAVORITE')
+     if (!hasTrying) hasTrying = existingSports.some(s => s.kind === 'TRYING')
+  }
+
+  const hasBothSports = hasFavorite && hasTrying
+
+  // Strict Onboarding Rule: All fields including bio
+  const isProfileComplete =
+    (body.display_name || current.display_name || nameFromAuth) &&
+    (body.username || current.username) &&
+    (body.city_key ?? current.city_key) &&
+    (body.gender ?? current.gender) &&
+    (body.vibe_key ?? current.vibe_key) &&
+    (body.bio ?? current.bio) &&
+    hasBothSports
+
   const user = await usersModel.upsertUser({
     id: userId,
     email: email, 
@@ -117,6 +153,9 @@ async function upsertProfile(userId, body = {}) {
     vibe_key: body.vibe_key ?? current.vibe_key ?? null,
     bio: body.bio ?? current.bio ?? null,
     avatar_url: avatarUrl,
+    onboarding_completed_at: 
+      current.onboarding_completed_at || 
+      (isProfileComplete ? new Date() : null)
   })
 
   const sportsInput = Array.isArray(body.sports) ? body.sports : []
@@ -175,8 +214,10 @@ async function getOnboardingStatus(userId) {
   if (!user?.city_key) missing.push('city_key')
   if (!user?.vibe_key) missing.push('vibe_key')
   if (!user?.age_range_key) missing.push('age_range_key')
+  if (!user?.bio) missing.push('bio')
   const sports = await userSportsModel.listUserSports(userId)
-  if (!sports.length) missing.push('sports')
+  if (!sports.some(s => s.kind === 'FAVORITE')) missing.push('favorite_sports')
+  if (!sports.some(s => s.kind === 'TRYING')) missing.push('trying_sports')
   return { is_complete: missing.length === 0, missing_fields: missing }
 }
 

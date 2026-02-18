@@ -1,4 +1,4 @@
-const { query } = require('../../../db/client');
+const feedbackService = require('./feedback.service');
 
 exports.createFeedback = async (req, res, next) => {
   try {
@@ -8,14 +8,17 @@ exports.createFeedback = async (req, res, next) => {
     // If authenticated, use ID. If not, null.
     const user_id = req.user ? req.user.id : null;
 
-    const { rows } = await query(
-      `INSERT INTO public.feedback (user_id, type, message, page, contact_email, allow_reply, meta)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id`,
-      [user_id, type, message, page, contact_email, allow_reply, meta || {}]
-    );
+    const result = await feedbackService.createFeedback({
+      user_id,
+      type,
+      message,
+      page,
+      contact_email,
+      allow_reply,
+      meta,
+    });
 
-    res.status(201).json({ success: true, id: rows[0].id });
+    res.status(201).json({ success: true, id: result.id });
   } catch (err) {
     next(err);
   }

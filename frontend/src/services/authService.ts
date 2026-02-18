@@ -38,9 +38,13 @@ export async function resetPassword(email: string) {
 
 export async function signInWithGoogle() {
   const client = ensureSupabase()
+  const isDev = import.meta.env.DEV
   return client.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: authRedirect },
+    options: {
+      redirectTo: authRedirect,
+      queryParams: isDev ? { prompt: 'select_account' } : undefined,
+    },
   })
 }
 
