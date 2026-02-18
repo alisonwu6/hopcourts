@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { Menu, PlusSquare, Lock, Copy, MessageCircle, Bell } from 'lucide-react'
+import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
@@ -847,12 +847,7 @@ export function ProfilePage() {
           </div>
 
           <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2">
-            {username && (
-              <>
-                <Lock className="h-4 w-4 text-slate-700" aria-hidden="true" />
-                <span className="text-xl font-bold text-slate-900">{username}</span>
-              </>
-            )}
+            <span className="text-xl font-bold text-slate-900">{username}</span>
           </div>
 
           <div className="flex items-center gap-1">
