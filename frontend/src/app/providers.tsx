@@ -7,13 +7,14 @@ import { setOnUnauthorized } from '@/api/http'
 export function AppProviders({ children }: PropsWithChildren) {
   const hydrate = useAuthStore((state) => state.hydrate)
   const setAuthData = useAuthStore((state) => state.setAuthData)
+  const clearAuthState = useAuthStore((state) => state.clearAuthState)
 
   useEffect(() => {
     hydrate()
 
     // Handle 401 from backend API
     setOnUnauthorized(() => {
-      useAuthStore.getState().logout()
+      useAuthStore.getState().clearAuthState()
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -24,7 +25,7 @@ export function AppProviders({ children }: PropsWithChildren) {
           setAuthData(currentUser, session.access_token, { remember: true })
         }
       } else if (event === 'SIGNED_OUT') {
-        useAuthStore.getState().logout()
+        clearAuthState()
       }
     })
 
@@ -32,7 +33,7 @@ export function AppProviders({ children }: PropsWithChildren) {
       subscription.unsubscribe()
       setOnUnauthorized(() => {}) // Cleanup? Or leave empty fn
     }
-  }, [hydrate, setAuthData])
+  }, [hydrate, setAuthData, clearAuthState])
 
   return <>{children}</>
 }

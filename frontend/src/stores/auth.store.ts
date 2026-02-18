@@ -16,10 +16,12 @@ interface AuthState {
   profileCache: any | null
   isAuthenticated: boolean
   isLoading: boolean
+  isLoggingOut: boolean
   error: string | null
   login: (email: string, password: string, remember?: boolean) => Promise<void>
   signup: (name: string, email: string, password: string, remember?: boolean) => Promise<void>
   logout: () => Promise<void>
+  clearAuthState: () => void
   hydrate: (silent?: boolean) => Promise<void>
   setAuthData: (
     user: User | null,
@@ -63,6 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   profileCache: null,
   isAuthenticated: false,
   isLoading: true,
+  isLoggingOut: false,
   error: null,
 
   login: async (email: string, password: string, remember = true) => {
@@ -128,7 +131,26 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    set({ isLoading: true })
+    const current = useAuthStore.getState()
+    if (current.isLoggingOut) return
+
+    set({ isLoading: true, isLoggingOut: true })
+    const hadSession = Boolean(current.user || current.token || current.isAuthenticated)
+
+    if (!hadSession) {
+      persistToken(null)
+      persistUserId(null)
+      set({
+        user: null,
+        token: null,
+        profileCache: null,
+        isAuthenticated: false,
+        isLoading: false,
+        isLoggingOut: false,
+      })
+      return
+    }
+
     try {
       await supabaseSignOut()
       await sessionService.logoutBackend()
@@ -143,8 +165,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         profileCache: null,
         isAuthenticated: false,
         isLoading: false,
+        isLoggingOut: false,
       })
     }
+  },
+
+  clearAuthState: () => {
+    persistToken(null)
+    persistUserId(null)
+    set({
+      user: null,
+      token: null,
+      profileCache: null,
+      isAuthenticated: false,
+      isLoading: false,
+      isLoggingOut: false,
+    })
   },
 
   hydrate: async (silent = false) => {

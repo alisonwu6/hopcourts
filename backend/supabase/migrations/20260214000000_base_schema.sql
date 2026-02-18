@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ==========================================
 
 -- Countries
-CREATE TABLE countries (
+CREATE TABLE IF NOT EXISTS countries (
   key TEXT PRIMARY KEY CHECK (key = UPPER(key)), -- 'TW'
   name_zh TEXT NOT NULL,
   name_en TEXT NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE countries (
 );
 
 -- Cities
-CREATE TABLE cities (
+CREATE TABLE IF NOT EXISTS cities (
   key TEXT PRIMARY KEY CHECK (key = UPPER(key)),
   country_key TEXT REFERENCES countries(key),
   name_zh TEXT NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE cities (
 );
 
 -- Vibes
-CREATE TABLE vibes (
+CREATE TABLE IF NOT EXISTS vibes (
   key TEXT PRIMARY KEY CHECK (key IN ('CHILL', 'SOCIAL', 'FLOW', 'EXPLORER', 'GROWTH', 'COMPETITIVE', 'SUPPORTIVE')),
   name_zh TEXT NOT NULL,
   name_en TEXT NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE vibes (
 );
 
 -- Age Ranges
-CREATE TABLE age_ranges (
+CREATE TABLE IF NOT EXISTS age_ranges (
   key TEXT PRIMARY KEY CHECK (key = UPPER(key)),
   label_zh TEXT NOT NULL, -- Matched model expectation
   label_en TEXT NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE age_ranges (
 );
 
 -- Sports Catalog
-CREATE TABLE sports (
+CREATE TABLE IF NOT EXISTS sports (
   key TEXT PRIMARY KEY CHECK (key = UPPER(key)),
   label_zh TEXT NOT NULL,
   label_en TEXT NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE sports (
 -- 2. Users & Core
 -- ==========================================
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE,
@@ -94,7 +94,7 @@ CREATE TABLE users (
   onboarding_completed_at TIMESTAMPTZ
 );
 
-CREATE TABLE user_sports (
+CREATE TABLE IF NOT EXISTS user_sports (
   user_id   UUID REFERENCES users(id) ON DELETE CASCADE,
   sport_key TEXT REFERENCES sports(key) ON DELETE CASCADE,
 
@@ -109,10 +109,10 @@ CREATE TABLE user_sports (
   PRIMARY KEY (user_id, sport_key)
 );
 
-CREATE INDEX idx_user_sports_user_id ON user_sports(user_id);
-CREATE INDEX idx_user_sports_sport_key ON user_sports(sport_key);
+CREATE INDEX IF NOT EXISTS idx_user_sports_user_id ON user_sports(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_sports_sport_key ON user_sports(sport_key);
 
-CREATE TABLE user_preferences (
+CREATE TABLE IF NOT EXISTS user_preferences (
   user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   preferred_days TEXT[],
   preferred_time_slots TEXT[],
@@ -120,7 +120,7 @@ CREATE TABLE user_preferences (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE follows (
+CREATE TABLE IF NOT EXISTS follows (
   follower_id UUID REFERENCES users(id) ON DELETE CASCADE,
   following_id UUID REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -130,7 +130,7 @@ CREATE TABLE follows (
 -- 3. Venues
 -- ==========================================
 
-CREATE TABLE venues (
+CREATE TABLE IF NOT EXISTS venues (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   name_display TEXT, -- Often used in models
@@ -157,7 +157,7 @@ CREATE TABLE venues (
 );
 
 -- Additional Venue Tables mentioned in drop logs (optional but good to have placeholders)
-CREATE TABLE venue_profiles (
+CREATE TABLE IF NOT EXISTS venue_profiles (
   venue_id UUID PRIMARY KEY REFERENCES venues(id) ON DELETE CASCADE,
   logo_url TEXT,
   cover_url TEXT
@@ -166,7 +166,7 @@ CREATE TABLE venue_profiles (
 -- 4. Sessions (Activities) - Restored Old Columns
 -- ==========================================
 
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   
   host_user_id UUID REFERENCES users(id),
@@ -214,7 +214,7 @@ CREATE TABLE sessions (
 -- 5. Participation
 -- ==========================================
 
-CREATE TABLE session_participants (
+CREATE TABLE IF NOT EXISTS session_participants (
   session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
 
@@ -230,16 +230,16 @@ CREATE TABLE session_participants (
   PRIMARY KEY (session_id, user_id)
 );
 
-CREATE INDEX idx_session_participants_user_status
+CREATE INDEX IF NOT EXISTS idx_session_participants_user_status
   ON session_participants(user_id, status);
 
-CREATE INDEX idx_session_participants_session_status
+CREATE INDEX IF NOT EXISTS idx_session_participants_session_status
   ON session_participants(session_id, status);
 
 -- 6. Check-ins
 -- ==========================================
 
-CREATE TABLE check_ins (
+CREATE TABLE IF NOT EXISTS check_ins (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   session_id UUID REFERENCES sessions(id),
   user_id UUID REFERENCES users(id),
@@ -253,7 +253,7 @@ CREATE TABLE check_ins (
 -- 7. Feedback
 -- ==========================================
 
-CREATE TABLE feedback (
+CREATE TABLE IF NOT EXISTS feedback (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES users(id),
   type TEXT NOT NULL,
@@ -265,9 +265,9 @@ CREATE TABLE feedback (
 );
 
 -- Indexes
-CREATE INDEX idx_sessions_starts_at ON sessions(starts_at);
-CREATE INDEX idx_sessions_sport_key ON sessions(sport_key);
-CREATE INDEX idx_sessions_venue_id ON sessions(venue_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_starts_at ON sessions(starts_at);
+CREATE INDEX IF NOT EXISTS idx_sessions_sport_key ON sessions(sport_key);
+CREATE INDEX IF NOT EXISTS idx_sessions_venue_id ON sessions(venue_id);
 -- 002_seed_data.sql
 -- Seed Data (Matching Reverted Schema)
 
