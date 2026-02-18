@@ -58,17 +58,6 @@ export function ProfilePage() {
 
   const [unreadCount, setUnreadCount] = useState(0)
 
-  useEffect(() => {
-    notificationsService
-      .listNotifications({ limit: 1 })
-      .then((res) => {
-        if (res.ok) {
-          setUnreadCount(res.data.unread_count)
-        }
-      })
-      .catch(console.error)
-  }, [])
-
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const [showShareSheet, setShowShareSheet] = useState(false)
   const [goal, setGoal] = useState<GoalState | null>(null)
@@ -252,18 +241,31 @@ export function ProfilePage() {
     usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
 
   const [rawProfile, setRawProfile] = useState<any>(null)
+  const hasFetchedRef = React.useRef(false)
 
   // 1. Fetch Data Only (Stable dependencies)
   const fetchProfileData = useCallback(async () => {
     if (!isAuthenticated) return
 
     try {
-      // 1. Fetch Profile
+      // 1. Fetch Profile + notification summary in parallel
       let payload: any = null
-      try {
-        const profileRes = await profileService.getProfile()
-        payload = (profileRes as any)?.data ?? profileRes
-      } catch (err: any) {
+      const [profileSettled, notificationsSettled] = await Promise.allSettled([
+        profileService.getProfile(),
+        notificationsService.listNotifications({ limit: 1 }),
+      ])
+
+      if (notificationsSettled.status === 'fulfilled') {
+        const unread = (notificationsSettled.value as any)?.data?.unread_count
+        if (typeof unread === 'number') {
+          setUnreadCount(unread)
+        }
+      }
+
+      if (profileSettled.status === 'fulfilled') {
+        payload = (profileSettled.value as any)?.data ?? profileSettled.value
+      } else {
+        const err: any = profileSettled.reason
         console.warn('Profile load failed (expected for new users):', err)
         const status = err?.status || err?.response?.status
         if (status === 404) {
@@ -371,7 +373,7 @@ export function ProfilePage() {
     } finally {
       setIsProfileLoaded(true)
     }
-  }, [isAuthenticated, fetchMyEvents])
+  }, [isAuthenticated, fetchMyEvents, user, userAvatar])
 
   // 2. Map Data to VM (Reactive to dictionary changes)
   useEffect(() => {
@@ -444,8 +446,11 @@ export function ProfilePage() {
   }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar, setProfileCache])
 
   useEffect(() => {
+    if (!isAuthenticated) return
+    if (hasFetchedRef.current) return
+    hasFetchedRef.current = true
     fetchProfileData()
-  }, [])
+  }, [isAuthenticated, fetchProfileData])
 
   // 1.5 Handle deep link from ProfileRequiredSheet (navigation from other pages)
   useEffect(() => {
@@ -837,20 +842,6 @@ export function ProfilePage() {
       <div className="mx-auto w-full max-w-4xl">
         <div className="relative flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center">
-            <Link
-              to="/settings"
-              aria-label="Menu"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
-            >
-              <Menu className="h-6 w-6" />
-            </Link>
-          </div>
-
-          <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2">
-            <span className="text-xl font-bold text-slate-900">{username}</span>
-          </div>
-
-          <div className="flex items-center gap-1">
             <button
               type="button"
               aria-label="Add game"
@@ -867,6 +858,13 @@ export function ProfilePage() {
             >
               <PlusSquare className="h-6 w-6" />
             </button>
+          </div>
+
+          <div className="pointer-events-none absolute left-1/2 top-1/2 w-[60%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
+            <span className="block truncate text-xl font-bold text-slate-900">{username}</span>
+          </div>
+
+          <div className="flex items-center gap-1">
             <Link
               to="/notifications"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-800 hover:bg-slate-50 active:bg-slate-100"
@@ -877,6 +875,13 @@ export function ProfilePage() {
                   <span className="absolute right-0 top-0 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
                 )}
               </div>
+            </Link>
+            <Link
+              to="/settings"
+              aria-label="Menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+            >
+              <Menu className="h-6 w-6" />
             </Link>
           </div>
         </div>
