@@ -271,13 +271,7 @@ export function DiscoverEventsPage() {
             )
           }}
           onClickDetail={(event) => {
-            if (!isAuthenticated) {
-              setShowLoginPrompt(true)
-            } else if (!user?.onboarding_completed_at) {
-              setShowProfileRequiredSheet(true)
-            } else {
-              navigate(`/event/${event.id}`)
-            }
+            navigate(`/event/${event.id}`)
           }}
         />
       ) : (
@@ -315,13 +309,7 @@ export function DiscoverEventsPage() {
                 key={event.id}
                 event={event}
                 onViewDetails={() => {
-                  if (!isAuthenticated) {
-                    setShowLoginPrompt(true)
-                  } else if (!user?.onboarding_completed_at) {
-                    setShowProfileRequiredSheet(true)
-                  } else {
-                    navigate(`/event/${event.id}`)
-                  }
+                  navigate(`/event/${event.id}`)
                 }}
               />
             ))

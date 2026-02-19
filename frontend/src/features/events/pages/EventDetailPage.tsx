@@ -29,6 +29,8 @@ import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
+
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
   return countryCode
@@ -69,13 +71,6 @@ export function EventDetailPage() {
     }
   }, [id, fetchEventById])
 
-  useEffect(() => {
-    console.log('user', user)
-    if (isAuthenticated && !user?.onboarding_completed_at) {
-      setShowProfileRequired(true)
-    }
-  }, [isAuthenticated, user?.onboarding_completed_at])
-
   const handleShare = () => {
     // navigator.share usually requires HTTPS
     if (navigator.share) {
@@ -93,10 +88,20 @@ export function EventDetailPage() {
 
   const handleJoinClick = async () => {
     if (!isAuthenticated) {
+      try {
+        const path = `${location.pathname}${location.search}${location.hash}`
+        sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, path)
+      } catch (error) {
+        console.warn('Failed to persist post-login redirect path:', error)
+      }
       setShowLoginPrompt(true)
       return
     }
     if (!event || !id) return
+    if (!event.joined && !user?.onboarding_completed_at) {
+      setShowProfileRequired(true)
+      return
+    }
 
     // Gender Validation
     if (!event.joined && event.gender && event.gender !== 'mixed') {
@@ -224,7 +229,7 @@ export function EventDetailPage() {
 
   /* DEBUG: Check why isJoined is false -- REMOVED */
 
-  const isJoined = (event?.joined || isParticipant) ?? false
+  const isJoined = isAuthenticated ? ((event?.joined || isParticipant) ?? false) : false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
 
   // Check if current user is checked in based on event data
@@ -234,7 +239,7 @@ export function EventDetailPage() {
     return !!me?.checkedInAt
   }, [event, currentUserId])
 
-  const effectiveCheckedIn = hasCheckedIn || isCheckedInFromServer
+  const effectiveCheckedIn = isAuthenticated ? hasCheckedIn || isCheckedInFromServer : false
 
   if (isLoading || !event) {
     return <PageLoading />
@@ -569,7 +574,14 @@ export function EventDetailPage() {
 
       <LoginPromptSheet
         open={showLoginPrompt}
-        onClose={() => setShowLoginPrompt(false)}
+        onClose={() => {
+          setShowLoginPrompt(false)
+          try {
+            sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+          } catch (error) {
+            console.warn('Failed to clear post-login redirect path:', error)
+          }
+        }}
         onSignup={() => navigate('/signup')}
       />
 
@@ -719,7 +731,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         >
           <span className="flex flex-col items-center leading-tight">
             <span className="text-sm font-semibold">點我報到</span>
-            <span className="mt-1 text-xs font-medium">於{formatTime(openTime)}開放按鈕</span>
+            <span className="mt-1 text-xs font-medium">{formatTime(openTime)}開放</span>
           </span>
         </Button>
       )

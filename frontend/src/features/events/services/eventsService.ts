@@ -445,7 +445,8 @@ export const eventsService = {
       try {
         const res = await httpGet<any>('/sessions/my', { params: { role, time } })
         const items = res.data?.items ?? res.items ?? []
-        const events = items.map(mapSessionToEvent)
+        const uniqueItems = Array.from(new Map(items.map((item: any) => [item.id, item])).values())
+        const events = uniqueItems.map(mapSessionToEvent)
         const result = wrapSuccess({
           data: events,
           total: events.length,

@@ -277,11 +277,11 @@ function JoinedEventCard({
                 </div>
               )}
             </div>
-            <div>
+            <div className="text-left">
               <p className="text-sm font-semibold text-slate-900">
                 {event.host?.name || '活動發起人'}
               </p>
-              <p className="text-left text-xs text-slate-500">活動發起人</p>
+              <p className="text-xs text-slate-500">活動發起人</p>
             </div>
           </div>
         </button>
@@ -441,6 +441,10 @@ export function ProfileEventsPanel({
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
   const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents
+  const upcomingLabel =
+    upcomingEvents.length > 0 ? `即將到來 (${upcomingEvents.length})` : '即將到來'
+  const historyLabel =
+    historyEvents.length > 0 ? `歷史紀錄 (${historyEvents.length})` : '歷史紀錄'
   const empty =
     activeTab === 'upcoming'
       ? {
@@ -475,7 +479,7 @@ export function ProfileEventsPanel({
               tab === 'upcoming' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
             }`}
           >
-            即將到來 ({upcomingEvents.length})
+            {upcomingLabel}
           </button>
           <button
             type="button"
@@ -484,7 +488,7 @@ export function ProfileEventsPanel({
               tab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
             }`}
           >
-            歷史紀錄 ({historyEvents.length})
+            {historyLabel}
           </button>
         </div>
       )}

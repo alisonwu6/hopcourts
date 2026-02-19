@@ -5,6 +5,8 @@ import { sessionService } from '@/services/sessionService'
 import { useAuthStore } from '@/hooks'
 import { PageLoading } from '@/components/PageLoading'
 
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
+
 export function AuthCallback() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -41,7 +43,27 @@ export function AuthCallback() {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token)
         setOk('登入成功！為你導向中…')
-        navigate('/profile', { replace: true })
+        let redirectPath: string | null = null
+        try {
+          const storedPath = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
+          if (storedPath && storedPath.startsWith('/')) {
+            redirectPath = storedPath
+          }
+          sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+        } catch (storageError) {
+          console.warn('Failed to read post-login redirect path:', storageError)
+        }
+
+        const isOnboarded = !!context.user?.onboarding_completed_at
+        if (isOnboarded && redirectPath) {
+          navigate(redirectPath, { replace: true })
+          return
+        }
+
+        navigate('/profile', {
+          replace: true,
+          state: isOnboarded ? undefined : { openEdit: true, returnTo: redirectPath },
+        })
       } catch (bootstrapError: any) {
         setErr(bootstrapError?.message ?? 'Unable to finish sign in.')
       } finally {
