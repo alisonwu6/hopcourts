@@ -2,13 +2,17 @@ import { create } from 'zustand'
 import { CreateEventInput, EventFilter, PlayerEvent } from '@/types'
 import { eventsService } from '@/features/events/services/eventsService'
 
+type FetchOptions = {
+  force?: boolean
+}
+
 interface EventsStore {
   events: PlayerEvent[]
   selectedEvent: PlayerEvent | null
   isLoading: boolean
   error: string | null
-  fetchEvents: (filters?: EventFilter) => Promise<void>
-  fetchEventById: (id: string) => Promise<void>
+  fetchEvents: (filters?: EventFilter, options?: FetchOptions) => Promise<void>
+  fetchEventById: (id: string, options?: FetchOptions) => Promise<void>
   fetchMyEvents: () => Promise<void>
   createEvent: (input: CreateEventInput) => Promise<PlayerEvent>
   joinEvent: (eventId: string) => Promise<void>
@@ -17,16 +21,17 @@ interface EventsStore {
   setSelectedEvent: (event: PlayerEvent | null) => void
 }
 
-export const useEventsStore = create<EventsStore>((set) => ({
+export const useEventsStore = create<EventsStore>((set, get) => ({
   events: [],
   selectedEvent: null,
   isLoading: false,
   error: null,
 
-  fetchEvents: async (filters?: EventFilter) => {
-    set({ isLoading: true, error: null })
+  fetchEvents: async (filters?: EventFilter, options?: FetchOptions) => {
+    const shouldShowLoading = options?.force || get().events.length === 0
+    set({ isLoading: Boolean(shouldShowLoading), error: null })
     try {
-      const response = await eventsService.getEvents(filters)
+      const response = await eventsService.getEvents(filters, options)
       if (response.success && response.data) {
         set({ events: response.data.data, isLoading: false })
       } else {
@@ -43,10 +48,12 @@ export const useEventsStore = create<EventsStore>((set) => ({
     }
   },
 
-  fetchEventById: async (id: string) => {
-    set({ isLoading: true })
+  fetchEventById: async (id: string, options?: FetchOptions) => {
+    const selectedEvent = get().selectedEvent
+    const shouldShowLoading = options?.force || selectedEvent?.id !== id
+    set({ isLoading: Boolean(shouldShowLoading), error: null })
     try {
-      const response = await eventsService.getEventById(id)
+      const response = await eventsService.getEventById(id, options)
       if (response.success && response.data) {
         set({ selectedEvent: response.data, isLoading: false })
       } else {

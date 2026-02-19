@@ -154,7 +154,7 @@ export function EventDetailPage() {
           })
           setHasCheckedIn(true)
           // Refresh event data so participant list updates
-          void fetchEventById(id)
+          void fetchEventById(id, { force: true })
 
           showAlert('報到成功', '好好享受運動帶來的樂趣吧！', 'success')
         } catch (err: any) {
