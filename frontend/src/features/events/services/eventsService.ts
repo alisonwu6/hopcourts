@@ -74,11 +74,12 @@ const invalidateEventCaches = (eventId?: string) => {
   if (eventId) {
     eventDetailCache.delete(eventId)
     eventDetailInFlight.delete(eventId)
-    return
+  } else {
+    eventDetailCache.clear()
+    eventDetailInFlight.clear()
   }
 
-  eventDetailCache.clear()
-  eventDetailInFlight.clear()
+  // Always clear list caches as any event change might affect them
   myEventsCache.clear()
   myEventsInFlight.clear()
 }
@@ -355,9 +356,14 @@ export const eventsService = {
     })
   },
 
-  async getMyEvents(type: 'upcoming' | 'history' | 'all' = 'all'): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+  async getMyEvents(
+    type: 'upcoming' | 'history' | 'all' = 'all',
+    options?: QueryOptions
+  ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    const force = options?.force ?? false
+    const ttlMs = options?.ttlMs ?? DEFAULT_MY_EVENTS_TTL_MS
     const cached = myEventsCache.get(type)
-    if (cached && isFresh(cached.at, DEFAULT_MY_EVENTS_TTL_MS)) {
+    if (!force && cached && isFresh(cached.at, ttlMs)) {
       return cloneValue(cached.data)
     }
     if (myEventsInFlight.has(type)) {

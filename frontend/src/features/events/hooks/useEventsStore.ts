@@ -18,7 +18,7 @@ interface EventsStore {
   error: string | null
   fetchEvents: (filters?: EventFilter, options?: FetchOptions) => Promise<void>
   fetchEventById: (id: string, options?: FetchOptions) => Promise<void>
-  fetchMyEvents: (type?: 'upcoming' | 'history' | 'all') => Promise<void>
+  fetchMyEvents: (type?: 'upcoming' | 'history' | 'all', options?: FetchOptions) => Promise<void>
   createEvent: (input: CreateEventInput) => Promise<PlayerEvent>
   joinEvent: (eventId: string) => Promise<void>
   leaveEvent: (eventId: string) => Promise<void>
@@ -80,10 +80,10 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     }
   },
 
-  fetchMyEvents: async (type: 'upcoming' | 'history' | 'all' = 'upcoming') => {
+  fetchMyEvents: async (type: 'upcoming' | 'history' | 'all' = 'upcoming', options?: FetchOptions) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await eventsService.getMyEvents(type)
+      const response = await eventsService.getMyEvents(type, options)
       if (response.success && response.data) {
         if (type === 'all') {
           set({

@@ -73,9 +73,8 @@ export function MySessions() {
 
   useEffect(() => {
     if (!isAuthenticated) return
-    if (myEventsLoaded.upcoming && myEventsLoaded.history) return
-    void fetchMyEvents('all')
-  }, [isAuthenticated, myEventsLoaded.upcoming, myEventsLoaded.history, fetchMyEvents])
+    void fetchMyEvents('all', { force: true })
+  }, [isAuthenticated, fetchMyEvents])
 
 
   const upcomingEvents = useMemo(

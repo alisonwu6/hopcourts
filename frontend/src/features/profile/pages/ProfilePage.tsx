@@ -69,29 +69,13 @@ export function ProfilePage() {
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
-  const { user, isAuthenticated, isLoading, profileCache, setProfileCache } = useAuthStore()
+  const { user, isAuthenticated, isLoading } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
-  const [vm, setVm] = useState<ProfileVM | null>(
-    profileCache
-      ? {
-          username: (() => {
-            const candidate = (profileCache as any)?.username || (user as any)?.username || ''
-            return isUuid(candidate) ? '' : candidate
-          })(),
-          usernameUpdatedCount: (profileCache as any)?.username_updated_count || 0,
-          card: profileCache,
-          favoriteSportKeys: [],
-          tryingSportKeys: [],
-        }
-      : null
-  )
-  const [draftProfile, setDraftProfile] = useState<MateCardProps>(profileCache ?? emptyProfile)
+  const [vm, setVm] = useState<ProfileVM | null>(null)
+  const [draftProfile, setDraftProfile] = useState<MateCardProps>(emptyProfile)
   const [draftUsername, setDraftUsername] = useState<string>(
-    (profileCache as any)?.username ||
-      (user as any)?.username ||
-      (profileCache as any)?.display_name ||
-      ''
+    (user as any)?.username || ''
   )
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
@@ -239,7 +223,6 @@ export function ProfilePage() {
     usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
 
   const [rawProfile, setRawProfile] = useState<any>(null)
-  const hasFetchedRef = React.useRef(false)
 
   // 1. Fetch Data Only (Stable dependencies)
   const fetchProfileData = useCallback(async () => {
@@ -419,13 +402,10 @@ export function ProfilePage() {
       return mapped
     })
     setDraftUsername(nextUsername)
-    setProfileCache(mapped)
-  }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar, setProfileCache])
+  }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar])
 
   useEffect(() => {
     if (!isAuthenticated) return
-    if (hasFetchedRef.current) return
-    hasFetchedRef.current = true
     fetchProfileData()
   }, [isAuthenticated, fetchProfileData])
 
@@ -756,8 +736,6 @@ export function ProfilePage() {
         favoriteSportKeys: favoriteKeys,
         tryingSportKeys: tryingKeys,
       })
-      setProfileCache(updated)
-
       // Update AuthStore immediately
       const { user: authUser, token, setAuthData } = useAuthStore.getState()
       if (authUser && token) {
@@ -893,11 +871,7 @@ export function ProfilePage() {
             setAuth({ ...authUser, avatar: url }, token)
           }
 
-          // 3. Update cache
-          const base = (resolvedProfile ?? draftProfile) as MateCardProps
-          setProfileCache({ ...base, avatar: url })
-
-          // 4. Persist to Backend in background
+          // 3. Persist to Backend in background
           profileService
             .saveProfile({ avatar_url: url })
             .then((res) => {
