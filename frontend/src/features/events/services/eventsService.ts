@@ -35,6 +35,7 @@ const formatTwdNoDecimal = (value: unknown): string => {
 
 const DEFAULT_LIST_TTL_MS = 30_000
 const DEFAULT_DETAIL_TTL_MS = 60_000
+const DEFAULT_MY_EVENTS_TTL_MS = 15_000
 
 let eventsListCacheKey: string | null = null
 let eventsListCacheAt = 0
@@ -45,6 +46,11 @@ let eventsListInFlight:
 
 const eventDetailCache = new Map<string, { at: number; data: ApiResponse<PlayerEvent> }>()
 const eventDetailInFlight = new Map<string, Promise<ApiResponse<PlayerEvent>>>()
+const myEventsCache = new Map<
+  'upcoming' | 'history' | 'all',
+  { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
+>()
+const myEventsInFlight = new Map<'upcoming' | 'history' | 'all', Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
 
 const cloneValue = <T>(value: T): T =>
   typeof structuredClone === 'function' ? structuredClone(value) : value
@@ -73,6 +79,8 @@ const invalidateEventCaches = (eventId?: string) => {
 
   eventDetailCache.clear()
   eventDetailInFlight.clear()
+  myEventsCache.clear()
+  myEventsInFlight.clear()
 }
 
 const buildFallbackEvent = (id: string): PlayerEvent => {
@@ -347,33 +355,56 @@ export const eventsService = {
     })
   },
 
-  async getMyEvents(): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+  async getMyEvents(type: 'upcoming' | 'history' | 'all' = 'all'): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    const cached = myEventsCache.get(type)
+    if (cached && isFresh(cached.at, DEFAULT_MY_EVENTS_TTL_MS)) {
+      return cloneValue(cached.data)
+    }
+    if (myEventsInFlight.has(type)) {
+      return myEventsInFlight.get(type)!.then(cloneValue)
+    }
+
+    const request = (async () => {
     try {
-      const [upcomingRes, historyRes] = await Promise.all([
-        httpGet<any>('/sessions/my?type=upcoming'),
-        httpGet<any>('/sessions/my?type=history'),
-      ])
+      let allItems: any[] = []
+      if (type === 'all') {
+        const [upcomingRes, historyRes] = await Promise.all([
+          httpGet<any>('/sessions/my?type=upcoming'),
+          httpGet<any>('/sessions/my?type=history'),
+        ])
+        const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
+        const historyItems = historyRes.data?.items ?? historyRes.items ?? []
+        allItems = [...upcomingItems, ...historyItems]
+      } else {
+        const res = await httpGet<any>(`/sessions/my?type=${type}`)
+        allItems = res.data?.items ?? res.items ?? []
+      }
 
-      const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
-      const historyItems = historyRes.data?.items ?? historyRes.items ?? []
-
-      const allItems = [...upcomingItems, ...historyItems]
       // Deduplicate by ID just in case
       const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
 
       const events = uniqueItems.map(mapSessionToEvent)
 
-      return wrapSuccess({
+      const result = wrapSuccess({
         data: events,
         total: events.length,
         page: 1,
         pageSize: events.length,
         hasMore: false,
       })
+
+      myEventsCache.set(type, { at: Date.now(), data: result })
+      return cloneValue(result)
     } catch (err: any) {
       console.error('getMyEvents error', err)
       return wrapEmptyEvents()
     }
+    })()
+
+    myEventsInFlight.set(type, request)
+    return request.finally(() => {
+      myEventsInFlight.delete(type)
+    })
   },
 
   async createEvent(

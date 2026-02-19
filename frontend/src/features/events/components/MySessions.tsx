@@ -59,7 +59,8 @@ export function MySessions() {
       { replace: true }
     )
   }
-  const events = useEventsStore((state) => state.events)
+  const myEvents = useEventsStore((state) => state.myEvents)
+  const myEventsLoaded = useEventsStore((state) => state.myEventsLoaded)
   const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
@@ -70,21 +71,27 @@ export function MySessions() {
   const { items: sportsCatalog } = useSports('zh')
   const [showLoginSheet, setShowLoginSheet] = useState(false)
 
+  useEffect(() => {
+    if (!isAuthenticated) return
+    if (myEventsLoaded.upcoming && myEventsLoaded.history) return
+    void fetchMyEvents('all')
+  }, [isAuthenticated, myEventsLoaded.upcoming, myEventsLoaded.history, fetchMyEvents])
+
 
   const upcomingEvents = useMemo(
     () =>
-      events.filter((event) => {
+      myEvents.filter((event) => {
         return new Date(event.endTime) >= new Date()
       }),
-    [events]
+    [myEvents]
   )
 
   const historyEvents = useMemo(
     () =>
-      events.filter((event) => {
+      myEvents.filter((event) => {
         return new Date(event.endTime) < new Date()
       }),
-    [events]
+    [myEvents]
   )
 
   if (!isAuthenticated) {

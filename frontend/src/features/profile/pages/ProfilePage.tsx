@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import { MySessions } from '@/features/events/components/MySessions'
-import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
@@ -110,10 +109,9 @@ export function ProfilePage() {
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const { items: sportsCatalog, isLoading: isSportsLoading } = useSports('zh')
-  const { items: vibesCatalog, isLoading: isVibesLoading } = useVibes('zh')
-  const { items: citiesCatalog, isLoading: isCitiesLoading } = useCities(undefined, 'zh')
-  const fetchMyEvents = useEventsStore((state) => state.fetchMyEvents)
+  const { items: sportsCatalog } = useSports('zh')
+  const { items: vibesCatalog } = useVibes('zh')
+  const { items: citiesCatalog } = useCities(undefined, 'zh')
   const navigate = useNavigate()
   const location = useLocation()
   const labelForSport = useMemo(() => {
@@ -339,28 +337,7 @@ export function ProfilePage() {
         }
       }
 
-      // 4. Fetch Rest
-      const [preferencesRes] = await Promise.allSettled([
-        profileService.getPreferences(),
-        fetchMyEvents(),
-      ])
-
-      if (preferencesRes.status === 'fulfilled') {
-        const preferencesPayload: any =
-          (preferencesRes.value as any)?.data ?? preferencesRes.value ?? {}
-        const sessionsPerWeek = preferencesPayload.sessions_per_week
-        const preferredTime = preferencesPayload.preferred_time
-        const daySlots = preferencesPayload.day_slots || {}
-        setGoal({
-          sessionsPerWeek: sessionsPerWeek ? String(sessionsPerWeek) : '',
-          timeOfDay: preferredTime || '早上',
-          days: [],
-        })
-        const mergedSlots: Record<string, string[]> = { ...createDaySlots(), ...daySlots }
-        setGoalDaySlots(mergedSlots)
-        setDraftDaySlots(mergedSlots)
-        if (preferredTime) setDraftPreferredTime(preferredTime)
-      }
+      // Preferences API removed.
     } catch (err) {
       console.error('Core profile load failed', err)
       setVm(null)
@@ -373,7 +350,7 @@ export function ProfilePage() {
     } finally {
       setIsProfileLoaded(true)
     }
-  }, [isAuthenticated, fetchMyEvents, user, userAvatar])
+  }, [isAuthenticated, user, userAvatar])
 
   // 2. Map Data to VM (Reactive to dictionary changes)
   useEffect(() => {
@@ -490,15 +467,6 @@ export function ProfilePage() {
     if (isSavingGoal) return
     setIsSavingGoal(true)
     try {
-      const sessions = draftGoal.sessionsPerWeek
-        ? Number(draftGoal.sessionsPerWeek)
-        : draftGoal.sessionsPerWeek
-      await profileService.savePreferences({
-        sessions_per_week: sessions || null,
-        preferred_time: draftPreferredTime || null,
-        day_slots: draftDaySlots,
-      })
-
       setGoal({ ...draftGoal, timeOfDay: draftPreferredTime })
       setGoalDaySlots(draftDaySlots)
       setShowGoalSheet(false)
@@ -830,9 +798,7 @@ export function ProfilePage() {
     }
   }
 
-  const isCriticalDataLoading = isSportsLoading || isVibesLoading || isCitiesLoading
-
-  if (isLoading || !isProfileLoaded || isCriticalDataLoading) {
+  if (isLoading || !isProfileLoaded) {
     return <PageLoading />
   }
   if (!isAuthenticated) return null
@@ -1003,7 +969,6 @@ export function ProfilePage() {
         open={showEditSheet}
         onClose={() => {
           setShowEditSheet(false)
-          fetchProfileData()
         }}
         showHandle={false}
         disableContainer
@@ -1011,7 +976,6 @@ export function ProfilePage() {
         <SheetLayout
           onClose={() => {
             setShowEditSheet(false)
-            fetchProfileData()
           }}
           title="我的運動卡"
           subtitle="保持最新運動狀態"

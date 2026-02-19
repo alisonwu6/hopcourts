@@ -345,11 +345,6 @@ export function EventDetailPage() {
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
-            {event.updatedAt && (
-              <p className="text-right text-xs text-slate-400">
-                最後更新時間 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
-              </p>
-            )}
             <div
               className="flex cursor-pointer items-center gap-3 transition"
               onClick={() => {
@@ -367,9 +362,15 @@ export function EventDetailPage() {
               </div>
             </div>
 
-            <hr className="my-6 border-slate-200" />
+            <hr className="my-3 border-slate-200" />
 
-            <div className="mt-6 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
+            {event.updatedAt && (
+              <p className="mb-6 text-xs text-slate-400">
+                活動最後更新時間 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                 {sportLabel}
               </span>

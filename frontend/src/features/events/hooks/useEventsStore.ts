@@ -8,12 +8,17 @@ type FetchOptions = {
 
 interface EventsStore {
   events: PlayerEvent[]
+  myEvents: PlayerEvent[]
+  myEventsLoaded: {
+    upcoming: boolean
+    history: boolean
+  }
   selectedEvent: PlayerEvent | null
   isLoading: boolean
   error: string | null
   fetchEvents: (filters?: EventFilter, options?: FetchOptions) => Promise<void>
   fetchEventById: (id: string, options?: FetchOptions) => Promise<void>
-  fetchMyEvents: () => Promise<void>
+  fetchMyEvents: (type?: 'upcoming' | 'history' | 'all') => Promise<void>
   createEvent: (input: CreateEventInput) => Promise<PlayerEvent>
   joinEvent: (eventId: string) => Promise<void>
   leaveEvent: (eventId: string) => Promise<void>
@@ -23,6 +28,11 @@ interface EventsStore {
 
 export const useEventsStore = create<EventsStore>((set, get) => ({
   events: [],
+  myEvents: [],
+  myEventsLoaded: {
+    upcoming: false,
+    history: false,
+  },
   selectedEvent: null,
   isLoading: false,
   error: null,
@@ -70,12 +80,32 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     }
   },
 
-  fetchMyEvents: async () => {
+  fetchMyEvents: async (type: 'upcoming' | 'history' | 'all' = 'upcoming') => {
     set({ isLoading: true, error: null })
     try {
-      const response = await eventsService.getMyEvents()
+      const response = await eventsService.getMyEvents(type)
       if (response.success && response.data) {
-        set({ events: response.data.data, isLoading: false })
+        if (type === 'all') {
+          set({
+            myEvents: response.data.data,
+            isLoading: false,
+            myEventsLoaded: { upcoming: true, history: true },
+          })
+        } else {
+          set((state) => {
+            const merged = Array.from(
+              new Map([...state.myEvents, ...response.data!.data].map((item) => [item.id, item])).values()
+            )
+            return {
+              myEvents: merged,
+              isLoading: false,
+              myEventsLoaded: {
+                ...state.myEventsLoaded,
+                [type]: true,
+              },
+            }
+          })
+        }
       } else {
         set({
           error: response.error?.message ?? 'Failed to load events',
@@ -94,8 +124,9 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     try {
       const response = await eventsService.createEvent(input)
       if (response.success && response.data) {
-        set((state) => ({
+      set((state) => ({
           events: [...state.events, response.data!],
+          myEventsLoaded: { upcoming: false, history: false },
           error: null,
         }))
         return response.data
@@ -117,6 +148,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
         set((state) => ({
           events: state.events.map((event) => (event.id === eventId ? response.data! : event)),
           selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
+          myEventsLoaded: { upcoming: false, history: false },
         }))
       } else {
         set({
@@ -135,6 +167,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
         set((state) => ({
           events: state.events.map((event) => (event.id === eventId ? response.data! : event)),
           selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
+          myEventsLoaded: { upcoming: false, history: false },
         }))
       } else {
         set({
