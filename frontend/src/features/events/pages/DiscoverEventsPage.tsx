@@ -36,7 +36,6 @@ import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
 type SportFilterOption = { key: string; label: string; icon?: string | null }
 
-import { profileService } from '@/features/profile/profile.service'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
 export function DiscoverEventsPage() {
@@ -52,9 +51,10 @@ export function DiscoverEventsPage() {
   const toggleMap = () => {
     setSearchParams(
       (prev) => {
-        if (showMap) prev.delete('view')
-        else prev.set('view', 'map')
-        return prev
+        const next = new URLSearchParams(prev)
+        if (showMap) next.delete('view')
+        else next.set('view', 'map')
+        return next
       },
       { replace: true }
     )
@@ -224,10 +224,11 @@ export function DiscoverEventsPage() {
                     e.stopPropagation()
                     setSearchParams(
                       (prev) => {
-                        prev.delete('startDate')
-                        prev.delete('endDate')
-                        prev.delete('sports')
-                        return prev
+                        const next = new URLSearchParams(prev)
+                        next.delete('startDate')
+                        next.delete('endDate')
+                        next.delete('sports')
+                        return next
                       },
                       { replace: true }
                     )
@@ -261,9 +262,10 @@ export function DiscoverEventsPage() {
           onSelectEvent={(e) => {
             setSearchParams(
               (prev) => {
-                if (e) prev.set('event', e.id)
-                else prev.delete('event')
-                return prev
+                const next = new URLSearchParams(prev)
+                if (e) next.set('event', e.id)
+                else next.delete('event')
+                return next
               },
               { replace: true }
             )
@@ -337,18 +339,19 @@ export function DiscoverEventsPage() {
         onApply={(range, sports) => {
           setSearchParams(
             (prev) => {
-              if (range.start) prev.set('startDate', range.start.toISOString())
-              else prev.delete('startDate')
+              const next = new URLSearchParams(prev)
+              if (range.start) next.set('startDate', range.start.toISOString())
+              else next.delete('startDate')
 
-              if (range.end) prev.set('endDate', range.end.toISOString())
-              else prev.delete('endDate')
+              if (range.end) next.set('endDate', range.end.toISOString())
+              else next.delete('endDate')
 
               if (sports.length && !sports.includes('all')) {
-                prev.set('sports', sports.join(','))
+                next.set('sports', sports.join(','))
               } else {
-                prev.delete('sports')
+                next.delete('sports')
               }
-              return prev
+              return next
             },
             { replace: true }
           )
