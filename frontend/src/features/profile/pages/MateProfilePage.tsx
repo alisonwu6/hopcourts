@@ -211,19 +211,21 @@ export function MateProfilePage() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto w-full max-w-4xl pb-6">
-        <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
-          <button
-            type="button"
-            aria-label="Go back"
-            onClick={() => navigate(-1)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 "
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-slate-900">{headerName}</span>
+        <div className="relative flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+          <div className="flex w-10 items-center">
+            <button
+              type="button"
+              aria-label="Go back"
+              onClick={() => navigate(-1)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 "
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
           </div>
-          <div className="ml-auto" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 w-[68%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
+            <span className="block truncate text-2xl font-bold text-slate-900">{headerName}</span>
+          </div>
+          <div className="w-10" aria-hidden="true" />
         </div>
 
         {error ? (
