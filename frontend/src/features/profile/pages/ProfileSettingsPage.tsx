@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { ChevronRight, ShieldCheck, UserRound, LogOut, Info, Mail, BookOpen, FileText } from 'lucide-react'
+import { ChevronRight, UserRound, LogOut, Info, Mail, BookOpen, FileText } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 
 const generalItems = [
   { key: 'account', label: '帳號設定', icon: UserRound },
-  { key: 'privacy', label: '隱私權與安全', icon: ShieldCheck },
 ]
 
 const otherItems = [
@@ -53,7 +52,6 @@ export function ProfileSettingsPage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left "
                 onClick={() => {
                   if (key === 'account') navigate('/settings/account')
-                  if (key === 'privacy') navigate('/settings/privacy')
                 }}
               >
                 <div className="flex items-center gap-3">

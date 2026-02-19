@@ -16,7 +16,6 @@ import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
-import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import { AboutPage } from '@/features/profile/pages/AboutPage'
 import { StoryPage } from '@/features/profile/pages/StoryPage'
 import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
@@ -261,16 +260,6 @@ function AuthenticatedApp() {
         }
       />
       <Route
-        path="/settings/privacy"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <PrivacySettingsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
         path="/settings/contact"
         element={
           <RequireAuth>
@@ -361,10 +350,6 @@ function GuestApp() {
       />
       <Route
         path="/settings/account"
-        element={<Navigate to="/events" replace />}
-      />
-      <Route
-        path="/settings/privacy"
         element={<Navigate to="/events" replace />}
       />
       <Route path="*" element={<Navigate to="/" replace />} />
