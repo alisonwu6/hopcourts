@@ -9,6 +9,7 @@ import clsx from 'clsx'
 import {
   Calendar,
   CircleDollarSign,
+  ExternalLink,
   MapPin,
   MessageCircle,
   PersonStanding,
@@ -279,6 +280,28 @@ export function EventDetailPage() {
   const feeNote = event.priceNote?.trim() || '無'
   const participantRule =
     minPeople === 1 ? `保證開團｜上限${maxPeople}人` : `${minPeople}人成團｜上限${maxPeople}人`
+  const locationLabel =
+    event.location.name && event.location.name !== event.location.address
+      ? `${event.location.name} (${event.location.address})`
+      : event.location.address || event.location.name || '地點待確認'
+  const handleOpenMap = () => {
+    if (event.location.lat && event.location.lng) {
+      window.open(
+        `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+      return
+    }
+    const query = event.location.address || event.location.name
+    if (query) {
+      window.open(
+        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+    }
+  }
 
   // Photos: using heroImage as main, maybe carousel later?
   // Current UI only shows one hero image.
@@ -393,34 +416,19 @@ export function EventDetailPage() {
               />
               <div
                 className={clsx(
-                  'group cursor-pointer transition active:opacity-70',
+                  'group flex items-start justify-between gap-2 transition',
                   event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
                 )}
-                onClick={() => {
-                  if (event.location.lat && event.location.lng) {
-                    window.open(
-                      `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
-                      '_blank'
-                    )
-                  } else {
-                    const query = event.location.address || event.location.name
-                    if (query) {
-                      window.open(
-                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-                        '_blank'
-                      )
-                    }
-                  }
-                }}
               >
-                <InfoRow
-                  icon={MapPin}
-                  label={
-                    event.location.name && event.location.name !== event.location.address
-                      ? `${event.location.name} (${event.location.address})`
-                      : event.location.address
-                  }
-                />
+                <InfoRow icon={MapPin} label={locationLabel} />
+                <button
+                  type="button"
+                  aria-label="在地圖中開啟"
+                  onClick={handleOpenMap}
+                  className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
+                </button>
               </div>
               <InfoRow icon={CircleDollarSign} label={feeLine2} />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
