@@ -434,8 +434,18 @@ export const eventsService = {
         skill_level: (input.skillLevel as any) ?? 'any',
         gender: input.gender ?? 'mixed',
         isFree: input.isFree ?? true,
-        price_total: input.priceTotal ?? undefined,
-        price_per_person: input.pricePerPerson ?? undefined,
+        price_total:
+          input.isFree
+            ? null
+            : (input.priceMode ?? 'total') === 'person'
+              ? null
+              : (input.priceTotal ?? null),
+        price_per_person:
+          input.isFree
+            ? null
+            : (input.priceMode ?? 'total') === 'total'
+              ? null
+              : (input.pricePerPerson ?? null),
         price_mode: input.priceMode ?? 'total',
         priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
@@ -484,8 +494,18 @@ export const eventsService = {
         skill_level: input.skillLevel,
         gender: input.gender,
         is_free: input.isFree,
-        price_total: input.priceTotal,
-        price_per_person: input.pricePerPerson,
+        price_total:
+          input.isFree
+            ? null
+            : (input.priceMode ?? 'total') === 'person'
+              ? null
+              : (input.priceTotal ?? null),
+        price_per_person:
+          input.isFree
+            ? null
+            : (input.priceMode ?? 'total') === 'total'
+              ? null
+              : (input.pricePerPerson ?? null),
         price_mode: input.priceMode,
         priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,

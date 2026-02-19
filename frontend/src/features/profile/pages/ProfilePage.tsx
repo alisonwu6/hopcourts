@@ -223,10 +223,13 @@ export function ProfilePage() {
     usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
 
   const [rawProfile, setRawProfile] = useState<any>(null)
+  const hasBootstrappedRef = React.useRef(false)
 
   // 1. Fetch Data Only (Stable dependencies)
   const fetchProfileData = useCallback(async () => {
     if (!isAuthenticated) return
+    const authUser = useAuthStore.getState().user as any
+    const fallbackAvatar = authUser?.avatar || authUser?.avatar_url || authUser?.avatarUrl || ''
 
     try {
       // 1. Fetch Profile + notification summary in parallel
@@ -257,8 +260,8 @@ export function ProfilePage() {
 
         const prefill: MateCardProps = {
           ...emptyProfile,
-          name: (user as any)?.name || '',
-          avatar: userAvatar || '',
+          name: authUser?.name || '',
+          avatar: fallbackAvatar,
         }
         setDraftProfile(prefill)
         setIsProfileLoaded(true)
@@ -326,14 +329,14 @@ export function ProfilePage() {
       setVm(null)
       const prefill: MateCardProps = {
         ...emptyProfile,
-        name: (user as any)?.name || '',
-        avatar: userAvatar || '',
+        name: authUser?.name || '',
+        avatar: fallbackAvatar,
       }
       setDraftProfile(prefill)
     } finally {
       setIsProfileLoaded(true)
     }
-  }, [isAuthenticated, user, userAvatar])
+  }, [isAuthenticated])
 
   // 2. Map Data to VM (Reactive to dictionary changes)
   useEffect(() => {
@@ -405,7 +408,12 @@ export function ProfilePage() {
   }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar])
 
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!isAuthenticated) {
+      hasBootstrappedRef.current = false
+      return
+    }
+    if (hasBootstrappedRef.current) return
+    hasBootstrappedRef.current = true
     fetchProfileData()
   }, [isAuthenticated, fetchProfileData])
 
@@ -519,6 +527,7 @@ export function ProfilePage() {
       const vibe = value as NonNullable<MateCardProps['vibe']>
       nextValue = rawKey || (vibe ? vibeUnionToKey.get(vibe) : undefined) || value
     }
+    setFieldError(null)
     setActiveField(field)
     setFieldValue(nextValue)
   }
@@ -527,14 +536,10 @@ export function ProfilePage() {
     if (!activeField) return
     const value = fieldValue.trim()
     const next = { ...draftProfile }
-    const payload: Record<string, any> = {
-      avatar_url: next.avatar,
-    }
 
     switch (activeField) {
       case 'name':
         next.name = value
-        payload.display_name = value
         break
       case 'username':
         if (!value) {
@@ -549,126 +554,54 @@ export function ProfilePage() {
           setFieldError('帳號長度需介於 3 至 10 個字')
           return
         }
+        {
+          const currentUsername = ((vm?.username || (user as any)?.username || '') as string).trim()
+          const isSameUsername = value.toLowerCase() === currentUsername.toLowerCase()
+          if (!isSameUsername) {
+            setIsSavingProfile(true)
+            try {
+              // 200 => already exists, 404 => available
+              await profileService.getProfileByUsername(value)
+              setFieldError('使用者名稱已存在，請選擇其他名稱')
+              return
+            } catch (err: any) {
+              const status = err?.status || err?.response?.status
+              if (status !== 404) {
+                setFieldError('目前無法驗證帳號，請稍後再試')
+                return
+              }
+            } finally {
+              setIsSavingProfile(false)
+            }
+          }
+        }
         setDraftUsername(value)
-        payload.username = value
         break
       case 'location':
         next.location = labelForCity(value) || value
         next.cityKey = value
-        payload.city_key = value
         break
       case 'vibe':
         next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
         next.vibeKey = value
-        payload.vibe_key = value
         break
       case 'bio':
         next.blurb = value
-        payload.bio = value
         break
       case 'gender':
         next.gender = value
-        payload.gender = value
         break
       default:
         break
     }
     setDraftProfile(next)
-
-    // Only patch immediately if profile exists.
-    // New users (vm=null) will save all at once via handleSaveProfile.
-    // For new users (vm=null), we still want to save fields immediately to DB.
-    // But we perform client-side username validation first if applicable.
-    if (!vm) {
-      if (activeField === 'username' && fieldValue) {
-        try {
-          // Check availability (returns 200 if taken, 404 if available)
-          await profileService.getProfileByUsername(fieldValue)
-          setFieldError('使用者名稱已存在，請選擇其他名稱')
-          return // Keep sheet open
-        } catch (err: any) {
-          const status = err?.status || err?.response?.status
-          if (status !== 404) {
-            console.error('Failed to validate username', err)
-          }
-        }
-      }
-      // Proceed to save API call below...
-    }
-
-    let shouldCloseFieldSheet = false
-    try {
-      const res = await profileService.saveProfile(payload)
-      const data = (res as any)?.data ?? res
-      setRawProfile((prev: any) => ({ ...prev, ...data }))
-
-      // Update AuthStore immediately without full hydrate (GET)
-      const { user: authUser, token, setAuthData } = useAuthStore.getState()
-      if (authUser && token) {
-        const savedUser = data.user || data
-        const updatedUser = {
-          ...authUser,
-          name: savedUser.display_name || authUser.name,
-          avatar: savedUser.avatar_url || authUser.avatar,
-          gender: savedUser.gender || authUser.gender,
-          bio: savedUser.bio || authUser.bio,
-          location: savedUser.city_key || authUser.location,
-          onboarding_completed_at:
-            savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
-        }
-        setAuthData(updatedUser, token)
-      }
-      shouldCloseFieldSheet = true
-    } catch (err: any) {
-      const status = err?.status || err?.response?.status
-      if (status === 409) {
-        setFieldError('使用者名稱已存在，請選擇其他名稱')
-      } else {
-        setFieldError('儲存失敗，請稍後再試')
-        console.error('Failed to patch profile field', err)
-      }
-    } finally {
-      if (shouldCloseFieldSheet) {
-        setActiveField(null)
-      }
-    }
+    setActiveField(null)
   }
 
-  const saveSports = async () => {
-    setIsSavingProfile(true)
-    try {
-      const favSports = (draftProfile.sports || []).filter(Boolean)
-      const trySports = (draftProfile.trying || []).filter(Boolean)
-
-      const favoriteKeys = Array.from(new Set(favSports.map((label) => keyForLabel(label))))
-      const tryingKeys = Array.from(new Set(trySports.map((label) => keyForLabel(label))))
-      const res = await profileService.saveProfile({
-        favorite_sports: favoriteKeys,
-        trying_sports: tryingKeys,
-      })
-      const data = (res as any)?.data ?? res
-      setRawProfile((prev: any) => ({ ...prev, ...data }))
-
-      // Update AuthStore immediately without full hydrate (GET)
-      const { user: authUser, token, setAuthData } = useAuthStore.getState()
-      if (authUser && token) {
-        const savedUser = data.user || data
-        setAuthData(
-          {
-            ...authUser,
-            onboarding_completed_at:
-              savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
-          },
-          token
-        )
-      }
-      setShowSportsSheet(false)
-      setShowTryingSheet(false)
-    } catch (err) {
-      console.error('Failed to save sports', err)
-    } finally {
-      setIsSavingProfile(false)
-    }
+  const saveSports = () => {
+    // Sports selections are local draft only; final save happens on "完成".
+    setShowSportsSheet(false)
+    setShowTryingSheet(false)
   }
 
   const handleSaveProfile = async () => {
@@ -682,36 +615,22 @@ export function ProfilePage() {
         new Set((draftProfile.trying || []).filter(Boolean).map((label) => keyForLabel(label)))
       )
 
-      // If updating existing (vm exists) AND onboarding is complete, just close.
-      // Auto-save handles fields.
-      if ((user as any)?.onboarding_completed_at) {
-        setShowEditSheet(false)
-        setIsSavingProfile(false)
-        return
+      const payload: any = {
+        display_name: draftProfile.name,
+        bio: draftProfile.blurb,
+        vibe_key:
+          (draftProfile as any).vibeKey ||
+          vibeUnionToKey.get(draftProfile.vibe as string) ||
+          undefined,
+        city_key: draftProfile.cityKey || undefined,
+        gender: draftProfile.gender || undefined,
+        age_range_key: draftProfile.ageRangeKey || undefined,
+        favorite_sports: favoriteKeys,
+        trying_sports: tryingKeys,
+        avatar_url: draftProfile.avatar || undefined,
       }
-
-      // If creating new profile (vm null) or incomplete onboarding, send creation payload.
-      let payload: any = {}
-
-      if (!(user as any)?.onboarding_completed_at) {
-        // For first-time users, we still send the full creation payload
-        payload = {
-          display_name: draftProfile.name,
-          bio: draftProfile.blurb,
-          vibe_key:
-            (draftProfile as any).vibeKey ||
-            vibeUnionToKey.get(draftProfile.vibe as string) ||
-            undefined,
-          city_key: draftProfile.cityKey || undefined,
-          gender: draftProfile.gender || undefined,
-          age_range_key: draftProfile.ageRangeKey || undefined,
-          favorite_sports: favoriteKeys,
-          trying_sports: tryingKeys,
-          avatar_url: draftProfile.avatar || undefined,
-        }
-        if (draftUsername && !isUuid(draftUsername)) {
-          payload.username = draftUsername
-        }
+      if (draftUsername && !isUuid(draftUsername)) {
+        payload.username = draftUsername
       }
 
       const res = await profileService.saveProfile(payload)

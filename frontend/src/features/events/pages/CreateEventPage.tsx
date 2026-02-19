@@ -74,6 +74,13 @@ const initialState: FormState = {
   placeName: '',
 }
 
+const normalizeTwdIntegerString = (value: unknown): string => {
+  if (value === null || value === undefined || value === '') return ''
+  const num = Number(value)
+  if (!Number.isFinite(num)) return ''
+  return String(Math.round(num))
+}
+
 export default function CreateEventPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -142,10 +149,12 @@ export default function CreateEventPage() {
                 : (draft.priceTotal ?? draft.pricePerPerson)
             )
               ? draft.priceMode === 'person'
-                ? String(draft.pricePerPerson)
+                ? normalizeTwdIntegerString(draft.pricePerPerson)
                 : draft.maxAttendees
-                  ? String(draft.priceTotal ?? draft.pricePerPerson * draft.maxAttendees)
-                  : String(draft.priceTotal ?? draft.pricePerPerson)
+                  ? normalizeTwdIntegerString(
+                      draft.priceTotal ?? draft.pricePerPerson * draft.maxAttendees
+                    )
+                  : normalizeTwdIntegerString(draft.priceTotal ?? draft.pricePerPerson)
               : '',
             priceNote: (draft as any).priceNote || '',
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
@@ -289,6 +298,10 @@ export default function CreateEventPage() {
         }))
         return
       }
+    }
+    if (name === 'price') {
+      setForm((prev) => ({ ...prev, price: normalizeTwdIntegerString(value) }))
+      return
     }
     setForm((prev) => ({ ...prev, [name]: value }))
   }
@@ -465,7 +478,7 @@ export default function CreateEventPage() {
       if (!Number.isNaN(priceVal) && capacity > 0) {
         if (costMode === 'total') {
           priceTotal = priceVal
-          pricePerPerson = Math.round(priceVal / capacity)
+          pricePerPerson = undefined
         } else {
           priceTotal = undefined
           pricePerPerson = priceVal
@@ -788,6 +801,7 @@ export default function CreateEventPage() {
                       name="price"
                       type="number"
                       min={0}
+                      step={1}
                       value={form.price}
                       onChange={handleInputChange}
                       placeholder={costMode === 'total' ? '例如: 2000' : '例如: 200'}
