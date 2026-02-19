@@ -12,13 +12,15 @@ interface EventsStore {
   myEventsLoaded: {
     upcoming: boolean
     history: boolean
+    hosted: boolean
+    joined: boolean
   }
   selectedEvent: PlayerEvent | null
   isLoading: boolean
   error: string | null
   fetchEvents: (filters?: EventFilter, options?: FetchOptions) => Promise<void>
   fetchEventById: (id: string, options?: FetchOptions) => Promise<void>
-  fetchMyEvents: (type?: 'upcoming' | 'history' | 'all', options?: FetchOptions) => Promise<void>
+  fetchMyEvents: (type?: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined', options?: FetchOptions) => Promise<void>
   createEvent: (input: CreateEventInput) => Promise<PlayerEvent>
   joinEvent: (eventId: string) => Promise<void>
   leaveEvent: (eventId: string) => Promise<void>
@@ -32,6 +34,8 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
   myEventsLoaded: {
     upcoming: false,
     history: false,
+    hosted: false,
+    joined: false,
   },
   selectedEvent: null,
   isLoading: false,
@@ -80,7 +84,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     }
   },
 
-  fetchMyEvents: async (type: 'upcoming' | 'history' | 'all' = 'upcoming', options?: FetchOptions) => {
+  fetchMyEvents: async (type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'upcoming', options?: FetchOptions) => {
     set({ isLoading: true, error: null })
     try {
       const response = await eventsService.getMyEvents(type, options)
@@ -89,7 +93,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
           set({
             myEvents: response.data.data,
             isLoading: false,
-            myEventsLoaded: { upcoming: true, history: true },
+            myEventsLoaded: { upcoming: true, history: true, hosted: true, joined: true },
           })
         } else {
           set((state) => {
@@ -124,9 +128,9 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     try {
       const response = await eventsService.createEvent(input)
       if (response.success && response.data) {
-      set((state) => ({
+        set((state) => ({
           events: [...state.events, response.data!],
-          myEventsLoaded: { upcoming: false, history: false },
+          myEventsLoaded: { upcoming: false, history: false, hosted: false, joined: false },
           error: null,
         }))
         return response.data
@@ -148,7 +152,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
         set((state) => ({
           events: state.events.map((event) => (event.id === eventId ? response.data! : event)),
           selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
-          myEventsLoaded: { upcoming: false, history: false },
+          myEventsLoaded: { upcoming: false, history: false, hosted: false, joined: false },
         }))
       } else {
         set({
@@ -167,7 +171,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
         set((state) => ({
           events: state.events.map((event) => (event.id === eventId ? response.data! : event)),
           selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
-          myEventsLoaded: { upcoming: false, history: false },
+          myEventsLoaded: { upcoming: false, history: false, hosted: false, joined: false },
         }))
       } else {
         set({

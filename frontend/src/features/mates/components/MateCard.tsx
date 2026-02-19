@@ -29,6 +29,8 @@ export type MateCardProps = {
   friendCount?: number
   joinedCount?: number
   hostedCount?: number
+  onHostedClick?: () => void
+  onJoinedClick?: () => void
   onTeammatesClick?: () => void
 }
 
@@ -46,6 +48,8 @@ export function MateCard({
   friendCount = 0,
   joinedCount = 0,
   hostedCount = 0,
+  onHostedClick,
+  onJoinedClick,
   onTeammatesClick,
 }: MateCardProps) {
   const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
@@ -107,21 +111,35 @@ export function MateCard({
           {/* Stats Bar */}
           {/* Stats Bar */}
           <div className="flex w-full divide-x divide-slate-300/50 border-y border-slate-300/50 py-2">
-            <div className="flex-1 pr-2">
+            <button
+              type="button"
+              className={clsx(
+                'flex-1 pr-2 text-left transition-opacity',
+                onHostedClick ? 'cursor-pointer hover:opacity-70' : 'cursor-default'
+              )}
+              onClick={onHostedClick}
+            >
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{hostedCount}</span>
                 <span className="text-[10px] font-medium text-slate-600">場</span>
               </div>
               <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">主辦活動</span>
-            </div>
+            </button>
 
-            <div className="flex-1 pl-4">
+            <button
+              type="button"
+              className={clsx(
+                'flex-1 pl-4 text-left transition-opacity',
+                onJoinedClick ? 'cursor-pointer hover:opacity-70' : 'cursor-default'
+              )}
+              onClick={onJoinedClick}
+            >
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{joinedCount}</span>
                 <span className="text-[10px] font-medium text-slate-600">場</span>
               </div>
               <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">參與活動</span>
-            </div>
+            </button>
 
             <div 
               className={clsx(

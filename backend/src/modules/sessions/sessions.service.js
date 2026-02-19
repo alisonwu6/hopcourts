@@ -49,15 +49,48 @@ async function listSessions(params = {}) {
   }
 }
 
-async function listMySessions({ userId, type = 'upcoming', limit, offset }) {
+async function listMySessions({ userId, type = 'upcoming', role, time, limit, offset }) {
   try {
-    let sessions = []
-    if (type === 'history') {
-      sessions = await sessionsModel.listMyHistorySessions({ userId, limit, offset })
-    } else {
-      sessions = await sessionsModel.listMyUpcomingSessions({ userId, limit, offset })
+    // Backward compatible: support legacy `type` and new `role + time`.
+    let resolvedRole = role
+    let resolvedTime = time
+
+    if (!resolvedRole && !resolvedTime) {
+      if (type === 'hosted') {
+        resolvedRole = 'hosted'
+        resolvedTime = 'upcoming'
+      } else if (type === 'joined') {
+        resolvedRole = 'joined'
+        resolvedTime = 'upcoming'
+      } else if (type === 'history') {
+        resolvedRole = 'all'
+        resolvedTime = 'history'
+      } else {
+        resolvedRole = 'all'
+        resolvedTime = 'upcoming'
+      }
     }
-    
+
+    if (!resolvedRole) resolvedRole = 'all'
+    if (!resolvedTime) resolvedTime = 'upcoming'
+
+    let sessions = []
+    if (resolvedTime === 'history') {
+      sessions = await sessionsModel.listMyHistorySessions({
+        userId,
+        limit,
+        offset,
+        role: resolvedRole,
+      })
+    } else {
+      sessions = await sessionsModel.listMyUpcomingSessions({
+        userId,
+        limit,
+        offset,
+        role: resolvedRole,
+      })
+    }
+
     return {
       items: sessions,
       page: {

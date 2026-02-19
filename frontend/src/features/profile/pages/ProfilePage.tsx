@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import { MySessions } from '@/features/events/components/MySessions'
 import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
@@ -16,9 +15,9 @@ import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
+import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel'
 import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
-import type { ApiResponse } from '@/api/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 
@@ -74,9 +73,7 @@ export function ProfilePage() {
   const userId = (user as any)?.id
   const [vm, setVm] = useState<ProfileVM | null>(null)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(emptyProfile)
-  const [draftUsername, setDraftUsername] = useState<string>(
-    (user as any)?.username || ''
-  )
+  const [draftUsername, setDraftUsername] = useState<string>((user as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [isProfileLoaded, setIsProfileLoaded] = useState(false)
@@ -762,10 +759,13 @@ export function ProfilePage() {
           avatarFallback={userAvatar || ''}
           actionLabel="編輯運動卡"
           actionClassName=""
+          onHostedClick={() => navigate('/profile/hosted-events')}
+          onJoinedClick={() => navigate('/profile/joined-events')}
           onTeammatesClick={() => navigate('/circle')}
         />
         <div className="mt-4 space-y-4 px-3">
-          <MySessions />
+          <h3 className="px-1 text-xl font-semibold text-slate-700">近期活動</h3>
+          <ProfileEventsPanel mode="all" showTimeTabs={false} />
         </div>
       </div>
     </div>

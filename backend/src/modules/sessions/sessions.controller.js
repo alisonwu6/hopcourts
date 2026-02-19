@@ -115,11 +115,14 @@ async function handleListMySessions(req, res, next) {
     const userId = resolveUserId(req)
     if (!userId) throw Errors.unauthenticated('User id required')
     const params = buildListParams(req.query || {})
-    // Need to pass type from query
     const type = req.query.type || 'upcoming'
+    const role = req.query.role ? String(req.query.role) : undefined
+    const time = req.query.time ? String(req.query.time) : undefined
     const data = await listMySessions({
       userId,
       type,
+      role,
+      time,
       limit: params.limit,
       offset: params.offset,
     })

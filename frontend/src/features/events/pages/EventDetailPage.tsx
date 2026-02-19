@@ -636,7 +636,6 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   const now = new Date()
   const startTime = new Date(event.startTime)
   const endTime = new Date(event.endTime)
-  const isPast = endTime < now
 
   // Check-in window logic
   // Use event configuration or defaults (30m before, 60m after)
@@ -661,7 +660,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   if (hasCheckedIn) {
     mainButton = (
       <Button disabled className="bg-emerald-600 text-white opacity-100">
-        已報到 ✓
+        已完成報到 ✓
       </Button>
     )
   } else if (isJoined) {
@@ -730,12 +729,6 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         </p>
       )
     }
-  } else if (isPast) {
-    mainButton = (
-      <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">
-        活動已結束
-      </Button>
-    )
   } else if (isFull) {
     mainButton = (
       <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">

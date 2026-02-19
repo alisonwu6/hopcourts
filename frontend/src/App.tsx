@@ -14,6 +14,8 @@ import { VenuePage } from '@/features/events/pages/VenuePage'
 import { VenueListPage } from '@/features/events/pages/VenueListPage'
 import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
+import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage'
+import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
 import { AboutPage } from '@/features/profile/pages/AboutPage'
@@ -243,6 +245,26 @@ function AuthenticatedApp() {
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>
               <TeammatesPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile/hosted-events"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <HostedEventsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile/joined-events"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <JoinedEventsPage />
             </AppChrome>
           </RequireAuth>
         }

@@ -47,10 +47,18 @@ let eventsListInFlight:
 const eventDetailCache = new Map<string, { at: number; data: ApiResponse<PlayerEvent> }>()
 const eventDetailInFlight = new Map<string, Promise<ApiResponse<PlayerEvent>>>()
 const myEventsCache = new Map<
-  'upcoming' | 'history' | 'all',
+  'upcoming' | 'history' | 'all' | 'hosted' | 'joined',
   { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
 >()
-const myEventsInFlight = new Map<'upcoming' | 'history' | 'all', Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
+const myEventsInFlight = new Map<'upcoming' | 'history' | 'all' | 'hosted' | 'joined', Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
+const myEventsScopedCache = new Map<
+  string,
+  { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
+>()
+const myEventsScopedInFlight = new Map<
+  string,
+  Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>
+>()
 
 const cloneValue = <T>(value: T): T =>
   typeof structuredClone === 'function' ? structuredClone(value) : value
@@ -82,6 +90,8 @@ const invalidateEventCaches = (eventId?: string) => {
   // Always clear list caches as any event change might affect them
   myEventsCache.clear()
   myEventsInFlight.clear()
+  myEventsScopedCache.clear()
+  myEventsScopedInFlight.clear()
 }
 
 const buildFallbackEvent = (id: string): PlayerEvent => {
@@ -357,7 +367,7 @@ export const eventsService = {
   },
 
   async getMyEvents(
-    type: 'upcoming' | 'history' | 'all' = 'all',
+    type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'all',
     options?: QueryOptions
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
     const force = options?.force ?? false
@@ -410,6 +420,50 @@ export const eventsService = {
     myEventsInFlight.set(type, request)
     return request.finally(() => {
       myEventsInFlight.delete(type)
+    })
+  },
+
+  async getMyEventsScoped(
+    params: { role?: 'all' | 'hosted' | 'joined'; time?: 'upcoming' | 'history' },
+    options?: QueryOptions
+  ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    const role = params.role ?? 'all'
+    const time = params.time ?? 'upcoming'
+    const cacheKey = `${role}:${time}`
+    const force = options?.force ?? false
+    const ttlMs = options?.ttlMs ?? DEFAULT_MY_EVENTS_TTL_MS
+
+    const cached = myEventsScopedCache.get(cacheKey)
+    if (!force && cached && isFresh(cached.at, ttlMs)) {
+      return cloneValue(cached.data)
+    }
+    if (myEventsScopedInFlight.has(cacheKey)) {
+      return myEventsScopedInFlight.get(cacheKey)!.then(cloneValue)
+    }
+
+    const request = (async () => {
+      try {
+        const res = await httpGet<any>('/sessions/my', { params: { role, time } })
+        const items = res.data?.items ?? res.items ?? []
+        const events = items.map(mapSessionToEvent)
+        const result = wrapSuccess({
+          data: events,
+          total: events.length,
+          page: 1,
+          pageSize: events.length,
+          hasMore: false,
+        })
+        myEventsScopedCache.set(cacheKey, { at: Date.now(), data: result })
+        return cloneValue(result)
+      } catch (err: any) {
+        console.error('getMyEventsScoped error', err)
+        return wrapEmptyEvents()
+      }
+    })()
+
+    myEventsScopedInFlight.set(cacheKey, request)
+    return request.finally(() => {
+      myEventsScopedInFlight.delete(cacheKey)
     })
   },
 
