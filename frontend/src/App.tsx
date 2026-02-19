@@ -207,6 +207,14 @@ function AuthenticatedApp() {
           </AppChrome>
         }
       />
+      <Route
+        path="/mates/:username"
+        element={
+          <AppChrome showHeader={false}>
+            <MateProfilePage />
+          </AppChrome>
+        }
+      />
 
       <Route
         path="/create-event"
@@ -328,6 +336,22 @@ function GuestApp() {
         element={
           <AppChrome showActions={false} showHeader={false}>
             <EventDetailPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/mate/:username"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MateProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/mates/:username"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MateProfilePage />
           </AppChrome>
         }
       />
