@@ -7,6 +7,11 @@ import type {
 } from '@/types'
 import { httpPost, httpGet, httpPut, httpDelete } from '@/api/http'
 
+type QueryOptions = {
+  force?: boolean
+  ttlMs?: number
+}
+
 const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   success: true,
   data,
@@ -26,6 +31,56 @@ const formatTwdNoDecimal = (value: unknown): string => {
   const n = Number(value)
   if (!Number.isFinite(n)) return '0'
   return Math.round(n).toLocaleString('zh-TW')
+}
+
+const DEFAULT_LIST_TTL_MS = 30_000
+const DEFAULT_DETAIL_TTL_MS = 60_000
+const DEFAULT_MY_EVENTS_TTL_MS = 15_000
+
+let eventsListCacheKey: string | null = null
+let eventsListCacheAt = 0
+let eventsListCache: ApiResponse<PaginatedResponse<PlayerEvent>> | null = null
+let eventsListInFlight:
+  | { key: string; promise: Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> }
+  | null = null
+
+const eventDetailCache = new Map<string, { at: number; data: ApiResponse<PlayerEvent> }>()
+const eventDetailInFlight = new Map<string, Promise<ApiResponse<PlayerEvent>>>()
+const myEventsCache = new Map<
+  'upcoming' | 'history' | 'all',
+  { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
+>()
+const myEventsInFlight = new Map<'upcoming' | 'history' | 'all', Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
+
+const cloneValue = <T>(value: T): T =>
+  typeof structuredClone === 'function' ? structuredClone(value) : value
+
+const stableFilterKey = (filters?: EventFilter) => {
+  if (!filters) return ''
+  const pairs = Object.entries(filters)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .sort(([a], [b]) => a.localeCompare(b))
+  return JSON.stringify(pairs)
+}
+
+const isFresh = (cachedAt: number, ttlMs: number) => Date.now() - cachedAt < ttlMs
+
+const invalidateEventCaches = (eventId?: string) => {
+  eventsListCache = null
+  eventsListCacheAt = 0
+  eventsListCacheKey = null
+  eventsListInFlight = null
+
+  if (eventId) {
+    eventDetailCache.delete(eventId)
+    eventDetailInFlight.delete(eventId)
+    return
+  }
+
+  eventDetailCache.clear()
+  eventDetailInFlight.clear()
+  myEventsCache.clear()
+  myEventsInFlight.clear()
 }
 
 const buildFallbackEvent = (id: string): PlayerEvent => {
@@ -165,7 +220,22 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
 }
 
 export const eventsService = {
-  async getEvents(filters?: EventFilter): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+  async getEvents(
+    filters?: EventFilter,
+    options: QueryOptions = {}
+  ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    const cacheKey = stableFilterKey(filters)
+    const ttlMs = options.ttlMs ?? DEFAULT_LIST_TTL_MS
+
+    if (!options.force && eventsListCache && eventsListCacheKey === cacheKey && isFresh(eventsListCacheAt, ttlMs)) {
+      return cloneValue(eventsListCache)
+    }
+
+    if (!options.force && eventsListInFlight?.key === cacheKey) {
+      return eventsListInFlight.promise.then(cloneValue)
+    }
+
+    const request = (async () => {
     try {
       // Map filters to backend params if needed
       const queryParams: Record<string, any> = {}
@@ -188,20 +258,44 @@ export const eventsService = {
 
       const events = sessions.map(mapSessionToEvent)
 
-      return wrapSuccess({
+      const result = wrapSuccess({
         data: events,
         total: events.length,
         page: 1,
         pageSize: 50,
         hasMore: false,
       })
+
+      eventsListCacheKey = cacheKey
+      eventsListCacheAt = Date.now()
+      eventsListCache = result
+
+      return cloneValue(result)
     } catch (err: any) {
       console.error('getEvents error', err)
       return wrapEmptyEvents()
     }
+    })()
+
+    eventsListInFlight = { key: cacheKey, promise: request }
+    return request.finally(() => {
+      if (eventsListInFlight?.key === cacheKey) eventsListInFlight = null
+    })
   },
 
-  async getEventById(id: string): Promise<ApiResponse<PlayerEvent>> {
+  async getEventById(id: string, options: QueryOptions = {}): Promise<ApiResponse<PlayerEvent>> {
+    const ttlMs = options.ttlMs ?? DEFAULT_DETAIL_TTL_MS
+    const cached = eventDetailCache.get(id)
+
+    if (!options.force && cached && isFresh(cached.at, ttlMs)) {
+      return cloneValue(cached.data)
+    }
+
+    if (!options.force && eventDetailInFlight.has(id)) {
+      return eventDetailInFlight.get(id)!.then(cloneValue)
+    }
+
+    const request = (async () => {
     try {
       const response = await httpGet<any>(`/sessions/${id}`)
       // Response structure: { ok: true, data: { session: {...}, meta: {...} } }
@@ -242,7 +336,9 @@ export const eventsService = {
         }))
       }
 
-      return wrapSuccess(event)
+      const result = wrapSuccess(event)
+      eventDetailCache.set(id, { at: Date.now(), data: result })
+      return cloneValue(result)
     } catch (err: any) {
       return {
         success: false,
@@ -251,35 +347,64 @@ export const eventsService = {
         data: undefined,
       } as any
     }
+    })()
+
+    eventDetailInFlight.set(id, request)
+    return request.finally(() => {
+      eventDetailInFlight.delete(id)
+    })
   },
 
-  async getMyEvents(): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+  async getMyEvents(type: 'upcoming' | 'history' | 'all' = 'all'): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    const cached = myEventsCache.get(type)
+    if (cached && isFresh(cached.at, DEFAULT_MY_EVENTS_TTL_MS)) {
+      return cloneValue(cached.data)
+    }
+    if (myEventsInFlight.has(type)) {
+      return myEventsInFlight.get(type)!.then(cloneValue)
+    }
+
+    const request = (async () => {
     try {
-      const [upcomingRes, historyRes] = await Promise.all([
-        httpGet<any>('/sessions/my?type=upcoming'),
-        httpGet<any>('/sessions/my?type=history'),
-      ])
+      let allItems: any[] = []
+      if (type === 'all') {
+        const [upcomingRes, historyRes] = await Promise.all([
+          httpGet<any>('/sessions/my?type=upcoming'),
+          httpGet<any>('/sessions/my?type=history'),
+        ])
+        const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
+        const historyItems = historyRes.data?.items ?? historyRes.items ?? []
+        allItems = [...upcomingItems, ...historyItems]
+      } else {
+        const res = await httpGet<any>(`/sessions/my?type=${type}`)
+        allItems = res.data?.items ?? res.items ?? []
+      }
 
-      const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
-      const historyItems = historyRes.data?.items ?? historyRes.items ?? []
-
-      const allItems = [...upcomingItems, ...historyItems]
       // Deduplicate by ID just in case
       const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
 
       const events = uniqueItems.map(mapSessionToEvent)
 
-      return wrapSuccess({
+      const result = wrapSuccess({
         data: events,
         total: events.length,
         page: 1,
         pageSize: events.length,
         hasMore: false,
       })
+
+      myEventsCache.set(type, { at: Date.now(), data: result })
+      return cloneValue(result)
     } catch (err: any) {
       console.error('getMyEvents error', err)
       return wrapEmptyEvents()
     }
+    })()
+
+    myEventsInFlight.set(type, request)
+    return request.finally(() => {
+      myEventsInFlight.delete(type)
+    })
   },
 
   async createEvent(
@@ -314,6 +439,7 @@ export const eventsService = {
       const res = await httpPost<{ session: any }>('/sessions', { body: payload })
       const session = (res as any)?.session ?? (res as any)?.data?.session ?? (res as any)?.data
 
+      invalidateEventCaches()
       return wrapSuccess(mapSessionToEvent(session))
     } catch (err: any) {
       return {
@@ -371,6 +497,7 @@ export const eventsService = {
       const res = await httpPut<{ session: any }>(`/sessions/${id}`, { body: payload })
       const session = (res as any)?.session ?? (res as any)?.data?.session ?? (res as any)?.data
 
+      invalidateEventCaches(id)
       return wrapSuccess(mapSessionToEvent(session))
     } catch (err: any) {
       return {
@@ -385,7 +512,8 @@ export const eventsService = {
   async joinEvent(eventId: string): Promise<ApiResponse<PlayerEvent>> {
     try {
       await httpPost(`/sessions/${eventId}/join`)
-      return this.getEventById(eventId)
+      invalidateEventCaches(eventId)
+      return this.getEventById(eventId, { force: true })
     } catch (err: any) {
       return { success: false, error: err, timestamp: new Date() } as any
     }
@@ -394,7 +522,8 @@ export const eventsService = {
   async leaveEvent(eventId: string): Promise<ApiResponse<PlayerEvent>> {
     try {
       await httpPost(`/sessions/${eventId}/leave`)
-      return this.getEventById(eventId)
+      invalidateEventCaches(eventId)
+      return this.getEventById(eventId, { force: true })
     } catch (err: any) {
       return { success: false, error: err, timestamp: new Date() } as any
     }
@@ -403,6 +532,7 @@ export const eventsService = {
   async deleteEvent(eventId: string): Promise<ApiResponse<{ deleted: boolean }>> {
     try {
       const res = await httpDelete<any>(`/sessions/${eventId}`)
+      invalidateEventCaches(eventId)
       return wrapSuccess({ deleted: true })
     } catch (err: any) {
       return {
