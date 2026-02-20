@@ -81,7 +81,11 @@ async function countTeammates(userId) {
 
 async function countJoinedSessions(userId) {
   const { rows } = await query(
-    'select count(*)::int as count from public.session_participants where user_id = $1',
+    `select count(distinct sp.session_id)::int as count
+     from public.session_participants sp
+     join public.sessions s on s.id = sp.session_id
+     where sp.user_id = $1
+       and s.status != 'draft'`,
     [userId]
   )
   return rows[0]?.count ?? 0
