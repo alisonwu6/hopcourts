@@ -64,9 +64,20 @@ export function SheetLayout({
         type="button"
         onClick={btn.onClick}
         disabled={btn.disabled || btn.isLoading}
-        className={clsx(base, styles, { 'w-full': fullWidth, 'opacity-70 cursor-not-allowed': btn.isLoading })}
+        className={clsx(base, styles, {
+          'w-full': fullWidth,
+          'opacity-70 cursor-not-allowed': btn.isLoading,
+          'inline-flex items-center justify-center gap-2': btn.isLoading,
+        })}
       >
-        {btn.isLoading ? '請稍候...' : btn.label}
+        {btn.isLoading ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+            {btn.label}
+          </>
+        ) : (
+          btn.label
+        )}
       </button>
     )
   }

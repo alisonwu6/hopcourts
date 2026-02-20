@@ -8,7 +8,7 @@ import type {
 } from 'react'
 import { useMemo, useState, useId, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { MapPin, ChevronRight, Trash2, ImagePlus, X } from 'lucide-react'
+import { MapPin, ChevronRight, ImagePlus, X } from 'lucide-react'
 import { Button } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -21,7 +21,7 @@ import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
 import { PageLoading } from '@/components/PageLoading'
-import { format, addHours, startOfHour } from 'date-fns'
+import { format, addHours } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
@@ -68,13 +68,13 @@ const initialState: FormState = {
   title: '',
   sport: '',
   sportKey: '',
-  startTime: format(startOfHour(addHours(new Date(), 7)), "yyyy-MM-dd'T'HH:mm"),
-  endTime: format(startOfHour(addHours(new Date(), 9)), "yyyy-MM-dd'T'HH:mm"),
+  startTime: '',
+  endTime: '',
   location: '',
   lat: '',
   lng: '',
   capacity: '',
-  minPeople: '3',
+  minPeople: '',
   isFree: true,
   price: '',
   priceNote: '',
@@ -90,6 +90,8 @@ const normalizeTwdIntegerString = (value: unknown): string => {
   if (!Number.isFinite(num)) return ''
   return String(Math.round(num))
 }
+
+const getTodayMidnightLocalValue = () => format(new Date(), "yyyy-MM-dd'T'00:00")
 
 export default function CreateEventPage() {
   const navigate = useNavigate()
@@ -116,8 +118,6 @@ export default function CreateEventPage() {
   const [addressLookupPending, setAddressLookupPending] = useState(false)
   const [isAddressClearing, setIsAddressClearing] = useState(false)
   const [costMode, setCostMode] = useState<'total' | 'person'>('total')
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [isDraftLoading, setIsDraftLoading] = useState(false)
   const [highlightField, setHighlightField] = useState<RequiredFieldKey | null>(null)
   const [fieldHint, setFieldHint] = useState<{
@@ -307,6 +307,17 @@ export default function CreateEventPage() {
     }
   }
 
+  const minPeopleImmediateError = useMemo(() => {
+    if (!form.capacity || !form.minPeople) return null
+    const capacity = Number(form.capacity)
+    const minPeople = Number(form.minPeople)
+    if (!Number.isFinite(capacity) || !Number.isFinite(minPeople)) return null
+    if (capacity > 0 && minPeople > capacity) {
+      return '不可大於人數上限'
+    }
+    return null
+  }, [form.capacity, form.minPeople])
+
   const canSubmit = useMemo(() => {
     return Boolean(
       form.title.trim() &&
@@ -314,9 +325,10 @@ export default function CreateEventPage() {
       form.startTime &&
       form.endTime &&
       Number(form.capacity) > 0 &&
-      form.location.trim()
+      form.location.trim() &&
+      !minPeopleImmediateError
     )
-  }, [form])
+  }, [form, minPeopleImmediateError])
 
   const handleInputChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -343,6 +355,13 @@ export default function CreateEventPage() {
       return
     }
     setForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const ensureDateTimeDefault = (field: 'startTime' | 'endTime') => {
+    setForm((prev) => {
+      if (prev[field]) return prev
+      return { ...prev, [field]: getTodayMidnightLocalValue() }
+    })
   }
 
   const handleSkillSelect = (level: SkillLevelKey) => {
@@ -431,7 +450,7 @@ export default function CreateEventPage() {
       return
     }
     if (!form.minPeople || Number(form.minPeople) < 1) {
-      flashFieldError('minPeople', '最少成團人數不可小於 1')
+      flashFieldError('minPeople', '不可小於 1')
       return
     }
     if (!form.location.trim()) {
@@ -480,11 +499,15 @@ export default function CreateEventPage() {
 
     const minPeople = Number(form.minPeople)
     if (minPeople < 1) {
-      flashFieldError('minPeople', '最少成團人數不可小於 1')
+      flashFieldError('minPeople', '不可小於 1')
+      return
+    }
+    if (minPeopleImmediateError) {
+      flashFieldError('minPeople', minPeopleImmediateError)
       return
     }
     if (minPeople > capacity) {
-      flashFieldError('minPeople', '最少成團人數不可大於人數上限')
+      flashFieldError('minPeople', '不可大於人數上限')
       return
     }
 
@@ -589,7 +612,7 @@ export default function CreateEventPage() {
             navigate(`/event/${editId}`, { state: { from: 'create-event' }, replace: true })
           }
         } else {
-          setError(res.error?.message || '更新活動失敗。')
+          setError(res.error?.message || '更新發佈失敗。')
         }
       } else {
         // Create new event
@@ -608,26 +631,6 @@ export default function CreateEventPage() {
       setError(err?.message || '儲存活動時發生錯誤。')
     } finally {
       setSubmittingStatus(null)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!editId) return
-    setIsDeleting(true)
-    setError(null)
-    try {
-      const res = await eventsService.deleteEvent(editId)
-      if (res.success) {
-        navigate('/profile', { replace: true })
-      } else {
-        setError(res.error?.message || '刪除活動失敗。')
-        setShowDeleteConfirm(false)
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '刪除活動失敗。')
-      setShowDeleteConfirm(false)
-    } finally {
-      setIsDeleting(false)
     }
   }
 
@@ -672,20 +675,7 @@ export default function CreateEventPage() {
               <X className="h-5 w-5" strokeWidth={2} />
             </button>
           }
-          rightContent={
-            editId ? (
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition"
-                aria-label="Delete Event"
-              >
-                <Trash2 className="h-5 w-5" strokeWidth={2} />
-              </button>
-            ) : (
-              <span className="h-10 w-10" aria-hidden="true" />
-            )
-          }
+          rightContent={<span className="h-10 w-10" aria-hidden="true" />}
         />
         {isDraftLoading && <PageLoading />}
         <form
@@ -775,9 +765,11 @@ export default function CreateEventPage() {
                     value={form.minPeople}
                     onChange={handleInputChange}
                     required
-                    hasError={highlightField === 'minPeople'}
+                    hasError={highlightField === 'minPeople' || Boolean(minPeopleImmediateError)}
                   />
-                  {fieldHint?.field === 'minPeople' && fieldHint.message && (
+                  {minPeopleImmediateError ? (
+                    <p className="mt-1 px-4 text-xs text-red-500">{minPeopleImmediateError}</p>
+                  ) : fieldHint?.field === 'minPeople' && fieldHint.message ? (
                     <p
                       className={clsx(
                         'mt-1 px-4 text-xs',
@@ -786,7 +778,7 @@ export default function CreateEventPage() {
                     >
                       {fieldHint.message}
                     </p>
-                  )}
+                  ) : null}
                 </div>
               </div>
               <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
@@ -845,6 +837,7 @@ export default function CreateEventPage() {
                     name="startTime"
                     value={form.startTime}
                     onChange={handleInputChange}
+                    onOpen={() => ensureDateTimeDefault('startTime')}
                     required
                     hasError={highlightField === 'startTime'}
                   />
@@ -865,6 +858,7 @@ export default function CreateEventPage() {
                     name="endTime"
                     value={form.endTime}
                     onChange={handleInputChange}
+                    onOpen={() => ensureDateTimeDefault('endTime')}
                     required
                     hasError={highlightField === 'endTime'}
                   />
@@ -1091,7 +1085,7 @@ export default function CreateEventPage() {
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
           primaryButton={{
-            label: locationConfirming ? '定位中...' : '確認',
+            label: locationConfirming ? '處理中...' : '確認',
             onClick: async () => {
               if (locationConfirming) return
               setLocationConfirming(true)
@@ -1181,29 +1175,6 @@ export default function CreateEventPage() {
               }}
             />
           </div>
-          <div className="mt-3 text-center text-xs font-medium text-slate-500">
-            請確認定位點是否正確，活動將依此地點顯示
-          </div>
-        </SheetLayout>
-      </BottomSheet>
-
-      <BottomSheet open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        <SheetLayout
-          onClose={() => setShowDeleteConfirm(false)}
-          title="確定要刪除活動嗎？"
-          subtitle="一旦刪除，活動資訊將無法恢復。"
-          primaryButton={{
-            label: isDeleting ? '刪除中...' : '確定刪除',
-            onClick: handleDelete,
-            variant: 'danger',
-            isLoading: isDeleting,
-          }}
-          secondaryButton={{
-            label: '取消',
-            onClick: () => setShowDeleteConfirm(false),
-          }}
-        >
-          <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
         </SheetLayout>
       </BottomSheet>
     </>
@@ -1235,7 +1206,7 @@ function ActionBar({
           className="flex-1 rounded-full border-slate-200 text-slate-600"
           disabled={!canSubmit || isSubmitting}
         >
-          {submittingStatus === 'draft' ? '儲存中...' : '草稿'}
+          {submittingStatus === 'draft' ? '儲存中...' : '儲存草稿'}
         </Button>
         <Button
           size="sm"
@@ -1249,7 +1220,7 @@ function ActionBar({
               ? '更新中…'
               : '發布中…'
             : isEditMode
-              ? '更新活動'
+              ? '更新發佈'
               : '發佈'}
         </Button>
       </div>
@@ -1507,6 +1478,7 @@ function DateTimeField({
   value,
   name,
   onChange,
+  onOpen,
   required,
   hasError,
 }: {
@@ -1514,6 +1486,7 @@ function DateTimeField({
   value: string
   name: string
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
+  onOpen?: () => void
   required?: boolean
   hasError?: boolean
 }) {
@@ -1530,6 +1503,7 @@ function DateTimeField({
   }, [value])
 
   const handleClick = () => {
+    onOpen?.()
     if (inputRef.current) {
       if ('showPicker' in inputRef.current) {
         try {

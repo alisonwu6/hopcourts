@@ -46,6 +46,7 @@ export function EventDetailPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isJoinSubmitting, setIsJoinSubmitting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
   const [showProfileRequired, setShowProfileRequired] = useState(false)
@@ -87,6 +88,7 @@ export function EventDetailPage() {
   }
 
   const handleJoinClick = async () => {
+    if (isJoinSubmitting) return
     if (!isAuthenticated) {
       try {
         const path = `${location.pathname}${location.search}${location.hash}`
@@ -98,6 +100,10 @@ export function EventDetailPage() {
       return
     }
     if (!event || !id) return
+    if (isHost && event.joined) {
+      showAlert('', '主辦人必須參與活動', 'warning')
+      return
+    }
     if (!event.joined && !user?.onboarding_completed_at) {
       setShowProfileRequired(true)
       return
@@ -120,9 +126,19 @@ export function EventDetailPage() {
     }
 
     if (event.joined) {
-      await leaveEvent(id)
+      setIsJoinSubmitting(true)
+      try {
+        await leaveEvent(id)
+      } finally {
+        setIsJoinSubmitting(false)
+      }
     } else {
-      await joinEvent(id)
+      setIsJoinSubmitting(true)
+      try {
+        await joinEvent(id)
+      } finally {
+        setIsJoinSubmitting(false)
+      }
     }
   }
 
@@ -525,6 +541,7 @@ export function EventDetailPage() {
         onJoin={handleJoinClick}
         onCheckIn={handleCheckIn}
         isCheckingIn={isCheckingIn}
+        isJoinSubmitting={isJoinSubmitting}
         hasCheckedIn={effectiveCheckedIn}
       />
 
@@ -640,10 +657,19 @@ type JoinBarProps = {
   onJoin: () => void
   onCheckIn: () => void
   isCheckingIn: boolean
+  isJoinSubmitting: boolean
   hasCheckedIn: boolean
 }
 
-function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedIn }: JoinBarProps) {
+function JoinBar({
+  isJoined,
+  event,
+  onJoin,
+  onCheckIn,
+  isCheckingIn,
+  isJoinSubmitting,
+  hasCheckedIn,
+}: JoinBarProps) {
   const isFull = event.attendeeCount >= event.maxAttendees
   const now = new Date()
   const startTime = new Date(event.startTime)
@@ -661,8 +687,15 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   const formatTime = (date: Date) => format(date, 'MM/dd HH:mm', { locale: zhTW })
 
   let mainButton = (
-    <Button onClick={onJoin} className="bg-blue-600 text-white">
-      加入活動
+    <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white">
+      {isJoinSubmitting ? (
+        <span className="flex items-center justify-center gap-2">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+          處理中...
+        </span>
+      ) : (
+        '加入活動'
+      )}
     </Button>
   )
   let secondaryButton: React.ReactElement | null = null
@@ -678,14 +711,21 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   } else if (isJoined) {
     if (isCheckInOpen) {
       mainButton = (
-        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
-          已加入
+        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+          {isJoinSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+              處理中...
+            </span>
+          ) : (
+            '已加入'
+          )}
         </Button>
       )
       secondaryButton = (
         <Button
           onClick={onCheckIn}
-          disabled={isCheckingIn}
+          disabled={isCheckingIn || isJoinSubmitting}
           className="!hover:bg-emerald-600 !active:bg-emerald-600 !focus:bg-emerald-600 !bg-emerald-600 !text-white"
         >
           {isCheckingIn ? (
@@ -705,8 +745,15 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       )
     } else if (now > closeTime) {
       mainButton = (
-        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
-          已加入
+        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+          {isJoinSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+              處理中...
+            </span>
+          ) : (
+            '已加入'
+          )}
         </Button>
       )
       secondaryButton = (
@@ -720,8 +767,15 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
     } else {
       // Joined but not yet time to check in (now < openTime)
       mainButton = (
-        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
-          已加入
+        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+          {isJoinSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+              處理中...
+            </span>
+          ) : (
+            '已加入'
+          )}
         </Button>
       )
       secondaryButton = (

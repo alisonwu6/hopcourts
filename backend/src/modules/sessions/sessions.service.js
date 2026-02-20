@@ -207,6 +207,9 @@ async function leaveSession({ sessionId, userId }) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const session = await getSessionById(sessionId)
   if (!session) throw Errors.notFound('Session not found')
+  if (session.host_user_id === userId) {
+    throw Errors.forbidden('Host cannot leave their own session')
+  }
 
   await participantsModel.leaveSession({ sessionId, userId })
 

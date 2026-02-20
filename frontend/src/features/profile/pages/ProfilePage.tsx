@@ -861,6 +861,7 @@ export function ProfilePage() {
       <BottomSheet
         open={showEditSheet}
         onClose={() => {
+          if (isSavingProfile) return
           setShowEditSheet(false)
         }}
         showHandle={false}
@@ -868,6 +869,7 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => {
+            if (isSavingProfile) return
             setShowEditSheet(false)
           }}
           title="我的運動卡"
@@ -879,6 +881,7 @@ export function ProfilePage() {
             label: '完成',
             onClick: handleSaveProfile,
             disabled: isSavingProfile,
+            isLoading: isSavingProfile,
           }}
         >
           <div className="flex flex-col items-center gap-3">
