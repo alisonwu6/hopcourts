@@ -3,8 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
-import { BottomSheet, AlertDialog } from '@/components'
-import { SheetLayout } from '@/components/SheetLayout'
+import { AlertDialog } from '@/components'
 import clsx from 'clsx'
 import {
   Calendar,
@@ -242,6 +241,9 @@ export function EventDetailPage() {
 
   const isHost = event?.host?.id === currentUserId
   const isParticipant = event?.participants.some((p) => p.id === currentUserId)
+  const nonHostParticipantsCount =
+    event?.participants?.filter((p) => p.id !== event?.host?.id).length ?? 0
+  const hasOtherParticipants = nonHostParticipantsCount > 0
 
   /* DEBUG: Check why isJoined is false -- REMOVED */
 
@@ -545,49 +547,24 @@ export function EventDetailPage() {
         hasCheckedIn={effectiveCheckedIn}
       />
 
-      <BottomSheet open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        {(() => {
-          const hasParticipants = event?.participants && event.participants.length > 0
-
-          if (hasParticipants) {
-            return (
-              <SheetLayout
-                onClose={() => setShowDeleteConfirm(false)}
-                title="無法刪除活動"
-                subtitle="已有夥伴報名參加，無法刪除。"
-                primaryButton={{
-                  label: '關閉',
-                  onClick: () => setShowDeleteConfirm(false),
-                }}
-              >
-                <div className="py-2 text-sm text-slate-500">
-                  若有異動需求，請使用上方編輯按鈕更新活動內容並告知參與夥伴。
-                </div>
-              </SheetLayout>
-            )
-          }
-
-          return (
-            <SheetLayout
-              onClose={() => setShowDeleteConfirm(false)}
-              title="確定要刪除活動嗎？"
-              subtitle="一旦刪除，活動資訊將無法恢復。"
-              primaryButton={{
-                label: '取消',
-                onClick: () => setShowDeleteConfirm(false),
-              }}
-              secondaryButton={{
-                label: isDeleting ? '刪除中...' : '確定刪除',
-                onClick: handleDelete,
-                variant: 'danger',
-                isLoading: isDeleting,
-              }}
-            >
-              <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
-            </SheetLayout>
-          )
-        })()}
-      </BottomSheet>
+      <AlertDialog
+        open={showDeleteConfirm}
+        onClose={() => {
+          if (isDeleting) return
+          setShowDeleteConfirm(false)
+        }}
+        title={hasOtherParticipants ? '無法刪除活動' : '確定要刪除活動嗎？'}
+        description={
+          hasOtherParticipants
+            ? '已有夥伴報名參加，無法刪除。若有異動需求，請改用編輯活動。'
+            : '一旦刪除，活動資訊將無法恢復。'
+        }
+        type={hasOtherParticipants ? 'warning' : 'error'}
+        actionLabel={hasOtherParticipants ? '關閉' : isDeleting ? '刪除中...' : '確定刪除'}
+        cancelLabel={hasOtherParticipants ? undefined : '取消'}
+        actionLeft={!hasOtherParticipants}
+        onAction={hasOtherParticipants ? undefined : handleDelete}
+      />
 
       <LoginPromptSheet
         open={showLoginPrompt}
@@ -718,7 +695,7 @@ function JoinBar({
               處理中...
             </span>
           ) : (
-            '已加入'
+            '退出活動'
           )}
         </Button>
       )
@@ -752,7 +729,7 @@ function JoinBar({
               處理中...
             </span>
           ) : (
-            '已加入'
+            '退出活動'
           )}
         </Button>
       )
@@ -774,7 +751,7 @@ function JoinBar({
               處理中...
             </span>
           ) : (
-            '已加入'
+            '退出活動'
           )}
         </Button>
       )

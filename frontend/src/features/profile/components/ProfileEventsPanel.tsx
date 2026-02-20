@@ -441,10 +441,8 @@ export function ProfileEventsPanel({
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
   const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents
-  const upcomingLabel =
-    upcomingEvents.length > 0 ? `即將到來 (${upcomingEvents.length})` : '即將到來'
-  const historyLabel =
-    historyEvents.length > 0 ? `歷史紀錄 (${historyEvents.length})` : '歷史紀錄'
+  const upcomingLabel = '即將到來'
+  const historyLabel = '歷史紀錄'
   const empty =
     activeTab === 'upcoming'
       ? {
