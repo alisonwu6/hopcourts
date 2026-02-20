@@ -14,9 +14,10 @@ import { VenuePage } from '@/features/events/pages/VenuePage'
 import { VenueListPage } from '@/features/events/pages/VenueListPage'
 import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
+import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage'
+import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage'
 import { ProfileSettingsPage } from '@/features/profile/pages/ProfileSettingsPage'
 import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPage'
-import { PrivacySettingsPage } from '@/features/profile/pages/PrivacySettingsPage'
 import { AboutPage } from '@/features/profile/pages/AboutPage'
 import { StoryPage } from '@/features/profile/pages/StoryPage'
 import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
@@ -208,6 +209,14 @@ function AuthenticatedApp() {
           </AppChrome>
         }
       />
+      <Route
+        path="/mates/:username"
+        element={
+          <AppChrome showHeader={false}>
+            <MateProfilePage />
+          </AppChrome>
+        }
+      />
 
       <Route
         path="/create-event"
@@ -241,6 +250,26 @@ function AuthenticatedApp() {
         }
       />
       <Route
+        path="/profile/hosted-events"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <HostedEventsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile/joined-events"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <JoinedEventsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/settings"
         element={
           <RequireAuth>
@@ -256,16 +285,6 @@ function AuthenticatedApp() {
           <RequireAuth>
             <AppChrome showHeader={false} showNav={false}>
               <AccountSettingsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/settings/privacy"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <PrivacySettingsPage />
             </AppChrome>
           </RequireAuth>
         }
@@ -343,6 +362,22 @@ function GuestApp() {
         }
       />
       <Route
+        path="/mate/:username"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MateProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/mates/:username"
+        element={
+          <AppChrome showActions={false} showHeader={false}>
+            <MateProfilePage />
+          </AppChrome>
+        }
+      />
+      <Route
         path="/create-event"
         element={
           <AppChrome showActions={false} showHeader={false} showNav={false}>
@@ -361,10 +396,6 @@ function GuestApp() {
       />
       <Route
         path="/settings/account"
-        element={<Navigate to="/events" replace />}
-      />
-      <Route
-        path="/settings/privacy"
         element={<Navigate to="/events" replace />}
       />
       <Route path="*" element={<Navigate to="/" replace />} />

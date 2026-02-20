@@ -3,12 +3,12 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
-import { BottomSheet, AlertDialog } from '@/components'
-import { SheetLayout } from '@/components/SheetLayout'
+import { AlertDialog } from '@/components'
 import clsx from 'clsx'
 import {
   Calendar,
   CircleDollarSign,
+  ExternalLink,
   MapPin,
   MessageCircle,
   PersonStanding,
@@ -17,6 +17,7 @@ import {
   Pencil,
   Share,
   Smile,
+  Frown,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -27,6 +28,8 @@ import { PageLoading } from '@/components/PageLoading'
 import { format } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
+
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
@@ -43,6 +46,7 @@ export function EventDetailPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isJoinSubmitting, setIsJoinSubmitting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
   const [showProfileRequired, setShowProfileRequired] = useState(false)
@@ -56,6 +60,7 @@ export function EventDetailPage() {
     selectedEvent: event,
     fetchEventById,
     isLoading,
+    error,
     joinEvent,
     leaveEvent,
     checkInToEvent,
@@ -67,13 +72,6 @@ export function EventDetailPage() {
       fetchEventById(id)
     }
   }, [id, fetchEventById])
-
-  useEffect(() => {
-    console.log('user', user)
-    if (isAuthenticated && !user?.onboarding_completed_at) {
-      setShowProfileRequired(true)
-    }
-  }, [isAuthenticated, user?.onboarding_completed_at])
 
   const handleShare = () => {
     // navigator.share usually requires HTTPS
@@ -91,11 +89,26 @@ export function EventDetailPage() {
   }
 
   const handleJoinClick = async () => {
+    if (isJoinSubmitting) return
     if (!isAuthenticated) {
+      try {
+        const path = `${location.pathname}${location.search}${location.hash}`
+        sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, path)
+      } catch (error) {
+        console.warn('Failed to persist post-login redirect path:', error)
+      }
       setShowLoginPrompt(true)
       return
     }
     if (!event || !id) return
+    if (isHost && event.joined) {
+      showAlert('', '主辦人必須參與活動', 'warning')
+      return
+    }
+    if (!event.joined && !user?.onboarding_completed_at) {
+      setShowProfileRequired(true)
+      return
+    }
 
     // Gender Validation
     if (!event.joined && event.gender && event.gender !== 'mixed') {
@@ -114,9 +127,19 @@ export function EventDetailPage() {
     }
 
     if (event.joined) {
-      await leaveEvent(id)
+      setIsJoinSubmitting(true)
+      try {
+        await leaveEvent(id)
+      } finally {
+        setIsJoinSubmitting(false)
+      }
     } else {
-      await joinEvent(id)
+      setIsJoinSubmitting(true)
+      try {
+        await joinEvent(id)
+      } finally {
+        setIsJoinSubmitting(false)
+      }
     }
   }
 
@@ -154,7 +177,7 @@ export function EventDetailPage() {
           })
           setHasCheckedIn(true)
           // Refresh event data so participant list updates
-          void fetchEventById(id)
+          void fetchEventById(id, { force: true })
 
           showAlert('報到成功', '好好享受運動帶來的樂趣吧！', 'success')
         } catch (err: any) {
@@ -196,10 +219,19 @@ export function EventDetailPage() {
       },
       (err) => {
         console.error(err)
-        showAlert('你在哪？', '請開啟位置功能，讓我們知道你是否已進入到報到範圍。', 'warning')
+        const code = err?.code
+        if (code === 1) {
+          showAlert('需要定位權限', '請在 Safari 網站設定中允許定位權限後再試一次。', 'warning')
+        } else if (code === 2) {
+          showAlert('目前無法取得定位', '訊號不穩或定位來源暫時不可用，請移到空曠處後重試。', 'warning')
+        } else if (code === 3) {
+          showAlert('定位逾時', '定位花費太久，請確認網路與 GPS 已開啟後再試一次。', 'warning')
+        } else {
+          showAlert('定位失敗', '請確認已開啟定位功能，並稍後再試。', 'warning')
+        }
         setIsCheckingIn(false)
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 25000, maximumAge: 30000 }
     )
   }
 
@@ -220,10 +252,13 @@ export function EventDetailPage() {
 
   const isHost = event?.host?.id === currentUserId
   const isParticipant = event?.participants.some((p) => p.id === currentUserId)
+  const nonHostParticipantsCount =
+    event?.participants?.filter((p) => p.id !== event?.host?.id).length ?? 0
+  const hasOtherParticipants = nonHostParticipantsCount > 0
 
   /* DEBUG: Check why isJoined is false -- REMOVED */
 
-  const isJoined = (event?.joined || isParticipant) ?? false
+  const isJoined = isAuthenticated ? ((event?.joined || isParticipant) ?? false) : false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
 
   // Check if current user is checked in based on event data
@@ -233,10 +268,48 @@ export function EventDetailPage() {
     return !!me?.checkedInAt
   }, [event, currentUserId])
 
-  const effectiveCheckedIn = hasCheckedIn || isCheckedInFromServer
+  const effectiveCheckedIn = isAuthenticated ? hasCheckedIn || isCheckedInFromServer : false
 
-  if (isLoading || !event) {
+  if (isLoading) {
     return <PageLoading />
+  }
+
+  if (!event || (id && event.id !== id)) {
+    const detailMessage =
+      error === 'Request failed' || error === 'Session not found'
+        ? '該活動可能已被刪除或下架。'
+        : (error ?? '該活動可能已被刪除或下架。')
+
+    return (
+      <div className="min-h-screen bg-white">
+        <ActionToolbar
+          onBack={() => {
+            if (location.state?.from === 'create-event') {
+              navigate('/events')
+            } else {
+              navigate(-1)
+            }
+          }}
+          title="活動詳情"
+        />
+        <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[420px] flex-col items-center justify-center px-6 pb-16 text-center">
+          <div className="mb-5 rounded-full bg-slate-100 p-6">
+            <Frown className="h-12 w-12 text-slate-400" />
+          </div>
+          <h3 className="mb-3 text-2xl font-extrabold tracking-tight text-slate-900">活動不存在</h3>
+          <p className="text-md max-w-sm font-medium leading-relaxed text-slate-500">
+            {detailMessage}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/events')}
+            className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-blue-600 px-7 text-base font-semibold text-white shadow-sm transition hover:bg-blue-500"
+          >
+            回活動列表
+          </button>
+        </div>
+      </div>
+    )
   }
 
   const heroImage =
@@ -279,6 +352,28 @@ export function EventDetailPage() {
   const feeNote = event.priceNote?.trim() || '無'
   const participantRule =
     minPeople === 1 ? `保證開團｜上限${maxPeople}人` : `${minPeople}人成團｜上限${maxPeople}人`
+  const locationLabel =
+    event.location.name && event.location.name !== event.location.address
+      ? `${event.location.name} (${event.location.address})`
+      : event.location.address || event.location.name || '地點待確認'
+  const handleOpenMap = () => {
+    if (event.location.lat && event.location.lng) {
+      window.open(
+        `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+      return
+    }
+    const query = event.location.address || event.location.name
+    if (query) {
+      window.open(
+        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+    }
+  }
 
   // Photos: using heroImage as main, maybe carousel later?
   // Current UI only shows one hero image.
@@ -345,11 +440,6 @@ export function EventDetailPage() {
         </div>
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
-            {event.updatedAt && (
-              <p className="text-right text-xs text-slate-400">
-                最後更新時間 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
-              </p>
-            )}
             <div
               className="flex cursor-pointer items-center gap-3 transition"
               onClick={() => {
@@ -367,9 +457,15 @@ export function EventDetailPage() {
               </div>
             </div>
 
-            <hr className="my-6 border-slate-200" />
+            <hr className="my-3 border-slate-200" />
 
-            <div className="mt-6 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
+            {event.updatedAt && (
+              <p className="mb-6 text-xs text-slate-400">
+                活動最後更新時間 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
               <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
                 {sportLabel}
               </span>
@@ -392,34 +488,19 @@ export function EventDetailPage() {
               />
               <div
                 className={clsx(
-                  'group cursor-pointer transition active:opacity-70',
+                  'group flex items-start justify-between gap-2 transition',
                   event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
                 )}
-                onClick={() => {
-                  if (event.location.lat && event.location.lng) {
-                    window.open(
-                      `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
-                      '_blank'
-                    )
-                  } else {
-                    const query = event.location.address || event.location.name
-                    if (query) {
-                      window.open(
-                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-                        '_blank'
-                      )
-                    }
-                  }
-                }}
               >
-                <InfoRow
-                  icon={MapPin}
-                  label={
-                    event.location.name && event.location.name !== event.location.address
-                      ? `${event.location.name} (${event.location.address})`
-                      : event.location.address
-                  }
-                />
+                <InfoRow icon={MapPin} label={locationLabel} />
+                <button
+                  type="button"
+                  aria-label="在地圖中開啟"
+                  onClick={handleOpenMap}
+                  className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
+                </button>
               </div>
               <InfoRow icon={CircleDollarSign} label={feeLine2} />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
@@ -511,56 +592,39 @@ export function EventDetailPage() {
         onJoin={handleJoinClick}
         onCheckIn={handleCheckIn}
         isCheckingIn={isCheckingIn}
+        isJoinSubmitting={isJoinSubmitting}
         hasCheckedIn={effectiveCheckedIn}
       />
 
-      <BottomSheet open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        {(() => {
-          const hasParticipants = event?.participants && event.participants.length > 0
-
-          if (hasParticipants) {
-            return (
-              <SheetLayout
-                onClose={() => setShowDeleteConfirm(false)}
-                title="無法刪除活動"
-                subtitle="已有夥伴報名參加，無法刪除。"
-                primaryButton={{
-                  label: '關閉',
-                  onClick: () => setShowDeleteConfirm(false),
-                }}
-              >
-                <div className="py-2 text-sm text-slate-500">
-                  若有異動需求，請使用上方編輯按鈕更新活動內容並告知參與夥伴。
-                </div>
-              </SheetLayout>
-            )
-          }
-
-          return (
-            <SheetLayout
-              onClose={() => setShowDeleteConfirm(false)}
-              title="確定要刪除活動嗎？"
-              subtitle="一旦刪除，活動資訊將無法恢復。"
-              primaryButton={{
-                label: '取消',
-                onClick: () => setShowDeleteConfirm(false),
-              }}
-              secondaryButton={{
-                label: isDeleting ? '刪除中...' : '確定刪除',
-                onClick: handleDelete,
-                variant: 'danger',
-                isLoading: isDeleting,
-              }}
-            >
-              <div className="py-2 text-sm text-slate-500">此操作無法復原。</div>
-            </SheetLayout>
-          )
-        })()}
-      </BottomSheet>
+      <AlertDialog
+        open={showDeleteConfirm}
+        onClose={() => {
+          if (isDeleting) return
+          setShowDeleteConfirm(false)
+        }}
+        title={hasOtherParticipants ? '無法刪除活動' : '確定要刪除活動嗎？'}
+        description={
+          hasOtherParticipants
+            ? '已有夥伴報名參加，無法刪除。若有異動需求，請改用編輯活動。'
+            : '一旦刪除，活動資訊將無法恢復。'
+        }
+        type={hasOtherParticipants ? 'warning' : 'error'}
+        actionLabel={hasOtherParticipants ? '關閉' : isDeleting ? '刪除中...' : '確定刪除'}
+        cancelLabel={hasOtherParticipants ? undefined : '取消'}
+        actionLeft={!hasOtherParticipants}
+        onAction={hasOtherParticipants ? undefined : handleDelete}
+      />
 
       <LoginPromptSheet
         open={showLoginPrompt}
-        onClose={() => setShowLoginPrompt(false)}
+        onClose={() => {
+          setShowLoginPrompt(false)
+          try {
+            sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
+          } catch (error) {
+            console.warn('Failed to clear post-login redirect path:', error)
+          }
+        }}
         onSignup={() => navigate('/signup')}
       />
 
@@ -619,20 +683,27 @@ type JoinBarProps = {
   onJoin: () => void
   onCheckIn: () => void
   isCheckingIn: boolean
+  isJoinSubmitting: boolean
   hasCheckedIn: boolean
 }
 
-function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedIn }: JoinBarProps) {
+function JoinBar({
+  isJoined,
+  event,
+  onJoin,
+  onCheckIn,
+  isCheckingIn,
+  isJoinSubmitting,
+  hasCheckedIn,
+}: JoinBarProps) {
   const isFull = event.attendeeCount >= event.maxAttendees
   const now = new Date()
   const startTime = new Date(event.startTime)
   const endTime = new Date(event.endTime)
-  const isPast = endTime < now
 
-  // Check-in window logic
-  // Use event configuration or defaults (30m before, 60m after)
-  const openMins = event.checkinOpenMinsBefore ?? 30
-  const closeMins = event.checkinCloseMinsAfter ?? 10 // Match backend default
+  // Check-in window logic: default 15 minutes before start, 5 minutes after start.
+  const openMins = event.checkinOpenMinsBefore ?? 15
+  const closeMins = event.checkinCloseMinsAfter ?? 5
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time
@@ -641,8 +712,15 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   const formatTime = (date: Date) => format(date, 'MM/dd HH:mm', { locale: zhTW })
 
   let mainButton = (
-    <Button onClick={onJoin} className="bg-blue-600 text-white">
-      加入活動
+    <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white">
+      {isJoinSubmitting ? (
+        <span className="flex items-center justify-center gap-2">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+          處理中...
+        </span>
+      ) : (
+        '加入活動'
+      )}
     </Button>
   )
   let secondaryButton: React.ReactElement | null = null
@@ -652,20 +730,31 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
   if (hasCheckedIn) {
     mainButton = (
       <Button disabled className="bg-emerald-600 text-white opacity-100">
-        已報到 ✓
+        已完成報到 ✓
       </Button>
     )
   } else if (isJoined) {
     if (isCheckInOpen) {
       mainButton = (
-        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
-          已加入
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
+          {isJoinSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+              處理中...
+            </span>
+          ) : (
+            '退出活動'
+          )}
         </Button>
       )
       secondaryButton = (
         <Button
           onClick={onCheckIn}
-          disabled={isCheckingIn}
+          disabled={isCheckingIn || isJoinSubmitting}
           className="!hover:bg-emerald-600 !active:bg-emerald-600 !focus:bg-emerald-600 !bg-emerald-600 !text-white"
         >
           {isCheckingIn ? (
@@ -685,8 +774,19 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
       )
     } else if (now > closeTime) {
       mainButton = (
-        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
-          已加入
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
+          {isJoinSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+              處理中...
+            </span>
+          ) : (
+            '退出活動'
+          )}
         </Button>
       )
       secondaryButton = (
@@ -700,8 +800,19 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
     } else {
       // Joined but not yet time to check in (now < openTime)
       mainButton = (
-        <Button onClick={onJoin} className="bg-blue-600 text-white opacity-100">
-          已加入
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
+          {isJoinSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
+              處理中...
+            </span>
+          ) : (
+            '退出活動'
+          )}
         </Button>
       )
       secondaryButton = (
@@ -711,7 +822,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         >
           <span className="flex flex-col items-center leading-tight">
             <span className="text-sm font-semibold">點我報到</span>
-            <span className="mt-1 text-xs font-medium">於{formatTime(openTime)}開放按鈕</span>
+            <span className="mt-1 text-xs font-medium">{formatTime(openTime)}開放</span>
           </span>
         </Button>
       )
@@ -721,12 +832,6 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, hasCheckedI
         </p>
       )
     }
-  } else if (isPast) {
-    mainButton = (
-      <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">
-        活動已結束
-      </Button>
-    )
   } else if (isFull) {
     mainButton = (
       <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">

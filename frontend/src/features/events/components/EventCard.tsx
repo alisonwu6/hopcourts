@@ -1,7 +1,13 @@
 import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
-import { Calendar, MapPin, MapPinPlusInside, PersonStanding, BadgeCheck, CircleDollarSign, ChartColumnIncreasing } from 'lucide-react'
+import {
+  Calendar,
+  MapPin,
+  PersonStanding,
+  CircleDollarSign,
+  ChartColumnIncreasing,
+} from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { useSports } from '@/features/dictionaries/hooks'
 
@@ -26,17 +32,17 @@ function getFlagEmoji(countryCode: string) {
 
 export function EventCard({ event, onViewDetails }: EventCardProps) {
   const { items: sports } = useSports('zh')
-  
+
   // Official Event Logic
   const raw = event as any
   const isOfficial = raw.isOfficial || raw.is_official
   const venueName = raw.venueNameDisplay || raw.venue_name_display
   const venueLogo = raw.venueLogoUrl || raw.venue_logo_url
-  
+
   const displayHost = {
     name: isOfficial && venueName ? venueName : event.host.name,
     avatarUrl: isOfficial && venueLogo ? venueLogo : event.host.avatarUrl,
-    isOfficial: Boolean(isOfficial)
+    isOfficial: Boolean(isOfficial),
   }
 
   const sportItem = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
@@ -58,8 +64,8 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
   const cityLabel = event.host.cityName || locationCity || '城市待確認'
 
   const attendeeCount = event.attendeeCount
-  const participantPreview = event.participants.slice(0, 4)
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)
+  const minPeople = Math.max(1, event.minPeople ?? 1)
   const isClickable = Boolean(onViewDetails)
   const heroImage =
     (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
@@ -91,7 +97,6 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       }
     : {}
 
-
   return (
     <article
       {...interactionHandlers}
@@ -102,11 +107,11 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       )}
     >
       {/* 1. Host Header at top */}
-      <header className="px-5 py-3.5 flex items-center justify-between border-b border-slate-50">
+      <header className="flex items-center justify-between border-b border-slate-50 px-5 py-3.5">
         <div className="flex items-center gap-2.5">
           <AvatarCircle name={displayHost.name} src={displayHost.avatarUrl} size="sm" />
           <div>
-            <p className="text-sm font-medium text-slate-900 flex items-center gap-1.5">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-slate-900">
               {displayHost.name}
               {/* {displayHost.isOfficial && (
                 <BadgeCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
@@ -115,17 +120,17 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
                 <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
               )}
             </p>
-            <div className="flex items-center gap-1 mt-1">
-              <MapPin className="w-3 h-3 text-slate-400" />
-              <p className="text-[11px] text-slate-500 leading-none">
-                {cityLabel}
-              </p>
+            <div className="mt-1 flex items-center gap-1">
+              <MapPin className="h-3 w-3 text-slate-400" />
+              <p className="text-[11px] leading-none text-slate-500">{cityLabel}</p>
             </div>
           </div>
         </div>
-        
+
         {event.visibility !== 'public' && (
-          <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">Private</span>
+          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] uppercase tracking-tighter text-amber-600">
+            Private
+          </span>
         )}
       </header>
 
@@ -139,47 +144,51 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       </div>
 
       {/* 3. Info Content */}
-      <div className="px-5 py-4 space-y-3.5">
+      <div className="space-y-3.5 px-5 py-4">
         <div className="flex flex-col gap-2.5">
           {/* Tags above Title */}
           <div className="flex items-center gap-2">
             {/* Sport Tag */}
-            <div className="flex items-center gap-1.5 rounded-full bg-white border border-slate-100 px-3 py-1 text-[11px] font-medium text-slate-800">
+            <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-white px-3 py-1 text-[11px] font-medium text-slate-800">
               <span>{sportIcon}</span>
               {sportLabel}
             </div>
             {/* Skill Tag */}
-            <div className="flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-100 px-3 py-1 text-[11px] font-medium text-slate-800">
-              <ChartColumnIncreasing className="w-3 h-3 text-blue-600" strokeWidth={3} />
+            <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-[11px] font-medium text-slate-800">
+              <ChartColumnIncreasing className="h-3 w-3 text-blue-600" strokeWidth={3} />
               {skillLabel}
             </div>
             {/* Gender Tag (Added) */}
-            <div className="flex items-center gap-1.5 rounded-full bg-pink-50/50 border border-pink-100 px-3 py-1 text-[11px] font-medium text-pink-800">
-              {event.gender === 'female' ? '女性專屬' : event.gender === 'male' ? '男性專屬' : '性別混合'}
+            <div className="flex items-center gap-1.5 rounded-full border border-pink-100 bg-pink-50/50 px-3 py-1 text-[11px] font-medium text-pink-800">
+              {event.gender === 'female'
+                ? '女性專屬'
+                : event.gender === 'male'
+                  ? '男性專屬'
+                  : '性別混合'}
             </div>
           </div>
 
-          <h3 className="text-xl font-medium leading-tight text-slate-900 tracking-tight">
+          <h3 className="text-xl font-medium leading-tight tracking-tight text-slate-900">
             {event.title}
           </h3>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-1">
           <div className="flex items-center gap-3">
-             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-               <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
-             </div>
-             <span className="text-sm">{scheduleLabel}</span>
+            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
+              <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
+            </div>
+            <span className="text-sm">{scheduleLabel}</span>
           </div>
-          
+
           <div className="flex items-start gap-3">
-             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-               <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
-             </div>
-             <div className="min-w-0 text-sm leading-snug">
-               <p className="break-words">{locationLine1}</p>
-               {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
-             </div>
+            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
+              <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0 text-sm leading-snug">
+              <p className="break-words">{locationLine1}</p>
+              {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
+            </div>
           </div>
 
           {/* Attendance Area */}
@@ -189,18 +198,24 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm">
-                {attendeeCount}/{event.maxAttendees} 人已加入
+                {attendeeCount}人已加入 | 剩 {remaining} 位名額（{minPeople}人成團）
               </span>
               <div className="flex -space-x-1.5">
-                 {event.participants.slice(0, 3).map((p, i) => (
-                    <div key={i} className="w-5 h-5 rounded-full border-2 border-white overflow-hidden shadow-sm bg-slate-100">
-                      <img 
-                        src={p.avatarUrl || `https://ui-avatars.com/api/?name=${p.name}&background=random`} 
-                        alt="" 
-                        className="w-full h-full object-cover" 
-                      />
-                    </div>
-                 ))}
+                {event.participants.slice(0, 3).map((p, i) => (
+                  <div
+                    key={i}
+                    className="h-5 w-5 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-sm"
+                  >
+                    <img
+                      src={
+                        p.avatarUrl ||
+                        `https://ui-avatars.com/api/?name=${p.name}&background=random`
+                      }
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -211,9 +226,11 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
               <CircleDollarSign className="w-4.5 h-4.5" strokeWidth={2.5} />
             </div>
             <div className="text-sm">
-               <span className={clsx(event.isFree ? "text-green-600" : "text-slate-900")}>
-                 {event.isFree ? '免費體驗' : `${event.priceRange || `$${event.pricePerPerson}`} /人`}
-               </span>
+              <span className={clsx(event.isFree ? 'text-green-600' : 'text-slate-900')}>
+                {event.isFree
+                  ? '免費體驗'
+                  : `${event.priceRange || `$${event.pricePerPerson}`} /人`}
+              </span>
             </div>
           </div>
         </div>

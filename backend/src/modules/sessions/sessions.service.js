@@ -49,15 +49,48 @@ async function listSessions(params = {}) {
   }
 }
 
-async function listMySessions({ userId, type = 'upcoming', limit, offset }) {
+async function listMySessions({ userId, type = 'upcoming', role, time, limit, offset }) {
   try {
-    let sessions = []
-    if (type === 'history') {
-      sessions = await sessionsModel.listMyHistorySessions({ userId, limit, offset })
-    } else {
-      sessions = await sessionsModel.listMyUpcomingSessions({ userId, limit, offset })
+    // Backward compatible: support legacy `type` and new `role + time`.
+    let resolvedRole = role
+    let resolvedTime = time
+
+    if (!resolvedRole && !resolvedTime) {
+      if (type === 'hosted') {
+        resolvedRole = 'hosted'
+        resolvedTime = 'upcoming'
+      } else if (type === 'joined') {
+        resolvedRole = 'joined'
+        resolvedTime = 'upcoming'
+      } else if (type === 'history') {
+        resolvedRole = 'all'
+        resolvedTime = 'history'
+      } else {
+        resolvedRole = 'all'
+        resolvedTime = 'upcoming'
+      }
     }
-    
+
+    if (!resolvedRole) resolvedRole = 'all'
+    if (!resolvedTime) resolvedTime = 'upcoming'
+
+    let sessions = []
+    if (resolvedTime === 'history') {
+      sessions = await sessionsModel.listMyHistorySessions({
+        userId,
+        limit,
+        offset,
+        role: resolvedRole,
+      })
+    } else {
+      sessions = await sessionsModel.listMyUpcomingSessions({
+        userId,
+        limit,
+        offset,
+        role: resolvedRole,
+      })
+    }
+
     return {
       items: sessions,
       page: {
@@ -174,6 +207,9 @@ async function leaveSession({ sessionId, userId }) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const session = await getSessionById(sessionId)
   if (!session) throw Errors.notFound('Session not found')
+  if (session.host_user_id === userId) {
+    throw Errors.forbidden('Host cannot leave their own session')
+  }
 
   await participantsModel.leaveSession({ sessionId, userId })
 
@@ -281,8 +317,8 @@ async function createSession(input) {
     lat: input.lat ?? 0,
     lng: input.lng ?? 0,
     checkinRadiusM: input.checkinRadiusM ?? 100,
-    checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 20,
-    checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 20,
+    checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 15,
+    checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 5,
     minPeople: input.minPeople ?? 3,
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',
@@ -383,7 +419,35 @@ async function updateSession(sessionId, input) {
     patch.priceTotal = null
   }
 
-  return sessionsModel.updateSession(sessionId, patch)
+  const hasChanges = Object.values(patch).some((value) => value !== undefined)
+  const updatedSession = await sessionsModel.updateSession(sessionId, patch)
+
+  if (hasChanges && updatedSession) {
+    const participants = await participantsModel.listParticipantsBySession(sessionId)
+    const actor = await usersModel.getUserById(input.userId).catch(() => null)
+    const actorName = actor?.display_name || actor?.name || '活動發起人'
+    const sessionTitle = updatedSession.title || existing.title || '活動'
+
+    participants.forEach((participant) => {
+      const recipientId = participant.user_id
+      if (!recipientId || recipientId === input.userId) return
+
+      notificationsService
+        .createNotification({
+          recipient_user_id: recipientId,
+          actor_user_id: input.userId,
+          type: 'session_updated',
+          entity_type: 'session',
+          entity_id: sessionId,
+          title: '活動資訊已更新',
+          message: `${actorName} 更新了「${sessionTitle}」`,
+          metadata: { deep_link: `/event/${sessionId}` },
+        })
+        .catch((err) => console.error('Notify update failed', err))
+    })
+  }
+
+  return updatedSession
 }
 
 async function deleteSession(sessionId, userId) {

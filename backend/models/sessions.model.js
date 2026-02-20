@@ -100,13 +100,23 @@ async function listUpcomingSessions({
   return rows
 }
 
-async function listMyUpcomingSessions({ userId, from, to } = {}) {
+async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
+  
+  let roleCondition = '(sp.user_id = $1 OR s.host_user_id = $1)'
+  if (role === 'hosted') {
+    roleCondition = 's.host_user_id = $1'
+  } else if (role === 'joined') {
+    // "Joined" means user has a participant record, including self-hosted sessions
+    // if host also joined their own event.
+    roleCondition = 'sp.user_id = $1'
+  }
+
   const conditions = [
-    '(sp.user_id = $1 OR s.host_user_id = $1)',
+    roleCondition,
     '(s.ends_at IS NULL OR s.ends_at >= $2)',
-    "s.status = 'published'",
+    role === 'hosted' ? "(s.status = 'published' OR s.status = 'draft')" : "s.status = 'published'",
   ]
 
   if (to) {
@@ -149,51 +159,36 @@ async function listMyPastSessions({ userId, limit = 50, offset = 0 } = {}) {
   return rows
 }
 
-async function listMyHistorySessions({ userId, limit = 50, offset = 0 } = {}) {
-  // History includes:
-  // 1. Sessions I participated in that are ENDED (ends_at < now)
-  // 2. Sessions I HOSTED that are DRAFT (regardless of time)
-  
+async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'all' } = {}) {
   const now = new Date()
   const params = [userId, now, limit, offset]
-  
+  let roleCondition = '(sp.user_id = $1 OR s.host_user_id = $1)'
+  if (role === 'hosted') {
+    roleCondition = 's.host_user_id = $1'
+  } else if (role === 'joined') {
+    roleCondition = 'sp.user_id = $1'
+  }
+
   const sql = `
-    SELECT ${BASE_FIELDS.map((f) => `sub.${f}`).join(', ')},
-      (select count(*) from public.session_participants where session_id = sub.id) as participant_count
-    FROM (
-      -- 1. My Past Participation (Joined & Ended)
-      SELECT s.*,
-        h.display_name as host_display_name,
-        h.avatar_url as host_avatar_url,
-        h.username as host_username,
-        h.city_key as host_city_key,
-        c.name_zh as host_city_name
-      FROM public.sessions s
-      LEFT JOIN public.session_participants sp ON sp.session_id = s.id
-      LEFT JOIN public.users h ON s.host_user_id = h.id
-      LEFT JOIN public.cities c ON h.city_key = c.key
-      WHERE (sp.user_id = $1 OR s.host_user_id = $1)
-        AND s.ends_at IS NOT NULL
-        AND s.ends_at < $2
-      
-      UNION
-      
-      -- 2. My Drafts (Hosted by me & Status = 'draft')
-      SELECT s.*,
-        h.display_name as host_display_name,
-        h.avatar_url as host_avatar_url,
-        h.username as host_username,
-        h.city_key as host_city_key,
-        c.name_zh as host_city_name
-      FROM public.sessions s
-      LEFT JOIN public.users h ON s.host_user_id = h.id
-      LEFT JOIN public.cities c ON h.city_key = c.key
-      WHERE s.host_user_id = $1
-        AND s.status = 'draft'
-    ) sub
-    ORDER BY 
-      CASE WHEN sub.status = 'draft' THEN 0 ELSE 1 END ASC,
-      sub.starts_at DESC
+    SELECT ${BASE_FIELDS.map((f) => `s.${f}`).join(', ')},
+      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      h.display_name as host_display_name,
+      h.avatar_url as host_avatar_url,
+      h.username as host_username,
+      h.city_key as host_city_key,
+      c.name_zh as host_city_name
+    FROM public.sessions s
+    LEFT JOIN public.session_participants sp ON sp.session_id = s.id
+    LEFT JOIN public.users h ON s.host_user_id = h.id
+    LEFT JOIN public.cities c ON h.city_key = c.key
+    WHERE ${roleCondition}
+      AND (
+        (s.ends_at IS NOT NULL AND s.ends_at < $2)
+        OR (s.status = 'draft' AND s.host_user_id = $1)
+      )
+    ORDER BY
+      CASE WHEN s.status = 'draft' THEN 0 ELSE 1 END ASC,
+      s.starts_at DESC
     LIMIT $3 OFFSET $4
   `
   const { rows } = await query(sql, params)
@@ -279,7 +274,7 @@ async function createSession(input) {
     input.lng ?? 0,
     input.checkinRadiusM ?? 100,
     input.checkinOpenMinsBefore ?? 15,
-    input.checkinCloseMinsAfter ?? 10,
+    input.checkinCloseMinsAfter ?? 5,
     input.minPeople ?? 2,
     input.capacity ?? input.maxPeople ?? null,
     input.status ?? 'published',

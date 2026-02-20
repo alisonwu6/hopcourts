@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Frown } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
+import { PageLoading } from '@/components/PageLoading'
 
 import { api } from '@/api/client'
 import type { ApiResponse } from '@/api/types'
@@ -76,7 +77,7 @@ export function MateProfilePage() {
   }, [citiesDict])
 
   const [profileData, setProfileData] = useState<MateCardProps | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(!mate)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -157,42 +158,25 @@ export function MateProfilePage() {
       }
     }
 
-    if (mate) {
-      setProfileData({
-        name: mate.name || username || 'Mate',
-        username: mate.name || username || 'Mate',
-        vibe: (mate.vibe as MateCardProps['vibe']) || 'Chill',
-        vibeLabel: labelForVibe(mate.vibe as string),
-        sports: asStringArray(mate.sports) || [],
-        trying: asStringArray(mate.trying) || [],
-        location: mate.location || '',
-        blurb: mate.blurb || '',
-        avatar:
-          mate.avatar ||
-          '',
-      })
-    }
     fetchProfile()
   }, [username, mate, labelForSport, labelForVibe, vibeKeyToUnion])
 
-  const profile: MateCardProps = useMemo(() => {
-    const base: MateCardProps =
-      profileData ??
+  const profile: MateCardProps | null = useMemo(() => {
+    if (!profileData && !mate) return null
+    const base: MateCardProps = (profileData ??
       ({
         name: mate?.name ?? username ?? 'New mate',
         username: mate?.name ?? username ?? 'New mate',
         vibe: (mate?.vibe as MateCardProps['vibe']) ?? 'Chill',
         sports: asStringArray(mate?.sports) ?? [],
         trying: asStringArray(mate?.trying) ?? [],
-        location: mate?.location ?? '台北',
+        location: mate?.location ?? '',
         blurb: mate?.blurb ?? '',
         friendCount: 0,
         joinedCount: 0,
         hostedCount: 0,
-        avatar:
-          mate?.avatar ??
-          '',
-      } as MateCardProps)
+        avatar: mate?.avatar ?? '',
+      } as MateCardProps))
 
     const vibeUnion = vibeKeyToUnion(base.vibe as unknown as string) as MateCardProps['vibe']
 
@@ -211,22 +195,26 @@ export function MateProfilePage() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto w-full max-w-4xl pb-6">
-        <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
-          <button
-            type="button"
-            aria-label="Go back"
-            onClick={() => navigate(-1)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 "
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-slate-900">{headerName}</span>
+        <div className="relative flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+          <div className="flex w-10 items-center">
+            <button
+              type="button"
+              aria-label="Go back"
+              onClick={() => navigate(-1)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 "
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
           </div>
-          <div className="ml-auto" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 w-[68%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
+            <span className="block truncate text-2xl font-bold text-slate-900">{headerName}</span>
+          </div>
+          <div className="w-10" aria-hidden="true" />
         </div>
 
-        {error ? (
+        {!error && loading && !profileData ? (
+          <PageLoading fullScreen={false} className="py-20" />
+        ) : error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="mb-4 rounded-full bg-slate-100 p-4">
               <Frown className="h-8 w-8 text-slate-400" />
@@ -235,11 +223,7 @@ export function MateProfilePage() {
             <p className="max-w-xs text-sm text-slate-500">{error}</p>
           </div>
         ) : (
-          <HeroCard
-            profile={profile}
-            showShare={false}
-            actionDisabled={loading}
-          />
+          profile && <HeroCard profile={profile} showShare={false} actionDisabled={loading} />
         )}
 
 

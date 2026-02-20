@@ -6,12 +6,19 @@ const fs = require('fs')
 const path = require('path')
 const YAML = require('yaml')
 
+const { version } = require('../package.json')
 const { env } = require('./config/env')
 const { v1Router } = require('./routes/v1')
 const { errorHandler } = require('./middleware/errorHandler')
 
 function createApp() {
   const app = express()
+
+  // Add version header
+  app.use((req, res, next) => {
+    res.setHeader('X-App-Version', version)
+    next()
+  })
 
   app.use(cors({ origin: env.corsOrigin === '*' ? true : env.corsOrigin }))
   app.use(express.json({ limit: '1mb' }))

@@ -33,8 +33,8 @@ async function checkInToSession({ sessionId, userId, lat, lng, now = new Date() 
     throw createError('INVALID_SESSION', 'Session start/end time is invalid', 400)
   }
 
-  const openMins = Number(session.checkin_open_mins_before ?? 0)
-  const closeMins = Number(session.checkin_close_mins_after ?? 10)
+  const openMins = Number(session.checkin_open_mins_before ?? 15)
+  const closeMins = Number(session.checkin_close_mins_after ?? 5)
   const opensAt = addMinutes(startsAt, -openMins)
   const closesAt = addMinutes(startsAt, closeMins)
 

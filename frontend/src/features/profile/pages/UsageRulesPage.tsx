@@ -15,14 +15,14 @@ export function UsageRulesPage() {
         showBack
         borderBottom
       />
-      
+
       <div className="mx-auto w-full max-w-3xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold text-slate-900 text-center">SportsMatch 使用規範</h1>
-        
+        <h1 className="mb-6 text-center text-2xl font-bold text-slate-900">SportsMatch 使用規範</h1>
+
         <div className="space-y-8 text-base leading-relaxed text-slate-600">
           <section>
             <p className="mb-4">
-              歡迎來到 SportsMatch。這是一個讓人真實世界一起運動的平台。
+              歡迎來到 SportsMatch。這是一個讓人可以輕鬆揪團的運動服務平台。
               為了讓每個人都能自在、安全地參與活動，請遵守以下原則：
             </p>
           </section>
@@ -46,30 +46,27 @@ export function UsageRulesPage() {
           <section>
             <h2 className="mb-2 text-lg font-bold text-slate-900">3. 活動責任</h2>
             <p>
-              活動內容、時間與場地安排由發起人負責。請參與者自行確認活動細節。
-              SportsMatch 不參與或介入活動實際運作。
+              活動內容、時間與場地安排由發起人負責。請參與者自行確認活動細節。 SportsMatch
+              不參與或介入活動實際運作。
             </p>
           </section>
 
           <section>
             <h2 className="mb-2 text-lg font-bold text-slate-900">4. 場地與費用</h2>
             <p>
+              前往場地前，請務必確認場地是否為運動場館或是公共運動空間，提升自身安全。
               場地規則與收費標準以場地方規定為準。請於活動前確認相關資訊。
             </p>
           </section>
 
           <section>
             <h2 className="mb-2 text-lg font-bold text-slate-900">5. 再連結與隱私</h2>
-            <p>
-              「一起動過」的紀錄僅代表曾同場活動。請尊重彼此隱私，勿進行不當聯繫或騷擾。
-            </p>
+            <p>「一起動過」的紀錄僅代表曾同場活動。請尊重彼此隱私，勿進行不當聯繫或騷擾。</p>
           </section>
 
           <section>
             <h2 className="mb-2 text-lg font-bold text-slate-900">6. 帳號管理</h2>
-            <p>
-              若發現違規行為，我們有權暫停或終止帳號使用權。
-            </p>
+            <p>若發現違規行為，我們有權暫停或終止帳號使用權。</p>
           </section>
         </div>
       </div>

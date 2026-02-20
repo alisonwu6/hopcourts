@@ -100,6 +100,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sessions/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List my sessions
+         * @description Supports new query style (`role` + `time`) and legacy `type` for backward compatibility.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Role scope of sessions. */
+                    role?: "all" | "hosted" | "joined";
+                    /** @description Time scope of sessions. */
+                    time?: "upcoming" | "history";
+                    /** @description Legacy query parameter. Prefer using role+time. */
+                    type?: "upcoming" | "history" | "hosted" | "joined";
+                    limit?: number;
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description ok */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sessions/{id}": {
         parameters: {
             query?: never;

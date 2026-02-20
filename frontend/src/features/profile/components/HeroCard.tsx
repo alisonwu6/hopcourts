@@ -10,6 +10,8 @@ type Props = {
   actionClassName?: string
   showShare?: boolean
   onShare?: () => void
+  onHostedClick?: () => void
+  onJoinedClick?: () => void
   onTeammatesClick?: () => void
 }
 
@@ -22,6 +24,8 @@ export function HeroCard({
   actionClassName,
   showShare = true,
   onShare,
+  onHostedClick,
+  onJoinedClick,
   onTeammatesClick,
 }: Props) {
   const safeProfile: MateCardProps = profile ?? {
@@ -41,6 +45,8 @@ export function HeroCard({
       <MateCard
         {...safeProfile}
         accentClassName="w-full max-w-none min-w-0 rounded-none bg-transparent px-0 shadow-none"
+        onHostedClick={onHostedClick}
+        onJoinedClick={onJoinedClick}
         onTeammatesClick={onTeammatesClick}
       />
       <div className="flex justify-center gap-4 py-2">

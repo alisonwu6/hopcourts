@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
-import AppleLoginButton from '@/components/button/AppleLoginButton'
+// import AppleLoginButton from '@/components/button/AppleLoginButton'
 import { signInWithGoogle, signInWithApple } from '@/services/authService'
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
 
 export function LoginPanel({ className, variant = 'card' }: Props) {
   const containerClass = clsx(
-    'rounded-[32px] border border-slate-100 bg-white shadow-[0_25px_70px_rgba(15,41,77,0.08)] px-6 py-8 sm:px-8',
+    'rounded-[32px] border border-slate-100 bg-white shadow-[0_25px_70px_rgba(15,41,77,0.08)]',
     variant === 'sheet' && 'border-none shadow-none px-0',
     className
   )
@@ -44,9 +44,9 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
         </p>
       </div>
 
-      <div className="mt-10 flex flex-col gap-4 w-full max-w-[320px] mx-auto">
+      <div className="mx-auto mt-10 flex w-full max-w-[320px] flex-col gap-4">
         <GoogleLoginButton loginGoogle={loginGoogle} />
-        <AppleLoginButton loginApple={loginApple} />
+        {/* <AppleLoginButton loginApple={loginApple} /> */}
       </div>
     </section>
   )

@@ -241,7 +241,7 @@ CREATE INDEX IF NOT EXISTS idx_session_participants_session_status
 
 CREATE TABLE IF NOT EXISTS check_ins (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  session_id UUID REFERENCES sessions(id),
+  session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id),
   venue_id UUID REFERENCES venues(id),
   checked_in_at TIMESTAMPTZ DEFAULT NOW(),
