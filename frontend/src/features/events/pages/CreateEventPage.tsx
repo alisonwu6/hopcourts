@@ -53,6 +53,16 @@ type FormState = {
   notes: string
   placeName: string
 }
+type RequiredFieldKey =
+  | 'title'
+  | 'sport'
+  | 'capacity'
+  | 'minPeople'
+  | 'location'
+  | 'startTime'
+  | 'endTime'
+  | 'price'
+  | 'priceNote'
 
 const initialState: FormState = {
   title: '',
@@ -109,6 +119,47 @@ export default function CreateEventPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isDraftLoading, setIsDraftLoading] = useState(false)
+  const [highlightField, setHighlightField] = useState<RequiredFieldKey | null>(null)
+  const [fieldHint, setFieldHint] = useState<{
+    field: RequiredFieldKey
+    message: string
+    tone: 'error' | 'muted'
+  } | null>(null)
+  const highlightTimerRef = useRef<number | null>(null)
+  const fieldRefs = useRef<Record<RequiredFieldKey, HTMLDivElement | null>>({
+    title: null,
+    sport: null,
+    capacity: null,
+    minPeople: null,
+    location: null,
+    startTime: null,
+    endTime: null,
+    price: null,
+    priceNote: null,
+  })
+
+  const flashFieldError = (field: RequiredFieldKey, message: string) => {
+    const el = fieldRefs.current[field]
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setHighlightField(field)
+    setFieldHint({ field, message, tone: 'error' })
+    if (highlightTimerRef.current) {
+      window.clearTimeout(highlightTimerRef.current)
+    }
+    highlightTimerRef.current = window.setTimeout(() => {
+      setHighlightField((prev) => (prev === field ? null : prev))
+      setFieldHint((prev) => (prev?.field === field ? { ...prev, tone: 'muted' } : prev))
+      highlightTimerRef.current = null
+    }, 2000)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current) {
+        window.clearTimeout(highlightTimerRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!editId) return
@@ -187,18 +238,6 @@ export default function CreateEventPage() {
     fetchDraft()
   }, [editId, sportsCatalog])
 
-  useEffect(() => {
-    if (!showLocationSheet) return
-    if (isAddressClearing) return
-    if (!form.location.trim()) return
-    if (selectedLocation) return
-
-    // 只帶入使用者原本輸入的地址文字，不自動幫他重新定位
-    setSelectedAddress(form.location.trim())
-    setAddressMode('manual')
-    setAddressLookupPending(false)
-  }, [showLocationSheet, form.location, selectedLocation, isAddressClearing])
-
   // 使用者輸入地址 2 秒後自動定位地圖，不覆寫輸入文字
   useEffect(() => {
     if (!showLocationSheet) return
@@ -214,7 +253,7 @@ export default function CreateEventPage() {
         setSelectedLocation(loc)
         setReverseGeoError(null)
       } else {
-        setReverseGeoError('無法定位，請再試一次或點地圖')
+        setReverseGeoError('請輸入有效地址')
       }
       setAddressLookupPending(false)
     }, 2000)
@@ -377,40 +416,49 @@ export default function CreateEventPage() {
   ) => {
     event?.preventDefault?.()
     if (isSubmitting) return
+    setError(null)
 
     if (!form.title.trim()) {
-      setError('請輸入標題')
+      flashFieldError('title', '請輸入活動名稱')
       return
     }
     if (!form.sportKey) {
-      setError('請選擇運動項目')
+      flashFieldError('sport', '請選擇運動項目')
       return
     }
-    if (!form.startTime) {
-      setError('請選擇開始時間')
+    if (!form.capacity || Number(form.capacity) <= 0) {
+      flashFieldError('capacity', '人數上限必須大於 0')
       return
     }
-    if (!form.endTime) {
-      setError('請選擇結束時間')
+    if (!form.minPeople || Number(form.minPeople) < 1) {
+      flashFieldError('minPeople', '最少成團人數不可小於 1')
       return
     }
     if (!form.location.trim()) {
-      setError('請選擇地點')
+      flashFieldError('location', '請選擇地點')
+      return
+    }
+    if (!form.startTime) {
+      flashFieldError('startTime', '請選擇開始時間')
+      return
+    }
+    if (!form.endTime) {
+      flashFieldError('endTime', '請選擇結束時間')
       return
     }
     if (!canSubmit) {
-      setError('請確認所有必填欄位')
+      flashFieldError('title', '請確認必填欄位')
       return
     }
 
     // Cost validation
     if (!form.isFree) {
       if (!form.price || Number(form.price) <= 0) {
-        setError('請輸入有效的費用')
+        flashFieldError('price', '請輸入有效費用')
         return
       }
       if (!form.priceNote.trim()) {
-        setError('請輸入收費說明')
+        flashFieldError('priceNote', '請輸入收費說明')
         return
       }
     }
@@ -426,22 +474,22 @@ export default function CreateEventPage() {
     const lngNum = form.lng ? Number(form.lng) : null
 
     if (capacity <= 0) {
-      setError('人數上限必須大於 0')
+      flashFieldError('capacity', '人數上限必須大於 0')
       return
     }
 
     const minPeople = Number(form.minPeople)
     if (minPeople < 1) {
-      setError('最少成團人數不可小於 1')
+      flashFieldError('minPeople', '最少成團人數不可小於 1')
       return
     }
     if (minPeople > capacity) {
-      setError('最少成團人數不可大於人數上限')
+      flashFieldError('minPeople', '最少成團人數不可大於人數上限')
       return
     }
 
     if (latNum === null || lngNum === null) {
-      setError('請透過地圖確認場館位置資訊 (需包含座標)。')
+      flashFieldError('location', '請透過地圖確認場館位置')
       return
     }
 
@@ -449,15 +497,15 @@ export default function CreateEventPage() {
     const endDate = new Date(form.endTime)
 
     if (Number.isNaN(startDate.getTime())) {
-      setError('請選擇有效的開始日期與時間。')
+      flashFieldError('startTime', '請選擇有效的開始時間')
       return
     }
     if (Number.isNaN(endDate.getTime())) {
-      setError('請選擇有效的結束日期與時間。')
+      flashFieldError('endTime', '請選擇有效的結束時間')
       return
     }
     if (endDate <= startDate) {
-      setError('結束時間需晚於開始時間。')
+      flashFieldError('endTime', '結束時間需晚於開始時間')
       return
     }
     const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000)
@@ -625,7 +673,7 @@ export default function CreateEventPage() {
             </button>
           }
           rightContent={
-            editId && (
+            editId ? (
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
@@ -634,6 +682,8 @@ export default function CreateEventPage() {
               >
                 <Trash2 className="h-5 w-5" strokeWidth={2} />
               </button>
+            ) : (
+              <span className="h-10 w-10" aria-hidden="true" />
             )
           }
         />
@@ -650,33 +700,51 @@ export default function CreateEventPage() {
           )}
 
           <div className="space-y-8">
-            <FieldSection title="活動相關照片(選填)" description="最多3張">
-              <CoverUploader
-                previews={heroPreviews}
-                onChange={handleImageChange}
-                onRemove={handleRemoveImage}
-              />
-            </FieldSection>
-
             <FieldSection title="活動基本資料" description="">
-              <FloatingField
-                label="活動名稱"
-                name="title"
-                value={form.title}
-                onChange={handleInputChange}
-                required
-              />
-              <FloatingField
-                label="運動項目"
-                name="sport"
-                value={form.sport}
-                readOnly
-                onClick={() => setShowSportSheet(true)}
-                placeholder="選擇運動"
-                required
-              />
+              <div ref={(el) => (fieldRefs.current.title = el)}>
+                <FloatingField
+                  label="活動名稱"
+                  name="title"
+                  value={form.title}
+                  onChange={handleInputChange}
+                  required
+                  hasError={highlightField === 'title'}
+                />
+                {fieldHint?.field === 'title' && fieldHint.message && (
+                  <p
+                    className={clsx(
+                      'mt-1 px-4 text-xs',
+                      fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                    )}
+                  >
+                    {fieldHint.message}
+                  </p>
+                )}
+              </div>
+              <div ref={(el) => (fieldRefs.current.sport = el)}>
+                <FloatingField
+                  label="運動項目"
+                  name="sport"
+                  value={form.sport}
+                  readOnly
+                  onClick={() => setShowSportSheet(true)}
+                  placeholder="選擇運動"
+                  required
+                  hasError={highlightField === 'sport'}
+                />
+                {fieldHint?.field === 'sport' && fieldHint.message && (
+                  <p
+                    className={clsx(
+                      'mt-1 px-4 text-xs',
+                      fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                    )}
+                  >
+                    {fieldHint.message}
+                  </p>
+                )}
+              </div>
               <div className="flex gap-4">
-                <div className="flex-1">
+                <div className="flex-1" ref={(el) => (fieldRefs.current.capacity = el)}>
                   <FloatingField
                     label="人數上限"
                     name="capacity"
@@ -685,18 +753,40 @@ export default function CreateEventPage() {
                     value={form.capacity}
                     onChange={handleInputChange}
                     required
+                    hasError={highlightField === 'capacity'}
                   />
+                  {fieldHint?.field === 'capacity' && fieldHint.message && (
+                    <p
+                      className={clsx(
+                        'mt-1 px-4 text-xs',
+                        fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                      )}
+                    >
+                      {fieldHint.message}
+                    </p>
+                  )}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1" ref={(el) => (fieldRefs.current.minPeople = el)}>
                   <FloatingField
-                    label="最少人數(未達則取消)"
+                    label="最少人數"
                     name="minPeople"
                     type="number"
                     min={1}
                     value={form.minPeople}
                     onChange={handleInputChange}
                     required
+                    hasError={highlightField === 'minPeople'}
                   />
+                  {fieldHint?.field === 'minPeople' && fieldHint.message && (
+                    <p
+                      className={clsx(
+                        'mt-1 px-4 text-xs',
+                        fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                      )}
+                    >
+                      {fieldHint.message}
+                    </p>
+                  )}
                 </div>
               </div>
               <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
@@ -705,23 +795,38 @@ export default function CreateEventPage() {
 
             <FieldSection title="地點與時間" description="">
               <div className="space-y-4">
-                <button
-                  type="button"
-                  onClick={openLocationPicker}
-                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
-                      <MapPin className="h-5 w-5" />
+                <div ref={(el) => (fieldRefs.current.location = el)}>
+                  <button
+                    type="button"
+                    onClick={openLocationPicker}
+                    className={clsx(
+                      'flex w-full items-center justify-between rounded-2xl border bg-slate-50 p-4 transition',
+                      highlightField === 'location' ? 'border-red-500' : 'border-slate-200'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
+                        <MapPin className="h-5 w-5" />
+                      </div>
+                      <div className="flex flex-col text-left">
+                        <span className="mb-0.5 text-sm font-bold leading-tight text-slate-900">
+                          {form.location || '點擊選擇位置'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col text-left">
-                      <span className="mb-0.5 text-sm font-bold leading-tight text-slate-900">
-                        {form.location || '點擊選擇位置'}
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-slate-400" />
-                </button>
+                    <ChevronRight className="h-5 w-5 text-slate-400" />
+                  </button>
+                </div>
+                {fieldHint?.field === 'location' && fieldHint.message && (
+                  <p
+                    className={clsx(
+                      'mt-1 px-4 text-xs',
+                      fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                    )}
+                  >
+                    {fieldHint.message}
+                  </p>
+                )}
                 {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
 
                 <FloatingField
@@ -734,20 +839,46 @@ export default function CreateEventPage() {
               </div>
 
               <div className="space-y-4">
-                <DateTimeField
-                  label="開始時間"
-                  name="startTime"
-                  value={form.startTime}
-                  onChange={handleInputChange}
-                  required
-                />
-                <DateTimeField
-                  label="結束時間"
-                  name="endTime"
-                  value={form.endTime}
-                  onChange={handleInputChange}
-                  required
-                />
+                <div ref={(el) => (fieldRefs.current.startTime = el)}>
+                  <DateTimeField
+                    label="開始時間"
+                    name="startTime"
+                    value={form.startTime}
+                    onChange={handleInputChange}
+                    required
+                    hasError={highlightField === 'startTime'}
+                  />
+                  {fieldHint?.field === 'startTime' && fieldHint.message && (
+                    <p
+                      className={clsx(
+                        'mt-1 px-4 text-xs',
+                        fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                      )}
+                    >
+                      {fieldHint.message}
+                    </p>
+                  )}
+                </div>
+                <div ref={(el) => (fieldRefs.current.endTime = el)}>
+                  <DateTimeField
+                    label="結束時間"
+                    name="endTime"
+                    value={form.endTime}
+                    onChange={handleInputChange}
+                    required
+                    hasError={highlightField === 'endTime'}
+                  />
+                  {fieldHint?.field === 'endTime' && fieldHint.message && (
+                    <p
+                      className={clsx(
+                        'mt-1 px-4 text-xs',
+                        fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                      )}
+                    >
+                      {fieldHint.message}
+                    </p>
+                  )}
+                </div>
               </div>
             </FieldSection>
 
@@ -791,39 +922,81 @@ export default function CreateEventPage() {
                       </div>
                       <span className="text-xs text-slate-400">
                         {costMode === 'total'
-                          ? '輸入總金額，將依照總參與人數分攤。'
-                          : '輸入單人金額，直接設定每人費用。'}
+                          ? '將依照總參與人數預估單人費用。'
+                          : '直接設定每人費用。'}
                       </span>
                     </div>
 
-                    <FloatingField
-                      label={costMode === 'total' ? '總費用 (TWD)' : '每人費用 (TWD)'}
-                      name="price"
-                      type="number"
-                      min={0}
-                      step={1}
-                      value={form.price}
-                      onChange={handleInputChange}
-                      placeholder={costMode === 'total' ? '例如: 2000' : '例如: 200'}
-                      required={!form.isFree}
-                      supportingText={
-                        form.price && Number(form.capacity) > 0 && costMode === 'total'
-                          ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
-                          : undefined
-                      }
-                    />
-                    <FloatingField
-                      as="textarea"
-                      rows={3}
-                      label="收費說明"
-                      name="priceNote"
-                      value={form.priceNote}
-                      onChange={handleInputChange}
-                      placeholder="例如: 現場收費等"
-                    />
+                    <div ref={(el) => (fieldRefs.current.price = el)}>
+                      <FloatingField
+                        label={costMode === 'total' ? '總費用 (TWD)' : '每人費用 (TWD)'}
+                        name="price"
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={form.price}
+                        onChange={handleInputChange}
+                        placeholder={costMode === 'total' ? '例如: 2000' : '例如: 200'}
+                        required={!form.isFree}
+                        hasError={highlightField === 'price'}
+                        supportingText={
+                          form.price && Number(form.capacity) > 0 && costMode === 'total'
+                            ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
+                            : undefined
+                        }
+                      />
+                      {fieldHint?.field === 'price' && fieldHint.message && (
+                        <p
+                          className={clsx(
+                            'mt-1 px-4 text-xs',
+                            fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                          )}
+                        >
+                          {fieldHint.message}
+                        </p>
+                      )}
+                    </div>
+                    <div ref={(el) => (fieldRefs.current.priceNote = el)}>
+                      <FloatingField
+                        as="textarea"
+                        rows={3}
+                        label="收費說明"
+                        name="priceNote"
+                        value={form.priceNote}
+                        onChange={handleInputChange}
+                        placeholder="例如: 現場收費等"
+                        hasError={highlightField === 'priceNote'}
+                      />
+                      {fieldHint?.field === 'priceNote' && fieldHint.message && (
+                        <p
+                          className={clsx(
+                            'mt-1 px-4 text-xs',
+                            fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                          )}
+                        >
+                          {fieldHint.message}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
+            </FieldSection>
+
+            <div className="py-1">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+                <span className="text-xs font-semibold tracking-wide text-slate-400">以下選填</span>
+                <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+              </div>
+            </div>
+
+            <FieldSection title="活動相關照片" description="最多3張">
+              <CoverUploader
+                previews={heroPreviews}
+                onChange={handleImageChange}
+                onRemove={handleRemoveImage}
+              />
             </FieldSection>
 
             <FieldSection title="活動說明" description="描述氛圍、期待，或注意事項。">
@@ -922,6 +1095,21 @@ export default function CreateEventPage() {
             onClick: async () => {
               if (locationConfirming) return
               setLocationConfirming(true)
+
+              // Allow clearing existing location data
+              if (!selectedAddress.trim() && !selectedLocation) {
+                setForm((prev) => ({
+                  ...prev,
+                  location: '',
+                  lat: '',
+                  lng: '',
+                }))
+                setReverseGeoError(null)
+                setShowLocationSheet(false)
+                setLocationConfirming(false)
+                return
+              }
+
               let loc = selectedLocation
               if (!loc && selectedAddress.trim()) {
                 loc = await forwardGeocode(selectedAddress.trim())
@@ -936,7 +1124,7 @@ export default function CreateEventPage() {
                 }))
                 setShowLocationSheet(false)
               } else {
-                setReverseGeoError('無法定位，請再試一次或點地圖')
+                setReverseGeoError('請輸入有效地址')
               }
               setLocationConfirming(false)
             },
@@ -946,7 +1134,7 @@ export default function CreateEventPage() {
         >
           <div className="space-y-2 rounded-2xl bg-slate-50 px-3 py-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-600">場地地址</p>
+              <p className="text-xs font-semibold text-slate-600">活動地址</p>
             </div>
 
             <div className="relative">
@@ -957,7 +1145,7 @@ export default function CreateEventPage() {
                   setSelectedAddress(e.target.value)
                   setAddressMode('manual')
                 }}
-                placeholder="輸入地址，或點地圖放置定位點"
+                placeholder="請輸入地址"
                 className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
               />
               {selectedAddress.trim() && (
@@ -1056,7 +1244,13 @@ function ActionBar({
           disabled={isSubmitting}
           className={clsx('flex-1 rounded-full px-6', !canSubmit && 'opacity-50')}
         >
-          {submittingStatus === 'published' ? (isEditMode ? '更新中…' : '發布中…') : isEditMode ? '更新活動' : '發佈'}
+          {submittingStatus === 'published'
+            ? isEditMode
+              ? '更新中…'
+              : '發布中…'
+            : isEditMode
+              ? '更新活動'
+              : '發佈'}
         </Button>
       </div>
     </div>
@@ -1225,10 +1419,11 @@ type CommonFloatingProps = {
   label: string
   supportingText?: string
   characterLimit?: number
+  hasError?: boolean
 }
 
 function FloatingField(props: FloatingFieldProps) {
-  const { label, supportingText, characterLimit, ...domProps } = props as any
+  const { label, supportingText, characterLimit, hasError, ...domProps } = props as any
   const as = domProps.as ?? 'input'
   const id = useId()
   const value =
@@ -1243,8 +1438,10 @@ function FloatingField(props: FloatingFieldProps) {
       : Array.isArray(value)
         ? value.length > 0
         : Boolean(value && String(value).trim().length > 0)
-  const baseClasses =
-    'peer block w-full appearance-none min-h-[3.5rem] rounded-[14px] border-2 border-slate-300 bg-white px-4 pt-7 pb-3 text-base text-slate-900 transition focus:border-slate-900 focus:shadow-[0_0_0_1px_rgba(0,0,0,0.2)] focus:outline-none disabled:opacity-60'
+  const baseClasses = clsx(
+    'peer block w-full appearance-none min-h-[3.5rem] rounded-[14px] border-2 bg-white px-4 pt-7 pb-3 text-base text-slate-900 transition focus:shadow-[0_0_0_1px_rgba(0,0,0,0.2)] focus:outline-none disabled:opacity-60',
+    hasError ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-slate-900'
+  )
   const labelClasses =
     'pointer-events-none absolute left-4 top-2 text-sm font-semibold text-slate-600 bg-white px-1'
   const infoText =
@@ -1311,12 +1508,14 @@ function DateTimeField({
   name,
   onChange,
   required,
+  hasError,
 }: {
   label: string
   value: string
   name: string
   onChange: (e: ChangeEvent<HTMLInputElement>) => void
   required?: boolean
+  hasError?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null) // Typed ref
 
@@ -1348,7 +1547,12 @@ function DateTimeField({
   return (
     <div
       onClick={handleClick}
-      className="relative w-full rounded-[14px] border-2 border-slate-300 bg-white px-4 pb-3 pt-7 transition focus-within:border-slate-900 focus-within:shadow-[0_0_0_1px_rgba(0,0,0,0.2)]"
+      className={clsx(
+        'relative w-full rounded-[14px] border-2 bg-white px-4 pb-3 pt-7 transition focus-within:shadow-[0_0_0_1px_rgba(0,0,0,0.2)]',
+        hasError
+          ? 'border-red-500 focus-within:border-red-500'
+          : 'border-slate-300 focus-within:border-slate-900'
+      )}
     >
       <label className="pointer-events-none absolute left-4 top-2 bg-white px-1 text-sm font-semibold text-slate-600">
         {label}
