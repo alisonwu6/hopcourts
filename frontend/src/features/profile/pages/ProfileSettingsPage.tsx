@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, UserRound, LogOut, Info, Mail, BookOpen, FileText } from 'lucide-react'
+import { ChevronRight, UserRound, LogOut, Info, Mail, FileText } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
@@ -10,7 +10,6 @@ const generalItems = [
 
 const otherItems = [
   { key: 'about', label: '關於我們', icon: Info },
-  { key: 'story', label: '創立故事', icon: BookOpen },
   { key: 'rules', label: '使用規範', icon: FileText },
   { key: 'contact', label: '寫信給我們', icon: Mail },
 ]
