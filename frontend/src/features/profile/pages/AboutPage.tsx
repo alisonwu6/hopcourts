@@ -41,7 +41,7 @@ export function AboutPage() {
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <IdCard className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">我的運動卡</h3>
-                <p className="mt-2 text-sm text-slate-600">每一場參與都是對自我運動旅程的肯定。</p>
+                <p className="mt-2 text-sm text-slate-600">建立運動身份，累積自我運動旅程。</p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <UsersRound className="h-5 w-5 text-emerald-600" />

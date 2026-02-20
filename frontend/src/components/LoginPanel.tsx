@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import GoogleLoginButton from '@/components/button/GoogleLoginButton'
-import AppleLoginButton from '@/components/button/AppleLoginButton'
+// import AppleLoginButton from '@/components/button/AppleLoginButton'
 import { signInWithGoogle, signInWithApple } from '@/services/authService'
 
 type Props = {
@@ -46,7 +46,7 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
 
       <div className="mx-auto mt-10 flex w-full max-w-[320px] flex-col gap-4">
         <GoogleLoginButton loginGoogle={loginGoogle} />
-        <AppleLoginButton loginApple={loginApple} />
+        {/* <AppleLoginButton loginApple={loginApple} /> */}
       </div>
     </section>
   )
