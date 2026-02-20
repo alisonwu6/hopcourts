@@ -692,10 +692,9 @@ function JoinBar({
   const startTime = new Date(event.startTime)
   const endTime = new Date(event.endTime)
 
-  // Check-in window logic
-  // Use event configuration or defaults (30m before, 60m after)
-  const openMins = event.checkinOpenMinsBefore ?? 30
-  const closeMins = event.checkinCloseMinsAfter ?? 10 // Match backend default
+  // Check-in window logic: default 15 minutes before start, 5 minutes after start.
+  const openMins = event.checkinOpenMinsBefore ?? 15
+  const closeMins = event.checkinCloseMinsAfter ?? 5
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time

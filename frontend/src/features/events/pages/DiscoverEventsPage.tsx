@@ -182,14 +182,14 @@ export function DiscoverEventsPage() {
       <div
         className={clsx(
           'fixed left-0 right-0 z-40 mx-auto w-full max-w-md p-4 transition-all duration-300',
-          showMap ? 'bg-transparent pointer-events-none' : 'bg-white/95 backdrop-blur'
+          showMap ? 'pointer-events-none bg-transparent' : 'bg-white/95 backdrop-blur'
         )}
         style={{ top: '0px' }}
       >
         <div className="flex w-full items-center gap-3">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="flex flex-1 items-center gap-1 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition  pointer-events-auto"
+            className="pointer-events-auto flex flex-1 items-center gap-1 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition"
           >
             <Search className="ml-2 h-5 w-5 text-slate-800" strokeWidth={2.5} />
             <div className="flex flex-col items-start px-1">
@@ -219,7 +219,7 @@ export function DiscoverEventsPage() {
                 <div
                   role="button"
                   tabIndex={0}
-                  className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition "
+                  className="mr-1 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 transition"
                   onClick={(e) => {
                     e.stopPropagation()
                     setSearchParams(
@@ -242,7 +242,7 @@ export function DiscoverEventsPage() {
 
           <button
             onClick={toggleMap}
-            className="flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition   pointer-events-auto"
+            className="pointer-events-auto flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition"
           >
             {showMap ? (
               <ListIcon className="h-6 w-6 text-slate-700" />
@@ -291,14 +291,14 @@ export function DiscoverEventsPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900">Opps! 沒有活動？</h3>
               <p className="mt-2 text-sm text-slate-500">
-                先開始先享受運動的樂趣。<br />
-                快來發佈一個活動，<br />
+                快來發佈一個活動，
+                <br />
                 讓有相同運動興趣的夥伴們找到你吧！
               </p>
               <button
                 type="button"
                 onClick={handleCreateClick}
-                className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-200 transition "
+                className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-200 transition"
               >
                 發起活動
               </button>
@@ -449,9 +449,7 @@ function SearchSheet({
             onClick={() => setActiveTab('date')}
             className={clsx(
               'flex-1 rounded-full py-2 text-sm font-bold transition-all',
-              activeTab === 'date'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-slate-500'
+              activeTab === 'date' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'
             )}
           >
             日期
@@ -461,9 +459,7 @@ function SearchSheet({
             onClick={() => setActiveTab('sport')}
             className={clsx(
               'flex-1 rounded-full py-2 text-sm font-bold transition-all',
-              activeTab === 'sport'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-slate-500'
+              activeTab === 'sport' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'
             )}
           >
             運動
@@ -502,7 +498,7 @@ function SearchSheet({
                         })
                       }}
                       className={clsx(
-                        'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition ',
+                        'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition',
                         active
                           ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
                           : 'border-slate-200 bg-white text-slate-700'
@@ -580,14 +576,14 @@ function CalendarContent({
           <button
             type="button"
             onClick={() => onMonthChange(addMonths(month, -1))}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition "
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition"
           >
             <ChevronLeft className="h-5 w-5 text-slate-600" />
           </button>
           <button
             type="button"
             onClick={() => onMonthChange(addMonths(month, 1))}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition "
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 transition"
           >
             <ChevronRight className="h-5 w-5 text-slate-600" />
           </button>

@@ -173,7 +173,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           </h3>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
               <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />

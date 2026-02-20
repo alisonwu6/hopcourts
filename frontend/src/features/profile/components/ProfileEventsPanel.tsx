@@ -64,7 +64,7 @@ function getEventStatus(event: PlayerEvent): EventStatus {
 
   if (event.status === 'draft') return null
 
-  const openMins = event.checkinOpenMinsBefore ?? 30
+  const openMins = event.checkinOpenMinsBefore ?? 15
   const checkInStart = new Date(start.getTime() - openMins * 60000)
   if (now >= start && now <= end) return 'ongoing'
   if (now >= checkInStart && now < start) return 'check-in-open'
