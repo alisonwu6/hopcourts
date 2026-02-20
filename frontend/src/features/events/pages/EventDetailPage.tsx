@@ -17,6 +17,7 @@ import {
   Pencil,
   Share,
   Smile,
+  Frown,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -59,6 +60,7 @@ export function EventDetailPage() {
     selectedEvent: event,
     fetchEventById,
     isLoading,
+    error,
     joinEvent,
     leaveEvent,
     checkInToEvent,
@@ -259,8 +261,46 @@ export function EventDetailPage() {
 
   const effectiveCheckedIn = isAuthenticated ? hasCheckedIn || isCheckedInFromServer : false
 
-  if (isLoading || !event) {
+  if (isLoading) {
     return <PageLoading />
+  }
+
+  if (!event || (id && event.id !== id)) {
+    const detailMessage =
+      error === 'Request failed' || error === 'Session not found'
+        ? '該活動可能已被刪除或下架。'
+        : (error ?? '該活動可能已被刪除或下架。')
+
+    return (
+      <div className="min-h-screen bg-white">
+        <ActionToolbar
+          onBack={() => {
+            if (location.state?.from === 'create-event') {
+              navigate('/events')
+            } else {
+              navigate(-1)
+            }
+          }}
+          title="活動詳情"
+        />
+        <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[420px] flex-col items-center justify-center px-6 pb-16 text-center">
+          <div className="mb-5 rounded-full bg-slate-100 p-6">
+            <Frown className="h-12 w-12 text-slate-400" />
+          </div>
+          <h3 className="mb-3 text-2xl font-extrabold tracking-tight text-slate-900">活動不存在</h3>
+          <p className="text-md max-w-sm font-medium leading-relaxed text-slate-500">
+            {detailMessage}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/events')}
+            className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-blue-600 px-7 text-base font-semibold text-white shadow-sm transition hover:bg-blue-500"
+          >
+            回活動列表
+          </button>
+        </div>
+      </div>
+    )
   }
 
   const heroImage =
@@ -688,7 +728,11 @@ function JoinBar({
   } else if (isJoined) {
     if (isCheckInOpen) {
       mainButton = (
-        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
@@ -722,7 +766,11 @@ function JoinBar({
       )
     } else if (now > closeTime) {
       mainButton = (
-        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
@@ -744,7 +792,11 @@ function JoinBar({
     } else {
       // Joined but not yet time to check in (now < openTime)
       mainButton = (
-        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />

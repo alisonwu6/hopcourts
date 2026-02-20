@@ -119,6 +119,10 @@ export default function CreateEventPage() {
   const [isAddressClearing, setIsAddressClearing] = useState(false)
   const [costMode, setCostMode] = useState<'total' | 'person'>('total')
   const [isDraftLoading, setIsDraftLoading] = useState(false)
+  const [editingEventStatus, setEditingEventStatus] = useState<'draft' | 'published' | null>(null)
+  const [editingEventVisibility, setEditingEventVisibility] = useState<'public' | 'private' | null>(
+    null
+  )
   const [highlightField, setHighlightField] = useState<RequiredFieldKey | null>(null)
   const [fieldHint, setFieldHint] = useState<{
     field: RequiredFieldKey
@@ -169,6 +173,8 @@ export default function CreateEventPage() {
         const res = await eventsService.getEventById(editId)
         if (res.success && res.data) {
           const draft = res.data
+          setEditingEventStatus((draft.status as 'draft' | 'published' | undefined) ?? null)
+          setEditingEventVisibility((draft.visibility as 'public' | 'private' | undefined) ?? null)
           const toLocalISO = (d: Date | string) => {
             if (!d) return ''
             const dateObj = typeof d === 'string' ? new Date(d) : d
@@ -1011,7 +1017,10 @@ export default function CreateEventPage() {
           submittingStatus={submittingStatus}
           onDraft={() => handleSubmit(undefined, 'draft')}
           onPublish={() => handleSubmit(undefined, 'published')}
-          isEditMode={!!editId}
+          showDraftButton={!editId || editingEventStatus === 'draft'}
+          isPublicPublishedEdit={
+            !!editId && editingEventStatus === 'published' && editingEventVisibility === 'public'
+          }
         />
       </div>
       <LoginPromptSheet
@@ -1186,42 +1195,46 @@ function ActionBar({
   submittingStatus,
   onDraft,
   onPublish,
-  isEditMode,
+  showDraftButton,
+  isPublicPublishedEdit,
 }: {
   canSubmit: boolean
   submittingStatus: 'draft' | 'published' | null
   onDraft: () => void
   onPublish: () => void
-  isEditMode: boolean
+  showDraftButton: boolean
+  isPublicPublishedEdit: boolean
 }) {
   const isSubmitting = submittingStatus !== null
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md bg-white/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(15,41,77,0.1)] backdrop-blur">
       <div className="flex w-full items-center gap-3 px-4">
-        <Button
-          variant="secondary"
-          size="sm"
-          type="button"
-          onClick={onDraft}
-          className="flex-1 rounded-full border-slate-200 text-slate-600"
-          disabled={!canSubmit || isSubmitting}
-        >
-          {submittingStatus === 'draft' ? '儲存中...' : '儲存草稿'}
-        </Button>
+        {showDraftButton && (
+          <Button
+            variant="secondary"
+            size="sm"
+            type="button"
+            onClick={onDraft}
+            className="flex-1 rounded-full border-slate-200 text-slate-600"
+            disabled={!canSubmit || isSubmitting}
+          >
+            {submittingStatus === 'draft' ? '儲存中...' : '儲存草稿'}
+          </Button>
+        )}
         <Button
           size="sm"
           type="button"
           onClick={onPublish}
           disabled={isSubmitting}
-          className={clsx('flex-1 rounded-full px-6', !canSubmit && 'opacity-50')}
+          className={clsx(showDraftButton ? 'flex-1' : 'w-full', 'rounded-full px-6', !canSubmit && 'opacity-50')}
         >
           {submittingStatus === 'published'
-            ? isEditMode
+            ? isPublicPublishedEdit
               ? '更新中…'
               : '發布中…'
-            : isEditMode
-              ? '更新發佈'
-              : '發佈'}
+            : isPublicPublishedEdit
+              ? '更新發布'
+              : '發布'}
         </Button>
       </div>
     </div>

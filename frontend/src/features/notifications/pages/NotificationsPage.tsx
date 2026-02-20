@@ -58,6 +58,8 @@ export function NotificationsPage() {
         return <UserMinus className="h-5 w-5" />
       case 'session_cancelled': 
         return <AlertCircle className="h-5 w-5" />
+      case 'session_updated':
+        return <Clock className="h-5 w-5" />
       case 'check-in': 
         return <Clock className="h-5 w-5" />
       case 'ended': 
@@ -72,6 +74,7 @@ export function NotificationsPage() {
 
   const getIconBg = (type: string) => {
       if (type === 'session_cancelled') return 'bg-red-100 text-red-600'
+      if (type === 'session_updated') return 'bg-amber-100 text-amber-700'
       if (type === 'check-in') return 'bg-blue-100 text-blue-600'
       if (type === 'ended') return 'bg-green-100 text-green-600'
       return 'bg-slate-100 text-slate-600'

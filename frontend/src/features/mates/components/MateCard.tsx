@@ -79,17 +79,21 @@ export function MateCard({
             <Smile className="h-12 w-12 text-slate-300" />
           )}
         </div>
-        
+
         <div className="flex flex-1 flex-col gap-2">
           {/* Header: Name/Loc + Vibe */}
-          <div className="flex justify-between items-start gap-2">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 {name && <span className="text-base font-bold text-slate-900">{name}</span>}
               </div>
               {location && (
                 <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
-                  <MapPin className="h-3.5 w-3.5 text-slate-400" strokeWidth={2} aria-hidden="true" />
+                  <MapPin
+                    className="h-3.5 w-3.5 text-slate-400"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                   <span className="truncate">{location}</span>
                 </div>
               )}
@@ -123,7 +127,9 @@ export function MateCard({
                 <span className="text-xl font-bold leading-none text-slate-900">{hostedCount}</span>
                 <span className="text-[10px] font-medium text-slate-600">場</span>
               </div>
-              <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">主辦活動</span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
+                主辦活動
+              </span>
             </button>
 
             <button
@@ -138,13 +144,15 @@ export function MateCard({
                 <span className="text-xl font-bold leading-none text-slate-900">{joinedCount}</span>
                 <span className="text-[10px] font-medium text-slate-600">場</span>
               </div>
-              <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">參與活動</span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
+                參與活動
+              </span>
             </button>
 
-            <div 
+            <div
               className={clsx(
-                "flex-1 pl-4 transition-opacity",
-                onTeammatesClick ? "cursor-pointer hover:opacity-70" : ""
+                'flex-1 pl-4 transition-opacity',
+                onTeammatesClick ? 'cursor-pointer hover:opacity-70' : ''
               )}
               onClick={onTeammatesClick}
             >
@@ -152,7 +160,9 @@ export function MateCard({
                 <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
                 <span className="text-[10px] font-medium text-slate-600">位</span>
               </div>
-              <span className="mt-0.5 block text-[10px] font-medium text-slate-500 whitespace-nowrap">一起動過的人</span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
+                運動夥伴
+              </span>
             </div>
           </div>
         </div>

@@ -7,7 +7,7 @@ export function HostedEventsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <div className="sticky top-0 z-10 relative flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
+      <div className="relative sticky top-0 z-10 flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -15,7 +15,7 @@ export function HostedEventsPage() {
         >
           <ArrowLeft className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold text-slate-900">我的主辦活動</span>
+        <span className="text-lg font-bold text-slate-900">主辦活動</span>
       </div>
 
       <div className="p-4">

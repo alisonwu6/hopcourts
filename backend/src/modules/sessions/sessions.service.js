@@ -419,7 +419,35 @@ async function updateSession(sessionId, input) {
     patch.priceTotal = null
   }
 
-  return sessionsModel.updateSession(sessionId, patch)
+  const hasChanges = Object.values(patch).some((value) => value !== undefined)
+  const updatedSession = await sessionsModel.updateSession(sessionId, patch)
+
+  if (hasChanges && updatedSession) {
+    const participants = await participantsModel.listParticipantsBySession(sessionId)
+    const actor = await usersModel.getUserById(input.userId).catch(() => null)
+    const actorName = actor?.display_name || actor?.name || '活動發起人'
+    const sessionTitle = updatedSession.title || existing.title || '活動'
+
+    participants.forEach((participant) => {
+      const recipientId = participant.user_id
+      if (!recipientId || recipientId === input.userId) return
+
+      notificationsService
+        .createNotification({
+          recipient_user_id: recipientId,
+          actor_user_id: input.userId,
+          type: 'session_updated',
+          entity_type: 'session',
+          entity_id: sessionId,
+          title: '活動資訊已更新',
+          message: `${actorName} 更新了「${sessionTitle}」`,
+          metadata: { deep_link: `/event/${sessionId}` },
+        })
+        .catch((err) => console.error('Notify update failed', err))
+    })
+  }
+
+  return updatedSession
 }
 
 async function deleteSession(sessionId, userId) {

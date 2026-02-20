@@ -65,19 +65,25 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
   fetchEventById: async (id: string, options?: FetchOptions) => {
     const selectedEvent = get().selectedEvent
     const shouldShowLoading = options?.force || selectedEvent?.id !== id
-    set({ isLoading: Boolean(shouldShowLoading), error: null })
+    set({
+      isLoading: Boolean(shouldShowLoading),
+      error: null,
+      selectedEvent: selectedEvent?.id === id ? selectedEvent : null,
+    })
     try {
       const response = await eventsService.getEventById(id, options)
       if (response.success && response.data) {
         set({ selectedEvent: response.data, isLoading: false })
       } else {
         set({
+          selectedEvent: null,
           error: response.error?.message ?? 'Failed to load event',
           isLoading: false,
         })
       }
     } catch {
       set({
+        selectedEvent: null,
         error: 'An error occurred',
         isLoading: false,
       })
