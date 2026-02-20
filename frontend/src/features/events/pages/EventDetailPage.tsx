@@ -219,10 +219,19 @@ export function EventDetailPage() {
       },
       (err) => {
         console.error(err)
-        showAlert('你在哪？', '請開啟位置功能，讓我們知道你是否已進入到報到範圍。', 'warning')
+        const code = err?.code
+        if (code === 1) {
+          showAlert('需要定位權限', '請在 Safari 網站設定中允許定位權限後再試一次。', 'warning')
+        } else if (code === 2) {
+          showAlert('目前無法取得定位', '訊號不穩或定位來源暫時不可用，請移到空曠處後重試。', 'warning')
+        } else if (code === 3) {
+          showAlert('定位逾時', '定位花費太久，請確認網路與 GPS 已開啟後再試一次。', 'warning')
+        } else {
+          showAlert('定位失敗', '請確認已開啟定位功能，並稍後再試。', 'warning')
+        }
         setIsCheckingIn(false)
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 25000, maximumAge: 30000 }
     )
   }
 
