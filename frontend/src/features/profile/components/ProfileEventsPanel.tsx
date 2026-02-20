@@ -200,7 +200,7 @@ function HostedEventCard({
         </div>
       </div>
       <EventTags event={event} sportsCatalog={sportsCatalog} />
-      <div className="pt-3">
+      <div className="space-y-1 pt-3">
         <CardInfoRow icon={Calendar} label={formatTimeRange(event.startTime, event.endTime)} />
         <div className="flex items-start gap-3">
           <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
