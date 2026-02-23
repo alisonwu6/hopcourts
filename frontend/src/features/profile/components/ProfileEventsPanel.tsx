@@ -92,7 +92,7 @@ function formatTwdNoDecimal(value: unknown) {
 
 function getPriceLabel(event: PlayerEvent) {
   return event.isFree
-    ? '免費體驗'
+    ? '免費活動'
     : event.priceRange || `$${formatTwdNoDecimal(event.pricePerPerson)} /人`
 }
 

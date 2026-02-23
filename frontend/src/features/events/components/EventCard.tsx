@@ -226,9 +226,9 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
               <CircleDollarSign className="w-4.5 h-4.5" strokeWidth={2.5} />
             </div>
             <div className="text-sm">
-              <span className={clsx(event.isFree ? 'text-green-600' : 'text-slate-900')}>
+              <span className="text-slate-900">
                 {event.isFree
-                  ? '免費體驗'
+                  ? '免費活動'
                   : `${event.priceRange || `$${event.pricePerPerson}`} /人`}
               </span>
             </div>

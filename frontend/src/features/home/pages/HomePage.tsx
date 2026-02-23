@@ -28,7 +28,7 @@ export function HomePage() {
           <img src={logo} alt="SportsMatch" className="h-45 w-auto" />
         </div>
 
-        <main className="flex flex-col gap-4">
+        <main className="flex flex-col">
           {/* Badge & Headlines */}
           <header className="flex flex-col items-center gap-4 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -49,17 +49,17 @@ export function HomePage() {
           </header>
 
           {/* Feature Grid */}
-          <section aria-label="App Features" className="px-4">
+          <section aria-label="App Features" className="mb-8 px-4">
             <div className="mx-auto grid w-full grid-cols-3 gap-4">
               {/* Feature 1 */}
-              <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm">
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-20 w-20 items-center justify-center text-emerald-600">
                   <Clock className="h-10 w-10" strokeWidth={2} />
                 </div>
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900">隨時開約</h3>
                   <p className="text-sm font-medium leading-relaxed text-slate-500">
-                    配合你的
+                    依照你的
                     <br />
                     生活步調
                   </p>
@@ -67,8 +67,8 @@ export function HomePage() {
               </div>
 
               {/* Feature 2 */}
-              <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] border border-blue-200 bg-blue-50 text-blue-600 shadow-sm">
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-20 w-20 items-center justify-center text-blue-600">
                   <MapPin className="h-10 w-10" strokeWidth={2} />
                 </div>
                 <div className="space-y-1">
@@ -82,8 +82,8 @@ export function HomePage() {
               </div>
 
               {/* Feature 3 */}
-              <div className="flex flex-col items-center gap-3 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] border border-amber-200 bg-amber-50 text-amber-600 shadow-sm">
+              <div className="flex flex-col items-center text-center">
+                <div className="flex h-20 w-20 items-center justify-center text-amber-600">
                   <Users className="h-10 w-10" strokeWidth={2} />
                 </div>
                 <div className="space-y-1">

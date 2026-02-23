@@ -73,6 +73,25 @@ export function EventDetailPage() {
     }
   }, [id, fetchEventById])
 
+  const handleBack = () => {
+    if (location.state?.from === 'create-event') {
+      navigate('/events')
+      return
+    }
+
+    // React Router stores navigation index in history.state.idx.
+    // Direct-open links usually have idx = 0, so fallback to event list.
+    const historyIdx =
+      typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
+
+    if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
+      navigate('/events', { replace: true })
+      return
+    }
+
+    navigate(-1)
+  }
+
   const handleShare = () => {
     // navigator.share usually requires HTTPS
     if (navigator.share) {
@@ -256,8 +275,6 @@ export function EventDetailPage() {
     event?.participants?.filter((p) => p.id !== event?.host?.id).length ?? 0
   const hasOtherParticipants = nonHostParticipantsCount > 0
 
-  /* DEBUG: Check why isJoined is false -- REMOVED */
-
   const isJoined = isAuthenticated ? ((event?.joined || isParticipant) ?? false) : false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
 
@@ -283,13 +300,7 @@ export function EventDetailPage() {
     return (
       <div className="min-h-screen bg-white">
         <ActionToolbar
-          onBack={() => {
-            if (location.state?.from === 'create-event') {
-              navigate('/events')
-            } else {
-              navigate(-1)
-            }
-          }}
+          onBack={handleBack}
           title="活動詳情"
         />
         <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[420px] flex-col items-center justify-center px-6 pb-16 text-center">
@@ -381,13 +392,7 @@ export function EventDetailPage() {
   return (
     <div className="min-h-screen pb-40">
       <ActionToolbar
-        onBack={() => {
-          if (location.state?.from === 'create-event') {
-            navigate('/events')
-          } else {
-            navigate(-1)
-          }
-        }}
+        onBack={handleBack}
         onShare={handleShare}
         onToggleFavorite={() => setIsFavorite((prev) => !prev)}
         isFavorite={isFavorite}

@@ -670,7 +670,7 @@ export function ProfilePage() {
       }
 
       setShowEditSheet(false)
-      setRawProfile((prev: any) => ({ ...prev, ...responseData }))
+      setRawProfile(responseData)
     } catch (err: any) {
       // keep sheet open for retry
       console.error('Failed to save profile', err)
@@ -796,13 +796,13 @@ export function ProfilePage() {
             .then((res) => {
               // Update rawProfile to match, so useEffect doesn't revert it
               const data = (res as any)?.data ?? res
-              // Force keep our URL with params, even if backend returns clean URL
+              // Keep latest avatar url with cache-busting params if present
               if (data && data.user) {
                 data.user.avatar_url = url
               } else if (data) {
                 data.avatar_url = url
               }
-              setRawProfile((prev: any) => ({ ...prev, ...data }))
+              setRawProfile(data)
             })
             .catch((err) => {
               console.error('Failed to save avatar URL to DB', err)
