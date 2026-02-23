@@ -73,6 +73,18 @@ export function EventDetailPage() {
     }
   }, [id, fetchEventById])
 
+  const handleBack = () => {
+    if (location.state?.from === 'create-event') {
+      navigate('/events')
+      return
+    }
+    if (typeof window !== 'undefined' && window.history.length <= 1) {
+      navigate('/events')
+      return
+    }
+    navigate(-1)
+  }
+
   const handleShare = () => {
     // navigator.share usually requires HTTPS
     if (navigator.share) {
@@ -283,13 +295,7 @@ export function EventDetailPage() {
     return (
       <div className="min-h-screen bg-white">
         <ActionToolbar
-          onBack={() => {
-            if (location.state?.from === 'create-event') {
-              navigate('/events')
-            } else {
-              navigate(-1)
-            }
-          }}
+          onBack={handleBack}
           title="活動詳情"
         />
         <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[420px] flex-col items-center justify-center px-6 pb-16 text-center">
@@ -381,13 +387,7 @@ export function EventDetailPage() {
   return (
     <div className="min-h-screen pb-40">
       <ActionToolbar
-        onBack={() => {
-          if (location.state?.from === 'create-event') {
-            navigate('/events')
-          } else {
-            navigate(-1)
-          }
-        }}
+        onBack={handleBack}
         onShare={handleShare}
         onToggleFavorite={() => setIsFavorite((prev) => !prev)}
         isFavorite={isFavorite}
