@@ -78,10 +78,17 @@ export function EventDetailPage() {
       navigate('/events')
       return
     }
-    if (typeof window !== 'undefined' && window.history.length <= 1) {
-      navigate('/events')
+
+    // React Router stores navigation index in history.state.idx.
+    // Direct-open links usually have idx = 0, so fallback to event list.
+    const historyIdx =
+      typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
+
+    if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
+      navigate('/events', { replace: true })
       return
     }
+
     navigate(-1)
   }
 
@@ -267,8 +274,6 @@ export function EventDetailPage() {
   const nonHostParticipantsCount =
     event?.participants?.filter((p) => p.id !== event?.host?.id).length ?? 0
   const hasOtherParticipants = nonHostParticipantsCount > 0
-
-  /* DEBUG: Check why isJoined is false -- REMOVED */
 
   const isJoined = isAuthenticated ? ((event?.joined || isParticipant) ?? false) : false
   const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
