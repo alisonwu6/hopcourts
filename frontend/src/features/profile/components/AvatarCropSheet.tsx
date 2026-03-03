@@ -135,7 +135,7 @@ export function AvatarCropSheet({
       return
     }
     if (!supabase) {
-      alert('Supabase 未初始化')
+      alert('Supabase is not initialized')
       onClose()
       return
     }
@@ -148,7 +148,7 @@ export function AvatarCropSheet({
       
       if (!targetUserId) {
          console.error('[avatar] No user ID found via prop or supabase.auth', { supabaseUser, userId, userError })
-         throw new Error('無法確認使用者身分，請重新登入')
+         throw new Error('Unable to verify user identity, please sign in again')
       }
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels, rotation)
       const file = new File([croppedBlob], 'avatar.webp', { type: 'image/webp' })
@@ -171,7 +171,7 @@ export function AvatarCropSheet({
       onClose()
     } catch (err) {
       console.error('avatar crop/upload failed', err)
-      alert('上傳失敗，請再試一次或改貼上圖片網址。')
+      alert('Upload failed. Please try again or use an image URL instead.')
     } finally {
       setUploading(false)
       resetState()
@@ -192,8 +192,8 @@ export function AvatarCropSheet({
       >
         <SheetLayout
           onClose={onClose}
-          title="調整大頭貼"
-          subtitle="拖曳與縮放，讓頭像置中，保存後上傳。"
+          title="Adjust Avatar"
+          subtitle="Drag and zoom to center your avatar, then save to upload."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-4"
@@ -228,10 +228,10 @@ export function AvatarCropSheet({
                       uploading && 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400'
                     )}
                   >
-                    重新選擇
+                    Choose Again
                   </button>
                   <div className="flex-1 space-y-2">
-                    <label className="text-sm font-semibold text-slate-700">縮放</label>
+                    <label className="text-sm font-semibold text-slate-700">Zoom</label>
                     <input
                       type="range"
                       min={1}
@@ -262,7 +262,7 @@ export function AvatarCropSheet({
                         : 'bg-blue-600 text-white hover:bg-blue-500'
                     )}
                  >
-                    {uploading ? '上傳中...' : '套用'}
+                    {uploading ? 'Uploading...' : 'Apply'}
                  </button>
               </div>
             </div>

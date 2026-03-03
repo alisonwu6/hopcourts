@@ -125,10 +125,9 @@ export function MateCard({
             >
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{hostedCount}</span>
-                <span className="text-[10px] font-medium text-slate-600">場</span>
               </div>
               <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                主辦活動
+                Hosted
               </span>
             </button>
 
@@ -142,10 +141,9 @@ export function MateCard({
             >
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{joinedCount}</span>
-                <span className="text-[10px] font-medium text-slate-600">場</span>
               </div>
               <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                參與活動
+                Joined
               </span>
             </button>
 
@@ -158,10 +156,9 @@ export function MateCard({
             >
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
-                <span className="text-[10px] font-medium text-slate-600">位</span>
               </div>
               <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                運動夥伴
+                Met
               </span>
             </div>
           </div>
@@ -170,7 +167,7 @@ export function MateCard({
 
       <div className="-mt-2 flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
-          <span className="uppercase tracking-wide text-slate-500">我的最愛：</span>
+          <span className="uppercase tracking-wide text-slate-500">Favorites:</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {sports.length > 0 ? (
               sports.map((sport) => (
@@ -195,7 +192,7 @@ export function MateCard({
           </div>
         </div>
         <div>
-          <span className="uppercase tracking-wide text-slate-500">想嘗試：</span>
+          <span className="uppercase tracking-wide text-slate-500">Want to try:</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {trying.length > 0 ? (
               trying.map((item) => (
@@ -228,7 +225,7 @@ export function MateCard({
           {blurb?.trim() ? (
             <span className="whitespace-pre-wrap">{blurb}</span>
           ) : (
-            <span className="not-italic text-slate-400">等待夥伴更新自我介紹...</span>
+            <span className="not-italic text-slate-400">Waiting for this mate to update their bio...</span>
           )}
         </div>
       </div>

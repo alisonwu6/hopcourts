@@ -15,7 +15,7 @@ export function JoinedEventsPage() {
         >
           <ArrowLeft className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold text-slate-900">參與活動</span>
+        <span className="text-lg font-bold text-slate-900">Joined Events</span>
       </div>
 
       <div className="p-4">

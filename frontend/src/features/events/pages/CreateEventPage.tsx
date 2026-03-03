@@ -893,7 +893,7 @@ export default function CreateEventPage() {
                     className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
                   <label htmlFor="is-free-checkbox" className="flex flex-1 flex-col">
-                    <span className="text-sm font-semibold text-slate-800">Free Event</span>
+                    <span className="text-sm font-semibold text-slate-800">Free</span>
                   </label>
                 </div>
 

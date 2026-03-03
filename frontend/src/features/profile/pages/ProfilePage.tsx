@@ -61,12 +61,12 @@ export function ProfilePage() {
   const [goal, setGoal] = useState<GoalState | null>(null)
   const [draftGoal, setDraftGoal] = useState<GoalState>({
     sessionsPerWeek: '',
-    timeOfDay: '早上',
+    timeOfDay: 'Morning',
     days: [],
   })
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
+  const [draftPreferredTime, setDraftPreferredTime] = useState('Morning')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
   const { user, isAuthenticated, isLoading } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
@@ -90,9 +90,9 @@ export function ProfilePage() {
   const [fieldValue, setFieldValue] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const { items: sportsCatalog } = useSports('zh')
-  const { items: vibesCatalog } = useVibes('zh')
-  const { items: citiesCatalog } = useCities(undefined, 'zh')
+  const { items: sportsCatalog } = useSports('en')
+  const { items: vibesCatalog } = useVibes('en')
+  const { items: citiesCatalog } = useCities(undefined, 'en')
   const navigate = useNavigate()
   const location = useLocation()
   const labelForSport = useMemo(() => {
@@ -439,12 +439,12 @@ export function ProfilePage() {
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
       sessionsPerWeek: '',
-      timeOfDay: draftPreferredTime || '早上',
+      timeOfDay: draftPreferredTime || 'Morning',
       days: [],
     }
     setDraftGoal(baseGoal)
     setDraftDaySlots(goalDaySlots)
-    setDraftPreferredTime(baseGoal.timeOfDay || '早上')
+    setDraftPreferredTime(baseGoal.timeOfDay || 'Morning')
     setShowGoalSheet(true)
   }
 
@@ -468,8 +468,8 @@ export function ProfilePage() {
 
     const url = `${window.location.origin}/mate/${shareUsername}`
     const shareData = {
-      title: 'SportsMatch 運動卡',
-      text: `看看 ${draftProfile.name} 的運動檔案`,
+      title: 'SportsMatch Activity Card',
+      text: `Check out ${draftProfile.name} activity profile`,
       url,
     }
 
@@ -487,7 +487,7 @@ export function ProfilePage() {
   const handleShareToLine = () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    const text = `Check out ${draftProfile.name} activity profile\n${url}`
     window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`
     setShowShareSheet(false)
   }
@@ -495,18 +495,18 @@ export function ProfilePage() {
   const handleCopyLink = async () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    const text = `Check out ${draftProfile.name} activity profile\n${url}`
 
     try {
       await navigator.clipboard.writeText(text)
       setAlertDialog({
         open: true,
-        title: '已複製',
-        description: '連結與文字已複製到剪貼簿',
+        title: 'Copied',
+        description: 'Link and text copied to clipboard',
         type: 'success',
       })
     } catch (err) {
-      window.prompt('請複製連結', text)
+      window.prompt('Copy this link', text)
     } finally {
       setShowShareSheet(false)
     }
@@ -540,15 +540,15 @@ export function ProfilePage() {
         break
       case 'username':
         if (!value) {
-          setFieldError('請輸入使用者名稱')
+          setFieldError('Please enter a username')
           return
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
-          setFieldError('帳號只能包含英文、數字、底線與句號')
+          setFieldError('Username can only include letters, numbers, underscores, and periods')
           return
         }
         if (value.length < 3 || value.length > 10) {
-          setFieldError('帳號長度需介於 3 至 10 個字')
+          setFieldError('Username length must be between 3 and 10 characters')
           return
         }
         {
@@ -559,12 +559,12 @@ export function ProfilePage() {
             try {
               // 200 => already exists, 404 => available
               await profileService.getProfileByUsername(value)
-              setFieldError('使用者名稱已存在，請選擇其他名稱')
+              setFieldError('Username already exists, please choose another one')
               return
             } catch (err: any) {
               const status = err?.status || err?.response?.status
               if (status !== 404) {
-                setFieldError('目前無法驗證帳號，請稍後再試')
+                setFieldError('Unable to verify username right now, please try again later')
                 return
               }
             } finally {
@@ -596,7 +596,7 @@ export function ProfilePage() {
   }
 
   const saveSports = () => {
-    // Sports selections are local draft only; final save happens on "完成".
+    // Sports selections are local draft only; final save happens on "Done".
     setShowSportsSheet(false)
     setShowTryingSheet(false)
   }
@@ -680,12 +680,12 @@ export function ProfilePage() {
 
       if (status === 409) {
         if (constraint.includes('username')) {
-          alert('使用者名稱已存在，請選擇其他名稱')
+          alert('Username already exists, please choose another one')
         } else {
-          alert('儲存失敗：資料衝突，請檢查輸入內容')
+          alert('Save failed: data conflict, please check your input')
         }
       } else {
-        alert('儲存失敗，請稍後再試')
+        alert('Save failed, please try again later')
       }
     } finally {
       setIsSavingProfile(false)
@@ -757,14 +757,14 @@ export function ProfilePage() {
           }
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
-          actionLabel="編輯運動卡"
+          actionLabel="Edit"
           actionClassName=""
           onHostedClick={() => navigate('/profile/hosted-events')}
           onJoinedClick={() => navigate('/profile/joined-events')}
           onTeammatesClick={() => navigate('/circle')}
         />
         <div className="mt-4 space-y-4 px-3">
-          <h3 className="px-1 text-xl font-semibold text-slate-700">近期活動</h3>
+          <h3 className="px-1 text-xl font-semibold text-slate-700">Recent Activities</h3>
           <ProfileEventsPanel mode="all" showTimeTabs={false} />
         </div>
       </div>
@@ -834,7 +834,7 @@ export function ProfilePage() {
       {/* Custom Share Sheet for non-native environments */}
       <BottomSheet open={showShareSheet} onClose={() => setShowShareSheet(false)}>
         <div className="px-4 pb-8 pt-4">
-          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">分享運動卡</h3>
+          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">Share Activity Card</h3>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={handleShareToLine}
@@ -852,7 +852,7 @@ export function ProfilePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-slate-600 shadow-sm">
                 <Copy className="h-6 w-6" />
               </div>
-              <span className="text-sm font-medium text-slate-700">複製連結</span>
+              <span className="text-sm font-medium text-slate-700">Copy Link</span>
             </button>
           </div>
         </div>
@@ -872,13 +872,13 @@ export function ProfilePage() {
             if (isSavingProfile) return
             setShowEditSheet(false)
           }}
-          title="我的運動卡"
-          subtitle="保持最新運動狀態"
+          title="My Sport Card"
+          subtitle="Keep your activity status up to date"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 min-h-0 overflow-y-auto px-5 pb-24 pt-4 space-y-4"
           primaryButton={{
-            label: '完成',
+            label: 'Done',
             onClick: handleSaveProfile,
             disabled: isSavingProfile,
             isLoading: isSavingProfile,
@@ -896,36 +896,36 @@ export function ProfilePage() {
                 onClick={() => setShowAvatarCropper(true)}
                 className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
               >
-                編輯
+                Edit
               </button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">基本資料</p>
+            <p className="text-sm font-semibold text-slate-700">Basic Info</p>
             <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               {[
-                { key: 'name', label: '名稱', value: draftProfile.name },
+                { key: 'name', label: 'Name', value: draftProfile.name },
                 {
                   key: 'username',
-                  label: '使用者名稱',
+                  label: 'Username',
                   value: draftUsername ?? '',
                 },
                 {
                   key: 'location',
-                  label: '現居地點',
+                  label: 'Current Location',
                   value: labelForCity(draftProfile.cityKey) || draftProfile.location,
                   valueKey: draftProfile.cityKey || '',
                 },
                 {
                   key: 'gender',
-                  label: '性別',
+                  label: 'Gender',
                   value:
                     draftProfile.gender === 'male'
-                      ? '男生'
+                      ? 'Male'
                       : draftProfile.gender === 'female'
-                        ? '女生'
-                        : '未設定',
+                        ? 'Female'
+                        : 'Not set',
                   valueKey: draftProfile.gender || '',
                 },
               ].map((row) => {
@@ -949,7 +949,7 @@ export function ProfilePage() {
                     <div className="space-y-1">
                       <p className="text-sm font-semibold text-slate-700">{row.label}</p>
                       <p className="text-base font-semibold text-slate-900">
-                        {row.value || '未設定'}
+                        {row.value || 'Not set'}
                       </p>
                     </div>
                     {!isReadOnly && <span className="text-slate-400">›</span>}
@@ -960,7 +960,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">運動</p>
+            <p className="text-sm font-semibold text-slate-700">Sports</p>
             <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <button
                 type="button"
@@ -976,13 +976,13 @@ export function ProfilePage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">運動氛圍</p>
+                  <p className="text-sm font-semibold text-slate-700">Workout Vibe</p>
                   <p className="text-base font-semibold text-slate-900">
                     {labelForVibe(
                       (draftProfile as any).vibeKey ||
                         vibeUnionToKey.get(draftProfile.vibe as string) ||
                         (draftProfile.vibe as string)
-                    ) || '未設定'}
+                    ) || 'Not set'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -993,9 +993,9 @@ export function ProfilePage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">我的最愛</p>
+                  <p className="text-sm font-semibold text-slate-700">My Favorites</p>
                   <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.sports.length ? draftProfile.sports.join('、') : '未設定'}
+                    {draftProfile.sports.length ? draftProfile.sports.join(', ') : 'Not set'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1006,9 +1006,9 @@ export function ProfilePage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">想嘗試</p>
+                  <p className="text-sm font-semibold text-slate-700">Want to Try</p>
                   <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.trying.length ? draftProfile.trying.join('、') : '未設定'}
+                    {draftProfile.trying.length ? draftProfile.trying.join(', ') : 'Not set'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1017,7 +1017,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">關於我</p>
+            <p className="text-sm font-semibold text-slate-700">About Me</p>
             <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <button
                 type="button"
@@ -1025,9 +1025,9 @@ export function ProfilePage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">自我介紹</p>
+                  <p className="text-sm font-semibold text-slate-700">Bio</p>
                   <p className="line-clamp-1 text-base font-semibold text-slate-900">
-                    {draftProfile.blurb || '未設定'}
+                    {draftProfile.blurb || 'Not set'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1044,20 +1044,20 @@ export function ProfilePage() {
       >
         {(() => {
           const titleMap: Record<string, string> = {
-            name: '名稱',
-            username: '使用者名稱',
-            location: '現居城市',
-            vibe: '運動氛圍',
-            bio: '自我介紹',
-            gender: '性別',
+            name: 'Name',
+            username: 'Username',
+            location: 'Current City',
+            vibe: 'Workout Vibe',
+            bio: 'Bio',
+            gender: 'Gender',
           }
           const subtitleMap: Record<string, string> = {
-            name: '請輸入卡片上要顯示的名稱。',
-            username: '你的帳號，夥伴可以用這個找到你。',
-            location: '填寫你目前所在的城市。',
-            vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
-            bio: '和大家分享你的運動的動態與目標吧！',
-            gender: '因應性別專場，請選擇你的生理性別。',
+            name: 'Enter the name shown on your card.',
+            username: 'Your handle that others can use to find you.',
+            location: 'Enter the city where you currently live.',
+            vibe: 'Choose the activity vibe that best matches your current rhythm.',
+            bio: 'Share your activity updates and goals.',
+            gender: 'Select your biological sex for gender-specific events.',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -1069,7 +1069,7 @@ export function ProfilePage() {
               className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
               contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-3"
               primaryButton={{
-                label: '儲存',
+                label: 'Save',
                 onClick: handleSaveField,
                 disabled: isSavingProfile,
               }}
@@ -1129,7 +1129,7 @@ export function ProfilePage() {
                   onChange={(e) => setFieldValue(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
                 >
-                  <option value="">請選擇城市</option>
+                  <option value="">Please select a city</option>
                   {citiesCatalog.map((c) => (
                     <option key={c.key} value={c.key}>
                       {c.label}
@@ -1144,17 +1144,17 @@ export function ProfilePage() {
                     maxLength={120}
                     rows={10}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="和大家分享你想說的一句話。"
+                    placeholder="Share a short line about yourself."
                   />
                   <div className="text-right text-sm text-slate-500">
-                    還可以輸入 {120 - (fieldValue?.length || 0)} 個字
+                    {120 - (fieldValue?.length || 0)} characters remaining
                   </div>
                 </div>
               ) : activeField === 'gender' ? (
                 <div className="flex flex-col gap-3">
                   {[
-                    { key: 'male', label: '男生' },
-                    { key: 'female', label: '女生' },
+                    { key: 'male', label: 'Male' },
+                    { key: 'female', label: 'Female' },
                   ].map((g) => (
                     <button
                       key={g.key}
@@ -1186,7 +1186,7 @@ export function ProfilePage() {
                         ? 'border-red-500 focus:border-red-500'
                         : 'border-slate-200 focus:border-blue-500'
                     )}
-                    placeholder="請輸入"
+                    placeholder="Please enter"
                   />
                   {fieldError && <p className="mt-2 text-sm text-red-500">{fieldError}</p>}
                 </div>
@@ -1203,13 +1203,13 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => setShowSportsSheet(false)}
-          title="選擇最愛運動"
-          subtitle="那些你能自在接受挑戰，且熱在其中的運動。"
+          title="Choose Favorite Sports"
+          subtitle="Sports you enjoy and feel confident playing."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
           primaryButton={{
-            label: '儲存',
+            label: 'Save',
             onClick: saveSports,
             disabled: isSavingProfile,
           }}
@@ -1217,7 +1217,7 @@ export function ProfilePage() {
         >
           <div className="space-y-2">
             <p className="text-sm font-semibold text-slate-700">
-              已選 {draftProfile.sports.length}/3
+              Selected {draftProfile.sports.length}/3
             </p>
             <div className="flex flex-wrap gap-2">
               {draftProfile.sports.map((s) => (
@@ -1228,7 +1228,7 @@ export function ProfilePage() {
                   {s}
                   <button
                     type="button"
-                    aria-label="移除"
+                    aria-label="Remove"
                     className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
@@ -1247,7 +1247,7 @@ export function ProfilePage() {
           <input
             value={sportsSearch}
             onChange={(e) => setSportsSearch(e.target.value)}
-            placeholder="搜尋運動"
+            placeholder="Search sports"
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
           />
 
@@ -1300,13 +1300,13 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => setShowTryingSheet(false)}
-          title="想嘗試的運動"
-          subtitle="挑你感興趣的新挑戰（最多選 2 項）"
+          title="Sports to Try"
+          subtitle="Pick new challenges you are interested in (up to 2)"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
           primaryButton={{
-            label: '儲存',
+            label: 'Save',
             onClick: saveSports,
             disabled: isSavingProfile,
           }}
@@ -1314,7 +1314,7 @@ export function ProfilePage() {
         >
           <div className="space-y-2">
             <p className="text-sm font-semibold text-slate-700">
-              已選 {draftProfile.trying.length}/2
+              Selected {draftProfile.trying.length}/2
             </p>
             <div className="flex flex-wrap gap-2">
               {draftProfile.trying.map((s) => (
@@ -1325,7 +1325,7 @@ export function ProfilePage() {
                   {s}
                   <button
                     type="button"
-                    aria-label="移除"
+                    aria-label="Remove"
                     className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
@@ -1344,7 +1344,7 @@ export function ProfilePage() {
           <input
             value={tryingSearch}
             onChange={(e) => setTryingSearch(e.target.value)}
-            placeholder="搜尋運動"
+            placeholder="Search sports"
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
           />
 
@@ -1399,8 +1399,8 @@ export function ProfilePage() {
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-500">設定你的每週節奏</p>
-              <p className="text-xl font-bold text-slate-900">我們會依此幫你推薦夥伴與活動</p>
+              <p className="text-sm font-semibold text-slate-500">Set your weekly rhythm</p>
+              <p className="text-xl font-bold text-slate-900">We will recommend mates and events based on this</p>
             </div>
             <button
               type="button"
@@ -1413,7 +1413,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700">每週目標次數</label>
+            <label className="text-sm font-semibold text-slate-700">Weekly target sessions</label>
             <input
               type="number"
               min={1}
@@ -1430,9 +1430,9 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-slate-700">通常想在什麼時段運動？</p>
+            <p className="text-sm font-semibold text-slate-700">What time do you usually prefer to work out?</p>
             <div className="flex flex-wrap gap-2">
-              {['早上', '下午', '晚上'].map((slot) => {
+              {['Morning', 'Afternoon', 'Evening'].map((slot) => {
                 const active = draftPreferredTime === slot
                 return (
                   <button
@@ -1463,7 +1463,7 @@ export function ProfilePage() {
 
             <details className="space-y-2 rounded-2xl border border-slate-200 bg-white px-4 py-3">
               <summary className="cursor-pointer text-sm font-semibold text-slate-700">
-                按天微調（可選）
+                Fine-tune by day (optional)
               </summary>
               <div className="space-y-3 pt-2">
                 {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
@@ -1473,7 +1473,7 @@ export function ProfilePage() {
                         {dayLabels[day] ?? day}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {['早上', '下午', '晚上'].map((slot) => {
+                        {['Morning', 'Afternoon', 'Evening'].map((slot) => {
                           const active = draftDaySlots[day]?.includes(slot)
                           return (
                             <button
@@ -1513,7 +1513,7 @@ export function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            我們會幫你找到符合節奏的活動與夥伴。
+            We will help you find events and mates that match your rhythm.
           </div>
 
           <div className="flex gap-3">
@@ -1522,7 +1522,7 @@ export function ProfilePage() {
               onClick={() => setShowGoalSheet(false)}
               className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
             >
-              取消
+              Cancel
             </button>
             <button
               type="button"
@@ -1530,7 +1530,7 @@ export function ProfilePage() {
               disabled={isSavingGoal}
               className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-blue-300"
             >
-              {isSavingGoal ? 'Saving...' : '儲存'}
+              {isSavingGoal ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>

@@ -20,10 +20,10 @@ type SportsItem = { key: string; label: string; icon?: string | null }
 type EventStatus = 'check-in-open' | 'ongoing' | null
 
 function groupByDate(events: PlayerEvent[]) {
-  const formatter = new Intl.DateTimeFormat('zh-TW', {
-    month: 'numeric',
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
     day: 'numeric',
-    weekday: 'long',
   })
   const map = new Map<string, PlayerEvent[]>()
   events.forEach((event) => {
@@ -39,22 +39,30 @@ function groupByDate(events: PlayerEvent[]) {
 function formatTimeRange(start: Date | string, end: Date | string) {
   const s = new Date(start)
   const e = new Date(end)
-  const date = s.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+  const date = s.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   })
-  const startStr = s.toLocaleTimeString('zh-TW', {
-    hour12: false,
-    hour: '2-digit',
+  const startStr = s.toLocaleTimeString('en-US', {
+    hour12: true,
+    hour: 'numeric',
     minute: '2-digit',
   })
-  const endStr = e.toLocaleTimeString('zh-TW', {
-    hour12: false,
-    hour: '2-digit',
+  const endStr = e.toLocaleTimeString('en-US', {
+    hour12: true,
+    hour: 'numeric',
     minute: '2-digit',
   })
-  return `${date} ${startStr}-${startStr !== endStr ? endStr : ''}`
+  const startSuffix = startStr.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const endSuffix = endStr.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const startCore = startStr.replace(/\s(AM|PM)$/, '')
+  const endCore = endStr.replace(/\s(AM|PM)$/, '')
+  const time =
+    startSuffix && startSuffix === endSuffix
+      ? `${startCore}–${endCore} ${endSuffix}`
+      : `${startStr}–${endStr}`
+  return `${date} · ${time}`
 }
 
 function getEventStatus(event: PlayerEvent): EventStatus {
@@ -72,35 +80,35 @@ function getEventStatus(event: PlayerEvent): EventStatus {
 }
 
 function getSkillLabel(skillLevel: PlayerEvent['skillLevel']) {
-  if (skillLevel === 'beginner') return '初階'
-  if (skillLevel === 'intermediate') return '中階步調'
-  if (skillLevel === 'advanced') return '進階'
-  return '不限程度'
+  if (skillLevel === 'beginner') return 'Beginner'
+  if (skillLevel === 'intermediate') return 'Intermediate'
+  if (skillLevel === 'advanced') return 'Advanced'
+  return 'All levels'
 }
 
 function getGenderLabel(gender: PlayerEvent['gender']) {
-  if (gender === 'female') return '女性專屬'
-  if (gender === 'male') return '男性專屬'
-  return '性別混合'
+  if (gender === 'female') return 'Women only'
+  if (gender === 'male') return 'Men only'
+  return 'Mixed gender'
 }
 
 function formatTwdNoDecimal(value: unknown) {
   const n = Number(value)
   if (!Number.isFinite(n)) return '0'
-  return Math.round(n).toLocaleString('zh-TW')
+  return Math.round(n).toLocaleString('en-US')
 }
 
 function getPriceLabel(event: PlayerEvent) {
   return event.isFree
-    ? '免費活動'
-    : event.priceRange || `$${formatTwdNoDecimal(event.pricePerPerson)} /人`
+    ? 'Free'
+    : event.priceRange || `$${formatTwdNoDecimal(event.pricePerPerson)} /person`
 }
 
 function getLocationLines(event: PlayerEvent) {
   const line1 =
     event.location.name && event.location.name !== event.location.address
       ? event.location.name
-      : event.location.name || event.location.address || '地點待確認'
+      : event.location.name || event.location.address || 'Location TBD'
   const line2 =
     event.location.name && event.location.address && event.location.name !== event.location.address
       ? event.location.address
@@ -145,14 +153,14 @@ function StatusBadge({ status }: { status: EventStatus }) {
   if (status === 'check-in-open') {
     return (
       <span className="flex-shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-        開放報到中
+        Check-in open
       </span>
     )
   }
   if (status === 'ongoing') {
     return (
       <span className="flex-shrink-0 animate-pulse rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-        進行中
+        In progress
       </span>
     )
   }
@@ -193,7 +201,7 @@ function HostedEventCard({
         <div className="flex items-center gap-2">
           {event.status === 'draft' && (
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-              草稿
+              Draft
             </span>
           )}
           <StatusBadge status={status} />
@@ -216,7 +224,7 @@ function HostedEventCard({
             <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
           </div>
           <div className="text-sm font-normal text-slate-700">
-            {attendeeCount}人已加入 | 剩 {remaining} 位名額（{minPeople}人成團）
+            {attendeeCount} joined · {remaining} spots left · Starts with {minPeople} players
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -279,9 +287,9 @@ function JoinedEventCard({
             </div>
             <div className="text-left">
               <p className="text-sm font-semibold text-slate-900">
-                {event.host?.name || '活動發起人'}
+                {event.host?.name || 'Event host'}
               </p>
-              <p className="text-xs text-slate-500">活動發起人</p>
+              <p className="text-xs text-slate-500">Event host</p>
             </div>
           </div>
         </button>
@@ -389,7 +397,7 @@ export function ProfileEventsPanel({
   }
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const { items: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('en')
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -441,29 +449,32 @@ export function ProfileEventsPanel({
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
   const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents
-  const upcomingLabel = '即將到來'
-  const historyLabel = '歷史紀錄'
+  const upcomingLabel = 'Upcoming'
+  const historyLabel = 'History'
   const empty =
     activeTab === 'upcoming'
       ? {
           icon: '📭',
           title:
             mode === 'hosted'
-              ? '目前沒有主辦活動'
+              ? 'No hosted events yet'
               : mode === 'joined'
-                ? '目前沒有參與活動'
-                : '目前沒有場次',
-          description: mode === 'hosted' ? '建立一個活動來邀請夥伴吧！' : '去看看其他活動並加入吧',
+                ? 'No joined events yet'
+                : 'No sessions yet',
+          description:
+            mode === 'hosted'
+              ? 'Create an event and invite your mates!'
+              : 'Browse other events and join one.',
         }
       : {
           icon: '📜',
           title:
             mode === 'hosted'
-              ? '尚無主辦歷史紀錄'
+              ? 'No hosted history yet'
               : mode === 'joined'
-                ? '尚無參與歷史紀錄'
-                : '尚無歷史紀錄',
-          description: '完成的活動會顯示在這裡',
+                ? 'No joined history yet'
+                : 'No history yet',
+          description: 'Completed events will appear here.',
         }
 
   return (
@@ -498,7 +509,7 @@ export function ProfileEventsPanel({
           </div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">載入你的場次中…</div>
+          <div className="py-10 text-center text-slate-500">Loading your sessions...</div>
         ) : (
           <EventGroupList
             groups={groupByDate(activeEvents)}

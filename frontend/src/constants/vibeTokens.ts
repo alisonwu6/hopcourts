@@ -53,11 +53,11 @@ export const vibeTokens: Record<Vibe, { bg: string; text: string; ring: string; 
 }
 
 export const vibeList: { id: Vibe; title: string; subtitle: string }[] = [
-  { id: 'Chill', title: '健康與冥想', subtitle: '穩定節奏、身心對齊' },
-  { id: 'Social', title: '社交與連結', subtitle: '喜歡夥伴、一起流汗' },
-  { id: 'Flow', title: '習慣與穩定', subtitle: '每天一點，養成節奏' },
-  { id: 'Explorer', title: '自由與探索', subtitle: '熱愛冒險、說走就走' },
-  { id: 'Growth', title: '學習與成長', subtitle: '技術提升、專業進步' },
-  { id: 'Competitive', title: '競爭與挑戰', subtitle: '追求極限、享受對決' },
-  { id: 'Supportive', title: '歸屬與關懷', subtitle: '陪伴夥伴、不趕時間' },
+  { id: 'Chill', title: 'Health & Mindfulness', subtitle: 'Steady pace, mind-body aligned' },
+  { id: 'Social', title: 'Social & Connection', subtitle: 'Meet people, sweat together' },
+  { id: 'Flow', title: 'Habits & Consistency', subtitle: 'Small daily moves, steady rhythm' },
+  { id: 'Explorer', title: 'Freedom & Exploration', subtitle: 'Love adventure, go anytime' },
+  { id: 'Growth', title: 'Learning & Growth', subtitle: 'Improve skills, level up' },
+  { id: 'Competitive', title: 'Competition & Challenge', subtitle: 'Push limits, enjoy competition' },
+  { id: 'Supportive', title: 'Belonging & Support', subtitle: 'Support each other, no rush' },
 ]

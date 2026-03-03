@@ -15,7 +15,7 @@ export function HostedEventsPage() {
         >
           <ArrowLeft className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold text-slate-900">主辦活動</span>
+        <span className="text-lg font-bold text-slate-900">Hosted Events</span>
       </div>
 
       <div className="p-4">

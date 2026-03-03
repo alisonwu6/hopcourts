@@ -111,7 +111,7 @@ export function EventMap({
   }, [selectedEvent])
   const selectedPriceLabel = useMemo(() => {
     if (!selectedEvent) return ''
-    if (selectedEvent.isFree) return 'Free event'
+    if (selectedEvent.isFree) return 'Free'
     return `${selectedEvent.priceRange || `$${selectedEvent.pricePerPerson}`} /person`
   }, [selectedEvent])
 

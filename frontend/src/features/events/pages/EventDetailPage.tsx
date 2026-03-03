@@ -371,7 +371,7 @@ export function EventDetailPage() {
     return Math.round(Number(value)).toLocaleString('en-US')
   }
   const feeLine2 = (() => {
-    if (event.isFree) return 'Free event'
+    if (event.isFree) return 'Free'
     const total = event.priceTotal
     const perPerson = event.pricePerPerson
     if (event.priceMode === 'person') {

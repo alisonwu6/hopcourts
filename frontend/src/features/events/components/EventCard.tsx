@@ -230,7 +230,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             <div className="text-sm">
               <span className="text-slate-900">
                 {event.isFree
-                  ? 'Free event'
+                  ? 'Free'
                   : `${event.priceRange || `$${event.pricePerPerson}`} /person`}
               </span>
             </div>

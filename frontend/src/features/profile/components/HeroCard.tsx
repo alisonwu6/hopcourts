@@ -19,7 +19,7 @@ export function HeroCard({
   profile,
   onEdit,
   avatarFallback = '',
-  actionLabel = '編輯運動卡',
+  actionLabel = 'Edit Activity Card',
   actionDisabled = false,
   actionClassName,
   showShare = true,
@@ -69,7 +69,7 @@ export function HeroCard({
             onClick={onShare}
             className="w-40 rounded-lg bg-slate-100 px-4 py-1 text-sm font-semibold text-slate-600"
           >
-            分享運動卡
+            Share
           </button>
         )}
       </div>
