@@ -35,8 +35,8 @@ export function MapPicker({ value, onChange, variant = 'streets' }: Props) {
       ref={mapRef}
       mapboxAccessToken={MAPBOX_TOKEN}
       initialViewState={{
-        latitude: value?.lat ?? 25.033964,
-        longitude: value?.lng ?? 121.564468,
+        latitude: value?.lat ?? -27.4698,
+        longitude: value?.lng ?? 153.0251,
         zoom: 14,
       }}
       style={{ width: '100%', height: '100%' }}

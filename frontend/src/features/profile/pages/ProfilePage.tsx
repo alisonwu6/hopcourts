@@ -1530,7 +1530,7 @@ export function ProfilePage() {
               disabled={isSavingGoal}
               className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-blue-300"
             >
-              {isSavingGoal ? '儲存中...' : '儲存'}
+              {isSavingGoal ? 'Saving...' : '儲存'}
             </button>
           </div>
         </div>

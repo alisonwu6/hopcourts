@@ -46,13 +46,13 @@ export function VenueDashboardPage() {
       <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center justify-center font-sans">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md text-center">
             <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4">🏟️</div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">歡迎來到場館官方後台</h1>
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Welcome to the Venue Official Portal</h1>
             <p className="text-slate-600 mb-8 text-sm leading-relaxed">
-            您目前還沒有管理的場館。<br/>
-            請先在地圖上找到您的場館並點擊「我是場主」進行認領。
+            You currently do not manage any venues.<br/>
+            Find your venue on the map and click "I am the venue owner" to claim it.
             </p>
             <Link to="/map" className="inline-block w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30">
-            前往地圖認領
+            Go to Map to Claim
             </Link>
         </div>
       </div>
@@ -108,7 +108,7 @@ export function VenueDashboardPage() {
                         target="_blank"
                         className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors border border-transparent hover:border-blue-100"
                     >
-                        預覽前台頁面 ↗
+                        Preview public page ↗
                     </Link>
                 </div>
 
@@ -147,10 +147,10 @@ export function VenueDashboardPage() {
                             +
                         </div>
                         <div className="relative z-10">
-                            <h3 className="font-bold text-xl mb-2">發布官方活動</h3>
-                            <p className="text-indigo-100 text-sm mb-6 max-w-[80%]">建立由您主辦的正式活動，帶有官方認證標記，優先排序。</p>
+                            <h3 className="font-bold text-xl mb-2">Publish Official Event</h3>
+                            <p className="text-indigo-100 text-sm mb-6 max-w-[80%]">Create official events hosted by your venue with verified badges and higher priority.</p>
                             <button className="bg-white text-indigo-700 hover:bg-indigo-50 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-lg">
-                                立即建立
+                                Create Now
                             </button>
                         </div>
                     </div>
@@ -160,12 +160,12 @@ export function VenueDashboardPage() {
                         className="bg-white rounded-xl p-6 border border-slate-200 group cursor-pointer hover:border-indigo-300 hover:shadow-lg hover:bg-slate-50/50 transition-all duration-300 flex flex-col justify-between"
                     >
                          <div>
-                            <h3 className="font-bold text-lg text-slate-800 mb-2 group-hover:text-indigo-700 transition-colors">場館資料管理 (Profile)</h3>
-                            <p className="text-slate-500 text-sm mb-4">上傳官方 Logo、封面照片，設定詳細營業時間與設施介紹。</p>
+                            <h3 className="font-bold text-lg text-slate-800 mb-2 group-hover:text-indigo-700 transition-colors">Venue Profile Management</h3>
+                            <p className="text-slate-500 text-sm mb-4">Upload logo and cover image, and set detailed hours and facility descriptions.</p>
                          </div>
                          <div className="text-right">
                              <button className="text-slate-400 group-hover:text-indigo-600 text-sm font-bold flex items-center justify-end gap-1 ml-auto transition-colors">
-                                前往設定 <span className="text-lg leading-none">&rarr;</span>
+                                Go to Settings <span className="text-lg leading-none">&rarr;</span>
                              </button>
                          </div>
                     </div>

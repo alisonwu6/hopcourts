@@ -6,7 +6,7 @@ type Props = {
   fullScreen?: boolean
 }
 
-export function PageLoading({ message = '加速中', className, fullScreen = true }: Props) {
+export function PageLoading({ message = 'Loading...', className, fullScreen = true }: Props) {
   return (
     <div
       className={clsx(

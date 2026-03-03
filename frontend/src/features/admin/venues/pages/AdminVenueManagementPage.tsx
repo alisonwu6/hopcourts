@@ -50,19 +50,19 @@ export function AdminVenueManagementPage() {
   const handleRevoke = async (claimId: string) => {
     const reason = revokeReason.trim()
     if (!reason) {
-      alert('⚠️ 撤銷原因為必填項目，請填寫撤銷理由以備審計所需。')
+      alert('⚠️ Revoke reason is required for audit records.')
       return
     }
 
-    if (!window.confirm(`確定要撤銷此場館的官方認領權限嗎？\n\n原因：${reason}\n\n這是一個高風險操作，且會被記錄。`)) return
+    if (!window.confirm(`Are you sure you want to revoke this venue's official claim permission?\n\nReason: ${reason}\n\nThis is a high-risk action and will be logged.`)) return
 
     const res = await adminVenuesService.revokeVenueClaim(claimId, reason)
     if (res.success) {
-      alert('權限已撤銷')
+      alert('Permission revoked')
       setRevokeReason('')
       fetchVenues(search)
     } else {
-      alert('撤銷失敗')
+      alert('Revoke failed')
     }
   }
 
@@ -74,12 +74,12 @@ export function AdminVenueManagementPage() {
     const res = await adminVenuesService.approveVenueClaim(approvingClaim.id, officialEmail)
     
     if (res.success) {
-      alert(`已核准並綁定至 ${officialEmail}`)
+      alert(`Approved and linked to ${officialEmail}`)
       setApprovingClaim(null)
       setOfficialEmail('')
       fetchVenues(search)
     } else {
-      alert(res.error?.message || '核准失敗')
+      alert(res.error?.message || 'Approval failed')
     }
   }
 
@@ -87,11 +87,11 @@ export function AdminVenueManagementPage() {
     if (!editingVenue) return
     const res = await adminVenuesService.patchVenueDisplay(editingVenue.id, patchData)
     if (res.success) {
-      alert('資訊已更新')
+      alert('Information updated')
       setEditingVenue(null)
       fetchVenues(search)
     } else {
-      alert('更新失敗')
+      alert('Update failed')
     }
   }
 
@@ -105,8 +105,8 @@ export function AdminVenueManagementPage() {
       <div className="mx-auto max-w-4xl">
         <header className="mb-8 flex items-center justify-between border-b border-slate-200 pb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">🛡️ C0 Admin Venue 治理層</h1>
-            <p className="text-sm text-slate-500">僅供錯誤修正與爭議仲裁，嚴禁干預營運。</p>
+            <h1 className="text-2xl font-bold text-slate-900">🛡️ C0 Admin Venue Governance</h1>
+            <p className="text-sm text-slate-500">For data correction and dispute arbitration only. No operational intervention.</p>
           </div>
           <div className="text-xs font-mono text-slate-400">VERSION 1.0</div>
         </header>
@@ -115,13 +115,13 @@ export function AdminVenueManagementPage() {
         <form onSubmit={handleSearch} className="mb-6 flex gap-2">
           <input 
             type="text" 
-            placeholder="搜尋場館名稱或 ID..."
+            placeholder="Search venue name or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
           />
           <button type="submit" className="rounded-lg bg-slate-800 px-6 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-            搜尋
+            Search
           </button>
         </form>
 
@@ -131,16 +131,16 @@ export function AdminVenueManagementPage() {
             <thead className="bg-slate-50 text-slate-600">
               <tr>
                 <th className="px-4 py-3 font-semibold">Venue / ID</th>
-                <th className="px-4 py-3 font-semibold">狀態</th>
-                <th className="px-4 py-3 font-semibold">最後活動</th>
-                <th className="px-4 py-3 text-right font-semibold">操作</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Last Activity</th>
+                <th className="px-4 py-3 text-right font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={4} className="py-8 text-center text-slate-400">載入中...</td></tr>
+                <tr><td colSpan={4} className="py-8 text-center text-slate-400">Loading...</td></tr>
               ) : venues.length === 0 ? (
-                <tr><td colSpan={4} className="py-8 text-center text-slate-400">查無場館</td></tr>
+                <tr><td colSpan={4} className="py-8 text-center text-slate-400">No venues found</td></tr>
               ) : venues.map(venue => (
                 <tr key={venue.id} className="hover:bg-slate-50 px-4">
                   <td className="px-4 py-3">
@@ -186,13 +186,13 @@ export function AdminVenueManagementPage() {
                       onClick={() => startEditing(venue)}
                       className="text-xs font-semibold text-blue-600 hover:underline block ml-auto"
                     >
-                      修正資訊
+                      Edit Info
                     </button>
                     {venue.claim_id && venue.status === 'claimed' && (
                       <div className="flex flex-col items-end gap-1">
                         <input 
                           type="text" 
-                          placeholder="撤銷原因..."
+                          placeholder="Revoke reason..."
                           className="text-[10px] border rounded px-1 w-24"
                           onChange={(e) => setRevokeReason(e.target.value)}
                         />
@@ -200,7 +200,7 @@ export function AdminVenueManagementPage() {
                           onClick={() => handleRevoke(venue.claim_id!)}
                           className="text-xs font-semibold text-red-600 hover:underline"
                         >
-                          Revoke 權限
+                          Revoke Permission
                         </button>
                       </div>
                     )}
@@ -215,10 +215,10 @@ export function AdminVenueManagementPage() {
         {editingVenue && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-              <h2 className="mb-4 text-lg font-bold text-slate-900">修正顯示資訊</h2>
+              <h2 className="mb-4 text-lg font-bold text-slate-900">Edit Display Info</h2>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-500">顯示名稱</label>
+                  <label className="mb-1 block text-xs font-bold text-slate-500">Display Name</label>
                   <input 
                     type="text" 
                     value={patchData.name_display}
@@ -227,7 +227,7 @@ export function AdminVenueManagementPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-500">顯示地址</label>
+                  <label className="mb-1 block text-xs font-bold text-slate-500">Display Address</label>
                   <textarea 
                     value={patchData.address_display}
                     onChange={(e) => setPatchData({...patchData, address_display: e.target.value})}
@@ -241,13 +241,13 @@ export function AdminVenueManagementPage() {
                   onClick={() => setEditingVenue(null)}
                   className="flex-1 rounded-lg border border-slate-300 py-2 text-sm font-semibold text-slate-700"
                 >
-                  取消
+                  Cancel
                 </button>
                 <button 
                   onClick={handlePatch}
                   className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white"
                 >
-                  確認修正
+                  Confirm Changes
                 </button>
               </div>
             </div>
@@ -258,19 +258,19 @@ export function AdminVenueManagementPage() {
         {approvingClaim && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-              <h2 className="mb-4 text-lg font-bold text-slate-900">審核場館認領</h2>
+              <h2 className="mb-4 text-lg font-bold text-slate-900">Review Venue Claim</h2>
               
               <div className="mb-6 rounded-lg bg-slate-50 p-4 text-sm text-slate-600 space-y-2">
-                 <p><span className="font-bold">申請人/單位：</span> {approvingClaim.contact_name}</p>
-                 <p><span className="font-bold">聯絡 Email：</span> {approvingClaim.contact_email}</p>
-                 <p className="text-xs text-slate-400 mt-2">請確認已透過電話或信件驗證此身份。</p>
+                 <p><span className="font-bold">Applicant/Organization:</span> {approvingClaim.contact_name}</p>
+                 <p><span className="font-bold">Contact Email:</span> {approvingClaim.contact_email}</p>
+                 <p className="text-xs text-slate-400 mt-2">Please confirm this identity has been verified by phone or email.</p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-bold text-slate-900">指定官方帳號 (Email)</label>
+                  <label className="mb-1 block text-sm font-bold text-slate-900">Assign Official Account (Email)</label>
                   <p className="mb-2 text-xs text-slate-500">
-                    輸入對方的官方 Email。我們將把管理權限綁定給此 Email 對應的帳號。
+                    Enter the official email. We will bind management permission to the account with this email.
                   </p>
                   <input 
                     type="email" 
@@ -287,13 +287,13 @@ export function AdminVenueManagementPage() {
                   onClick={() => setApprovingClaim(null)}
                   className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                 >
-                  取消
+                  Cancel
                 </button>
                 <button 
                   onClick={handleApprove}
                   className="flex-1 rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
                 >
-                  確認核准並綁定
+                  Confirm Approval and Bind
                 </button>
               </div>
             </div>

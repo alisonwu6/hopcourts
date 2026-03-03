@@ -52,7 +52,7 @@ export function VenueDetailsPage() {
       if (res.success && res.data) {
         setVenue(res.data)
       } else {
-        setError(res.error?.message || '無法載入場館資訊')
+        setError(res.error?.message || 'Unable to load venue information')
       }
       setLoading(false)
     }
@@ -75,8 +75,8 @@ export function VenueDetailsPage() {
   if (error || !venue) {
     return (
       <div className="flex h-screen flex-col items-center justify-center p-4">
-        <p className="text-slate-500">{error || '找不到場館'}</p>
-        <button onClick={() => navigate(-1)} className="mt-4 text-blue-600">返回</button>
+        <p className="text-slate-500">{error || 'Venue not found'}</p>
+        <button onClick={() => navigate(-1)} className="mt-4 text-blue-600">Back</button>
       </div>
     )
   }
@@ -99,7 +99,7 @@ export function VenueDetailsPage() {
         !claimFormData.contact_title ||
         !claimFormData.contact_phone ||
         !claimFormData.contact_email) {
-      alert('請填寫所有必填欄位')
+      alert('Please fill in all required fields')
       return
     }
     
@@ -109,7 +109,7 @@ export function VenueDetailsPage() {
       setClaimSuccess(true)
       setShowClaimForm(false)
     } else {
-      alert(res.error?.message || '申請失敗')
+      alert(res.error?.message || 'Application failed')
     }
     setIsClaiming(false)
   }
@@ -130,7 +130,7 @@ export function VenueDetailsPage() {
              <h1 className="text-2xl font-bold text-slate-900">{venue.name_display}</h1>
              <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">
                <MapPin className="h-4 w-4 text-slate-400" />
-               <span>{venue.address_display || '無地址資訊'}</span>
+               <span>{venue.address_display || 'No address information'}</span>
              </div>
           </div>
           {venue.logo_url && (
@@ -146,12 +146,12 @@ export function VenueDetailsPage() {
            {venue.status === 'claimed' ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
                 <CheckCircle className="h-3.5 w-3.5" />
-                官方認證場館
+                Officially Verified Venue
               </span>
            ) : (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
                 <AlertCircle className="h-3.5 w-3.5" />
-                未認領
+                Unclaimed
               </span>
            )}
           </div>
@@ -162,7 +162,7 @@ export function VenueDetailsPage() {
                 onClick={() => navigate('/venue-portal')}
                 className="flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors"
              >
-                ⚙️ 管理場館
+                ⚙️ Manage Venue
              </button>
           )}
         </div>
@@ -174,18 +174,18 @@ export function VenueDetailsPage() {
           {claimSuccess ? (
             <div className="text-center py-2">
               <CheckCircle className="mx-auto h-8 w-8 text-green-500 mb-2" />
-              <h3 className="text-sm font-bold text-slate-900">申請已送出</h3>
-              <p className="mt-1 text-xs text-slate-500">我們將在 1-3 個工作天內完成審核。</p>
+              <h3 className="text-sm font-bold text-slate-900">Application submitted</h3>
+              <p className="mt-1 text-xs text-slate-500">We will complete the review within 1-3 business days.</p>
             </div>
           ) : (
             <>
-              <h3 className="text-sm font-bold text-blue-900">您是場館管理者嗎？</h3>
-              <p className="mt-1 text-xs text-blue-700">認領此場館以管理官方資訊、上傳 Logo 並發布官方活動。</p>
+              <h3 className="text-sm font-bold text-blue-900">Are you the venue manager?</h3>
+              <p className="mt-1 text-xs text-blue-700">Claim this venue to manage official info, upload a logo, and publish official events.</p>
               <button 
                 onClick={handleStartClaim}
                 className="mt-3 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
               >
-                我是這個場館的管理者
+                I am the manager of this venue
               </button>
             </>
           )}
@@ -196,24 +196,24 @@ export function VenueDetailsPage() {
       {showClaimDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowClaimDialog(false)}>
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-slate-900">申請成為官方管理者</h2>
+            <h2 className="text-xl font-bold text-slate-900">Apply to become the official manager</h2>
             <div className="mt-4 space-y-3 text-sm text-slate-600">
-              <p>• 你將申請成為此場館的官方管理者</p>
-              <p>• 通過後可發布官方活動、查看成效</p>
-              <p>• 每個場館僅能有一位官方管理者</p>
+              <p>• You are applying to become this venue's official manager</p>
+              <p>• After approval, you can publish official events and view performance</p>
+              <p>• Each venue can have only one official manager</p>
             </div>
             <div className="mt-6 flex gap-3">
               <button 
                 onClick={() => setShowClaimDialog(false)}
                 className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
-                取消
+                Cancel
               </button>
               <button 
                 onClick={handleContinueToClaim}
                 className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
-                繼續申請
+                Continue application
               </button>
             </div>
           </div>
@@ -224,50 +224,50 @@ export function VenueDetailsPage() {
       {showClaimForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowClaimForm(false)}>
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-slate-900">填寫申請資訊</h2>
+            <h2 className="text-xl font-bold text-slate-900">Fill in application details</h2>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">管理者名稱（或公司名）*</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Manager name (or company name)*</label>
                 <input 
                   type="text"
                   value={claimFormData.contact_name}
                   onChange={(e) => setClaimFormData({...claimFormData, contact_name: e.target.value})}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="例：ABC 運動中心"
+                  placeholder="e.g. ABC Sports Center"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">聯絡人姓名 *</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Contact person name *</label>
                 <input 
                   type="text"
                   value={claimFormData.contact_person}
                   onChange={(e) => setClaimFormData({...claimFormData, contact_person: e.target.value})}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="例：王小明"
+                  placeholder="e.g. Alex Wang"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">職務稱呼 *</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Job title *</label>
                 <input 
                   type="text"
                   value={claimFormData.contact_title}
                   onChange={(e) => setClaimFormData({...claimFormData, contact_title: e.target.value})}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="例：場館經理"
+                  placeholder="e.g. Venue Manager"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">聯絡電話 *</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Contact phone *</label>
                 <input 
                   type="tel"
                   value={claimFormData.contact_phone}
                   onChange={(e) => setClaimFormData({...claimFormData, contact_phone: e.target.value})}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="例：0912-345-678"
+                  placeholder="e.g. 0912-345-678"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">聯絡 Email *</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Contact email *</label>
                 <input 
                   type="email"
                   value={claimFormData.contact_email}
@@ -277,12 +277,12 @@ export function VenueDetailsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">補充說明（選填）</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Additional notes (optional)</label>
                 <textarea 
                   value={claimFormData.note}
                   onChange={(e) => setClaimFormData({...claimFormData, note: e.target.value})}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="例：我們是場館經營者"
+                  placeholder="e.g. We are the venue operator"
                   rows={3}
                 />
               </div>
@@ -293,14 +293,14 @@ export function VenueDetailsPage() {
                 disabled={isClaiming}
                 className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
               >
-                取消
+                Cancel
               </button>
               <button 
                 onClick={handleSubmitClaim}
                 disabled={isClaiming}
                 className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
               >
-                {isClaiming ? '送出中...' : '送出申請'}
+                {isClaiming ? 'Submitting...' : 'Submit application'}
               </button>
             </div>
           </div>
@@ -309,7 +309,7 @@ export function VenueDetailsPage() {
 
       {/* Active Sessions List */}
       <div className="px-4 py-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">場館活動 ({sessions.length})</h2>
+        <h2 className="mb-4 text-lg font-bold text-slate-900">Venue Events ({sessions.length})</h2>
         {loadingSessions ? (
           <div className="flex justify-center py-8">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
@@ -326,7 +326,7 @@ export function VenueDetailsPage() {
           </div>
         ) : (
           <div className="rounded-xl bg-white py-8 text-center text-slate-400 shadow-sm border border-slate-100">
-            目前無活動
+            No events at the moment
           </div>
         )}
       </div>

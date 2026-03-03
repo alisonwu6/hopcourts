@@ -44,7 +44,7 @@ export function TeammatesPage() {
 
       <div className="flex flex-col gap-3 p-4">
         {loading ? (
-          <div className="text-center text-sm text-slate-400 py-10">載入中...</div>
+          <div className="text-center text-sm text-slate-400 py-10">Loading...</div>
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
             <p>還沒有我的運動圈</p>

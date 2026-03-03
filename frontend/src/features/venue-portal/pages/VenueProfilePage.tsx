@@ -54,10 +54,10 @@ export function VenueProfilePage() {
     setSaving(true)
     const res = await venuePortalService.updateVenueProfile(venueId, formData)
     if (res.success) {
-      alert('場館資料更新成功！')
+      alert('Venue profile updated successfully!')
       navigate('/venue-portal')
     } else {
-      alert('更新失敗：' + res.error?.message)
+      alert('Update failed: ' + res.error?.message)
     }
     setSaving(false)
   }
@@ -71,7 +71,7 @@ export function VenueProfilePage() {
             <button onClick={() => navigate('/venue-portal')} className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors">
                 ←
             </button>
-            <h1 className="font-bold text-slate-800 tracking-tight">編輯場館資料</h1>
+            <h1 className="font-bold text-slate-800 tracking-tight">Edit Venue Profile</h1>
          </div>
       </header>
 
@@ -80,7 +80,7 @@ export function VenueProfilePage() {
             
             {/* Branding Section */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">品牌形象 (Branding)</h2>
+                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">Branding</h2>
                 
                 <div className="mb-4">
                     <label className="block text-sm font-bold text-slate-700 mb-2">Logo URL</label>
@@ -91,7 +91,7 @@ export function VenueProfilePage() {
                         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         placeholder="https://example.com/logo.png"
                     />
-                    <p className="text-xs text-slate-500 mt-1">建議尺寸 200x200px (正方形)</p>
+                    <p className="text-xs text-slate-500 mt-1">Recommended size: 200x200px (square)</p>
                 </div>
 
                  <div className="mb-4">
@@ -103,29 +103,29 @@ export function VenueProfilePage() {
                         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         placeholder="https://example.com/cover.jpg"
                     />
-                    <p className="text-xs text-slate-500 mt-1">將顯示於場館主頁頂部</p>
+                    <p className="text-xs text-slate-500 mt-1">Displayed at the top of the venue page</p>
                 </div>
             </div>
 
             {/* Info Section */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">詳細資訊</h2>
+                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">Details</h2>
                 
                 <div className="mb-4">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">場館介紹 (Description)</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Venue Description</label>
                     <textarea 
                         rows={5}
                         value={formData.description}
                         onChange={e => setFormData({...formData, description: e.target.value})}
                         className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="請介紹您的場館設施、特色..."
+                        placeholder="Describe your venue facilities and highlights..."
                     />
                 </div>
             </div>
 
              {/* Social Section */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">社群連結</h2>
+                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">Social Links</h2>
                 
                 <div className="grid gap-4">
                     <div>
@@ -167,14 +167,14 @@ export function VenueProfilePage() {
                     onClick={() => navigate('/venue-portal')}
                     className="flex-1 py-3 font-bold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
                 >
-                    取消
+                    Cancel
                 </button>
                 <button 
                     type="submit"
                     disabled={saving}
                     className="flex-1 py-3 font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50"
                 >
-                    {saving ? '儲存中...' : '儲存變更'}
+                    {saving ? 'Saving...' : 'Save Changes'}
                 </button>
             </div>
 

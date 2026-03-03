@@ -82,13 +82,13 @@ export function VenueSessionCreatePage() {
     try {
         const res = await venuePortalService.createOfficialSession(venueId, payload)
         if (res.success) {
-            alert('官方活動發布成功！')
+            alert('Official event published successfully!')
             navigate(`/venue-portal`)
         } else {
-            alert('發布失敗: ' + res.error?.message)
+            alert('Publish failed: ' + res.error?.message)
         }
     } catch(err) {
-        alert('發布發生錯誤')
+        alert('An error occurred while publishing')
     }
     setLoading(false)
   }
@@ -105,8 +105,8 @@ export function VenueSessionCreatePage() {
     <div className="min-h-screen bg-slate-50 font-sans pb-12">
       <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
-            <h1 className="font-bold text-slate-800 text-lg">發布官方活動</h1>
-            <button onClick={() => navigate(-1)} className="text-sm text-slate-500 hover:text-slate-800">取消</button>
+            <h1 className="font-bold text-slate-800 text-lg">Publish Official Event</h1>
+            <button onClick={() => navigate(-1)} className="text-sm text-slate-500 hover:text-slate-800">Cancel</button>
         </div>
       </header>
 
@@ -115,7 +115,7 @@ export function VenueSessionCreatePage() {
             <div className="mb-8 flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
                 <div className="text-2xl">🏟️</div>
                 <div>
-                    <div className="text-xs uppercase font-bold text-indigo-600 mb-0.5">主辦場館</div>
+                    <div className="text-xs uppercase font-bold text-indigo-600 mb-0.5">Host Venue</div>
                     <div className="font-bold text-slate-900">{venueData.name_display}</div>
                     <div className="text-xs text-slate-500">{venueData.address_display}</div>
                 </div>
@@ -129,27 +129,27 @@ export function VenueSessionCreatePage() {
                 {/* 1. Basic Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">活動標題</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Event Title</label>
                         <input 
                             type="text" 
                             required
-                            placeholder="例：週五羽球暢打團"
+                            placeholder="e.g. Friday badminton open play"
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                             value={formData.title}
                             onChange={e => setFormData({...formData, title: e.target.value})}
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">運動項目</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Sport</label>
                         <select 
                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                             value={formData.sportKey}
                             onChange={e => setFormData({...formData, sportKey: e.target.value})}
                         >
-                            <option value="BADMINTON">羽球 (Badminton)</option>
-                            <option value="BASKETBALL">籃球 (Basketball)</option>
-                            <option value="TENNIS">網球 (Tennis)</option>
-                            <option value="PICKLEBALL">匹克球 (Pickleball)</option>
+                            <option value="BADMINTON">Badminton</option>
+                            <option value="BASKETBALL">Basketball</option>
+                            <option value="TENNIS">Tennis</option>
+                            <option value="PICKLEBALL">Pickleball</option>
                         </select>
                     </div>
                 </div>
@@ -157,7 +157,7 @@ export function VenueSessionCreatePage() {
                 {/* 2. Time */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">日期</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Date</label>
                         <input 
                             type="date" 
                             required
@@ -167,7 +167,7 @@ export function VenueSessionCreatePage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">開始時間</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Start Time</label>
                         <input 
                             type="time" 
                             required
@@ -177,7 +177,7 @@ export function VenueSessionCreatePage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">結束時間</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">End Time</label>
                         <input 
                             type="time" 
                             required
@@ -190,10 +190,10 @@ export function VenueSessionCreatePage() {
 
                  {/* 3. Description */}
                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">活動詳情 (選填)</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Event Details (Optional)</label>
                     <textarea 
                         rows={3}
-                        placeholder="補充說明，例如：提供用球、強度限制等..."
+                        placeholder="Additional notes, e.g. balls provided, intensity limits..."
                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                         value={formData.description}
                         onChange={e => setFormData({...formData, description: e.target.value})}
@@ -203,7 +203,7 @@ export function VenueSessionCreatePage() {
                 {/* 4. Capacity & Price */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-slate-100 pt-6">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">人數上限</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Max Participants</label>
                         <input 
                             type="number" 
                             min="1"
@@ -214,7 +214,7 @@ export function VenueSessionCreatePage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">收費模式</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Pricing Mode</label>
                         <div className="flex items-center gap-4 mt-2">
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input 
@@ -223,7 +223,7 @@ export function VenueSessionCreatePage() {
                                     onChange={() => setFormData({...formData, isFree: true, pricePerPerson: 0})}
                                     className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                                 />
-                                <span className="text-sm text-slate-700">免費</span>
+                                <span className="text-sm text-slate-700">Free</span>
                             </label>
                              <label className="flex items-center gap-2 cursor-pointer">
                                 <input 
@@ -232,13 +232,13 @@ export function VenueSessionCreatePage() {
                                     onChange={() => setFormData({...formData, isFree: false})}
                                     className="w-4 h-4 text-indigo-600 focus:ring-indigo-500"
                                 />
-                                <span className="text-sm text-slate-700">付費</span>
+                                <span className="text-sm text-slate-700">Paid</span>
                             </label>
                         </div>
                     </div>
                      {!formData.isFree && (
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-2">費用 (每人)</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Fee (Per Person)</label>
                             <input 
                                 type="number" 
                                 min="0"
@@ -257,14 +257,14 @@ export function VenueSessionCreatePage() {
                         onClick={() => navigate(-1)}
                         className="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors"
                     >
-                        取消
+                        Cancel
                     </button>
                     <button 
                         type="submit" 
                         disabled={loading}
                         className="bg-indigo-600 text-white px-8 py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20 disabled:opacity-50"
                     >
-                        {loading ? '發布中...' : '確認發布活動'}
+                        {loading ? 'Publishing...' : 'Confirm Publish'}
                     </button>
                 </div>
 

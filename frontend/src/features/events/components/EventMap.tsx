@@ -37,10 +37,10 @@ export function EventMap({
     [events, selectedEventId]
   )
 
-  // Calculate generic center or use Taipei
+  // Default center before geolocation (Brisbane)
   const initialViewState = {
-    longitude: 121.5654,
-    latitude: 25.033,
+    longitude: 153.0251,
+    latitude: -27.4698,
     zoom: 11,
   }
   const [mapZoom, setMapZoom] = useState(initialViewState.zoom)
@@ -84,20 +84,20 @@ export function EventMap({
     if (!selectedEvent) return ''
     switch (selectedEvent.skillLevel) {
       case 'beginner':
-        return '初階'
+        return 'Beginner'
       case 'intermediate':
-        return '中階步調'
+        return 'Intermediate'
       case 'advanced':
-        return '進階'
+        return 'Advanced'
       default:
-        return '不限程度'
+        return 'All levels'
     }
   }, [selectedEvent])
   const selectedGenderLabel = useMemo(() => {
     if (!selectedEvent) return ''
-    if (selectedEvent.gender === 'female') return '女性專屬'
-    if (selectedEvent.gender === 'male') return '男性專屬'
-    return '性別混合'
+    if (selectedEvent.gender === 'female') return 'Women only'
+    if (selectedEvent.gender === 'male') return 'Men only'
+    return 'Mixed gender'
   }, [selectedEvent])
   const selectedLocation = useMemo(() => {
     if (!selectedEvent) return { line1: '', line2: '' }
@@ -106,20 +106,51 @@ export function EventMap({
     if (name && address && name !== address) {
       return { line1: name, line2: address }
     }
-    const fallback = name || address || '地點待確認'
+    const fallback = name || address || 'Location TBD'
     return { line1: fallback, line2: '' }
   }, [selectedEvent])
   const selectedPriceLabel = useMemo(() => {
     if (!selectedEvent) return ''
-    if (selectedEvent.isFree) return '免費活動'
-    return `${selectedEvent.priceRange || `$${selectedEvent.pricePerPerson}`} /人`
+    if (selectedEvent.isFree) return 'Free event'
+    return `${selectedEvent.priceRange || `$${selectedEvent.pricePerPerson}`} /person`
   }, [selectedEvent])
 
   const selectedTimeLabel = useMemo(() => {
     if (!selectedEvent) return ''
     const start = new Date(selectedEvent.startTime)
     const end = new Date(selectedEvent.endTime)
-    return `${start.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' })} ${start.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}-${end.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+    const dateLabel = start.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    })
+    const startWithSuffix = start.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+    const endWithSuffix = end.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+    const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+    const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+    const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
+    const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
+    const timeLabel =
+      startSuffix && startSuffix === endSuffix
+        ? `${startCore}–${endCore} ${endSuffix}`
+        : `${startWithSuffix}–${endWithSuffix}`
+    return `${dateLabel} · ${timeLabel}`
+  }, [selectedEvent])
+  const selectedAttendanceLabel = useMemo(() => {
+    if (!selectedEvent) return ''
+    const attendeeCount = selectedEvent.attendeeCount ?? 0
+    const max = selectedEvent.maxAttendees ?? attendeeCount
+    const remaining = Math.max(max - attendeeCount, 0)
+    const minPeople = Math.max(1, selectedEvent.minPeople ?? 1)
+    return `${attendeeCount} joined · ${remaining} spots left · Starts with ${minPeople} players`
   }, [selectedEvent])
 
   if (!token) {
@@ -254,7 +285,7 @@ export function EventMap({
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
                             <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
                           </span>
-                          {selectedEvent.attendeeCount}/{selectedEvent.maxAttendees} 人已加入
+                          {selectedAttendanceLabel}
                         </p>
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
@@ -285,7 +316,7 @@ export function EventMap({
                         </h3>
                       </div>
                       <p className="text-[14px] font-semibold text-slate-400">
-                        今天有 {(selectedEvent as any).activeSessionsCount || 0} 個活動正在進行中
+                        {(selectedEvent as any).activeSessionsCount || 0} events live today
                       </p>
                     </div>
                   </>
@@ -343,7 +374,7 @@ export function EventMap({
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
                             <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
                           </span>
-                          {selectedEvent.attendeeCount}/{selectedEvent.maxAttendees} 人已加入
+                          {selectedAttendanceLabel}
                         </p>
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
@@ -374,7 +405,7 @@ export function EventMap({
                         </h3>
                       </div>
                       <p className="text-[14px] font-semibold text-slate-400">
-                        今天有 {(selectedEvent as any).activeSessionsCount || 0} 個活動正在進行中
+                        {(selectedEvent as any).activeSessionsCount || 0} events live today
                       </p>
                     </div>
                   </>

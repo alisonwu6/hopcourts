@@ -228,7 +228,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
     } catch (err: any) {
       set({
-        error: err?.message ?? '無法載入登入狀態',
+        error: err?.message ?? 'Unable to load login status',
         isLoading: false,
         user: null,
         token: null,
