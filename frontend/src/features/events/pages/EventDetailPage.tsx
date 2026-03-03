@@ -26,7 +26,6 @@ import { eventsService } from '@/features/events/services/eventsService'
 import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
 import { format } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
 const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
@@ -65,7 +64,7 @@ export function EventDetailPage() {
     leaveEvent,
     checkInToEvent,
   } = useEventsStore()
-  const { items: sports } = useSports('zh')
+  const { items: sports } = useSports('en')
 
   useEffect(() => {
     if (id) {
@@ -103,7 +102,7 @@ export function EventDetailPage() {
         })
         .catch(console.error)
     } else {
-      window.alert('分享功能即將推出')
+      window.alert('Share feature coming soon')
     }
   }
 
@@ -121,7 +120,7 @@ export function EventDetailPage() {
     }
     if (!event || !id) return
     if (isHost && event.joined) {
-      showAlert('', '主辦人必須參與活動', 'warning')
+      showAlert('', 'The host must join the event', 'warning')
       return
     }
     if (!event.joined && !user?.onboarding_completed_at) {
@@ -135,12 +134,12 @@ export function EventDetailPage() {
       const userGender = user?.gender
 
       if (event.gender === 'male' && userGender !== 'male') {
-        showAlert('', '此活動為男生專場。', 'warning')
+        showAlert('', 'This event is for men only.', 'warning')
         return
       }
 
       if (event.gender === 'female' && userGender !== 'female') {
-        showAlert('', '此活動為女生專場。', 'warning')
+        showAlert('', 'This event is for women only.', 'warning')
         return
       }
     }
@@ -182,7 +181,7 @@ export function EventDetailPage() {
     setIsCheckingIn(true)
 
     if (!navigator.geolocation) {
-      showAlert('不支援定位', '您的裝置不支援 GPS 定位，無法進行報到。', 'error')
+      showAlert('Location Not Supported', 'Your device does not support GPS location. Check-in is unavailable.', 'error')
       setIsCheckingIn(false)
       return
     }
@@ -198,7 +197,7 @@ export function EventDetailPage() {
           // Refresh event data so participant list updates
           void fetchEventById(id, { force: true })
 
-          showAlert('報到成功', '好好享受運動帶來的樂趣吧！', 'success')
+          showAlert('Check-in successful', 'Enjoy your workout!', 'success')
         } catch (err: any) {
           console.error('Check-in error full object:', err)
 
@@ -219,16 +218,16 @@ export function EventDetailPage() {
             const gapStr = gap >= 1000 ? `${(gap / 1000).toFixed(1)}km` : `${gap}m`
 
             showAlert(
-              '再靠近一點點就到了！',
-              `目前距離場地約 ${distStr}。請再往場地移動約 ${gapStr}，進入 ${radius}m 範圍內即可進行報到！`,
+              'Almost there!',
+              `You are about ${distStr} away. Move about ${gapStr} closer and enter within ${radius}m to check in.`,
               'warning'
             )
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
-            showAlert('非報到時間', '目前不在開放報到的時間範圍內。', 'warning')
+            showAlert('Outside check-in window', 'You are currently outside the check-in time window.', 'warning')
           } else {
             showAlert(
-              '報到失敗',
-              backendError.message || err.message || '請確認您已抵達活動地點並開啟定位。',
+              'Check-in failed',
+              backendError.message || err.message || 'Please make sure you are at the event location and location services are enabled.',
               'error'
             )
           }
@@ -240,13 +239,13 @@ export function EventDetailPage() {
         console.error(err)
         const code = err?.code
         if (code === 1) {
-          showAlert('需要定位權限', '請在 Safari 網站設定中允許定位權限後再試一次。', 'warning')
+          showAlert('Location permission required', 'Please allow location access in Safari site settings and try again.', 'warning')
         } else if (code === 2) {
-          showAlert('目前無法取得定位', '訊號不穩或定位來源暫時不可用，請移到空曠處後重試。', 'warning')
+          showAlert('Unable to get location', 'Signal is unstable or location source is unavailable. Move to an open area and try again.', 'warning')
         } else if (code === 3) {
-          showAlert('定位逾時', '定位花費太久，請確認網路與 GPS 已開啟後再試一次。', 'warning')
+          showAlert('Location timeout', 'Location took too long. Make sure network and GPS are enabled, then try again.', 'warning')
         } else {
-          showAlert('定位失敗', '請確認已開啟定位功能，並稍後再試。', 'warning')
+          showAlert('Location failed', 'Please enable location services and try again later.', 'warning')
         }
         setIsCheckingIn(false)
       },
@@ -294,20 +293,20 @@ export function EventDetailPage() {
   if (!event || (id && event.id !== id)) {
     const detailMessage =
       error === 'Request failed' || error === 'Session not found'
-        ? '該活動可能已被刪除或下架。'
-        : (error ?? '該活動可能已被刪除或下架。')
+        ? 'This event may have been deleted or unpublished.'
+        : (error ?? 'This event may have been deleted or unpublished.')
 
     return (
       <div className="min-h-screen bg-white">
         <ActionToolbar
           onBack={handleBack}
-          title="活動詳情"
+          title="Event Details"
         />
         <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[420px] flex-col items-center justify-center px-6 pb-16 text-center">
           <div className="mb-5 rounded-full bg-slate-100 p-6">
             <Frown className="h-12 w-12 text-slate-400" />
           </div>
-          <h3 className="mb-3 text-2xl font-extrabold tracking-tight text-slate-900">活動不存在</h3>
+          <h3 className="mb-3 text-2xl font-extrabold tracking-tight text-slate-900">Event Not Found</h3>
           <p className="text-md max-w-sm font-medium leading-relaxed text-slate-500">
             {detailMessage}
           </p>
@@ -316,7 +315,7 @@ export function EventDetailPage() {
             onClick={() => navigate('/events')}
             className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-blue-600 px-7 text-base font-semibold text-white shadow-sm transition hover:bg-blue-500"
           >
-            回活動列表
+            Back to Events
           </button>
         </div>
       </div>
@@ -329,15 +328,15 @@ export function EventDetailPage() {
       : event.heroImageUrl || event.detail?.heroImageUrl
   const skillLabel =
     event.skillLevel === 'beginner'
-      ? '初階'
+      ? 'Beginner'
       : event.skillLevel === 'intermediate'
-        ? '中階'
+        ? 'Intermediate'
         : event.skillLevel === 'advanced'
-          ? '進階'
-          : '不限程度'
+          ? 'Advanced'
+          : 'All levels'
 
   const genderLabel =
-    event.gender === 'female' ? '女性專屬' : event.gender === 'male' ? '男性專屬' : '性別混合'
+    event.gender === 'female' ? 'Women only' : event.gender === 'male' ? 'Men only' : 'Mixed gender'
 
   const sportLabel =
     sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
@@ -346,27 +345,26 @@ export function EventDetailPage() {
   const maxPeople = Math.max(minPeople, event.maxAttendees ?? minPeople)
   const formatMoney = (value?: number | null) => {
     if (value == null || Number.isNaN(Number(value))) return ''
-    return Math.round(Number(value)).toLocaleString('zh-TW')
+    return Math.round(Number(value)).toLocaleString('en-US')
   }
   const feeLine2 = (() => {
-    if (event.isFree) return '免費活動'
+    if (event.isFree) return 'Free event'
     const total = event.priceTotal
     const perPerson = event.pricePerPerson
     if (event.priceMode === 'person') {
-      if (perPerson) return `每人費用 $${formatMoney(perPerson)}`
-      return '收費活動（每人計費）'
+      if (perPerson) return `Per person $${formatMoney(perPerson)}`
+      return 'Paid event (per person)'
     }
-    if (total != null) return `總費用 $${formatMoney(total)}`
-    if (perPerson) return `總費用未提供（每人約 $${formatMoney(perPerson)}）`
-    return '收費活動'
+    if (total != null) return `Total cost $${formatMoney(total)}`
+    if (perPerson) return `Total cost not provided (about $${formatMoney(perPerson)} per person)`
+    return 'Paid event'
   })()
-  const feeNote = event.priceNote?.trim() || '無'
-  const participantRule =
-    minPeople === 1 ? `保證開團｜上限${maxPeople}人` : `${minPeople}人成團｜上限${maxPeople}人`
+  const feeNote = event.priceNote?.trim() || 'None'
+  const participantRule = `Starts with ${minPeople} players · Max ${maxPeople}`
   const locationLabel =
     event.location.name && event.location.name !== event.location.address
       ? `${event.location.name} (${event.location.address})`
-      : event.location.address || event.location.name || '地點待確認'
+      : event.location.address || event.location.name || 'Location TBD'
   const handleOpenMap = () => {
     if (event.location.lat && event.location.lng) {
       window.open(
@@ -457,7 +455,7 @@ export function EventDetailPage() {
                 <AvatarCircle name={event.host.name} src={event.host.avatarUrl} />
                 <div>
                   <p className="text-sm font-semibold text-slate-900">{event.host.name}</p>
-                  <p className="text-xs text-slate-500">活動發起人</p>
+                  <p className="text-xs text-slate-500">Event Host</p>
                 </div>
               </div>
             </div>
@@ -466,7 +464,7 @@ export function EventDetailPage() {
 
             {event.updatedAt && (
               <p className="mb-6 text-xs text-slate-400">
-                活動最後更新時間 {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
+                Last updated {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
               </p>
             )}
 
@@ -500,7 +498,7 @@ export function EventDetailPage() {
                 <InfoRow icon={MapPin} label={locationLabel} />
                 <button
                   type="button"
-                  aria-label="在地圖中開啟"
+                  aria-label="Open in map"
                   onClick={handleOpenMap}
                   className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 >
@@ -509,7 +507,7 @@ export function EventDetailPage() {
               </div>
               <InfoRow icon={CircleDollarSign} label={feeLine2} />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <p className="text-xs font-semibold tracking-wide text-slate-500">收費說明</p>
+                <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
                 <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
               </div>
             </div>
@@ -522,7 +520,7 @@ export function EventDetailPage() {
                   <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
                 <span className="flex flex-col gap-1">
-                  <span>目前報名（剩 {spotsRemaining} 位）</span>
+                  <span>{event.attendeeCount} joined · {spotsRemaining} spots left</span>
                   <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
                     {participantRule}
                   </span>
@@ -556,18 +554,18 @@ export function EventDetailPage() {
                       </div>
                       <div className="pr-1">
                         {isCheckedIn ? (
-                          <span className="text-xs font-bold text-emerald-600">已報到</span>
+                          <span className="text-xs font-bold text-emerald-600">Checked in</span>
                         ) : isAbsent ? (
-                          <span className="text-xs font-bold text-red-500">缺席</span>
+                          <span className="text-xs font-bold text-red-500">Absent</span>
                         ) : (
-                          <span className="text-xs font-medium text-slate-400">尚未報到</span>
+                          <span className="text-xs font-medium text-slate-400">Not checked in</span>
                         )}
                       </div>
                     </div>
                   )
                 })
               ) : (
-                <p className="pl-14 text-xs text-slate-300">還沒有人報名</p>
+                <p className="pl-14 text-xs text-slate-300">No one has registered yet</p>
               )}
             </div>
 
@@ -579,11 +577,11 @@ export function EventDetailPage() {
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
                     <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                   </span>
-                  <span>活動說明</span>
+                  <span>Event Description</span>
                 </div>
               </div>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                {event.detail?.description || event.description || '沒有描述'}
+                {event.detail?.description || event.description || 'No description'}
               </p>
             </div>
 
@@ -607,15 +605,15 @@ export function EventDetailPage() {
           if (isDeleting) return
           setShowDeleteConfirm(false)
         }}
-        title={hasOtherParticipants ? '無法刪除活動' : '確定要刪除活動嗎？'}
+        title={hasOtherParticipants ? 'Cannot Delete Event' : 'Delete this event?'}
         description={
           hasOtherParticipants
-            ? '已有夥伴報名參加，無法刪除。若有異動需求，請改用編輯活動。'
-            : '一旦刪除，活動資訊將無法恢復。'
+            ? 'Participants have already joined, so this event cannot be deleted. Please edit the event instead.'
+            : 'Once deleted, event information cannot be recovered.'
         }
         type={hasOtherParticipants ? 'warning' : 'error'}
-        actionLabel={hasOtherParticipants ? '關閉' : isDeleting ? '刪除中...' : '確定刪除'}
-        cancelLabel={hasOtherParticipants ? undefined : '取消'}
+        actionLabel={hasOtherParticipants ? 'Close' : isDeleting ? 'Deleting...' : 'Confirm Delete'}
+        cancelLabel={hasOtherParticipants ? undefined : 'Cancel'}
         actionLeft={!hasOtherParticipants}
         onAction={hasOtherParticipants ? undefined : handleDelete}
       />
@@ -714,17 +712,25 @@ function JoinBar({
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time
   const isCheckInOpen = now >= openTime && now <= closeTime
 
-  const formatTime = (date: Date) => format(date, 'MM/dd HH:mm', { locale: zhTW })
+  const formatTime = (date: Date) =>
+    date.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
 
   let mainButton = (
     <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white">
       {isJoinSubmitting ? (
         <span className="flex items-center justify-center gap-2">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
-          處理中...
+          Processing...
         </span>
       ) : (
-        '加入活動'
+        'Join Event'
       )}
     </Button>
   )
@@ -735,7 +741,7 @@ function JoinBar({
   if (hasCheckedIn) {
     mainButton = (
       <Button disabled className="bg-emerald-600 text-white opacity-100">
-        已完成報到 ✓
+        Check-in completed ✓
       </Button>
     )
   } else if (isJoined) {
@@ -749,10 +755,10 @@ function JoinBar({
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
-              處理中...
+              Processing...
             </span>
           ) : (
-            '退出活動'
+            'Leave Event'
           )}
         </Button>
       )
@@ -763,18 +769,18 @@ function JoinBar({
           className="!hover:bg-emerald-600 !active:bg-emerald-600 !focus:bg-emerald-600 !bg-emerald-600 !text-white"
         >
           {isCheckingIn ? (
-            '定位中...'
+            'Locating...'
           ) : (
             <span className="flex items-center justify-center gap-2">
               <LandPlot className="h-5 w-5" strokeWidth={2} />
-              點我報到
+              Tap to Check In
             </span>
           )}
         </Button>
       )
       statusText = (
         <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          請於 {formatTime(closeTime)} 分前完成報到，讓同場的夥伴知道你到了。
+          Please check in before {formatTime(closeTime)} so others know you have arrived.
         </p>
       )
     } else if (now > closeTime) {
@@ -787,10 +793,10 @@ function JoinBar({
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
-              處理中...
+              Processing...
             </span>
           ) : (
-            '退出活動'
+            'Leave Event'
           )}
         </Button>
       )
@@ -799,7 +805,7 @@ function JoinBar({
           disabled
           className="!hover:bg-emerald-300 !active:bg-emerald-300 !focus:bg-emerald-300 cursor-not-allowed !bg-emerald-300 !text-white opacity-90 disabled:opacity-90"
         >
-          缺席
+          Absent
         </Button>
       )
     } else {
@@ -813,10 +819,10 @@ function JoinBar({
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
-              處理中...
+              Processing...
             </span>
           ) : (
-            '退出活動'
+            'Leave Event'
           )}
         </Button>
       )
@@ -826,21 +832,21 @@ function JoinBar({
           className="!hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 cursor-not-allowed !bg-emerald-500 !text-white opacity-100 disabled:opacity-100"
         >
           <span className="flex flex-col items-center leading-tight">
-            <span className="text-sm font-semibold">點我報到</span>
-            <span className="mt-1 text-xs font-medium">{formatTime(openTime)}開放</span>
+            <span className="text-sm font-semibold">Tap to Check In</span>
+            <span className="mt-1 text-xs font-medium">Opens {formatTime(openTime)}</span>
           </span>
         </Button>
       )
       statusText = (
         <p className="text-center text-xs font-medium text-slate-500">
-          將於 {formatTime(openTime)} 開放報到，讓夥伴知道你已經抵達場地。
+          Check-in opens {formatTime(openTime)} so others know you've arrived.
         </p>
       )
     }
   } else if (isFull) {
     mainButton = (
       <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">
-        已額滿
+        Fully booked
       </Button>
     )
   }

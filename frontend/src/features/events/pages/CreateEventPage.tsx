@@ -26,10 +26,10 @@ import { zhTW } from 'date-fns/locale'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 const SKILL_LEVEL_LABELS = {
-  any: '不限程度',
-  beginner: '初階',
-  intermediate: '中階',
-  advanced: '進階',
+  any: 'All levels',
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
 } as const
 
 type SkillLevelKey = keyof typeof SKILL_LEVEL_LABELS
@@ -232,11 +232,11 @@ export default function CreateEventPage() {
             setHeroPreviews(draft.photos)
           }
         } else {
-          setError('無法載入草稿，找不到此活動。')
+          setError('Unable to load draft: event not found.')
         }
       } catch (err) {
         console.error('Failed to load draft', err)
-        setError('載入草稿時發生錯誤。')
+        setError('An error occurred while loading the draft.')
       } finally {
         setIsDraftLoading(false)
       }
@@ -244,7 +244,7 @@ export default function CreateEventPage() {
     fetchDraft()
   }, [editId, sportsCatalog])
 
-  // 使用者輸入地址 2 秒後自動定位地圖，不覆寫輸入文字
+  // Auto-pin map 2 seconds after address input without overwriting text
   useEffect(() => {
     if (!showLocationSheet) return
     if (addressMode !== 'manual') return
@@ -259,7 +259,7 @@ export default function CreateEventPage() {
         setSelectedLocation(loc)
         setReverseGeoError(null)
       } else {
-        setReverseGeoError('請輸入有效地址')
+        setReverseGeoError('Please enter a valid address')
       }
       setAddressLookupPending(false)
     }, 2000)
@@ -267,7 +267,7 @@ export default function CreateEventPage() {
     return () => clearTimeout(handle)
   }, [selectedAddress, showLocationSheet, addressMode, isAddressClearing])
 
-  // 當使用者移動地圖 (addressMode='auto')，反查地址
+  // Reverse geocode when user moves map (addressMode='auto')
   useEffect(() => {
     if (!showLocationSheet) return
     if (addressMode !== 'auto') return
@@ -319,7 +319,7 @@ export default function CreateEventPage() {
     const minPeople = Number(form.minPeople)
     if (!Number.isFinite(capacity) || !Number.isFinite(minPeople)) return null
     if (capacity > 0 && minPeople > capacity) {
-      return '不可大於人數上限'
+      return 'Cannot be greater than max participants'
     }
     return null
   }, [form.capacity, form.minPeople])
@@ -385,7 +385,7 @@ export default function CreateEventPage() {
       setSelectedAddress(form.location || '')
       setAddressMode('manual')
     } else {
-      // 不預設填入地址或強制 geocode，讓使用者自行選點或輸入
+      // Do not prefill address or force geocode; let users choose point or input manually
       setSelectedLocation(null)
       setSelectedAddress('')
       setAddressMode('manual')
@@ -401,7 +401,7 @@ export default function CreateEventPage() {
 
     const currentCount = heroPreviews.length
     if (currentCount >= 3) {
-      alert('最多只能上傳 3 張照片')
+      alert('You can upload up to 3 photos')
       event.target.value = ''
       return
     }
@@ -444,46 +444,46 @@ export default function CreateEventPage() {
     setError(null)
 
     if (!form.title.trim()) {
-      flashFieldError('title', '請輸入活動名稱')
+      flashFieldError('title', 'Please enter an event title')
       return
     }
     if (!form.sportKey) {
-      flashFieldError('sport', '請選擇運動項目')
+      flashFieldError('sport', 'Please select a sport')
       return
     }
     if (!form.capacity || Number(form.capacity) <= 0) {
-      flashFieldError('capacity', '人數上限必須大於 0')
+      flashFieldError('capacity', 'Max participants must be greater than 0')
       return
     }
     if (!form.minPeople || Number(form.minPeople) < 1) {
-      flashFieldError('minPeople', '不可小於 1')
+      flashFieldError('minPeople', 'Cannot be less than 1')
       return
     }
     if (!form.location.trim()) {
-      flashFieldError('location', '請選擇地點')
+      flashFieldError('location', 'Please select a location')
       return
     }
     if (!form.startTime) {
-      flashFieldError('startTime', '請選擇開始時間')
+      flashFieldError('startTime', 'Please select a start time')
       return
     }
     if (!form.endTime) {
-      flashFieldError('endTime', '請選擇結束時間')
+      flashFieldError('endTime', 'Please select an end time')
       return
     }
     if (!canSubmit) {
-      flashFieldError('title', '請確認必填欄位')
+      flashFieldError('title', 'Please complete required fields')
       return
     }
 
     // Cost validation
     if (!form.isFree) {
       if (!form.price || Number(form.price) <= 0) {
-        flashFieldError('price', '請輸入有效費用')
+        flashFieldError('price', 'Please enter a valid fee')
         return
       }
       if (!form.priceNote.trim()) {
-        flashFieldError('priceNote', '請輸入收費說明')
+        flashFieldError('priceNote', 'Please enter fee notes')
         return
       }
     }
@@ -499,13 +499,13 @@ export default function CreateEventPage() {
     const lngNum = form.lng ? Number(form.lng) : null
 
     if (capacity <= 0) {
-      flashFieldError('capacity', '人數上限必須大於 0')
+      flashFieldError('capacity', 'Max participants must be greater than 0')
       return
     }
 
     const minPeople = Number(form.minPeople)
     if (minPeople < 1) {
-      flashFieldError('minPeople', '不可小於 1')
+      flashFieldError('minPeople', 'Cannot be less than 1')
       return
     }
     if (minPeopleImmediateError) {
@@ -513,12 +513,12 @@ export default function CreateEventPage() {
       return
     }
     if (minPeople > capacity) {
-      flashFieldError('minPeople', '不可大於人數上限')
+      flashFieldError('minPeople', 'Cannot be greater than max participants')
       return
     }
 
     if (latNum === null || lngNum === null) {
-      flashFieldError('location', '請透過地圖確認場館位置')
+      flashFieldError('location', 'Please confirm venue location on the map')
       return
     }
 
@@ -526,24 +526,24 @@ export default function CreateEventPage() {
     const endDate = new Date(form.endTime)
 
     if (Number.isNaN(startDate.getTime())) {
-      flashFieldError('startTime', '請選擇有效的開始時間')
+      flashFieldError('startTime', 'Please select a valid start time')
       return
     }
     if (Number.isNaN(endDate.getTime())) {
-      flashFieldError('endTime', '請選擇有效的結束時間')
+      flashFieldError('endTime', 'Please select a valid end time')
       return
     }
     if (endDate <= startDate) {
-      flashFieldError('endTime', '結束時間需晚於開始時間')
+      flashFieldError('endTime', 'End time must be after start time')
       return
     }
     const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000)
     if (Number.isNaN(durationMinutes) || durationMinutes <= 0) {
-      setError('無法計算活動時長，請調整時間。')
+      setError('Unable to calculate event duration, please adjust times.')
       return
     }
     if (Number.isNaN(capacity) || capacity <= 0) {
-      setError('人數上限必須大於 0。')
+      setError('Max participants must be greater than 0。')
       return
     }
 
@@ -618,7 +618,7 @@ export default function CreateEventPage() {
             navigate(`/event/${editId}`, { state: { from: 'create-event' }, replace: true })
           }
         } else {
-          setError(res.error?.message || '更新發佈失敗。')
+          setError(res.error?.message || 'Failed to update publish status.')
         }
       } else {
         // Create new event
@@ -630,11 +630,11 @@ export default function CreateEventPage() {
             navigate(`/event/${res.data.id}`, { state: { from: 'create-event' }, replace: true })
           }
         } else {
-          setError(res.error?.message || '發佈活動失敗。')
+          setError(res.error?.message || 'Failed to publish event.')
         }
       }
     } catch (err: any) {
-      setError(err?.message || '儲存活動時發生錯誤。')
+      setError(err?.message || 'An error occurred while saving the event.')
     } finally {
       setSubmittingStatus(null)
     }
@@ -669,7 +669,7 @@ export default function CreateEventPage() {
           isFavorite={isFavorite}
           showFavorite={false}
           showShare={false}
-          title={editId ? '編輯活動' : '建立活動'}
+          title={editId ? 'Edit Event' : 'Create Event'}
           contentClassName="w-full max-w-md px-4"
           leftContent={
             <button
@@ -696,10 +696,10 @@ export default function CreateEventPage() {
           )}
 
           <div className="space-y-8">
-            <FieldSection title="活動基本資料" description="">
+            <FieldSection title="Event Basics" description="">
               <div ref={(el) => (fieldRefs.current.title = el)}>
                 <FloatingField
-                  label="活動名稱"
+                  label="Event Title"
                   name="title"
                   value={form.title}
                   onChange={handleInputChange}
@@ -719,12 +719,12 @@ export default function CreateEventPage() {
               </div>
               <div ref={(el) => (fieldRefs.current.sport = el)}>
                 <FloatingField
-                  label="運動項目"
+                  label="Sport"
                   name="sport"
                   value={form.sport}
                   readOnly
                   onClick={() => setShowSportSheet(true)}
-                  placeholder="選擇運動"
+                  placeholder="Select sport"
                   required
                   hasError={highlightField === 'sport'}
                 />
@@ -742,7 +742,7 @@ export default function CreateEventPage() {
               <div className="flex gap-4">
                 <div className="flex-1" ref={(el) => (fieldRefs.current.capacity = el)}>
                   <FloatingField
-                    label="人數上限"
+                    label="Max Participants"
                     name="capacity"
                     type="number"
                     min={1}
@@ -764,7 +764,7 @@ export default function CreateEventPage() {
                 </div>
                 <div className="flex-1" ref={(el) => (fieldRefs.current.minPeople = el)}>
                   <FloatingField
-                    label="最少人數"
+                    label="Min Participants"
                     name="minPeople"
                     type="number"
                     min={1}
@@ -791,7 +791,7 @@ export default function CreateEventPage() {
               <GenderSelector selected={form.gender} onSelect={handleGenderSelect} />
             </FieldSection>
 
-            <FieldSection title="地點與時間" description="">
+            <FieldSection title="Location and Time" description="">
               <div className="space-y-4">
                 <div ref={(el) => (fieldRefs.current.location = el)}>
                   <button
@@ -808,7 +808,7 @@ export default function CreateEventPage() {
                       </div>
                       <div className="flex flex-col text-left">
                         <span className="mb-0.5 text-sm font-bold leading-tight text-slate-900">
-                          {form.location || '點擊選擇位置'}
+                          {form.location || 'Tap to select location'}
                         </span>
                       </div>
                     </div>
@@ -828,9 +828,9 @@ export default function CreateEventPage() {
                 {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
 
                 <FloatingField
-                  label="場地名稱 (選填)"
+                  label="Venue Name (Optional)"
                   name="placeName"
-                  placeholder="若知道場地具體名稱，請填寫於此。"
+                  placeholder="If you know the venue name, enter it here."
                   value={form.placeName}
                   onChange={handleInputChange}
                 />
@@ -839,7 +839,7 @@ export default function CreateEventPage() {
               <div className="space-y-4">
                 <div ref={(el) => (fieldRefs.current.startTime = el)}>
                   <DateTimeField
-                    label="開始時間"
+                    label="Start Time"
                     name="startTime"
                     value={form.startTime}
                     onChange={handleInputChange}
@@ -860,7 +860,7 @@ export default function CreateEventPage() {
                 </div>
                 <div ref={(el) => (fieldRefs.current.endTime = el)}>
                   <DateTimeField
-                    label="結束時間"
+                    label="End Time"
                     name="endTime"
                     value={form.endTime}
                     onChange={handleInputChange}
@@ -882,7 +882,7 @@ export default function CreateEventPage() {
               </div>
             </FieldSection>
 
-            <FieldSection title="費用" description="設定活動的費用資訊。">
+            <FieldSection title="Pricing" description="Set event pricing details.">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
                   <input
@@ -893,7 +893,7 @@ export default function CreateEventPage() {
                     className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
                   <label htmlFor="is-free-checkbox" className="flex flex-1 flex-col">
-                    <span className="text-sm font-semibold text-slate-800">免費活動</span>
+                    <span className="text-sm font-semibold text-slate-800">Free Event</span>
                   </label>
                 </div>
 
@@ -902,8 +902,8 @@ export default function CreateEventPage() {
                     <div className="flex items-center gap-2 sm:col-span-2">
                       <div className="flex rounded-lg bg-slate-100 p-1">
                         {[
-                          { key: 'total', label: '總費用' },
-                          { key: 'person', label: '每人費用' },
+                          { key: 'total', label: 'Total Cost' },
+                          { key: 'person', label: 'Per Person' },
                         ].map((mode) => (
                           <button
                             key={mode.key}
@@ -922,26 +922,26 @@ export default function CreateEventPage() {
                       </div>
                       <span className="text-xs text-slate-400">
                         {costMode === 'total'
-                          ? '將依照總參與人數預估單人費用。'
-                          : '直接設定每人費用。'}
+                          ? 'Per-person fee is estimated from total participants.'
+                          : 'Set per-person fee directly.'}
                       </span>
                     </div>
 
                     <div ref={(el) => (fieldRefs.current.price = el)}>
                       <FloatingField
-                        label={costMode === 'total' ? '總費用 (TWD)' : '每人費用 (TWD)'}
+                        label={costMode === 'total' ? 'Total Cost (TWD)' : 'Per Person (TWD)'}
                         name="price"
                         type="number"
                         min={0}
                         step={1}
                         value={form.price}
                         onChange={handleInputChange}
-                        placeholder={costMode === 'total' ? '例如: 2000' : '例如: 200'}
+                        placeholder={costMode === 'total' ? 'e.g. 2000' : 'e.g. 200'}
                         required={!form.isFree}
                         hasError={highlightField === 'price'}
                         supportingText={
                           form.price && Number(form.capacity) > 0 && costMode === 'total'
-                            ? `預估每人 : $${Math.round(Number(form.price) / Number(form.capacity))}`
+                            ? `Est. per person: $${Math.round(Number(form.price) / Number(form.capacity))}`
                             : undefined
                         }
                       />
@@ -960,11 +960,11 @@ export default function CreateEventPage() {
                       <FloatingField
                         as="textarea"
                         rows={3}
-                        label="收費說明"
+                        label="Fee Notes"
                         name="priceNote"
                         value={form.priceNote}
                         onChange={handleInputChange}
-                        placeholder="例如: 現場收費等"
+                        placeholder="e.g. on-site payment"
                         hasError={highlightField === 'priceNote'}
                       />
                       {fieldHint?.field === 'priceNote' && fieldHint.message && (
@@ -986,12 +986,14 @@ export default function CreateEventPage() {
             <div className="py-1">
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 border-t border-dashed border-slate-300" />
-                <span className="text-xs font-semibold tracking-wide text-slate-400">以下選填</span>
+                <span className="text-xs font-semibold tracking-wide text-slate-400">
+                  Optional below
+                </span>
                 <div className="h-px flex-1 border-t border-dashed border-slate-300" />
               </div>
             </div>
 
-            <FieldSection title="活動相關照片" description="最多3張">
+            <FieldSection title="Event Photos" description="Up to 3 photos">
               <CoverUploader
                 previews={heroPreviews}
                 onChange={handleImageChange}
@@ -999,10 +1001,13 @@ export default function CreateEventPage() {
               />
             </FieldSection>
 
-            <FieldSection title="活動說明" description="描述氛圍、期待，或注意事項。">
+            <FieldSection
+              title="Event Description"
+              description="Describe the vibe, expectations, or notes."
+            >
               <FloatingField
                 as="textarea"
-                label="活動說明"
+                label="Event Description"
                 name="notes"
                 rows={5}
                 value={form.notes}
@@ -1037,13 +1042,13 @@ export default function CreateEventPage() {
       >
         <SheetLayout
           onClose={() => setShowSportSheet(false)}
-          title="選擇運動項目"
-          subtitle="從清單中選擇一項運動。"
+          title="Select Sport"
+          subtitle="Pick one sport from the list."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
           primaryButton={{
-            label: '關閉',
+            label: 'Close',
             onClick: () => setShowSportSheet(false),
           }}
           showHandle={false}
@@ -1051,7 +1056,7 @@ export default function CreateEventPage() {
           <input
             value={sportSearch}
             onChange={(e) => setSportSearch(e.target.value)}
-            placeholder="搜尋運動"
+            placeholder="Search sports"
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
           />
           <div className="space-y-2">
@@ -1088,13 +1093,13 @@ export default function CreateEventPage() {
       >
         <SheetLayout
           onClose={() => setShowLocationSheet(false)}
-          title="選擇位置"
-          subtitle="將根據你給的地址放置定位點"
+          title="Select Location"
+          subtitle="Pin location based on your address"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
           primaryButton={{
-            label: locationConfirming ? '處理中...' : '確認',
+            label: locationConfirming ? 'Processing...' : 'Confirm',
             onClick: async () => {
               if (locationConfirming) return
               setLocationConfirming(true)
@@ -1127,7 +1132,7 @@ export default function CreateEventPage() {
                 }))
                 setShowLocationSheet(false)
               } else {
-                setReverseGeoError('請輸入有效地址')
+                setReverseGeoError('Please enter a valid address')
               }
               setLocationConfirming(false)
             },
@@ -1137,7 +1142,7 @@ export default function CreateEventPage() {
         >
           <div className="space-y-2 rounded-2xl bg-slate-50 px-3 py-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-600">活動地址</p>
+              <p className="text-xs font-semibold text-slate-600">Event Address</p>
             </div>
 
             <div className="relative">
@@ -1148,7 +1153,7 @@ export default function CreateEventPage() {
                   setSelectedAddress(e.target.value)
                   setAddressMode('manual')
                 }}
-                placeholder="請輸入地址"
+                placeholder="Please enter an address"
                 className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
               />
               {selectedAddress.trim() && (
@@ -1218,7 +1223,7 @@ function ActionBar({
             className="flex-1 rounded-full border-slate-200 text-slate-600"
             disabled={!canSubmit || isSubmitting}
           >
-            {submittingStatus === 'draft' ? '儲存中...' : '儲存草稿'}
+            {submittingStatus === 'draft' ? 'Saving...' : 'Save Draft'}
           </Button>
         )}
         <Button
@@ -1226,15 +1231,19 @@ function ActionBar({
           type="button"
           onClick={onPublish}
           disabled={isSubmitting}
-          className={clsx(showDraftButton ? 'flex-1' : 'w-full', 'rounded-full px-6', !canSubmit && 'opacity-50')}
+          className={clsx(
+            showDraftButton ? 'flex-1' : 'w-full',
+            'rounded-full px-6',
+            !canSubmit && 'opacity-50'
+          )}
         >
           {submittingStatus === 'published'
             ? isPublicPublishedEdit
-              ? '更新中…'
-              : '發布中…'
+              ? 'Updating...'
+              : 'Publishing...'
             : isPublicPublishedEdit
-              ? '更新發布'
-              : '發布'}
+              ? 'Update & Publish'
+              : 'Publish'}
         </Button>
       </div>
     </div>
@@ -1270,7 +1279,7 @@ function SkillSelector({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold tracking-wide text-slate-500">程度</p>
+      <p className="text-xs font-semibold tracking-wide text-slate-500">Skill Level</p>
       <div className="flex flex-wrap gap-2">
         {Object.entries(SKILL_LEVEL_LABELS).map(([level, label]) => {
           const value = level as SkillLevelKey
@@ -1304,14 +1313,14 @@ function GenderSelector({
   onSelect: (value: 'mixed' | 'female' | 'male') => void
 }) {
   const options: { id: 'mixed' | 'female' | 'male'; label: string }[] = [
-    { id: 'mixed', label: '不限性別' },
-    { id: 'female', label: '女孩專屬' },
-    { id: 'male', label: '男孩專屬' },
+    { id: 'mixed', label: 'Mixed' },
+    { id: 'female', label: 'Women Only' },
+    { id: 'male', label: 'Men Only' },
   ]
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold tracking-wide text-slate-500">性別</p>
+      <p className="text-xs font-semibold tracking-wide text-slate-500">Gender</p>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const isActive = selected === opt.id
@@ -1380,7 +1389,7 @@ function CoverUploader({
             <div className="group- flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
               <ImagePlus className="h-4 w-4" />
             </div>
-            <p className="group- text-[10px] font-semibold text-slate-500">上傳照片</p>
+            <p className="group- text-[10px] font-semibold text-slate-500">Upload Photo</p>
             <input type="file" accept="image/*" multiple className="hidden" onChange={onChange} />
           </label>
         )}
@@ -1545,7 +1554,7 @@ function DateTimeField({
         {label}
       </label>
       <div className={clsx('min-h-[1.5rem] w-full text-base', !displayValue && 'text-slate-400')}>
-        {displayValue || '請選擇時間'}
+        {displayValue || 'Please select time'}
       </div>
       <input
         ref={inputRef}

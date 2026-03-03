@@ -31,7 +31,7 @@ function getFlagEmoji(countryCode: string) {
 }
 
 export function EventCard({ event, onViewDetails }: EventCardProps) {
-  const { items: sports } = useSports('zh')
+  const { items: sports } = useSports('en')
 
   // Official Event Logic
   const raw = event as any
@@ -54,14 +54,14 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
   const locationLine1 =
     event.location.name && event.location.name !== event.location.address
       ? event.location.name
-      : event.location.name || event.location.address || '地點待確認'
+      : event.location.name || event.location.address || 'Location TBD'
   const locationLine2 =
     event.location.name && event.location.address && event.location.name !== event.location.address
       ? event.location.address
       : ''
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
-  const priceLabel = event.priceRange ?? (event.isFree ? '免費參加' : '付費活動')
-  const cityLabel = event.host.cityName || locationCity || '城市待確認'
+  const priceLabel = event.priceRange ?? (event.isFree ? 'Free' : 'Paid event')
+  const cityLabel = event.host.cityName || locationCity || 'City TBD'
 
   const attendeeCount = event.attendeeCount
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)
@@ -93,7 +93,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
         tabIndex: 0,
         onClick: handleCardClick,
         onKeyDown: handleCardKeyDown,
-        'aria-label': `查看 ${event.title} 詳細資訊`,
+        'aria-label': `View details for ${event.title}`,
       }
     : {}
 
@@ -161,10 +161,10 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             {/* Gender Tag (Added) */}
             <div className="flex items-center gap-1.5 rounded-full border border-pink-100 bg-pink-50/50 px-3 py-1 text-[11px] font-medium text-pink-800">
               {event.gender === 'female'
-                ? '女性專屬'
+                ? 'Women only'
                 : event.gender === 'male'
-                  ? '男性專屬'
-                  : '性別混合'}
+                  ? 'Men only'
+                  : 'Mixed gender'}
             </div>
           </div>
 
@@ -198,7 +198,9 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm">
-                {attendeeCount}人已加入 | 剩 {remaining} 位名額（{minPeople}人成團）
+                {attendeeCount} Joined · {remaining} Spots Left
+                <br />
+                Starts with {minPeople} players
               </span>
               <div className="flex -space-x-1.5">
                 {event.participants.slice(0, 3).map((p, i) => (
@@ -228,8 +230,8 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             <div className="text-sm">
               <span className="text-slate-900">
                 {event.isFree
-                  ? '免費活動'
-                  : `${event.priceRange || `$${event.pricePerPerson}`} /人`}
+                  ? 'Free event'
+                  : `${event.priceRange || `$${event.pricePerPerson}`} /person`}
               </span>
             </div>
           </div>
@@ -311,44 +313,56 @@ function formatTimeRange(start: Date | string, end: Date | string) {
 function formatSchedule(start: Date | string, end: Date | string) {
   const startDate = toDate(start)
   const endDate = toDate(end)
-  const dateStr = startDate.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+  const dateStr = startDate.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   })
-  const startTimeStr = startDate.toLocaleTimeString('zh-TW', {
-    hour: '2-digit',
+
+  const startWithSuffix = startDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: false,
+    hour12: true,
   })
-  const endTimeStr = endDate.toLocaleTimeString('zh-TW', {
-    hour: '2-digit',
+  const endWithSuffix = endDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: false,
+    hour12: true,
   })
-  return `${dateStr} ${startTimeStr}-${endTimeStr}`
+
+  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
+  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
+
+  const timeStr =
+    startSuffix && startSuffix === endSuffix
+      ? `${startCore}–${endCore} ${endSuffix}`
+      : `${startWithSuffix}–${endWithSuffix}`
+
+  return `${dateStr} · ${timeStr}`
 }
 
 function summaryText(attending: number, max: number, remaining: number) {
-  const base = `${attending}/${max} 已報名`
-  return `${base} · 還有${remaining}位`
+  const base = `${attending}/${max} registered`
+  return `${base} · ${remaining} left`
 }
 
 function friendlySkill(level: PlayerEvent['skillLevel']) {
   switch (level) {
     case 'beginner':
-      return '新手友善'
+      return 'Beginner'
     case 'intermediate':
-      return '中階步調'
+      return 'Intermediate'
     case 'advanced':
-      return '進階高手'
+      return 'Advanced'
     case 'mixed':
     default:
-      return '不限程度'
+      return 'All levels'
   }
 }
 
 function formatSportName(value: string) {
-  if (!value) return '運動'
+  if (!value) return 'Sport'
   return value
 }

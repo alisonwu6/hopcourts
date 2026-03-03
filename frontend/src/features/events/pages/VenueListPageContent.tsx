@@ -29,7 +29,7 @@ export function VenueListPageContent({ events }: { events: PlayerEvent[] }) {
         {venues.length === 0 ? (
           <div className="flex flex-col items-center justify-center pt-20 text-slate-400">
             <Building2 className="mb-2 h-10 w-10 opacity-20" />
-            <p>目前無開放場館</p>
+            <p>No venues available right now</p>
           </div>
         ) : (
           venues.map((venue) => (
@@ -56,7 +56,7 @@ export function VenueListPageContent({ events }: { events: PlayerEvent[] }) {
               <div className="flex items-center gap-3">
                  <div className="text-right">
                     <span className="block text-lg font-bold text-blue-600">{venue.activeEvents}</span>
-                    <span className="text-[10px] text-slate-400">個時段</span>
+                    <span className="text-[10px] text-slate-400">slots</span>
                  </div>
                  <ChevronRight className="h-5 w-5 text-slate-300 transition group-hover:text-blue-500" />
               </div>

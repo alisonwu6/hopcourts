@@ -28,7 +28,7 @@ export function VenuePage() {
   
   const venueInfo = useMemo(() => {
     if (venueEvents.length > 0) return venueEvents[0].location
-    return location.state?.venueInfo || { name: decodeURIComponent(venueId || ''), address: '載入中...' }
+    return location.state?.venueInfo || { name: decodeURIComponent(venueId || ''), address: 'Loading...' }
   }, [venueEvents, venueId, location.state])
 
   useEffect(() => {
@@ -45,8 +45,8 @@ export function VenuePage() {
     venueEvents.forEach(event => {
        const date = new Date(event.startTime)
        let label = format(date, 'M/d (EEE)', { locale: zhTW })
-       if (isSameDay(date, today)) label = '今天'
-       if (isSameDay(date, tomorrow)) label = '明天'
+       if (isSameDay(date, today)) label = 'Today'
+       if (isSameDay(date, tomorrow)) label = 'Tomorrow'
        
        let group = groups.find(g => g.label === label)
        if (!group) {
@@ -88,18 +88,18 @@ export function VenuePage() {
            <span className="text-slate-300">|</span>
            <button onClick={openMaps} className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline">
              <MapPin className="h-4 w-4" />
-             {venueInfo.address || '查看地圖'}
+             {venueInfo.address || 'View map'}
            </button>
         </div>
       </div>
 
       {/* 🧱 Section 2: Activities */}
       <div className="px-4 py-6">
-        <h2 className="mb-4 text-lg font-bold text-slate-900">場館開放時段</h2>
+        <h2 className="mb-4 text-lg font-bold text-slate-900">Venue Available Time Slots</h2>
         
         {groupedEvents.length === 0 ? (
           <div className="rounded-xl bg-white py-10 text-center text-slate-500 shadow-sm">
-            <p>目前無開放時段</p>
+            <p>No available time slots</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -126,13 +126,13 @@ export function VenuePage() {
        {/* Claim Venue CTA */}
        <div className="mx-4 mb-8 mt-4 rounded-xl border border-slate-200 bg-slate-100 p-4 text-center">
           <p className="text-sm text-slate-600">
-            這是您的場館嗎？
+            Is this your venue?
           </p>
           <button 
-             onClick={() => { alert('即將推出：場館認領功能') }}
+             onClick={() => { alert('Coming soon: venue claim feature') }}
              className="mt-2 text-sm font-bold text-blue-600 underline"
           >
-            認領此頁面以管理官方時段
+            Claim this page to manage official time slots
           </button>
        </div>
 

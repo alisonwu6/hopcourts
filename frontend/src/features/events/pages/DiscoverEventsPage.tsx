@@ -159,17 +159,17 @@ export function DiscoverEventsPage() {
     ? dateRange.end
       ? `${format(dateRange.start, 'MM/dd')} - ${format(dateRange.end, 'MM/dd')}`
       : format(dateRange.start, 'MM/dd')
-    : '任何時間'
+    : 'Any time'
 
   const sportLabel = useMemo(() => {
-    if (selectedSports.includes('all')) return '任何運動'
+    if (selectedSports.includes('all')) return 'Any sport'
 
     // Map keys to labels
     const names = selectedSports
       .map((key) => sports.find((s) => s.key === key)?.label)
       .filter(Boolean) as string[]
 
-    if (names.length === 0) return '運動'
+    if (names.length === 0) return 'Sport'
     if (names.length <= 2) return names.join('、')
     return `${names[0]}、${names[1]} +${names.length - 2}`
   }, [selectedSports, sports])
@@ -195,7 +195,7 @@ export function DiscoverEventsPage() {
             <div className="flex flex-col items-start px-1">
               {!hasFilter ? (
                 <>
-                  <span className="text-sm font-bold text-slate-900">開始搜尋</span>
+                  <span className="text-sm font-bold text-slate-900">Start searching</span>
                   <span className="text-xs font-medium text-slate-500">
                     {dateLabel} • {sportLabel}
                   </span>
@@ -286,21 +286,19 @@ export function DiscoverEventsPage() {
             <PageLoading fullScreen={false} className="py-20" />
           ) : filteredEvents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
                 <span className="text-5xl">😮</span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Opps! 沒有活動？</h3>
+              <h3 className="text-xl font-bold text-slate-900">Oops! No events?</h3>
               <p className="mt-2 text-sm text-slate-500">
-                快來發佈一個活動，
-                <br />
-                讓有相同運動興趣的夥伴們找到你吧！
+                Create an event now, and let people with the same sports interests find you!
               </p>
               <button
                 type="button"
                 onClick={handleCreateClick}
                 className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-200 transition"
               >
-                發起活動
+                Create Event
               </button>
             </div>
           ) : (
@@ -427,17 +425,17 @@ function SearchSheet({
     >
       <SheetLayout
         onClose={onClose}
-        title="搜尋篩選"
-        subtitle="自訂你的搜尋條件"
+        title="Search Filters"
+        subtitle="Customize your search filters"
         height="tall"
         className="flex h-full w-full flex-col rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
         contentClassName="flex-1 overflow-y-auto px-5 pb-6 pt-4 space-y-6"
         primaryButton={{
-          label: '套用',
+          label: 'Apply',
           onClick: handleApply,
         }}
         secondaryButton={{
-          label: '全部清除',
+          label: 'Clear All',
           onClick: handleClear,
           variant: 'ghost',
         }}
@@ -452,7 +450,7 @@ function SearchSheet({
               activeTab === 'date' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'
             )}
           >
-            日期
+            Date
           </button>
           <button
             type="button"
@@ -462,7 +460,7 @@ function SearchSheet({
               activeTab === 'sport' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'
             )}
           >
-            運動
+            Sport
           </button>
         </div>
 
@@ -570,7 +568,7 @@ function CalendarContent({
     <div>
       <div className="mb-6 flex items-center justify-between px-2">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-slate-900">{format(month, 'yyyy 年 M 月')}</span>
+          <span className="text-lg font-bold text-slate-900">{format(month, 'yyyy MMM')}</span>
         </div>
         <div className="flex gap-2">
           <button
@@ -591,8 +589,8 @@ function CalendarContent({
       </div>
 
       <div className="mb-4 grid grid-cols-7 text-center text-xs font-semibold uppercase tracking-wide text-slate-400">
-        {['一', '二', '三', '四', '五', '六', '日'].map((label) => (
-          <span key={label}>週{label}</span>
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => (
+          <span key={label}>{label}</span>
         ))}
       </div>
 

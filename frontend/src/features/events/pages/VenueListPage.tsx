@@ -88,8 +88,8 @@ export function VenueListPage() {
            >
              <Search className="ml-2 h-5 w-5 text-slate-800" strokeWidth={2.5} />
              <div className="flex flex-col items-start px-1">
-                <span className="text-sm font-bold text-slate-900">開始搜尋</span>
-                <span className="text-xs font-medium text-slate-500">搜尋場館...</span>
+                <span className="text-sm font-bold text-slate-900">Start Searching</span>
+                <span className="text-xs font-medium text-slate-500">Search venues...</span>
              </div>
            </button>
 
@@ -128,7 +128,7 @@ export function VenueListPage() {
                    <p className="text-sm text-slate-500">{v.address_display}</p>
                    <div className="mt-2 flex items-center gap-2">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${v.status==='claimed' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>
-                         {v.status === 'claimed' ? '官方認證' : '未認領'}
+                         {v.status === 'claimed' ? 'Official' : 'Unclaimed'}
                       </span>
                    </div>
                 </div>
