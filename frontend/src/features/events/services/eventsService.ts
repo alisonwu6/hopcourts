@@ -99,7 +99,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
   const end = new Date(now.getTime() + 60 * 60 * 1000)
   return {
     id,
-    title: 'SportsMatch 活動',
+    title: 'SportsMatch Event',
     sport: 'running',
     vibeIcon: '🏃',
     skillLevel: 'mixed',
@@ -108,7 +108,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
     location: {
       name: 'Location TBC',
       address: '',
-      city: '台北',
+      city: 'Brisbane',
     },
     host: {
       id: 'host',
@@ -123,7 +123,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
     priceRange: 'Free to join',
     participants: [],
     detail: {
-      description: '活動資訊準備中。',
+      description: 'Event details are coming soon.',
     },
   }
 }
@@ -146,7 +146,7 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
     },
     host: {
       id: 'local-user',
-      name: '你',
+      name: 'You',
     },
     highFives: 0,
     joined: true,
@@ -206,10 +206,10 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     priceNote: session.price_note,
     priceRange:
       session.is_free
-        ? '免費參加'
+        ? 'Free to join'
         : session.price_per_person
           ? `$${formatTwdNoDecimal(session.price_per_person)}`
-          : '收費活動',
+          : 'Paid event',
     description: session.description ?? '',
     participants: [],
     status: session.status as any,

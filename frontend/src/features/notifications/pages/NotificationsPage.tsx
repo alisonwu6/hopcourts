@@ -4,7 +4,6 @@ import { Clock, CheckCircle2, UserPlus, UserMinus, AlertCircle, Bell, MessageCir
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
 import { notificationsService, NotificationItem } from '../services/notificationsService'
 
 export function NotificationsPage() {
@@ -83,7 +82,7 @@ export function NotificationsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <ActionToolbar 
-        title="通知中心" 
+        title="Notifications" 
         showBack={true}
         rightContent={
             notifications.some(n => !n.is_read) && (
@@ -91,7 +90,7 @@ export function NotificationsPage() {
                     onClick={handleMarkAllRead}
                     className="text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                    全部已讀
+                    Mark all as read
                 </button>
             )
         }
@@ -106,9 +105,9 @@ export function NotificationsPage() {
                 <div className="mb-4 rounded-full bg-slate-100 p-6">
                   <Bell className="h-10 w-10 text-slate-400" />
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-slate-900">目前沒有新通知</h3>
+                <h3 className="mb-2 text-lg font-bold text-slate-900">No new notifications</h3>
                 <p className="text-sm text-slate-500">
-                  您的活動有新動向時，會顯示在這裡。
+                  Updates about your events will appear here.
                 </p>
              </div>
          ) : (
@@ -135,7 +134,7 @@ export function NotificationsPage() {
                             {n.message}
                         </p>
                         <p className="mt-2 text-xs text-slate-400">
-                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: zhTW })}
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                         </p>
                     </div>
                     {!n.is_read && (
@@ -145,7 +144,7 @@ export function NotificationsPage() {
                 ))}
                 
                 <div className="px-4 py-8 text-center">
-                    <p className="text-xs text-slate-400">僅顯示最近 30 天的通知</p>
+                    <p className="text-xs text-slate-400">Only notifications from the last 30 days are shown</p>
                 </div>
              </>
          )}

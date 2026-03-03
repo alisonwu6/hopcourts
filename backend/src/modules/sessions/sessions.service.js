@@ -180,15 +180,15 @@ async function joinSession({ sessionId, userId }) {
   if (session.host_user_id && session.host_user_id !== userId) {
     // Fire and forget (or await if guaranteed fast). Service handles errors.
     usersModel.getUserById(userId).then(actor => {
-      const actorName = actor?.display_name || actor?.name || '有人'
+      const actorName = actor?.display_name || actor?.name || 'Someone'
       notificationsService.createNotification({
         recipient_user_id: session.host_user_id,
         actor_user_id: userId,
         type: 'session_joined',
         entity_type: 'session',
         entity_id: sessionId,
-        title: '有人加入你的活動',
-        message: `${actorName} 加入了「${session.title}」`,
+        title: 'Someone joined your event',
+        message: `${actorName} joined "${session.title}"`,
         metadata: { deep_link: `/event/${sessionId}` }
       })
     }).catch(err => console.error('Notify join failed', err))
@@ -216,15 +216,15 @@ async function leaveSession({ sessionId, userId }) {
   // Notification: Notify Host
   if (session.host_user_id && session.host_user_id !== userId) {
     usersModel.getUserById(userId).then(actor => {
-      const actorName = actor?.display_name || actor?.name || '有人'
+      const actorName = actor?.display_name || actor?.name || 'Someone'
       notificationsService.createNotification({
         recipient_user_id: session.host_user_id,
         actor_user_id: userId,
         type: 'session_left',
         entity_type: 'session',
         entity_id: sessionId,
-        title: '有人退出你的活動',
-        message: `${actorName} 退出了「${session.title}」`,
+        title: 'Someone left your event',
+        message: `${actorName} left "${session.title}"`,
         metadata: { deep_link: `/event/${sessionId}` }
       })
     }).catch(err => console.error('Notify leave failed', err))
@@ -425,8 +425,8 @@ async function updateSession(sessionId, input) {
   if (hasChanges && updatedSession) {
     const participants = await participantsModel.listParticipantsBySession(sessionId)
     const actor = await usersModel.getUserById(input.userId).catch(() => null)
-    const actorName = actor?.display_name || actor?.name || '活動發起人'
-    const sessionTitle = updatedSession.title || existing.title || '活動'
+    const actorName = actor?.display_name || actor?.name || 'Event host'
+    const sessionTitle = updatedSession.title || existing.title || 'Event'
 
     participants.forEach((participant) => {
       const recipientId = participant.user_id
@@ -439,8 +439,8 @@ async function updateSession(sessionId, input) {
           type: 'session_updated',
           entity_type: 'session',
           entity_id: sessionId,
-          title: '活動資訊已更新',
-          message: `${actorName} 更新了「${sessionTitle}」`,
+          title: 'Event details updated',
+          message: `${actorName} updated "${sessionTitle}"`,
           metadata: { deep_link: `/event/${sessionId}` },
         })
         .catch((err) => console.error('Notify update failed', err))
@@ -474,8 +474,8 @@ async function deleteSession(sessionId, userId) {
         type: 'session_cancelled',
         entity_type: 'session',
         entity_id: sessionId,
-        title: '活動已取消',
-        message: `「${existing.title}」已被取消`,
+        title: 'Event cancelled',
+        message: `"${existing.title}" was cancelled`,
         metadata: {}
       }).catch(err => console.error('Notify cancel failed', err))
     }
