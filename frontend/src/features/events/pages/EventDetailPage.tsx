@@ -25,7 +25,6 @@ import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { eventsService } from '@/features/events/services/eventsService'
 import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
-import { format } from 'date-fns'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
 const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
@@ -80,8 +79,7 @@ export function EventDetailPage() {
 
     // React Router stores navigation index in history.state.idx.
     // Direct-open links usually have idx = 0, so fallback to event list.
-    const historyIdx =
-      typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
+    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
 
     if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
       navigate('/events', { replace: true })
@@ -181,7 +179,11 @@ export function EventDetailPage() {
     setIsCheckingIn(true)
 
     if (!navigator.geolocation) {
-      showAlert('Location Not Supported', 'Your device does not support GPS location. Check-in is unavailable.', 'error')
+      showAlert(
+        'Location Not Supported',
+        'Your device does not support GPS location. Check-in is unavailable.',
+        'error'
+      )
       setIsCheckingIn(false)
       return
     }
@@ -223,11 +225,17 @@ export function EventDetailPage() {
               'warning'
             )
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
-            showAlert('Outside check-in window', 'You are currently outside the check-in time window.', 'warning')
+            showAlert(
+              'Outside check-in window',
+              'You are currently outside the check-in time window.',
+              'warning'
+            )
           } else {
             showAlert(
               'Check-in failed',
-              backendError.message || err.message || 'Please make sure you are at the event location and location services are enabled.',
+              backendError.message ||
+                err.message ||
+                'Please make sure you are at the event location and location services are enabled.',
               'error'
             )
           }
@@ -239,13 +247,29 @@ export function EventDetailPage() {
         console.error(err)
         const code = err?.code
         if (code === 1) {
-          showAlert('Location permission required', 'Please allow location access in Safari site settings and try again.', 'warning')
+          showAlert(
+            'Location permission required',
+            'Please allow location access in Safari site settings and try again.',
+            'warning'
+          )
         } else if (code === 2) {
-          showAlert('Unable to get location', 'Signal is unstable or location source is unavailable. Move to an open area and try again.', 'warning')
+          showAlert(
+            'Unable to get location',
+            'Signal is unstable or location source is unavailable. Move to an open area and try again.',
+            'warning'
+          )
         } else if (code === 3) {
-          showAlert('Location timeout', 'Location took too long. Make sure network and GPS are enabled, then try again.', 'warning')
+          showAlert(
+            'Location timeout',
+            'Location took too long. Make sure network and GPS are enabled, then try again.',
+            'warning'
+          )
         } else {
-          showAlert('Location failed', 'Please enable location services and try again later.', 'warning')
+          showAlert(
+            'Location failed',
+            'Please enable location services and try again later.',
+            'warning'
+          )
         }
         setIsCheckingIn(false)
       },
@@ -298,15 +322,14 @@ export function EventDetailPage() {
 
     return (
       <div className="min-h-screen bg-white">
-        <ActionToolbar
-          onBack={handleBack}
-          title="Event Details"
-        />
+        <ActionToolbar onBack={handleBack} title="Event Details" />
         <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[420px] flex-col items-center justify-center px-6 pb-16 text-center">
           <div className="mb-5 rounded-full bg-slate-100 p-6">
             <Frown className="h-12 w-12 text-slate-400" />
           </div>
-          <h3 className="mb-3 text-2xl font-extrabold tracking-tight text-slate-900">Event Not Found</h3>
+          <h3 className="mb-3 text-2xl font-extrabold tracking-tight text-slate-900">
+            Event Not Found
+          </h3>
           <p className="text-md max-w-sm font-medium leading-relaxed text-slate-500">
             {detailMessage}
           </p>
@@ -360,11 +383,13 @@ export function EventDetailPage() {
     return 'Paid event'
   })()
   const feeNote = event.priceNote?.trim() || 'None'
-  const participantRule = `Starts with ${minPeople} players · Max ${maxPeople}`
+  const participantRule = `Starts with ${minPeople} players`
   const locationLabel =
     event.location.name && event.location.name !== event.location.address
       ? `${event.location.name} (${event.location.address})`
       : event.location.address || event.location.name || 'Location TBD'
+  const scheduleLabel = formatEventSchedule(event.startTime, event.endTime)
+  const updatedAtLabel = event.updatedAt ? formatDateTimeLabel(event.updatedAt) : null
   const handleOpenMap = () => {
     if (event.location.lat && event.location.lng) {
       window.open(
@@ -462,10 +487,8 @@ export function EventDetailPage() {
 
             <hr className="my-3 border-slate-200" />
 
-            {event.updatedAt && (
-              <p className="mb-6 text-xs text-slate-400">
-                Last updated {format(event.updatedAt, 'yyyy/MM/dd HH:mm')}
-              </p>
+            {updatedAtLabel && (
+              <p className="mb-6 text-xs text-slate-400">Last updated {updatedAtLabel}</p>
             )}
 
             <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
@@ -485,10 +508,7 @@ export function EventDetailPage() {
             </div>
 
             <div className="space-y-3">
-              <InfoRow
-                icon={Calendar}
-                label={`${new Date(event.startTime).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' })} ${new Date(event.startTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })} - ${new Date(event.endTime).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false })}`}
-              />
+              <InfoRow icon={Calendar} label={scheduleLabel} />
               <div
                 className={clsx(
                   'group flex items-start justify-between gap-2 transition',
@@ -520,7 +540,9 @@ export function EventDetailPage() {
                   <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                 </span>
                 <span className="flex flex-col gap-1">
-                  <span>{event.attendeeCount} joined · {spotsRemaining} spots left</span>
+                  <span>
+                    {event.attendeeCount} joined · {spotsRemaining} spots left
+                  </span>
                   <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
                     {participantRule}
                   </span>
@@ -680,6 +702,51 @@ function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: React.ReactNo
   )
 }
 
+function formatEventSchedule(start: Date | string, end: Date | string) {
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+
+  const dateLabel = startDate.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+
+  const startWithSuffix = startDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+  const endWithSuffix = endDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+
+  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
+  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
+
+  const timeLabel =
+    startSuffix && startSuffix === endSuffix
+      ? `${startCore}–${endCore} ${endSuffix}`
+      : `${startWithSuffix}–${endWithSuffix}`
+
+  return `${dateLabel} · ${timeLabel}`
+}
+
+function formatDateTimeLabel(value: Date | string) {
+  return new Date(value).toLocaleString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
 type JoinBarProps = {
   isJoined: boolean
   event: any // Replace 'any' with PlayerEvent type if possible
@@ -712,15 +779,19 @@ function JoinBar({
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000) // Relative to Start Time
   const isCheckInOpen = now >= openTime && now <= closeTime
 
-  const formatTime = (date: Date) =>
-    date.toLocaleString('en-US', {
+  const formatTime = (date: Date) => {
+    const dateLabel = date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
+    })
+    const timeLabel = date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     })
+    return `${dateLabel} · ${timeLabel}`
+  }
 
   let mainButton = (
     <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white">
