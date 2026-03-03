@@ -58,11 +58,11 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
   return (
     <section className={containerClass}>
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-slate-900">歡迎加入 SportsMatch</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Welcome to SportsMatch</h1>
         <p className="mt-2 text-sm text-slate-600">
-          探索在地運動活動、認識新夥伴，
+          Explore local sports events, meet new friends,
           <br />
-          輕鬆開始你的運動生活。
+          and start your active lifestyle with ease.
         </p>
       </div>
 

@@ -36,77 +36,29 @@ export function HomePage() {
               <span>Real-World First Application</span>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl">
-                當揪團運動成為日常
-              </h1>
-              <h2 className="text-base text-slate-600">
-                即時探索城市
-                <br />
-                時間 × 各種運動 × 夥伴
-              </h2>
-            </div>
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900">
+              No team?
+              <br />
+              No worries!
+              <br />
+              Just play.
+            </h1>
+            <h2 className="text-base text-slate-600">
+              A social network that helps
+              <br />
+              you find sports mates — wherever you go.
+            </h2>
           </header>
-
-          {/* Feature Grid */}
-          <section aria-label="App Features" className="mb-8 px-4">
-            <div className="mx-auto grid w-full grid-cols-3 gap-4">
-              {/* Feature 1 */}
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-20 w-20 items-center justify-center text-emerald-600">
-                  <Clock className="h-10 w-10" strokeWidth={2} />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900">隨時開約</h3>
-                  <p className="text-sm font-medium leading-relaxed text-slate-500">
-                    依照你的
-                    <br />
-                    生活步調
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 2 */}
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-20 w-20 items-center justify-center text-blue-600">
-                  <MapPin className="h-10 w-10" strokeWidth={2} />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900">探索城市</h3>
-                  <p className="text-sm font-medium leading-relaxed text-slate-500">
-                    挖掘身邊
-                    <br />
-                    運動熱點
-                  </p>
-                </div>
-              </div>
-
-              {/* Feature 3 */}
-              <div className="flex flex-col items-center text-center">
-                <div className="flex h-20 w-20 items-center justify-center text-amber-600">
-                  <Users className="h-10 w-10" strokeWidth={2} />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-slate-900">契合夥伴</h3>
-                  <p className="text-sm font-medium leading-relaxed text-slate-500">
-                    志趣相同
-                    <br />
-                    更有樂趣
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
 
           {/* Call to Action */}
           {!isAuthenticated && (
-            <section className="mt-4 flex justify-center">
+            <section className="mt-10 flex justify-center">
               <button
                 className="flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
                 type="button"
                 onClick={handleIdentityClick}
               >
-                加入 SportsMatch
+                Join SportsMatch
                 <ArrowRight className="ml-2 h-5 w-5" />
               </button>
             </section>

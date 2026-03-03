@@ -26,7 +26,7 @@ export default function GoogleLoginButton({ loginGoogle }: { loginGoogle: () => 
           fill="#EA4335"
         />
       </svg>
-      <span className="text-sm font-medium text-slate-900">使用 Google 繼續</span>
+      <span className="text-sm font-medium text-slate-900">Continue with Google</span>
     </Button>
   )
 }
