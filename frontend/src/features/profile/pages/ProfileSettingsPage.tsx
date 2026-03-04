@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, UserRound, LogOut, Info, Mail, FileText } from 'lucide-react'
+import { ChevronRight, UserRound, LogOut, Info, Mail, FileText, PenLine } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
@@ -10,6 +10,7 @@ const generalItems = [
 
 const otherItems = [
   { key: 'about', label: 'About Us', icon: Info },
+  { key: 'foundersLetter', label: "Founder’s Letter", icon: PenLine },
   { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
   { key: 'contact', label: 'Contact Us', icon: Mail },
 ]
@@ -73,7 +74,7 @@ export function ProfileSettingsPage() {
                   className="flex w-full items-center justify-between px-4 py-4 text-left "
                   onClick={() => {
                     if (key === 'about') navigate('/about')
-                    if (key === 'story') navigate('/story')
+                    if (key === 'foundersLetter') navigate('/founders-letter')
                     if (key === 'guidelines') navigate('/guidelines')
                     if (key === 'contact') navigate('/settings/contact')
                   }}

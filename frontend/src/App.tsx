@@ -21,6 +21,7 @@ import { AccountSettingsPage } from '@/features/profile/pages/AccountSettingsPag
 import { AboutPage } from '@/features/profile/pages/AboutPage'
 import { StoryPage } from '@/features/profile/pages/StoryPage'
 import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
+import { FoundersLetterPage } from '@/features/profile/pages/FoundersLetterPage'
 import { ContactUsPage } from '@/features/misc/pages/ContactUsPage'
 import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
@@ -64,6 +65,7 @@ export default function App() {
       
       <Route path="/about" element={<AboutPage />} />
       <Route path="/story" element={<StoryPage />} />
+      <Route path="/founders-letter" element={<FoundersLetterPage />} />
       <Route path="/guidelines" element={<UsageRulesPage />} />
       <Route path="/rules" element={<Navigate to="/guidelines" replace />} />
 
