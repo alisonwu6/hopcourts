@@ -13,7 +13,7 @@ export function AboutPage() {
         showFavorite={false}
         contentClassName="max-w-5xl px-4"
         showBack
-        title={<span className="text-lg font-semibold text-slate-900">關於我們</span>}
+        title={<span className="text-lg font-semibold text-slate-900">About Us</span>}
         rightContent={<span className="h-10 w-10" aria-hidden="true" />}
         borderBottom
       />
@@ -24,36 +24,43 @@ export function AboutPage() {
           <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-12">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
               <Sparkles className="h-4 w-4" />
-              Real World First Application
+              Real-World Sports Platform
             </div>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
-              你的城市，
+              Your city.
               <br />
-              就是你的主場。
+              Your home game.
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-              SportsMatch
-              是一個專注於真實世界連結的運動社群服務。我們相信，運動最好的部分不只是流汗，
-              更是與志趣相投的夥伴，一起在城市裡創造爽快的時刻。
+              SportsMatch connects people through real-world sports.
+              <br />
+              <br />
+              The best part of sport isn’t just the workout — it’s the moments shared with people
+              who love the game.
+              <br />
+              <br />
+              Right here in your city.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <IdCard className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">我的運動卡</h3>
-                <p className="mt-2 text-sm text-slate-600">建立運動身份，累積自我運動旅程。</p>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">Your Sports Card</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Build your profile and track your sports journey.
+                </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <UsersRound className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">運動夥伴</h3>
-                <p className="mt-2 text-sm text-slate-600">找到運動興趣與程度契合的運動夥伴。</p>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">Players</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Meet players who share your interests and energy.
+                </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">輕鬆成局</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  輕鬆開團與參加流程。設定時間、地點、程度。
-                </p>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">Find Games Easily</h3>
+                <p className="mt-2 text-sm text-slate-600">Start or join sessions near you.</p>
               </div>
             </div>
           </div>

@@ -45,15 +45,15 @@ export function SignupPage() {
           <div className="mt-3 space-y-2">
             {/* <h1 className="text-2xl font-semibold text-player-900">Join the movement.</h1> */}
             <p className="text-sm text-player-900/70">
-              SportsMatch 想讓大家都更愛動起來——和在地夥伴配對、說好就玩，幫你一路維持動力。
+              SportsMatch helps you stay active by matching you with local players and making it easy to start.
             </p>
           </div>
 
           <form className="mt-4 space-y-4 text-left" onSubmit={handleSubmit}>
             <InputField
-              label="姓名"
+              label="Name"
               type="text"
-              placeholder="王小明"
+              placeholder="Alex Wang"
               value={name}
               onChange={(event) => {
                 if (error) clearError()
@@ -75,10 +75,10 @@ export function SignupPage() {
               autoComplete="email"
             />
             <InputField
-              label="密碼"
+              label="Password"
               type="password"
-              placeholder="至少 8 碼"
-              hint="需包含大小寫英文字母與數字"
+              placeholder="At least 8 characters"
+              hint="Must include uppercase, lowercase, and numbers"
               value={password}
               onChange={(event) => {
                 if (error) clearError()
@@ -88,9 +88,9 @@ export function SignupPage() {
               autoComplete="new-password"
             />
             <InputField
-              label="再次輸入密碼"
+              label="Confirm Password"
               type="password"
-              placeholder="請再輸入一次密碼"
+              placeholder="Enter password again"
               value={confirmPassword}
               onChange={(event) => {
                 if (error) clearError()
@@ -109,13 +109,13 @@ export function SignupPage() {
                 className="mt-1 h-4 w-4 rounded border-player-200 text-player-600 focus:ring-player-600"
               />
               <label htmlFor="terms">
-                我同意
+                I agree to
                 <a href="#" className="font-semibold text-player-600 ">
-                  服務條款
+                  Terms of Service
                 </a>{' '}
-                與{' '}
+                and{' '}
                 <a href="#" className="font-semibold text-player-600 ">
-                  隱私權政策
+                  Privacy Policy
                 </a>
               </label>
             </div>
@@ -123,14 +123,14 @@ export function SignupPage() {
             {effectiveError && <p className="text-sm text-red-500">{effectiveError}</p>}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? '建立帳號中…' : '建立帳號'}
+              {isLoading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-player-900/70">
-            已經有帳號了？{' '}
+            Already have an account?{' '}
             <Link to="/login" className="font-semibold text-player-600 ">
-              立即登入
+              Sign in now
             </Link>
           </p>
         </main>

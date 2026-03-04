@@ -14,9 +14,9 @@ export function MateProfilePage() {
   const { username } = useParams<{ username: string }>()
   const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps> } }
   const mate = state?.mate
-  const { items: sportsDict } = useSports('zh')
-  const { items: vibesCatalog } = useVibes('zh')
-  const { items: citiesDict } = useCities(undefined, 'zh')
+  const { items: sportsDict } = useSports('en')
+  const { items: vibesCatalog } = useVibes('en')
+  const { items: citiesDict } = useCities(undefined, 'en')
 
 
   const asStringArray = (items?: any[]) =>
@@ -134,9 +134,9 @@ export function MateProfilePage() {
         console.error('load mate failed', err)
         const status = err?.status || err?.response?.status
         if (status === 404) {
-          setError(`找不到 ${username} 夥伴！請確認夥伴使用者帳號`)
+          setError(`Could not find teammate "${username}". Please check the username.`)
         } else {
-          setError('無法載入運動卡')
+          setError('Unable to load sports card.')
         }
         if (mate) {
           setProfileData({
@@ -219,7 +219,7 @@ export function MateProfilePage() {
             <div className="mb-4 rounded-full bg-slate-100 p-4">
               <Frown className="h-8 w-8 text-slate-400" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-slate-900">找不到夥伴</h3>
+            <h3 className="mb-2 text-lg font-semibold text-slate-900">Teammate not found</h3>
             <p className="max-w-xs text-sm text-slate-500">{error}</p>
           </div>
         ) : (

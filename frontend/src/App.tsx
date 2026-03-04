@@ -64,7 +64,8 @@ export default function App() {
       
       <Route path="/about" element={<AboutPage />} />
       <Route path="/story" element={<StoryPage />} />
-      <Route path="/rules" element={<UsageRulesPage />} />
+      <Route path="/guidelines" element={<UsageRulesPage />} />
+      <Route path="/rules" element={<Navigate to="/guidelines" replace />} />
 
       {/* Admin / Governance (C0) */}
       <Route path="/admin/login" element={<AdminLoginPage />} />

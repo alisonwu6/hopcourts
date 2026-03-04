@@ -112,7 +112,7 @@ export function ResetPasswordPage() {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token)
       }
-      setStatus('密碼重設成功！')
+      setStatus('Password reset successful!')
       navigate('/profile', { replace: true })
     } catch (err: any) {
       setError(err?.message ?? 'Unable to update password.')

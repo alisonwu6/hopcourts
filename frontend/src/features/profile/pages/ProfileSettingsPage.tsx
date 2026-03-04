@@ -5,13 +5,13 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 
 const generalItems = [
-  { key: 'account', label: '帳號設定', icon: UserRound },
+  { key: 'account', label: 'Account Settings', icon: UserRound },
 ]
 
 const otherItems = [
-  { key: 'about', label: '關於我們', icon: Info },
-  { key: 'rules', label: '使用規範', icon: FileText },
-  { key: 'contact', label: '寫信給我們', icon: Mail },
+  { key: 'about', label: 'About Us', icon: Info },
+  { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
+  { key: 'contact', label: 'Contact Us', icon: Mail },
 ]
 
 export function ProfileSettingsPage() {
@@ -37,14 +37,14 @@ export function ProfileSettingsPage() {
         showFavorite={false}
         contentClassName="max-w-3xl px-4"
         showBack
-        title={<span className="text-lg font-semibold text-slate-900">設定</span>}
+        title={<span className="text-lg font-semibold text-slate-900">Settings</span>}
         rightContent={<span className="h-10 w-10" aria-hidden="true" />}
         borderBottom
       />
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-6">
         <div className="space-y-6">
           <div>
-            <h3 className="mb-2 ml-4 text-sm font-medium text-slate-500">一般設定</h3>
+            <h3 className="mb-2 ml-4 text-sm font-medium text-slate-500">General</h3>
             <div className="divide-y divide-slate-200 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
               {generalItems.map(({ key, label, icon: Icon }) => (
                 <button
@@ -74,7 +74,7 @@ export function ProfileSettingsPage() {
                   onClick={() => {
                     if (key === 'about') navigate('/about')
                     if (key === 'story') navigate('/story')
-                    if (key === 'rules') navigate('/rules')
+                    if (key === 'guidelines') navigate('/guidelines')
                     if (key === 'contact') navigate('/settings/contact')
                   }}
                 >
@@ -95,7 +95,7 @@ export function ProfileSettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <LogOut className="h-5 w-5 text-slate-500" />
-                <span className="text-base font-medium">{isLoggingOut ? '登出中…' : '登出'}</span>
+                <span className="text-base font-medium">{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
               </div>
             </button>
           </div>

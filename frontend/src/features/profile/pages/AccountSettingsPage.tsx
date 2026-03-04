@@ -9,7 +9,7 @@ import { profileService } from '@/features/profile/profile.service'
 export function AccountSettingsPage() {
   const navigate = useNavigate()
   const { user, setAuthData } = useAuthStore()
-  const email = user?.email || '未設定'
+  const email = user?.email || 'Not set'
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showDeleteFailed, setShowDeleteFailed] = useState(false)
 
@@ -30,23 +30,26 @@ export function AccountSettingsPage() {
         onBack={() => navigate(-1)}
         showShare={false}
         showFavorite={false}
-        title={<span className="text-lg font-semibold text-slate-900">帳號設定</span>}
+        title={<span className="text-lg font-semibold text-slate-900">Account Settings</span>}
         contentClassName="max-w-3xl px-4"
         borderBottom
       />
 
       <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-8 pt-4">
-        <Section title="帳號資訊" icon={<UserRound className="h-5 w-5 text-slate-500" />}>
+        <Section
+          title="Account Information"
+          icon={<UserRound className="h-5 w-5 text-slate-500" />}
+        >
           <Row label="Email" value={email} />
         </Section>
 
-        <Section title="危險區域" icon={<Shield className="h-5 w-5 text-rose-400" />}>
+        <Section title="Danger Zone" icon={<Shield className="h-5 w-5 text-rose-400" />}>
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
-            className="w-full rounded-lg bg-red-50 px-4 py-3 text-left text-sm font-semibold text-red-600 hover:bg-red-100 transition-colors"
+            className="w-full rounded-lg bg-red-50 px-4 py-3 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-100"
           >
-            刪除帳號
+            Delete Account
           </button>
         </Section>
       </div>
@@ -54,11 +57,11 @@ export function AccountSettingsPage() {
       <AlertDialog
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="確定要刪除帳號嗎？"
-        description="所有的資料將會被永久刪除且無法復原。"
+        title="Are you sure you want to delete your account?"
+        description="All data will be permanently deleted and cannot be recovered."
         type="error"
-        actionLabel="確認刪除"
-        cancelLabel="取消"
+        actionLabel="Confirm"
+        cancelLabel="Cancel"
         actionLeft
         onAction={confirmDeleteAccount}
       />
@@ -66,8 +69,8 @@ export function AccountSettingsPage() {
       <AlertDialog
         open={showDeleteFailed}
         onClose={() => setShowDeleteFailed(false)}
-        title="刪除帳號失敗"
-        description="請稍後再試。"
+        title="Failed to delete account"
+        description="Please try again later."
         type="error"
       />
     </div>

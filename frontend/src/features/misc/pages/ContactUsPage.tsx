@@ -15,10 +15,10 @@ import { feedbackService } from '@/services/feedbackService'
 type FeedbackType = 'issue' | 'feature' | 'account' | 'other'
 
 const feedbackTypes: { value: FeedbackType; label: string; icon: any }[] = [
-  { value: 'issue', label: '回報問題', icon: AlertCircle },
-  { value: 'feature', label: '功能建議', icon: Lightbulb },
-  { value: 'account', label: '帳號相關', icon: UserCircle2 },
-  { value: 'other', label: '其他', icon: HelpCircle },
+  { value: 'issue', label: 'Report an issue', icon: AlertCircle },
+  { value: 'feature', label: 'Feature suggestion', icon: Lightbulb },
+  { value: 'account', label: 'Account related', icon: UserCircle2 },
+  { value: 'other', label: 'Other', icon: HelpCircle },
 ]
 
 export function ContactUsPage() {
@@ -32,13 +32,13 @@ export function ContactUsPage() {
   const getPlaceholder = (feedbackType: FeedbackType) => {
     switch (feedbackType) {
       case 'issue':
-        return '請描述你遇到的問題，包含發生了什麼？\n你在做什麼時看到這個問題？'
+        return 'Please describe the issue.\nWhat happened and what were you doing when it occurred?'
       case 'feature':
-        return '請描述你希望哪個地方可以更好？\n為什麼對你有幫助？'
+        return 'Please describe what you would like to improve.\nWhy would this help you?'
       case 'account':
-        return '請描述你的帳號問題'
+        return 'Please describe your account issue.'
       default:
-        return '請詳細描述您遇到的問題或建議...'
+        return 'Please share your issue or suggestion in detail...'
     }
   }
 
@@ -71,22 +71,22 @@ export function ContactUsPage() {
   if (isSuccess) {
     return (
       <div className="min-h-screen bg-white">
-        <ActionToolbar title="寫信給我們" onBack={() => navigate(-1)} showBack borderBottom />
+        <ActionToolbar title="Contact Us" onBack={() => navigate(-1)} showBack borderBottom />
         <div className="flex h-[80vh] flex-col items-center justify-center px-6 text-center">
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
             <CheckCircle2 className="h-10 w-10 text-emerald-600" />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-slate-900">感謝您的回饋！</h2>
+          <h2 className="mb-2 text-2xl font-bold text-slate-900">Thanks for your feedback!</h2>
           <p className="mb-8 text-slate-600">
-            我們已經收到您的訊息，
+            We have received your message,
             <br />
-            團隊將會盡快查看並處理。
+            and our team will review it shortly.
           </p>
           <button
             onClick={() => navigate(-1)}
             className="w-full max-w-xs rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
           >
-            返回設定
+            Back to Settings
           </button>
         </div>
       </div>
@@ -96,7 +96,7 @@ export function ContactUsPage() {
   return (
     <div className="pb-safe min-h-screen bg-slate-50">
       <ActionToolbar
-        title="寫信給我們"
+        title="Contact Us"
         onBack={() => navigate(-1)}
         showBack
         borderBottom
@@ -107,7 +107,7 @@ export function ContactUsPage() {
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Feedback Type Selection */}
           <div className="space-y-3">
-            <label className="text-base font-bold text-slate-900">信件類型</label>
+            <label className="text-base font-bold text-slate-900">Feedback Type</label>
             <div className="mt-2 grid grid-cols-1 gap-3">
               {feedbackTypes.map(({ value, label, icon: Icon }) => (
                 <button
@@ -133,7 +133,7 @@ export function ContactUsPage() {
           {/* Content Area */}
           <div className="space-y-3">
             <label htmlFor="content" className="text-base font-bold text-slate-900">
-              內容描述
+              Details
             </label>
             <div className="relative mt-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
               <textarea
@@ -165,7 +165,7 @@ export function ContactUsPage() {
               className="cursor-pointer select-none text-sm text-slate-600"
               onClick={() => setAllowReply(!allowReply)}
             >
-              允許官方透過 Email 聯繫我以釐清問題
+              Allow SportsMatch to contact me by email for follow-up
             </label>
           </div>
 
@@ -176,11 +176,11 @@ export function ContactUsPage() {
             className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-6 py-4 text-lg font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
           >
             {isSubmitting ? (
-              '傳送中...'
+              'Sending...'
             ) : (
               <>
                 <Send className="h-5 w-5" />
-                送出回饋
+                Submit
               </>
             )}
           </button>

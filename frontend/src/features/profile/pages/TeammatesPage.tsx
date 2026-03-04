@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, Smile } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
 import { api } from '@/api/client'
 import { useCities } from '@/features/dictionaries/hooks'
 
@@ -39,7 +38,7 @@ export function TeammatesPage() {
         >
           <ArrowLeft className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold text-slate-900">我的運動圈</span>
+        <span className="text-lg font-bold text-slate-900">My Sports Circle</span>
       </div>
 
       <div className="flex flex-col gap-3 p-4">
@@ -47,8 +46,8 @@ export function TeammatesPage() {
           <div className="text-center text-sm text-slate-400 py-10">Loading...</div>
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-            <p>還沒有我的運動圈</p>
-            <p className="text-xs mt-1">只要參加過同一場活動，就會出現在這裡</p>
+            <p>No teammates yet</p>
+            <p className="text-xs mt-1">Anyone who joined the same event will appear here</p>
           </div>
         ) : (
           list.map((item) => (
@@ -77,11 +76,11 @@ export function TeammatesPage() {
               
               <div className="text-right flex-shrink-0">
                 <div className="text-sm font-bold text-slate-900">
-                  共 {item.sessions_count} 場
+                  Total {item.sessions_count} events
                 </div>
                 <div className="text-xs text-slate-400">
                   {item.last_played_at
-                    ? formatDistanceToNow(new Date(item.last_played_at), { addSuffix: true, locale: zhTW })
+                    ? formatDistanceToNow(new Date(item.last_played_at), { addSuffix: true })
                     : ''}
                 </div>
               </div>

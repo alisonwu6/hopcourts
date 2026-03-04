@@ -28,7 +28,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-blue-50 pb-24">
       <div className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto w-full max-w-4xl px-4 py-3 text-center">
-          <p className="text-sm font-semibold text-slate-600">登入</p>
+          <p className="text-sm font-semibold text-slate-600">Sign in</p>
         </div>
       </div>
 

@@ -23,7 +23,7 @@ export function AdminLoginPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 font-bold text-white shadow-xl">
             SM
           </div>
-          <h1 className="text-xl font-bold text-slate-900">後台管理</h1>
+          <h1 className="text-xl font-bold text-slate-900">Admin Panel</h1>
           <p className="mt-2 text-sm text-slate-500">SportsMatch Admin Portal</p>
         </div>
 
@@ -63,7 +63,7 @@ export function AdminLoginPage() {
             disabled={isLoading}
             className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20"
           >
-            {isLoading ? '驗證中...' : '登入'}
+            {isLoading ? 'Verifying...' : 'Sign in'}
           </button>
         </form>
 
