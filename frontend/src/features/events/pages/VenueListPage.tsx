@@ -7,7 +7,6 @@ import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
 import { EventMap } from '@/features/events/components/EventMap'
 import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
-import { VenueListPageContent } from './VenueListPageContent'
 
 // Adapter to make ApiVenue compatible with EventMap logic
 // Adapter to make ApiVenue compatible with EventMap logic
