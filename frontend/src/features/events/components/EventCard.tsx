@@ -1,4 +1,5 @@
 import type { KeyboardEvent } from 'react'
+import { useMemo } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -9,7 +10,7 @@ import {
   ChartColumnIncreasing,
 } from 'lucide-react'
 import { PlayerEvent } from '@/types'
-import { useSports } from '@/features/dictionaries/hooks'
+import { useCities, useSports } from '@/features/dictionaries/hooks'
 
 const ACCENT = {
   primary: '#2563EB',
@@ -32,6 +33,7 @@ function getFlagEmoji(countryCode: string) {
 
 export function EventCard({ event, onViewDetails }: EventCardProps) {
   const { items: sports } = useSports('en')
+  const { items: cities } = useCities(undefined, 'en')
 
   // Official Event Logic
   const raw = event as any
@@ -61,7 +63,13 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
       : ''
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
   const priceLabel = event.priceRange ?? (event.isFree ? 'Free' : 'Paid event')
-  const cityLabel = event.host.cityName || locationCity || 'City TBD'
+  const cityLabel = useMemo(() => {
+    if (event.host.cityKey) {
+      const city = cities.find((c) => c.key === event.host.cityKey)
+      if (city?.label) return city.label
+    }
+    return event.host.cityName || locationCity || 'City TBD'
+  }, [cities, event.host.cityKey, event.host.cityName, locationCity])
 
   const attendeeCount = event.attendeeCount
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)

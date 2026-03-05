@@ -36,7 +36,7 @@ export function VenueListPage() {
   const [venues, setVenues] = useState<ApiVenue[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null)
-  const { items: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('en')
   
   // Default to List view unless explicit map view requested
   const isMapView = searchParams.get('view') === 'map'

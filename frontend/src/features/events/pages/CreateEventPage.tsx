@@ -99,7 +99,7 @@ export default function CreateEventPage() {
   const editId = searchParams.get('id')
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const { items: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('en')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
   const [submittingStatus, setSubmittingStatus] = useState<'draft' | 'published' | null>(null)
