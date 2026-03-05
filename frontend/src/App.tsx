@@ -62,7 +62,7 @@ export default function App() {
       {/*
       <Route path="/auth/reset" element={<ResetPasswordPage />} />
       */}
-      
+
       <Route path="/about" element={<AboutPage />} />
       <Route path="/story" element={<StoryPage />} />
       <Route path="/founders-letter" element={<FoundersLetterPage />} />
@@ -84,7 +84,7 @@ export default function App() {
         path="/venue-portal"
         element={
           <VenuePortalRouteGuard>
-             <VenueDashboardPage />
+            <VenueDashboardPage />
           </VenuePortalRouteGuard>
         }
       />
@@ -92,7 +92,7 @@ export default function App() {
         path="/venue-portal/:venueId/profile"
         element={
           <VenuePortalRouteGuard>
-             <VenueProfilePage />
+            <VenueProfilePage />
           </VenuePortalRouteGuard>
         }
       />
@@ -100,7 +100,7 @@ export default function App() {
         path="/venue-portal/:venueId/sessions/new"
         element={
           <VenuePortalRouteGuard>
-             <VenueSessionCreatePage />
+            <VenueSessionCreatePage />
           </VenuePortalRouteGuard>
         }
       />
@@ -147,8 +147,6 @@ function AppChrome({
   )
 }
 
-
-
 function AuthenticatedApp() {
   const { user } = useAuthStore()
   const location = useLocation()
@@ -157,8 +155,6 @@ function AuthenticatedApp() {
 
   return (
     <Routes>
-
-      
       <Route
         path="/"
         element={
@@ -383,18 +379,9 @@ function GuestApp() {
         }
       />
       <Route path="/mates" element={<Navigate to="/" replace />} />
-      <Route
-        path="/profile"
-        element={<Navigate to="/events" replace />}
-      />
-      <Route
-        path="/settings"
-        element={<Navigate to="/events" replace />}
-      />
-      <Route
-        path="/settings/account"
-        element={<Navigate to="/events" replace />}
-      />
+      <Route path="/profile" element={<Navigate to="/events" replace />} />
+      <Route path="/settings" element={<Navigate to="/events" replace />} />
+      <Route path="/settings/account" element={<Navigate to="/events" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

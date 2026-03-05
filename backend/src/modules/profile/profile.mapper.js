@@ -18,6 +18,7 @@ function mapUserProfile(payload = {}) {
     avatar_url: user.avatar_url || null,
     bio: user.bio || null,
     city_key: user.city_key || null,
+    nationality_key: user.nationality_key || null,
     vibe_key: user.vibe_key || null,
     age_range_key: user.age_range_key || null,
     gender: user.gender || null,

@@ -148,6 +148,7 @@ async function upsertProfile(userId, body = {}) {
       nameFromAuth ||
       '新夥伴',
     city_key: body.city_key ?? current.city_key ?? null,
+    nationality_key: body.nationality_key ?? current.nationality_key ?? null,
     age_range_key: body.age_range_key ?? current.age_range_key ?? null,
     gender: body.gender ?? current.gender ?? null,
     vibe_key: body.vibe_key ?? current.vibe_key ?? null,
