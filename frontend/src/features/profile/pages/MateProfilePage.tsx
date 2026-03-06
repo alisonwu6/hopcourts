@@ -119,6 +119,7 @@ export function MateProfilePage() {
           sports: favorites.length ? favorites : asStringArray(mate?.sports) || [],
           trying: trying.length ? trying : asStringArray(mate?.trying) || [],
           location: user.city_key || user.location || data.location || mate?.location || '',
+          countryKey: user.nationality_key || (mate as any)?.countryKey || '',
           blurb: user.bio || user.blurb || data.blurb || mate?.blurb || '',
           friendCount: user.teammate_count || user.friend_count || 0,
           joinedCount: user.joined_count || 0,
@@ -147,6 +148,7 @@ export function MateProfilePage() {
             sports: asStringArray(mate.sports) || [],
             trying: asStringArray(mate.trying) || [],
             location: mate.location || '',
+            countryKey: (mate as any).countryKey || '',
             blurb: mate.blurb || '',
             avatar:
               mate.avatar ||
@@ -171,6 +173,7 @@ export function MateProfilePage() {
         sports: asStringArray(mate?.sports) ?? [],
         trying: asStringArray(mate?.trying) ?? [],
         location: mate?.location ?? '',
+        countryKey: (mate as any)?.countryKey ?? '',
         blurb: mate?.blurb ?? '',
         friendCount: 0,
         joinedCount: 0,

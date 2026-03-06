@@ -81,7 +81,7 @@ async function listUpcomingSessions({
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name,
+      c.name_en as host_city_name,
       v.status as venue_status,
       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
       v.name_display as venue_name_display
@@ -131,7 +131,7 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name
+      c.name_en as host_city_name
     from public.sessions s
     left join public.session_participants sp on sp.session_id = s.id
     left join public.users h on s.host_user_id = h.id
@@ -176,7 +176,7 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name
+      c.name_en as host_city_name
     FROM public.sessions s
     LEFT JOIN public.session_participants sp ON sp.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
@@ -203,7 +203,7 @@ async function getSessionById(sessionId) {
        h.avatar_url as host_avatar_url,
        h.username as host_username,
        h.city_key as host_city_key,
-       c.name_zh as host_city_name,
+       c.name_en as host_city_name,
        v.status as venue_status,
        v.logo_url as venue_logo_url
      from public.sessions s

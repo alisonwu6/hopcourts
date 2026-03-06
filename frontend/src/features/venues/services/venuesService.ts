@@ -31,7 +31,7 @@ export const venuesService = {
   async listVenues(filter: VenueFilter = {}): Promise<ApiResponse<PaginatedResponse<ApiVenue>>> {
     try {
       const params: any = { ...filter }
-      const res = await httpGet<any>('/venues', { params })
+      const res = await httpGet<any>('/venues', { params, auth: false })
       const items = Array.isArray(res.data) ? res.data : []
       
       return wrapSuccess({
@@ -52,7 +52,7 @@ export const venuesService = {
 
   async getVenueById(id: string): Promise<ApiResponse<ApiVenue>> {
     try {
-      const res = await httpGet<any>(`/venues/${id}`)
+      const res = await httpGet<any>(`/venues/${id}`, { auth: false })
       return wrapSuccess(res.data)
     } catch (err: any) {
       return {
@@ -72,7 +72,7 @@ export const venuesService = {
     note?: string
   }): Promise<ApiResponse<any>> {
     try {
-      const res = await httpPost<any>(`/venues/${id}/claim`, { body: claimData })
+      const res = await httpPost<any>(`/venues/${id}/claim`, { body: claimData, auth: false })
       return wrapSuccess(res.data)
     } catch (err: any) {
       return {

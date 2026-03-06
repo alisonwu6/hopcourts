@@ -9,8 +9,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { profileService } from '@/features/profile/profile.service'
-import { useSports } from '@/features/dictionaries/hooks'
-import { useCities, useVibes } from '@/features/dictionaries/hooks'
+import { useCountries, useCities, useSports, useVibes } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
@@ -20,6 +19,7 @@ import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
+import { getFlagEmoji } from '@/utils/flags'
 
 type ProfileVM = {
   username: string
@@ -32,10 +32,16 @@ type ProfileVM = {
 const isUuid = (str: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
 
+const FIRST_MARKET_COUNTRY_KEY = 'AU'
+const FIRST_MARKET_COUNTRY_LABEL = 'Australia'
+const FIRST_MARKET_CITY_KEY = 'BRISBANE'
+const FIRST_MARKET_CITY_LABEL = 'Brisbane'
+
 const emptyProfile: MateCardProps = {
   name: '',
-  location: '',
-  cityKey: '',
+  location: FIRST_MARKET_CITY_LABEL,
+  cityKey: FIRST_MARKET_CITY_KEY,
+  countryKey: '',
   vibe: null,
   vibeKey: null,
   sports: [],
@@ -85,14 +91,23 @@ export function ProfilePage() {
 
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender'
+    null | 'name' | 'username' | 'location' | 'nationality' | 'vibe' | 'bio' | 'gender'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
+  const [locationSheetCountry, setLocationSheetCountry] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
   const { items: sportsCatalog } = useSports('en')
   const { items: vibesCatalog } = useVibes('en')
   const { items: citiesCatalog } = useCities(undefined, 'en')
+  const { items: countriesCatalog } = useCountries('en')
+  const availableCountries = useMemo(
+    () =>
+      countriesCatalog.length
+        ? countriesCatalog
+        : [{ key: FIRST_MARKET_COUNTRY_KEY, label: FIRST_MARKET_COUNTRY_LABEL }],
+    [countriesCatalog]
+  )
   const navigate = useNavigate()
   const location = useLocation()
   const labelForSport = useMemo(() => {
@@ -156,6 +171,24 @@ export function ProfilePage() {
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
 
+  const labelForCountry = useMemo(() => {
+    const map = new Map(availableCountries.map((c) => [c.key, c.label]))
+    return (key?: string) => (key ? map.get(key) || key : '')
+  }, [availableCountries])
+
+  const countryKeyForCity = useMemo(() => {
+    const map = new Map(citiesCatalog.map((c) => [c.key, c.country_key]))
+    return (cityKey?: string) => (cityKey ? map.get(cityKey) || '' : '')
+  }, [citiesCatalog])
+
+  const livingLocationText = useMemo(() => {
+    const cityLabel =
+      labelForCity(FIRST_MARKET_CITY_KEY) || draftProfile.location || FIRST_MARKET_CITY_LABEL
+    const countryLabel = labelForCountry(FIRST_MARKET_COUNTRY_KEY) || FIRST_MARKET_COUNTRY_LABEL
+    if (cityLabel && countryLabel) return `${cityLabel}, ${countryLabel}`
+    return cityLabel || countryLabel || 'Not set'
+  }, [draftProfile.location, labelForCity, labelForCountry])
+
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
     key && typeof key === 'string'
@@ -218,6 +251,9 @@ export function ProfilePage() {
   const usernameFromUser = (user as any)?.username
   const username =
     usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
+  const headerFlag = getFlagEmoji(
+    (resolvedProfile?.countryKey || draftProfile.countryKey || '').toString()
+  )
 
   const [rawProfile, setRawProfile] = useState<any>(null)
   const hasBootstrappedRef = React.useRef(false)
@@ -366,8 +402,9 @@ export function ProfilePage() {
         (isUuid(data.username) ? '' : data.username) ||
         (user as any)?.name ||
         '',
-      location: data.city_label || data.city || '',
-      cityKey: data.city_key || '',
+      location: FIRST_MARKET_CITY_LABEL,
+      cityKey: FIRST_MARKET_CITY_KEY,
+      countryKey: data.nationality_key || '',
       vibe: vibeUnion,
       vibeKey,
       sports: (favoriteKeys || []).map(labelForSport),
@@ -526,7 +563,13 @@ export function ProfilePage() {
     }
     setFieldError(null)
     setActiveField(field)
-    setFieldValue(nextValue)
+    if (field === 'location') {
+      setLocationSheetCountry(FIRST_MARKET_COUNTRY_KEY)
+      setFieldValue(FIRST_MARKET_CITY_KEY)
+    } else {
+      setLocationSheetCountry('')
+      setFieldValue(nextValue)
+    }
   }
 
   const handleSaveField = async () => {
@@ -582,6 +625,9 @@ export function ProfilePage() {
         next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
         next.vibeKey = value
         break
+      case 'nationality':
+        next.countryKey = value
+        break
       case 'bio':
         next.blurb = value
         break
@@ -619,7 +665,8 @@ export function ProfilePage() {
           (draftProfile as any).vibeKey ||
           vibeUnionToKey.get(draftProfile.vibe as string) ||
           undefined,
-        city_key: draftProfile.cityKey || undefined,
+        city_key: FIRST_MARKET_CITY_KEY,
+        nationality_key: draftProfile.countryKey || undefined,
         gender: draftProfile.gender || undefined,
         age_range_key: draftProfile.ageRangeKey || undefined,
         favorite_sports: favoriteKeys,
@@ -904,58 +951,102 @@ export function ProfilePage() {
           <div className="space-y-2">
             <p className="text-sm font-semibold text-slate-700">Basic Info</p>
             <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              {[
-                { key: 'name', label: 'Name', value: draftProfile.name },
-                {
-                  key: 'username',
-                  label: 'Username',
-                  value: draftUsername ?? '',
-                },
-                {
-                  key: 'location',
-                  label: 'Current Location',
-                  value: labelForCity(draftProfile.cityKey) || draftProfile.location,
-                  valueKey: draftProfile.cityKey || '',
-                },
-                {
-                  key: 'gender',
-                  label: 'Gender',
-                  value:
-                    draftProfile.gender === 'male'
+              <button
+                type="button"
+                onClick={() => openFieldSheet('name', draftProfile.name)}
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">Name</p>
+                  <p className="text-base font-semibold text-slate-900">
+                    {draftProfile.name || 'Not set'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+
+              {vm?.username ? (
+                <div className="flex w-full items-center justify-between bg-slate-100 px-4 py-4 text-left">
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-700">Username</p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {draftUsername || 'Not set'}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openFieldSheet('username', draftUsername ?? '')}
+                  className="flex w-full items-center justify-between px-4 py-4 text-left"
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-700">Username</p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {draftUsername || 'Not set'}
+                    </p>
+                  </div>
+                  <span className="text-slate-400">›</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() =>
+                  openFieldSheet(
+                    'nationality',
+                    labelForCountry(draftProfile.countryKey) || '',
+                    draftProfile.countryKey || ''
+                  )
+                }
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">Nationality (Optional)</p>
+                  <p className="text-base font-semibold text-slate-900">
+                    {labelForCountry(draftProfile.countryKey) || 'Not set'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  openFieldSheet(
+                    'location',
+                    labelForCity(FIRST_MARKET_CITY_KEY) || FIRST_MARKET_CITY_LABEL,
+                    FIRST_MARKET_CITY_KEY
+                  )
+                }
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">Current Living City</p>
+                  <p className="text-base font-semibold text-slate-900">{livingLocationText}</p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  openFieldSheet('gender', draftProfile.gender || '', draftProfile.gender || '')
+                }
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">Gender</p>
+                  <p className="text-base font-semibold text-slate-900">
+                    {draftProfile.gender === 'male'
                       ? 'Male'
                       : draftProfile.gender === 'female'
                         ? 'Female'
-                        : 'Not set',
-                  valueKey: draftProfile.gender || '',
-                },
-              ].map((row) => {
-                const isUsernameField = row.key === 'username'
-                const isReadOnly = isUsernameField && !!vm?.username
-                const Component = isReadOnly ? 'div' : 'button'
-                return (
-                  <Component
-                    key={row.key}
-                    type={isReadOnly ? undefined : 'button'}
-                    onClick={
-                      isReadOnly
-                        ? undefined
-                        : () => openFieldSheet(row.key as any, row.value, (row as any).valueKey)
-                    }
-                    className={clsx(
-                      'flex w-full items-center justify-between px-4 py-4 text-left',
-                      isReadOnly ? 'bg-slate-100' : ''
-                    )}
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-slate-700">{row.label}</p>
-                      <p className="text-base font-semibold text-slate-900">
-                        {row.value || 'Not set'}
-                      </p>
-                    </div>
-                    {!isReadOnly && <span className="text-slate-400">›</span>}
-                  </Component>
-                )
-              })}
+                        : 'Not set'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
             </div>
           </div>
 
@@ -1046,7 +1137,8 @@ export function ProfilePage() {
           const titleMap: Record<string, string> = {
             name: 'Name',
             username: 'Username',
-            location: 'Current City',
+            location: 'Current Living City',
+            nationality: 'Nationality',
             vibe: 'Workout Vibe',
             bio: 'Bio',
             gender: 'Gender',
@@ -1054,7 +1146,8 @@ export function ProfilePage() {
           const subtitleMap: Record<string, string> = {
             name: 'Enter the name shown on your card.',
             username: 'Your handle that others can use to find you.',
-            location: 'Enter the city where you currently live.',
+            location: 'Select the city where you currently live.',
+            nationality: 'Select your nationality.',
             vibe: 'Choose the activity vibe that best matches your current rhythm.',
             bio: 'Share your activity updates and goals.',
             gender: 'Select your biological sex for gender-specific events.',
@@ -1123,19 +1216,50 @@ export function ProfilePage() {
                     )
                   })}
                 </div>
-              ) : activeField === 'location' ? (
+              ) : activeField === 'nationality' ? (
                 <select
                   value={fieldValue}
                   onChange={(e) => setFieldValue(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
                 >
-                  <option value="">Please select a city</option>
-                  {citiesCatalog.map((c) => (
+                  <option value="">Please select a nationality</option>
+                  {availableCountries.map((c) => (
                     <option key={c.key} value={c.key}>
                       {c.label}
                     </option>
                   ))}
                 </select>
+              ) : activeField === 'location' ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-slate-700">
+                      Country
+                    </label>
+                    <select
+                      value={locationSheetCountry}
+                      onChange={(e) => {
+                        const nextCountry = e.target.value
+                        setLocationSheetCountry(nextCountry)
+                        if (fieldValue && nextCountry !== FIRST_MARKET_COUNTRY_KEY) {
+                          setFieldValue('')
+                        }
+                      }}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value={FIRST_MARKET_COUNTRY_KEY}>{FIRST_MARKET_COUNTRY_LABEL}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-slate-700">City</label>
+                    <select
+                      value={fieldValue}
+                      onChange={(e) => setFieldValue(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                    >
+                      <option value={FIRST_MARKET_CITY_KEY}>{FIRST_MARKET_CITY_LABEL}</option>
+                    </select>
+                  </div>
+                </div>
               ) : activeField === 'bio' ? (
                 <div className="space-y-2">
                   <textarea
@@ -1400,7 +1524,9 @@ export function ProfilePage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-500">Set your weekly rhythm</p>
-              <p className="text-xl font-bold text-slate-900">We will recommend mates and events based on this</p>
+              <p className="text-xl font-bold text-slate-900">
+                We will recommend mates and events based on this
+              </p>
             </div>
             <button
               type="button"
@@ -1430,7 +1556,9 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-slate-700">What time do you usually prefer to work out?</p>
+            <p className="text-sm font-semibold text-slate-700">
+              What time do you usually prefer to work out?
+            </p>
             <div className="flex flex-wrap gap-2">
               {['Morning', 'Afternoon', 'Evening'].map((slot) => {
                 const active = draftPreferredTime === slot

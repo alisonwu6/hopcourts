@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { MapPin, Smile } from 'lucide-react'
 import { vibeTokens, vibeList, type Vibe } from '@/constants/vibeTokens'
+import { getFlagEmoji } from '@/utils/flags'
 
 const withAlpha = (hex: string, alpha: number) => {
   const clean = hex.replace('#', '')
@@ -21,6 +22,7 @@ export type MateCardProps = {
   trying: string[]
   location: string
   cityKey?: string
+  countryKey?: string | null
   blurb: string
   avatar: string
   accentClassName?: string
@@ -40,6 +42,7 @@ export function MateCard({
   sports,
   trying,
   location,
+  countryKey,
   blurb,
   avatar,
   accentClassName,
@@ -86,6 +89,11 @@ export function MateCard({
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 {name && <span className="text-base font-bold text-slate-900">{name}</span>}
+                {!!countryKey && (
+                  <span className="text-base leading-none" aria-label={`Country flag ${countryKey}`}>
+                    {getFlagEmoji(countryKey)}
+                  </span>
+                )}
               </div>
               {location && (
                 <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">

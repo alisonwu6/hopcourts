@@ -82,7 +82,7 @@ export function DiscoverEventsPage() {
   const isLoading = useEventsStore((state) => state.isLoading)
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
-  const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('zh')
+  const { items: sportsCatalog, isLoading: isSportsLoading, error: sportsError } = useSports('en')
   const { isAuthenticated, user } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
     user: state.user,

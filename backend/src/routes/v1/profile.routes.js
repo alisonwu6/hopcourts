@@ -17,17 +17,15 @@ const router = express.Router()
 // Public routes
 router.get('/profiles/:username', handleGetProfileByUsername)
 
-router.use(verifyToken)
-
-router.get('/me/profile', handleGetMeProfile)
-router.put('/me/profile', handlePutMeProfile)
-router.patch('/me/profile', handlePutMeProfile)
-router.delete('/me/account', handleDeleteAccount)
-router.get('/me/preferences', handleGetPreferences)
-router.put('/me/preferences', handlePutPreferences)
-router.patch('/me/preferences', handlePutPreferences)
-router.get('/me/stats', handleGetStats)
-router.get('/me/teammates', handleGetTeammates)
+router.get('/me/profile', verifyToken, handleGetMeProfile)
+router.put('/me/profile', verifyToken, handlePutMeProfile)
+router.patch('/me/profile', verifyToken, handlePutMeProfile)
+router.delete('/me/account', verifyToken, handleDeleteAccount)
+router.get('/me/preferences', verifyToken, handleGetPreferences)
+router.put('/me/preferences', verifyToken, handlePutPreferences)
+router.patch('/me/preferences', verifyToken, handlePutPreferences)
+router.get('/me/stats', verifyToken, handleGetStats)
+router.get('/me/teammates', verifyToken, handleGetTeammates)
 
 
 module.exports = { profileRouter: router }
