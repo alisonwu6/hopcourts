@@ -89,6 +89,7 @@ export function DiscoverEventsPage() {
   }))
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
+  const [suggestionType, setSuggestionType] = useState<'interests' | 'hosts'>('interests')
 
   const sports = useMemo<SportFilterOption[]>(
     () => [
@@ -153,6 +154,93 @@ export function DiscoverEventsPage() {
       selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
     )
   }, [events, selectedSports, dateRange, today])
+
+  const suggestedEvents = useMemo(() => {
+    // Mock data for demo
+    const mockEvents: any[] = [
+      {
+        id: 'mock-1',
+        title: 'Sunset Beach Volleyball',
+        sport: 'Volleyball',
+        skillLevel: 'intermediate',
+        gender: 'mixed',
+        startTime: addDays(new Date(), 1).toISOString(),
+        endTime: addDays(new Date(), 1).toISOString(),
+        location: { name: 'Gold Coast Beach', city: 'Gold Coast' },
+        host: { name: 'Jordan', avatarUrl: 'https://i.pravatar.cc/150?u=1' },
+        attendeeCount: 8,
+        maxAttendees: 12,
+        isFree: true,
+        participants: [],
+      },
+      {
+        id: 'mock-2',
+        title: 'Social Tennis Doubles',
+        sport: 'Tennis',
+        skillLevel: 'beginner',
+        gender: 'mixed',
+        startTime: addDays(new Date(), 2).toISOString(),
+        endTime: addDays(new Date(), 2).toISOString(),
+        location: { name: 'City Tennis Club', city: 'Brisbane' },
+        host: { name: 'Sarah', avatarUrl: 'https://i.pravatar.cc/150?u=2' },
+        attendeeCount: 3,
+        maxAttendees: 4,
+        isFree: false,
+        pricePerPerson: 15,
+        participants: [],
+      },
+      {
+        id: 'mock-3',
+        title: 'Morning Yoga Flow',
+        sport: 'Yoga',
+        skillLevel: 'any',
+        gender: 'female',
+        startTime: addDays(new Date(), 1).toISOString(),
+        endTime: addDays(new Date(), 1).toISOString(),
+        location: { name: 'Botanical Gardens', city: 'Brisbane' },
+        host: { name: 'Emma', avatarUrl: 'https://i.pravatar.cc/150?u=3' },
+        attendeeCount: 12,
+        maxAttendees: 20,
+        isFree: true,
+        participants: [],
+      },
+      {
+        id: 'mock-4',
+        title: 'Bouldering Session',
+        sport: 'Climbing',
+        skillLevel: 'advanced',
+        gender: 'mixed',
+        startTime: addDays(new Date(), 3).toISOString(),
+        endTime: addDays(new Date(), 3).toISOString(),
+        location: { name: 'Urban Climb', city: 'West End' },
+        host: { name: 'Mike', avatarUrl: 'https://i.pravatar.cc/150?u=4' },
+        attendeeCount: 4,
+        maxAttendees: 10,
+        isFree: false,
+        pricePerPerson: 25,
+        participants: [],
+      },
+    ]
+
+    if (!isAuthenticated || !user) return mockEvents
+
+    let filtered = []
+    if (suggestionType === 'interests') {
+      const userSports = (user.sports || []).map((s) => s.toLowerCase())
+      filtered = events.filter(
+        (event) =>
+          userSports.includes(event.sport.toLowerCase()) && new Date(event.startTime) >= today
+      )
+    } else {
+      const following = user.following || []
+      filtered = events.filter(
+        (event) => following.includes(event.host.id) && new Date(event.startTime) >= today
+      )
+    }
+
+    // Return real matches first, then fill with mock data if needed or just append
+    return [...filtered, ...mockEvents].slice(0, 6)
+  }, [events, user, isAuthenticated, suggestionType, today])
 
   // Header Label Logic
   const dateLabel = dateRange.start
@@ -276,6 +364,76 @@ export function DiscoverEventsPage() {
         />
       ) : (
         <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">
+          {/* Suggestions Section */}
+          {isAuthenticated && (
+            <div className="">
+              <div className="flex items-center gap-2 text-[13px] font-bold tracking-tight text-slate-900 pt-2">
+                <span>Suggestions based on</span>
+                <div className="inline-flex h-7 items-center gap-1 rounded-lg bg-slate-100 p-0.5 text-[13px] font-semibold">
+                  <button
+                    onClick={() => setSuggestionType('interests')}
+                    className={clsx(
+                      'rounded-md px-2 py-0.5 transition-all',
+                      suggestionType === 'interests'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    )}
+                  >
+                    interests
+                  </button>
+                  <button
+                    onClick={() => setSuggestionType('hosts')}
+                    className={clsx(
+                      'rounded-md px-2 py-0.5 transition-all',
+                      suggestionType === 'hosts'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    )}
+                  >
+                    hosts
+                  </button>
+                </div>
+              </div>
+              <p className="mt-1 text-[12px] text-slate-500">
+                {suggestionType === 'interests'
+                  ? 'Events you might like according to your preferred sports.'
+                  : 'Events from hosts you follow.'}
+              </p>
+
+              <div className="scrollbar-hide -mx-4 flex overflow-x-auto p-4 snap-x snap-mandatory scroll-smooth">
+                <div className="flex gap-4">
+                  {suggestedEvents.length > 0 ? (
+                    suggestedEvents.map((event) => (
+                      <EventCard
+                        key={`suggested-${event.id}`}
+                        event={event}
+                        className="w-[300px] flex-shrink-0 snap-start"
+                        onViewDetails={() => {
+                          navigate(`/event/${event.id}`)
+                        }}
+                      />
+                    ))
+                  ) : (
+                    <div className="w-full rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
+                      <p className="text-sm">
+                        {suggestionType === 'interests'
+                          ? 'No events matching your interests found. Try adding more sports to your profile!'
+                          : 'No events from hosts you follow. Try following more people!'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="my-5 h-[1px] w-full bg-slate-100" />
+            </div>
+          )}
+
+          {/* Main List Title */}
+          <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">
+            {hasFilter ? 'Search Results' : 'Explore All Events'}
+          </h2>
+
           {error && (
             <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
               {error}

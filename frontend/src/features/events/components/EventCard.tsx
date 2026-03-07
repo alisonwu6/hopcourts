@@ -22,6 +22,7 @@ const ACCENT = {
 type EventCardProps = {
   event: PlayerEvent
   onViewDetails?: (eventId: string) => void
+  className?: string
 }
 
 function getFlagEmoji(countryCode: string) {
@@ -31,7 +32,7 @@ function getFlagEmoji(countryCode: string) {
     .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
 }
 
-export function EventCard({ event, onViewDetails }: EventCardProps) {
+export function EventCard({ event, onViewDetails, className }: EventCardProps) {
   const { items: sports } = useSports('en')
   const { items: cities } = useCities(undefined, 'en')
 
@@ -109,9 +110,10 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
     <article
       {...interactionHandlers}
       className={clsx(
-        'relative mb-5 overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)] transition-all active:scale-[0.98]',
+        'relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)] transition-all active:scale-[0.98]',
         isClickable &&
-          'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500'
+          'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500',
+        className ?? 'mb-5'
       )}
     >
       {/* 1. Host Header at top */}
@@ -130,26 +132,23 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             </p>
             <div className="mt-1 flex items-center gap-1">
               <MapPin className="h-3 w-3 text-slate-400" />
-              <p className="text-[11px] leading-none text-slate-500">{cityLabel}</p>
+              <p className="text-[12px] leading-none text-slate-500">{cityLabel}</p>
             </div>
           </div>
         </div>
 
-        {event.visibility !== 'public' && (
-          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] uppercase tracking-tighter text-amber-600">
-            Private
-          </span>
-        )}
       </header>
 
       {/* 2. Full-width Hero Image */}
-      <div className="relative h-56 w-full" style={heroStyle}>
-        {!heroImage && (
-          <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">
-            {sportIcon}
-          </div>
-        )}
-      </div>
+      {false && (
+        <div className="relative h-56 w-full" style={heroStyle}>
+          {!heroImage && (
+            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">
+              {sportIcon}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 3. Info Content */}
       <div className="space-y-3.5 px-5 py-4">
@@ -158,25 +157,19 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
           <div className="flex items-center gap-2">
             {/* Sport Tag */}
             <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-white px-3 py-1 text-[11px] font-medium text-slate-800">
-              <span>{sportIcon}</span>
               {sportLabel}
             </div>
             {/* Skill Tag */}
             <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-[11px] font-medium text-slate-800">
-              <ChartColumnIncreasing className="h-3 w-3 text-blue-600" strokeWidth={3} />
               {skillLabel}
             </div>
             {/* Gender Tag (Added) */}
             <div className="flex items-center gap-1.5 rounded-full border border-pink-100 bg-pink-50/50 px-3 py-1 text-[11px] font-medium text-pink-800">
-              {event.gender === 'female'
-                ? 'Women only'
-                : event.gender === 'male'
-                  ? 'Men only'
-                  : 'Mixed gender'}
+              {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : 'Mixed'}
             </div>
           </div>
 
-          <h3 className="text-xl font-medium leading-tight tracking-tight text-slate-900">
+          <h3 className="text-[13px] font-bold leading-tight tracking-tight text-slate-900">
             {event.title}
           </h3>
         </div>
@@ -186,14 +179,14 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
               <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
             </div>
-            <span className="text-sm">{scheduleLabel}</span>
+            <span className="text-[11px]">{scheduleLabel}</span>
           </div>
 
           <div className="flex items-start gap-3">
             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
               <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
             </div>
-            <div className="min-w-0 text-sm leading-snug">
+            <div className="min-w-0 text-[11px] leading-snug">
               <p className="break-words">{locationLine1}</p>
               {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
             </div>
@@ -205,7 +198,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
               <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm">
+              <span className="text-[11px]">
                 {attendeeCount} Joined · {remaining} Spots Left
                 <br />
                 Starts with {minPeople} players
@@ -235,7 +228,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
               <CircleDollarSign className="w-4.5 h-4.5" strokeWidth={2.5} />
             </div>
-            <div className="text-sm">
+            <div className="text-[11px]">
               <span className="text-slate-900">
                 {event.isFree
                   ? 'Free'
