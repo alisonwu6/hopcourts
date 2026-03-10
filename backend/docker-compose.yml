@@ -27,3 +27,27 @@ services:
       
     # Verify the command matches the dev script
     command: npm run dev
+    depends_on:
+      db:
+        condition: service_healthy  # Wait for DB to be ready
+
+  db:
+    image: postgres:16
+    container_name: sportsmatch-db
+    restart: unless-stopped
+    ports:
+      - "54322:5432"  # expose 54322 on host → 5432 inside container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres  # also fix typo in your .env (posgres → postgres)
+      POSTGRES_DB: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_data:
