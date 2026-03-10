@@ -374,8 +374,160 @@ async function countHostedSessions(userId) {
   return rows[0]?.count ?? 0
 }
 
+async function listSessionsByUserInterests({
+  userId,
+  city,
+  sportKey,
+  from,
+  to,
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const conditions = [
+    "s.status = 'published'",
+    "s.visibility = 'public'",
+    `s.sport_key IN (SELECT sport_key FROM public.user_sports WHERE user_id = $1)`,
+  ]
+  const params = [userId]
+  let idx = params.length
+
+  if (from) {
+    params.push(from)
+    conditions.push(`s.starts_at >= $${++idx}`)
+  } else {
+    params.push(new Date())
+    conditions.push(`s.starts_at >= $${++idx}`)
+  }
+
+  if (to) {
+    params.push(to)
+    conditions.push(`s.starts_at <= $${++idx}`)
+  }
+  if (sportKey) {
+    params.push(sportKey)
+    conditions.push(`s.sport_key = $${++idx}`)
+  }
+  if (city) {
+    params.push(city)
+    conditions.push(`s.address ILIKE $${++idx}`)
+  }
+
+  params.push(limit, offset)
+  const sql = `
+    SELECT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
+      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      h.display_name AS host_display_name,
+      h.avatar_url AS host_avatar_url,
+      h.username AS host_username,
+      h.city_key AS host_city_key,
+      c.name_en AS host_city_name,
+      v.status AS venue_status,
+      COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
+      v.name_display AS venue_name_display
+    FROM public.sessions s
+    LEFT JOIN public.users h ON s.host_user_id = h.id
+    LEFT JOIN public.cities c ON h.city_key = c.key
+    LEFT JOIN public.venues v ON s.venue_id = v.id
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY s.starts_at ASC
+    LIMIT $${idx + 1}
+    OFFSET $${idx + 2}
+  `
+
+  const { rows } = await query(sql, params)
+  return rows
+}
+
+async function listSessionsByRelations({
+  userId,
+  city,
+  sportKey,
+  from,
+  to,
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const conditions = [
+    "s.status = 'published'",
+    "s.visibility = 'public'",
+    // session has a co-attendee registered
+    `EXISTS (
+      SELECT 1 FROM public.session_participants sp_co
+      WHERE sp_co.session_id = s.id
+        AND sp_co.user_id IN (
+          SELECT DISTINCT sp2.user_id
+          FROM public.session_participants sp1
+          JOIN public.session_participants sp2 ON sp1.session_id = sp2.session_id
+          JOIN public.sessions s2 ON s2.id = sp1.session_id
+          WHERE sp1.user_id = $1
+            AND sp2.user_id != $1
+            AND s2.starts_at >= NOW() - INTERVAL '3 months'
+        )
+    )`,
+    // session sport must match user's interests
+    `s.sport_key IN (SELECT sport_key FROM public.user_sports WHERE user_id = $1)`,
+    // exclude already joined
+    `NOT EXISTS (
+      SELECT 1 FROM public.session_participants sp_me
+      WHERE sp_me.session_id = s.id AND sp_me.user_id = $1
+    )`,
+  ]
+  const params = [userId]
+  let idx = params.length
+
+  if (from) {
+    params.push(from)
+    conditions.push(`s.starts_at >= $${++idx}`)
+  } else {
+    params.push(new Date())
+    conditions.push(`s.starts_at >= $${++idx}`)
+  }
+
+  if (to) {
+    params.push(to)
+    conditions.push(`s.starts_at <= $${++idx}`)
+  }
+  if (sportKey) {
+    params.push(sportKey)
+    conditions.push(`s.sport_key = $${++idx}`)
+  }
+  if (city) {
+    params.push(city)
+    conditions.push(`s.address ILIKE $${++idx}`)
+  }
+
+  params.push(limit, offset)
+  const sql = `
+    SELECT DISTINCT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
+      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      h.display_name AS host_display_name,
+      h.avatar_url AS host_avatar_url,
+      h.username AS host_username,
+      h.city_key AS host_city_key,
+      c.name_en AS host_city_name,
+      v.status AS venue_status,
+      COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
+      v.name_display AS venue_name_display
+    FROM public.sessions s
+    LEFT JOIN public.users h ON s.host_user_id = h.id
+    LEFT JOIN public.cities c ON h.city_key = c.key
+    LEFT JOIN public.venues v ON s.venue_id = v.id
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY s.starts_at ASC
+    LIMIT $${idx + 1}
+    OFFSET $${idx + 2}
+  `
+
+  const { rows } = await query(sql, params)
+  return rows
+}
+
 module.exports = {
   listUpcomingSessions,
+  listSessionsByUserInterests,
+  listSessionsByRelations,
   listMyUpcomingSessions,
   listMyPastSessions,
   listMyHistorySessions,

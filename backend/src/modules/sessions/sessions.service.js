@@ -34,8 +34,16 @@ function buildListParams(query) {
 }
 
 async function listSessions(params = {}) {
+  const { type = 'upcoming', userId, ...rest } = params
   try {
-    const sessions = await sessionsModel.listUpcomingSessions(params)
+    let sessions
+    if (type === 'interests') {
+      sessions = await sessionsModel.listSessionsByUserInterests({ userId, ...rest })
+    } else if (type === 'relations') {
+      sessions = await sessionsModel.listSessionsByRelations({ userId, ...rest })
+    } else {
+      sessions = await sessionsModel.listUpcomingSessions(rest)
+    }
     return {
       items: sessions,
       page: {
