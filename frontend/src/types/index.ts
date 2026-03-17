@@ -106,6 +106,7 @@ export interface PaginatedResponse<T> {
 
 // ACTIVE: consumed by events.service.ts and useEventsStore filters.
 export interface EventFilter {
+  feedType?: 'upcoming' | 'interests' | 'relations'
   sport?: string
   skillLevel?: 'beginner' | 'intermediate' | 'advanced'
   minPrice?: number

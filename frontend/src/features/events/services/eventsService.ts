@@ -250,7 +250,8 @@ export const eventsService = {
     try {
       // Map filters to backend params if needed
       const queryParams: Record<string, any> = {}
-      if (filters?.sport) queryParams.sportKey = filters.sport
+      if (filters?.feedType && filters.feedType !== 'upcoming') queryParams.type = filters.feedType
+      if (filters?.sport) queryParams.sport_key = filters.sport
       if (filters?.venueId) queryParams.venue_id = filters.venueId
 
       const response = await httpGet<any>('/sessions', { params: queryParams })
