@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import React from 'react'
 import { Button } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -20,295 +19,43 @@ import {
   Frown,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { useAuthStore } from '@/hooks'
-import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { eventsService } from '@/features/events/services/eventsService'
-import { useSports } from '@/features/dictionaries/hooks'
+import { useEventDetailLogic } from '@/features/events/hooks/useEventDetailLogic'
 import { PageLoading } from '@/components/PageLoading'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
-const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
-
-function getFlagEmoji(countryCode: string) {
-  if (!countryCode || countryCode.length !== 2) return ''
-  return countryCode
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
-}
-
 export function EventDetailPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isJoinSubmitting, setIsJoinSubmitting] = useState(false)
-  const [isCheckingIn, setIsCheckingIn] = useState(false)
-  const [hasCheckedIn, setHasCheckedIn] = useState(false) // This should ideally come from backend
-  const [showProfileRequired, setShowProfileRequired] = useState(false)
-
-  const { isAuthenticated, currentUserId, user } = useAuthStore((state) => ({
-    isAuthenticated: state.isAuthenticated,
-    currentUserId: state.user?.id,
-    user: state.user,
-  }))
   const {
-    selectedEvent: event,
-    fetchEventById,
+    id,
+    navigate,
+    event,
     isLoading,
     error,
-    joinEvent,
-    leaveEvent,
-    checkInToEvent,
-  } = useEventsStore()
-  const { items: sports } = useSports('en')
-
-  useEffect(() => {
-    if (id) {
-      fetchEventById(id)
-    }
-  }, [id, fetchEventById])
-
-  const handleBack = () => {
-    if (location.state?.from === 'create-event') {
-      navigate('/events')
-      return
-    }
-
-    // React Router stores navigation index in history.state.idx.
-    // Direct-open links usually have idx = 0, so fallback to event list.
-    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
-
-    if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
-      navigate('/events', { replace: true })
-      return
-    }
-
-    navigate(-1)
-  }
-
-  const handleShare = () => {
-    // navigator.share usually requires HTTPS
-    if (navigator.share) {
-      navigator
-        .share({
-          title: event?.title,
-          text: 'Come join this event!',
-          url: window.location.href,
-        })
-        .catch(console.error)
-    } else {
-      window.alert('Share feature coming soon')
-    }
-  }
-
-  const handleJoinClick = async () => {
-    if (isJoinSubmitting) return
-    if (!isAuthenticated) {
-      try {
-        const path = `${location.pathname}${location.search}${location.hash}`
-        sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, path)
-      } catch (error) {
-        console.warn('Failed to persist post-login redirect path:', error)
-      }
-      setShowLoginPrompt(true)
-      return
-    }
-    if (!event || !id) return
-    if (isHost && event.joined) {
-      showAlert('', 'The host must join the event', 'warning')
-      return
-    }
-    if (!event.joined && !user?.onboarding_completed_at) {
-      setShowProfileRequired(true)
-      return
-    }
-
-    // Gender Validation
-    if (!event.joined && event.gender && event.gender !== 'mixed') {
-      const user = useAuthStore.getState().user
-      const userGender = user?.gender
-
-      if (event.gender === 'male' && userGender !== 'male') {
-        showAlert('', 'This event is for men only.', 'warning')
-        return
-      }
-
-      if (event.gender === 'female' && userGender !== 'female') {
-        showAlert('', 'This event is for women only.', 'warning')
-        return
-      }
-    }
-
-    if (event.joined) {
-      setIsJoinSubmitting(true)
-      try {
-        await leaveEvent(id)
-      } finally {
-        setIsJoinSubmitting(false)
-      }
-    } else {
-      setIsJoinSubmitting(true)
-      try {
-        await joinEvent(id)
-      } finally {
-        setIsJoinSubmitting(false)
-      }
-    }
-  }
-
-  const [alertDialog, setAlertDialog] = useState<{
-    open: boolean
-    title: string
-    description: React.ReactNode
-    type: 'success' | 'error' | 'info' | 'warning'
-  }>({ open: false, title: '', description: '', type: 'info' })
-
-  const showAlert = (
-    title: string,
-    description: string,
-    type: 'success' | 'error' | 'info' | 'warning' = 'info'
-  ) => {
-    setAlertDialog({ open: true, title, description, type })
-  }
-
-  const handleCheckIn = async () => {
-    if (!id || isCheckingIn) return
-    setIsCheckingIn(true)
-
-    if (!navigator.geolocation) {
-      showAlert(
-        'Location Not Supported',
-        'Your device does not support GPS location. Check-in is unavailable.',
-        'error'
-      )
-      setIsCheckingIn(false)
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          await checkInToEvent(id, {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          })
-          setHasCheckedIn(true)
-          // Refresh event data so participant list updates
-          void fetchEventById(id, { force: true })
-
-          showAlert('Check-in successful', 'Enjoy your workout!', 'success')
-        } catch (err: any) {
-          console.error('Check-in error full object:', err)
-
-          // Try to extract the backend error object
-          const backendError = err.response?.data?.error || err.response?.data || err
-
-          console.log('Parsed backend error:', backendError)
-
-          const code = backendError.code
-          const details = backendError.details
-
-          if (code === 'CHECKIN_OUTSIDE_RADIUS') {
-            const dist = details?.distance_m
-            const radius = details?.radius_m
-            const gap = Math.max(0, dist - radius) // Gap required to move
-
-            const distStr = dist >= 1000 ? `${(dist / 1000).toFixed(1)}km` : `${dist}m`
-            const gapStr = gap >= 1000 ? `${(gap / 1000).toFixed(1)}km` : `${gap}m`
-
-            showAlert(
-              'Almost there!',
-              `You are about ${distStr} away. Move about ${gapStr} closer and enter within ${radius}m to check in.`,
-              'warning'
-            )
-          } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
-            showAlert(
-              'Outside check-in window',
-              'You are currently outside the check-in time window.',
-              'warning'
-            )
-          } else {
-            showAlert(
-              'Check-in failed',
-              backendError.message ||
-                err.message ||
-                'Please make sure you are at the event location and location services are enabled.',
-              'error'
-            )
-          }
-        } finally {
-          setIsCheckingIn(false)
-        }
-      },
-      (err) => {
-        console.error(err)
-        const code = err?.code
-        if (code === 1) {
-          showAlert(
-            'Location permission required',
-            'Please allow location access in Safari site settings and try again.',
-            'warning'
-          )
-        } else if (code === 2) {
-          showAlert(
-            'Unable to get location',
-            'Signal is unstable or location source is unavailable. Move to an open area and try again.',
-            'warning'
-          )
-        } else if (code === 3) {
-          showAlert(
-            'Location timeout',
-            'Location took too long. Make sure network and GPS are enabled, then try again.',
-            'warning'
-          )
-        } else {
-          showAlert(
-            'Location failed',
-            'Please enable location services and try again later.',
-            'warning'
-          )
-        }
-        setIsCheckingIn(false)
-      },
-      { enableHighAccuracy: false, timeout: 25000, maximumAge: 30000 }
-    )
-  }
-
-  const handleDelete = async () => {
-    if (!id) return
-    setIsDeleting(true)
-    try {
-      const res = await eventsService.deleteEvent(id)
-      if (res.success) {
-        navigate(-1)
-      }
-    } catch (err) {
-      console.error('Delete failed', err)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  const isHost = event?.host?.id === currentUserId
-  const isParticipant = event?.participants.some((p) => p.id === currentUserId)
-  const nonHostParticipantsCount =
-    event?.participants?.filter((p) => p.id !== event?.host?.id).length ?? 0
-  const hasOtherParticipants = nonHostParticipantsCount > 0
-
-  const isJoined = isAuthenticated ? ((event?.joined || isParticipant) ?? false) : false
-  const spotsRemaining = event ? Math.max(0, event.maxAttendees - event.attendeeCount) : 0
-
-  // Check if current user is checked in based on event data
-  const isCheckedInFromServer = React.useMemo(() => {
-    if (!event || !currentUserId) return false
-    const me = event.participants.find((p) => p.id === currentUserId)
-    return !!me?.checkedInAt
-  }, [event, currentUserId])
-
-  const effectiveCheckedIn = isAuthenticated ? hasCheckedIn || isCheckedInFromServer : false
+    sports,
+    currentUserId,
+    isFavorite,
+    setIsFavorite,
+    showLoginPrompt,
+    setShowLoginPrompt,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    isDeleting,
+    isJoinSubmitting,
+    isCheckingIn,
+    showProfileRequired,
+    setShowProfileRequired,
+    alertDialog,
+    setAlertDialog,
+    hasOtherParticipants,
+    isJoined,
+    spotsRemaining,
+    effectiveCheckedIn,
+    handleBack,
+    handleShare,
+    handleJoinClick,
+    handleCheckIn,
+    handleDelete,
+    clearPostLoginRedirect,
+  } = useEventDetailLogic()
 
   if (isLoading) {
     return <PageLoading />
@@ -644,11 +391,7 @@ export function EventDetailPage() {
         open={showLoginPrompt}
         onClose={() => {
           setShowLoginPrompt(false)
-          try {
-            sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
-          } catch (error) {
-            console.warn('Failed to clear post-login redirect path:', error)
-          }
+          clearPostLoginRedirect()
         }}
         onSignup={() => navigate('/signup')}
       />
