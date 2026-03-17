@@ -1,7 +1,9 @@
 import clsx from 'clsx'
+import { useMemo } from 'react'
 import { EventCard } from '@/features/events/components/EventCard'
 import { PageLoading } from '@/components/PageLoading'
 import type { PlayerEvent } from '@/types'
+import { useCities, useSports } from '@/features/dictionaries/hooks'
 
 type DiscoverEventsBodyProps = {
   isAuthenticated: boolean
@@ -28,6 +30,29 @@ export function DiscoverEventsBody({
   onCreateClick,
   onViewDetails,
 }: DiscoverEventsBodyProps) {
+  const { items: sports } = useSports('en')
+  const { items: cities } = useCities(undefined, 'en')
+
+  const sportLabelByKey = useMemo(() => {
+    return new Map(sports.map((item) => [item.key.toUpperCase(), item.label]))
+  }, [sports])
+
+  const cityLabelByKey = useMemo(() => {
+    return new Map(cities.map((item) => [item.key, item.label]))
+  }, [cities])
+
+  const resolveSportLabel = (event: PlayerEvent) => {
+    return sportLabelByKey.get(event.sport.toUpperCase()) || event.sport
+  }
+
+  const resolveCityLabel = (event: PlayerEvent) => {
+    if (event.host.cityKey) {
+      const cityLabel = cityLabelByKey.get(event.host.cityKey)
+      if (cityLabel) return cityLabel
+    }
+    return event.host.cityName || event.location?.city || 'City TBD'
+  }
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">
       {isAuthenticated && (
@@ -72,6 +97,8 @@ export function DiscoverEventsBody({
                   <EventCard
                     key={`suggested-${event.id}`}
                     event={event}
+                    sportLabel={resolveSportLabel(event)}
+                    cityLabel={resolveCityLabel(event)}
                     className="w-[300px] flex-shrink-0 snap-start"
                     onViewDetails={() => onViewDetails(event.id)}
                   />
@@ -123,7 +150,13 @@ export function DiscoverEventsBody({
         </div>
       ) : (
         filteredEvents.map((event) => (
-          <EventCard key={event.id} event={event} onViewDetails={() => onViewDetails(event.id)} />
+          <EventCard
+            key={event.id}
+            event={event}
+            sportLabel={resolveSportLabel(event)}
+            cityLabel={resolveCityLabel(event)}
+            onViewDetails={() => onViewDetails(event.id)}
+          />
         ))
       )}
     </div>

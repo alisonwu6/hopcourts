@@ -1,5 +1,4 @@
 import type { KeyboardEvent } from 'react'
-import { useMemo } from 'react'
 import clsx from 'clsx'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -10,7 +9,6 @@ import {
   ChartColumnIncreasing,
 } from 'lucide-react'
 import { PlayerEvent } from '@/types'
-import { useCities, useSports } from '@/features/dictionaries/hooks'
 
 const ACCENT = {
   primary: '#2563EB',
@@ -23,6 +21,8 @@ type EventCardProps = {
   event: PlayerEvent
   onViewDetails?: (eventId: string) => void
   className?: string
+  sportLabel?: string
+  cityLabel?: string
 }
 
 function getFlagEmoji(countryCode: string) {
@@ -32,9 +32,13 @@ function getFlagEmoji(countryCode: string) {
     .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
 }
 
-export function EventCard({ event, onViewDetails, className }: EventCardProps) {
-  const { items: sports } = useSports('en')
-  const { items: cities } = useCities(undefined, 'en')
+export function EventCard({
+  event,
+  onViewDetails,
+  className,
+  sportLabel: sportLabelProp,
+  cityLabel: cityLabelProp,
+}: EventCardProps) {
 
   // Official Event Logic
   const raw = event as any
@@ -48,9 +52,7 @@ export function EventCard({ event, onViewDetails, className }: EventCardProps) {
     isOfficial: Boolean(isOfficial),
   }
 
-  const sportItem = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
-  const sportLabel = sportItem?.label || event.sport
-  const sportIcon = sportItem?.icon
+  const sportLabel = sportLabelProp || event.sport
 
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
@@ -64,13 +66,7 @@ export function EventCard({ event, onViewDetails, className }: EventCardProps) {
       : ''
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
   const priceLabel = event.priceRange ?? (event.isFree ? 'Free' : 'Paid event')
-  const cityLabel = useMemo(() => {
-    if (event.host.cityKey) {
-      const city = cities.find((c) => c.key === event.host.cityKey)
-      if (city?.label) return city.label
-    }
-    return event.host.cityName || locationCity || 'City TBD'
-  }, [cities, event.host.cityKey, event.host.cityName, locationCity])
+  const cityLabel = cityLabelProp || event.host.cityName || locationCity || 'City TBD'
 
   const attendeeCount = event.attendeeCount
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)
@@ -144,7 +140,7 @@ export function EventCard({ event, onViewDetails, className }: EventCardProps) {
         <div className="relative h-56 w-full" style={heroStyle}>
           {!heroImage && (
             <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">
-              {sportIcon}
+              {sportLabel}
             </div>
           )}
         </div>
