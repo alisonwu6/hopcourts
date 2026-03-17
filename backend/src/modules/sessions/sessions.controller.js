@@ -25,7 +25,14 @@ function resolveUserId(req) {
 async function handleListSessions(req, res, next) {
   try {
     const params = buildListParams(req.query || {})
-    const data = await listSessions(params)
+    const type = req.query.type || 'upcoming'
+    const userId = resolveUserId(req)
+
+    if ((type === 'interests' || type === 'relations') && !userId) {
+      throw Errors.unauthenticated('Authentication required for this feed type')
+    }
+
+    const data = await listSessions({ ...params, type, userId })
     return ok(res, data)
   } catch (err) {
     next(err)
