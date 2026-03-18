@@ -4,15 +4,7 @@ import type { PlayerEvent } from '@/types'
 import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
 import { eventsService } from '@/features/events/services/eventsService'
-import {
-  Calendar,
-  MapPin,
-  PersonStanding,
-  CircleDollarSign,
-  ChartColumnIncreasing,
-  Smile,
-  type LucideIcon,
-} from 'lucide-react'
+import { EventCard } from '@/features/events/components/EventCard'
 
 type TabKey = 'upcoming' | 'history'
 type PanelMode = 'all' | 'hosted' | 'joined'
@@ -36,35 +28,6 @@ function groupByDate(events: PlayerEvent[]) {
   return Array.from(map.entries())
 }
 
-function formatTimeRange(start: Date | string, end: Date | string) {
-  const s = new Date(start)
-  const e = new Date(end)
-  const date = s.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  })
-  const startStr = s.toLocaleTimeString('en-US', {
-    hour12: true,
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-  const endStr = e.toLocaleTimeString('en-US', {
-    hour12: true,
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-  const startSuffix = startStr.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const endSuffix = endStr.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const startCore = startStr.replace(/\s(AM|PM)$/, '')
-  const endCore = endStr.replace(/\s(AM|PM)$/, '')
-  const time =
-    startSuffix && startSuffix === endSuffix
-      ? `${startCore}–${endCore} ${endSuffix}`
-      : `${startStr}–${endStr}`
-  return `${date} · ${time}`
-}
-
 function getEventStatus(event: PlayerEvent): EventStatus {
   const now = new Date()
   const start = new Date(event.startTime)
@@ -79,232 +42,6 @@ function getEventStatus(event: PlayerEvent): EventStatus {
   return null
 }
 
-function getSkillLabel(skillLevel: PlayerEvent['skillLevel']) {
-  if (skillLevel === 'beginner') return 'Beginner'
-  if (skillLevel === 'intermediate') return 'Intermediate'
-  if (skillLevel === 'advanced') return 'Advanced'
-  return 'All levels'
-}
-
-function getGenderLabel(gender: PlayerEvent['gender']) {
-  if (gender === 'female') return 'Women only'
-  if (gender === 'male') return 'Men only'
-  return 'Mixed gender'
-}
-
-function formatTwdNoDecimal(value: unknown) {
-  const n = Number(value)
-  if (!Number.isFinite(n)) return '0'
-  return Math.round(n).toLocaleString('en-US')
-}
-
-function getPriceLabel(event: PlayerEvent) {
-  return event.isFree
-    ? 'Free'
-    : event.priceRange || `$${formatTwdNoDecimal(event.pricePerPerson)} /person`
-}
-
-function getLocationLines(event: PlayerEvent) {
-  const line1 =
-    event.location.name && event.location.name !== event.location.address
-      ? event.location.name
-      : event.location.name || event.location.address || 'Location TBD'
-  const line2 =
-    event.location.name && event.location.address && event.location.name !== event.location.address
-      ? event.location.address
-      : ''
-  return { line1, line2 }
-}
-
-function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-        <Icon className="h-4.5 w-4.5" strokeWidth={2.5} />
-      </div>
-      <div className="text-sm font-normal text-slate-700">{label}</div>
-    </div>
-  )
-}
-
-function EventTags({ event, sportsCatalog }: { event: PlayerEvent; sportsCatalog: SportsItem[] }) {
-  const sportItem = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
-  const sportLabel = sportItem?.label || event.sport
-  const sportIcon = sportItem?.icon || '🎯'
-
-  return (
-    <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-      <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-        <span>{sportIcon}</span>
-        {sportLabel}
-      </span>
-      <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
-        <ChartColumnIncreasing className="h-3 w-3" strokeWidth={2.5} />
-        {getSkillLabel(event.skillLevel)}
-      </span>
-      <span className="inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
-        {getGenderLabel(event.gender)}
-      </span>
-    </div>
-  )
-}
-
-function StatusBadge({ status }: { status: EventStatus }) {
-  if (status === 'check-in-open') {
-    return (
-      <span className="flex-shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-        Check-in open
-      </span>
-    )
-  }
-  if (status === 'ongoing') {
-    return (
-      <span className="flex-shrink-0 animate-pulse rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-        In progress
-      </span>
-    )
-  }
-  return null
-}
-
-function HostedEventCard({
-  event,
-  sportsCatalog,
-}: {
-  event: PlayerEvent
-  sportsCatalog: SportsItem[]
-}) {
-  const navigate = useNavigate()
-  const status = getEventStatus(event)
-  const { line1, line2 } = getLocationLines(event)
-  const attendeeCount = Number(event.attendeeCount ?? 0)
-  const maxAttendees = Number(event.maxAttendees ?? 0)
-  const minPeople = Number(event.minPeople ?? 3)
-  const remaining = Math.max(maxAttendees - attendeeCount, 0)
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        if (event.status === 'draft') {
-          navigate(`/create-event?id=${event.id}`)
-        } else {
-          navigate(`/event/${event.id}`)
-        }
-      }}
-      className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition"
-    >
-      <div className="mb-3 flex items-start justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
-        </div>
-        <div className="flex items-center gap-2">
-          {event.status === 'draft' && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-              Draft
-            </span>
-          )}
-          <StatusBadge status={status} />
-        </div>
-      </div>
-      <EventTags event={event} sportsCatalog={sportsCatalog} />
-      <div className="space-y-1 pt-3">
-        <CardInfoRow icon={Calendar} label={formatTimeRange(event.startTime, event.endTime)} />
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-            <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0 text-sm font-normal leading-snug text-slate-700">
-            <p className="break-words">{line1}</p>
-            {line2 ? <p className="break-words">{line2}</p> : null}
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-            <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
-          </div>
-          <div className="text-sm font-normal text-slate-700">
-            {attendeeCount} joined · {remaining} spots left · Starts with {minPeople} players
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-            <CircleDollarSign className="h-4.5 w-4.5" strokeWidth={2.5} />
-          </div>
-          <div className="text-sm font-normal text-slate-700">{getPriceLabel(event)}</div>
-        </div>
-      </div>
-    </button>
-  )
-}
-
-function JoinedEventCard({
-  event,
-  sportsCatalog,
-}: {
-  event: PlayerEvent
-  sportsCatalog: SportsItem[]
-}) {
-  const navigate = useNavigate()
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => navigate(`/event/${event.id}`)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          navigate(`/event/${event.id}`)
-        }
-      }}
-      className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition"
-    >
-      <div>
-        <button
-          type="button"
-          disabled={!event.host?.username}
-          onClick={(e) => {
-            e.stopPropagation()
-            if (!event.host?.username) return
-            navigate(`/mate/${event.host.username}`)
-          }}
-          className="flex cursor-pointer items-center gap-3 transition disabled:cursor-default"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-100">
-              {event.host?.avatarUrl ? (
-                <img
-                  src={event.host.avatarUrl}
-                  alt={event.host.name || 'host'}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-slate-300">
-                  <Smile className="h-6 w-6" />
-                </div>
-              )}
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-slate-900">
-                {event.host?.name || 'Event host'}
-              </p>
-              <p className="text-xs text-slate-500">Event host</p>
-            </div>
-          </div>
-        </button>
-
-        <hr className="my-3 border-slate-200" />
-
-        <div className="space-y-3">
-          <h4 className="text-[18px] font-semibold leading-tight text-slate-900">{event.title}</h4>
-          <EventTags event={event} sportsCatalog={sportsCatalog} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function EventGroupList({
   groups,
   mode,
@@ -316,6 +53,7 @@ function EventGroupList({
   sportsCatalog: SportsItem[]
   emptyState: React.ReactNode
 }) {
+  const navigate = useNavigate()
   if (groups.length === 0) return emptyState
 
   return (
@@ -328,6 +66,10 @@ function EventGroupList({
           <div className="relative ml-3 space-y-6 border-l border-slate-200 pb-2">
             {groupedEvents.map((event) => {
               const status = getEventStatus(event)
+              const sportItem = sportsCatalog.find(
+                (s) => s.key.toUpperCase() === event.sport.toUpperCase()
+              )
+              const sportLabel = sportItem?.label || event.sport
               return (
                 <div key={event.id} className="relative pl-6">
                   <span
@@ -339,11 +81,17 @@ function EventGroupList({
                           : 'bg-slate-200 ring-slate-200'
                     }`}
                   />
-                  {mode === 'hosted' ? (
-                    <HostedEventCard event={event} sportsCatalog={sportsCatalog} />
-                  ) : (
-                    <JoinedEventCard event={event} sportsCatalog={sportsCatalog} />
-                  )}
+                  <EventCard
+                    event={event}
+                    sportLabel={sportLabel}
+                    onViewDetails={(id) => {
+                      if (mode === 'hosted' && event.status === 'draft') {
+                        navigate(`/create-event?id=${id}`)
+                      } else {
+                        navigate(`/event/${id}`)
+                      }
+                    }}
+                  />
                 </div>
               )
             })}
