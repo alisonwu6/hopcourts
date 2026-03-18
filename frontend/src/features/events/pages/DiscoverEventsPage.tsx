@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import { DiscoverEventsPageView } from '@/features/events/components/DiscoverEventsPageView'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useDiscoverEventsData } from '@/features/events/hooks/useDiscoverEventsData'
@@ -17,10 +18,12 @@ export function DiscoverEventsPage() {
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
   const { items: sportsCatalog } = useSports('en')
-  const { isAuthenticated, user } = useAuthStore((state) => ({
-    isAuthenticated: state.isAuthenticated,
-    user: state.user,
-  }))
+  const { isAuthenticated, user } = useAuthStore(
+    useShallow((state) => ({
+      isAuthenticated: state.isAuthenticated,
+      user: state.user,
+    }))
+  )
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [suggestionType, setSuggestionType] = useState<'interests' | 'hosts'>('interests')

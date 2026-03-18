@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useShallow } from 'zustand/react/shallow'
 import { useAuthStore } from '@/hooks'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { eventsService } from '@/features/events/services/eventsService'
@@ -22,11 +23,13 @@ export function useEventDetailLogic() {
   const [hasCheckedIn, setHasCheckedIn] = useState(false)
   const [showProfileRequired, setShowProfileRequired] = useState(false)
 
-  const { isAuthenticated, currentUserId, user } = useAuthStore((state) => ({
-    isAuthenticated: state.isAuthenticated,
-    currentUserId: state.user?.id,
-    user: state.user,
-  }))
+  const { isAuthenticated, currentUserId, user } = useAuthStore(
+    useShallow((state) => ({
+      isAuthenticated: state.isAuthenticated,
+      currentUserId: state.user?.id,
+      user: state.user,
+    }))
+  )
 
   const {
     selectedEvent: event,
@@ -36,7 +39,17 @@ export function useEventDetailLogic() {
     joinEvent,
     leaveEvent,
     checkInToEvent,
-  } = useEventsStore()
+  } = useEventsStore(
+    useShallow((state) => ({
+      selectedEvent: state.selectedEvent,
+      fetchEventById: state.fetchEventById,
+      isLoading: state.isLoading,
+      error: state.error,
+      joinEvent: state.joinEvent,
+      leaveEvent: state.leaveEvent,
+      checkInToEvent: state.checkInToEvent,
+    }))
+  )
   const { items: sports } = useSports('en')
 
   const [alertDialog, setAlertDialog] = useState<{
