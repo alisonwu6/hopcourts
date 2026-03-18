@@ -217,7 +217,7 @@ export function EventMap({
                   className={clsx(
                     'flex cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 shadow-sm backdrop-blur-sm transition-all',
                     isSelected
-                      ? 'z-10 scale-110 border-indigo-500 bg-indigo-50 shadow-md shadow-indigo-200/50 outline outline-2 outline-indigo-200/50'
+                      ? 'z-10 scale-110 border-indigo-500 bg-indigo-50 shadow-md shadow-indigo-200/50 outline outline-indigo-200/50'
                       : 'border-white bg-white/90 shadow-slate-200'
                   )}
                   style={{ width: markerSize, height: markerSize }}
