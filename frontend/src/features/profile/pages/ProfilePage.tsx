@@ -173,7 +173,7 @@ export function ProfilePage() {
 
   const labelForCountry = useMemo(() => {
     const map = new Map(availableCountries.map((c) => [c.key, c.label]))
-    return (key?: string) => (key ? map.get(key) || key : '')
+    return (key?: string | null) => (key ? map.get(key) || key : '')
   }, [availableCountries])
 
   const countryKeyForCity = useMemo(() => {
