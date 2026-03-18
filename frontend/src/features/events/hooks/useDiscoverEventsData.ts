@@ -73,18 +73,34 @@ export function useDiscoverEventsData({
     }))
 
     const loadFeed = async () => {
-      const response = await eventsService.getEvents({ feedType }, { force: true, ttlMs: 10_000 })
-      if (!active || requestSeq !== feedRequestSeq.current) return
+      try {
+        const response = await eventsService.getEvents(
+          { feedType },
+          { force: true, ttlMs: 10_000 }
+        )
+        if (!active || requestSeq !== feedRequestSeq.current) return
 
-      if (response.success && response.data?.data) {
+        if (response.success && response.data?.data) {
+          setFeedByType((previous) => ({
+            ...previous,
+            [feedType]: {
+              items: response.data?.data ?? [],
+              isLoading: false,
+            },
+          }))
+          return
+        }
+
         setFeedByType((previous) => ({
           ...previous,
           [feedType]: {
-            items: response.data?.data ?? [],
+            ...previous[feedType],
             isLoading: false,
           },
         }))
-      } else {
+      } catch {
+        if (!active || requestSeq !== feedRequestSeq.current) return
+
         setFeedByType((previous) => ({
           ...previous,
           [feedType]: {
