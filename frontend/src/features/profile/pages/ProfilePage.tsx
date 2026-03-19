@@ -29,6 +29,8 @@ type ProfileVM = {
   tryingSportKeys: string[]
 }
 
+type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying' | 'bio'
+
 const isUuid = (str: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
 
@@ -97,6 +99,7 @@ export function ProfilePage() {
   const [locationSheetCountry, setLocationSheetCountry] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
+  const [invalidProfileFields, setInvalidProfileFields] = useState<ProfileRequiredField[]>([])
   const { items: sportsCatalog } = useSports('en')
   const { items: vibesCatalog } = useVibes('en')
   const { items: citiesCatalog } = useCities(undefined, 'en')
@@ -555,6 +558,44 @@ export function ProfilePage() {
     setShowEditSheet(true)
   }
 
+  const hasProfileFieldError = (field: ProfileRequiredField) => invalidProfileFields.includes(field)
+
+  const clearProfileFieldError = (field: ProfileRequiredField) => {
+    setInvalidProfileFields((prev) => prev.filter((item) => item !== field))
+  }
+
+  useEffect(() => {
+    if (!invalidProfileFields.length) return
+
+    const currentVibeKey =
+      (draftProfile as any).vibeKey ||
+      vibeUnionToKey.get(draftProfile.vibe as string) ||
+      undefined
+
+    setInvalidProfileFields((prev) =>
+      prev.filter((field) => {
+        switch (field) {
+          case 'name':
+            return !draftProfile.name?.trim()
+          case 'username':
+            return !vm?.username && !draftUsername.trim()
+          case 'vibe':
+            return !currentVibeKey
+          case 'gender':
+            return !draftProfile.gender
+          case 'sports':
+            return !draftProfile.sports?.length
+          case 'trying':
+            return !draftProfile.trying?.length
+          case 'bio':
+            return !draftProfile.blurb?.trim()
+          default:
+            return false
+        }
+      })
+    )
+  }, [draftProfile, draftUsername, invalidProfileFields.length, vm?.username, vibeUnionToKey])
+
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
     let nextValue = rawKey ?? value
     if (field === 'vibe') {
@@ -580,6 +621,7 @@ export function ProfilePage() {
     switch (activeField) {
       case 'name':
         next.name = value
+        clearProfileFieldError('name')
         break
       case 'username':
         if (!value) {
@@ -616,6 +658,7 @@ export function ProfilePage() {
           }
         }
         setDraftUsername(value)
+        clearProfileFieldError('username')
         break
       case 'location':
         next.location = labelForCity(value) || value
@@ -624,15 +667,18 @@ export function ProfilePage() {
       case 'vibe':
         next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
         next.vibeKey = value
+        clearProfileFieldError('vibe')
         break
       case 'nationality':
         next.countryKey = value
         break
       case 'bio':
         next.blurb = value
+        clearProfileFieldError('bio')
         break
       case 'gender':
         next.gender = value
+        clearProfileFieldError('gender')
         break
       default:
         break
@@ -643,12 +689,39 @@ export function ProfilePage() {
 
   const saveSports = () => {
     // Sports selections are local draft only; final save happens on "Done".
+    if (draftProfile.sports.length > 0) {
+      clearProfileFieldError('sports')
+    }
+    if (draftProfile.trying.length > 0) {
+      clearProfileFieldError('trying')
+    }
     setShowSportsSheet(false)
     setShowTryingSheet(false)
   }
 
   const handleSaveProfile = async () => {
     if (isSavingProfile) return
+
+    const currentVibeKey =
+      (draftProfile as any).vibeKey ||
+      vibeUnionToKey.get(draftProfile.vibe as string) ||
+      undefined
+
+    const missingFields: ProfileRequiredField[] = []
+    if (!draftProfile.name?.trim()) missingFields.push('name')
+    if (!vm?.username && !draftUsername.trim()) missingFields.push('username')
+    if (!currentVibeKey) missingFields.push('vibe')
+    if (!draftProfile.gender) missingFields.push('gender')
+    if (!draftProfile.sports?.length) missingFields.push('sports')
+    if (!draftProfile.trying?.length) missingFields.push('trying')
+    if (!draftProfile.blurb?.trim()) missingFields.push('bio')
+
+    if (missingFields.length > 0) {
+      setInvalidProfileFields(missingFields)
+      return
+    }
+
+    setInvalidProfileFields([])
     setIsSavingProfile(true)
     try {
       const favoriteKeys = Array.from(
@@ -954,10 +1027,18 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => openFieldSheet('name', draftProfile.name)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('name') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">Name</p>
+                  <p
+                    className="text-sm font-semibold text-slate-700"
+                  >
+                    Name
+                    {hasProfileFieldError('name') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
                   <p className="text-base font-semibold text-slate-900">
                     {draftProfile.name || 'Not set'}
                   </p>
@@ -966,9 +1047,19 @@ export function ProfilePage() {
               </button>
 
               {vm?.username ? (
-                <div className="flex w-full items-center justify-between bg-slate-100 px-4 py-4 text-left">
+                <div
+                  className={clsx(
+                    'flex w-full items-center justify-between px-4 py-4 text-left',
+                    hasProfileFieldError('username') ? 'bg-red-50' : 'bg-slate-100'
+                  )}
+                >
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-slate-700">Username</p>
+                    <p
+                      className="text-sm font-semibold text-slate-700"
+                    >
+                      Username
+                      {hasProfileFieldError('username') && <span className="ml-1 text-red-500">*</span>}
+                    </p>
                     <p className="text-base font-semibold text-slate-900">
                       {draftUsername || 'Not set'}
                     </p>
@@ -978,10 +1069,18 @@ export function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => openFieldSheet('username', draftUsername ?? '')}
-                  className="flex w-full items-center justify-between px-4 py-4 text-left"
+                  className={clsx(
+                    'flex w-full items-center justify-between px-4 py-4 text-left',
+                    hasProfileFieldError('username') && 'bg-red-50'
+                  )}
                 >
                   <div className="space-y-1">
-                    <p className="text-sm font-semibold text-slate-700">Username</p>
+                    <p
+                      className="text-sm font-semibold text-slate-700"
+                    >
+                      Username
+                      {hasProfileFieldError('username') && <span className="ml-1 text-red-500">*</span>}
+                    </p>
                     <p className="text-base font-semibold text-slate-900">
                       {draftUsername || 'Not set'}
                     </p>
@@ -1033,10 +1132,18 @@ export function ProfilePage() {
                 onClick={() =>
                   openFieldSheet('gender', draftProfile.gender || '', draftProfile.gender || '')
                 }
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('gender') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">Gender</p>
+                  <p
+                    className="text-sm font-semibold text-slate-700"
+                  >
+                    Gender
+                    {hasProfileFieldError('gender') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
                   <p className="text-base font-semibold text-slate-900">
                     {draftProfile.gender === 'male'
                       ? 'Male'
@@ -1064,10 +1171,18 @@ export function ProfilePage() {
                       ''
                   )
                 }
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('vibe') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">Workout Vibe</p>
+                  <p
+                    className="text-sm font-semibold text-slate-700"
+                  >
+                    Workout Vibe
+                    {hasProfileFieldError('vibe') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
                   <p className="text-base font-semibold text-slate-900">
                     {labelForVibe(
                       (draftProfile as any).vibeKey ||
@@ -1081,10 +1196,18 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowSportsSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('sports') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">My Favorites</p>
+                  <p
+                    className="text-sm font-semibold text-slate-700"
+                  >
+                    My Favorites
+                    {hasProfileFieldError('sports') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
                   <p className="text-base font-semibold text-slate-900">
                     {draftProfile.sports.length ? draftProfile.sports.join(', ') : 'Not set'}
                   </p>
@@ -1094,10 +1217,16 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowTryingSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('trying') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">Want to Try</p>
+                  <p className="text-sm font-semibold text-slate-700">
+                    Want to Try
+                    {hasProfileFieldError('trying') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
                   <p className="text-base font-semibold text-slate-900">
                     {draftProfile.trying.length ? draftProfile.trying.join(', ') : 'Not set'}
                   </p>
@@ -1113,10 +1242,15 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('bio') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">Bio</p>
+                  <p className="text-sm font-semibold text-slate-700">
+                    Bio{hasProfileFieldError('bio') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
                   <p className="line-clamp-1 text-base font-semibold text-slate-900">
                     {draftProfile.blurb || 'Not set'}
                   </p>
