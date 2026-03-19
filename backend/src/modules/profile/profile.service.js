@@ -53,6 +53,36 @@ async function getProfileByUsername(username) {
   return { user: { ...user, teammate_count, joined_count, hosted_count }, sports }
 }
 
+async function getProfileSessionsByUsername(username, { role = 'hosted', time = 'upcoming', limit = 20, offset = 0 } = {}) {
+  const user = await usersModel.getUserByUsername(username)
+  if (!user) throw Errors.notFound('User not found')
+
+  let items = []
+  if (time === 'history') {
+    items = await sessionsModel.listMyHistorySessions({
+      userId: user.id,
+      role,
+      limit,
+      offset,
+    })
+  } else {
+    const upcomingItems = await sessionsModel.listMyUpcomingSessions({
+      userId: user.id,
+      role,
+    })
+    items = upcomingItems.slice(offset, offset + limit)
+  }
+
+  return {
+    items,
+    page: {
+      limit,
+      offset,
+      has_more: items.length === limit,
+    },
+  }
+}
+
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
@@ -264,6 +294,7 @@ module.exports = {
   resolveUserId,
   getProfile,
   getProfileByUsername,
+  getProfileSessionsByUsername,
   upsertProfile,
   getPreferences,
   upsertPreferences,

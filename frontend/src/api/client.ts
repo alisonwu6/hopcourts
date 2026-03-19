@@ -87,6 +87,19 @@ export const api = {
   profiles: {
     getByUsername: (username: string) =>
       httpGet<ApiResponse<any>>(`/profiles/${encodeURIComponent(username)}`, { auth: false }),
+    listSessionsByUsername: (
+      username: string,
+      params: {
+        role?: 'all' | 'hosted' | 'joined'
+        time?: 'upcoming' | 'history'
+        limit?: number
+        offset?: number
+      } = {}
+    ) =>
+      httpGet<ApiResponse<any>>(`/profiles/${encodeURIComponent(username)}/sessions`, {
+        auth: false,
+        params,
+      }),
     getTeammates: () => httpGet<ApiResponse<any[]>>('/me/teammates'),
   },
 }

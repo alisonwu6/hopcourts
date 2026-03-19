@@ -469,6 +469,37 @@ export const eventsService = {
     })
   },
 
+  async getProfileEventsByUsername(
+    username: string,
+    params: {
+      role?: 'all' | 'hosted' | 'joined'
+      time?: 'upcoming' | 'history'
+      limit?: number
+      offset?: number
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    try {
+      const res = await httpGet<any>(`/profiles/${encodeURIComponent(username)}/sessions`, {
+        auth: false,
+        params,
+      })
+      const items = res.data?.items ?? res.items ?? []
+      const uniqueItems = Array.from(new Map(items.map((item: any) => [item.id, item])).values())
+      const events = uniqueItems.map(mapSessionToEvent)
+
+      return wrapSuccess({
+        data: events,
+        total: events.length,
+        page: 1,
+        pageSize: events.length,
+        hasMore: res.data?.page?.has_more ?? res.page?.has_more ?? false,
+      })
+    } catch (err: any) {
+      console.error('getProfileEventsByUsername error', err)
+      return wrapEmptyEvents()
+    }
+  },
+
   async createEvent(
     input: CreateEventInput & { status?: string }
   ): Promise<ApiResponse<PlayerEvent>> {
