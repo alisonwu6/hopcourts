@@ -1,43 +1,43 @@
-import clsx from 'clsx'
-import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react'
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { type MateCardProps } from '@/features/mates/components/MateCard'
-import { notificationsService } from '@/features/notifications/services/notificationsService'
-import { BottomSheet } from '@/components/BottomSheet'
-import { SheetLayout } from '@/components/SheetLayout'
-import { AlertDialog } from '@/components'
-import { useAuthStore } from '@/hooks'
-import { profileService } from '@/features/profile/services/profileService'
-import { useCountries, useCities, useSports, useVibes } from '@/features/dictionaries/hooks'
-import { HeroCard } from '@/features/profile/components/HeroCard'
-import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
-import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
-import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
-import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel'
-import { createDaySlots, dayLabels } from '@/features/profile/constants'
-import type { GoalState } from '@/features/profile/types'
-import { PageLoading } from '@/components/PageLoading'
-import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
-import { getFlagEmoji } from '@/utils/flags'
+import clsx from 'clsx';
+import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { type MateCardProps } from '@/features/mates/components/MateCard';
+import { notificationsService } from '@/features/notifications/services/notificationsService';
+import { BottomSheet } from '@/components/BottomSheet';
+import { SheetLayout } from '@/components/SheetLayout';
+import { AlertDialog } from '@/components';
+import { useAuthStore } from '@/hooks';
+import { profileService } from '@/features/profile/services/profileService';
+import { useCountries, useCities, useSports, useVibes } from '@/features/dictionaries/hooks';
+import { HeroCard } from '@/features/profile/components/HeroCard';
+import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet';
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet';
+import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet';
+import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel';
+import { createDaySlots, dayLabels } from '@/features/profile/constants';
+import type { GoalState } from '@/features/profile/types';
+import { PageLoading } from '@/components/PageLoading';
+import { vibeTokens, type Vibe } from '@/constants/vibeTokens';
+import { getFlagEmoji } from '@/utils/flags';
 
 type ProfileVM = {
-  username: string
-  usernameUpdatedCount: number
-  card: MateCardProps
-  favoriteSportKeys: string[]
-  tryingSportKeys: string[]
-}
+  username: string;
+  usernameUpdatedCount: number;
+  card: MateCardProps;
+  favoriteSportKeys: string[];
+  tryingSportKeys: string[];
+};
 
-type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying' | 'bio'
+type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying' | 'bio';
 
 const isUuid = (str: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
-const FIRST_MARKET_COUNTRY_KEY = 'AU'
-const FIRST_MARKET_COUNTRY_LABEL = 'Australia'
-const FIRST_MARKET_CITY_KEY = 'BRISBANE'
-const FIRST_MARKET_CITY_LABEL = 'Brisbane'
+const FIRST_MARKET_COUNTRY_KEY = 'AU';
+const FIRST_MARKET_COUNTRY_LABEL = 'Australia';
+const FIRST_MARKET_CITY_KEY = 'BRISBANE';
+const FIRST_MARKET_CITY_LABEL = 'Brisbane';
 
 const emptyProfile: MateCardProps = {
   name: '',
@@ -52,174 +52,174 @@ const emptyProfile: MateCardProps = {
   avatar: '',
   gender: null,
   ageRangeKey: null,
-}
+};
 
 export function ProfilePage() {
   const [alertDialog, setAlertDialog] = useState<{
-    open: boolean
-    title: string
-    description: React.ReactNode
-    type: 'success' | 'error' | 'info' | 'warning'
-  }>({ open: false, title: '', description: '', type: 'info' })
+    open: boolean;
+    title: string;
+    description: React.ReactNode;
+    type: 'success' | 'error' | 'info' | 'warning';
+  }>({ open: false, title: '', description: '', type: 'info' });
 
-  const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const [showGoalSheet, setShowGoalSheet] = useState(false)
-  const [showShareSheet, setShowShareSheet] = useState(false)
-  const [goal, setGoal] = useState<GoalState | null>(null)
+  const [showGoalSheet, setShowGoalSheet] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
+  const [goal, setGoal] = useState<GoalState | null>(null);
   const [draftGoal, setDraftGoal] = useState<GoalState>({
     sessionsPerWeek: '',
     timeOfDay: 'Morning',
     days: [],
-  })
-  const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftPreferredTime, setDraftPreferredTime] = useState('Morning')
-  const [showAvatarCropper, setShowAvatarCropper] = useState(false)
-  const { user, isAuthenticated, isLoading } = useAuthStore()
-  const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
-  const userId = (user as any)?.id
-  const [vm, setVm] = useState<ProfileVM | null>(null)
-  const [draftProfile, setDraftProfile] = useState<MateCardProps>(emptyProfile)
-  const [draftUsername, setDraftUsername] = useState<string>((user as any)?.username || '')
-  const [isSavingProfile, setIsSavingProfile] = useState(false)
-  const [isSavingGoal, setIsSavingGoal] = useState(false)
-  const [isProfileLoaded, setIsProfileLoaded] = useState(false)
-  const [showEditSheet, setShowEditSheet] = useState(false)
-  const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
-  const [showSportsSheet, setShowSportsSheet] = useState(false)
-  const [showTryingSheet, setShowTryingSheet] = useState(false)
-  const [showCompletionSheet, setShowCompletionSheet] = useState(false)
+  });
+  const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots());
+  const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots());
+  const [draftPreferredTime, setDraftPreferredTime] = useState('Morning');
+  const [showAvatarCropper, setShowAvatarCropper] = useState(false);
+  const { user, isAuthenticated, isLoading } = useAuthStore();
+  const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl;
+  const userId = (user as any)?.id;
+  const [vm, setVm] = useState<ProfileVM | null>(null);
+  const [draftProfile, setDraftProfile] = useState<MateCardProps>(emptyProfile);
+  const [draftUsername, setDraftUsername] = useState<string>((user as any)?.username || '');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
+  const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false);
+  const [showSportsSheet, setShowSportsSheet] = useState(false);
+  const [showTryingSheet, setShowTryingSheet] = useState(false);
+  const [showCompletionSheet, setShowCompletionSheet] = useState(false);
 
-  const [fieldError, setFieldError] = useState<string | null>(null)
+  const [fieldError, setFieldError] = useState<string | null>(null);
   const [activeField, setActiveField] = useState<
     null | 'name' | 'username' | 'location' | 'nationality' | 'vibe' | 'bio' | 'gender'
-  >(null)
-  const [fieldValue, setFieldValue] = useState('')
-  const [locationSheetCountry, setLocationSheetCountry] = useState('')
-  const [sportsSearch, setSportsSearch] = useState('')
-  const [tryingSearch, setTryingSearch] = useState('')
-  const [invalidProfileFields, setInvalidProfileFields] = useState<ProfileRequiredField[]>([])
-  const { items: sportsCatalog } = useSports('en')
-  const { items: vibesCatalog } = useVibes('en')
-  const { items: citiesCatalog } = useCities(undefined, 'en')
-  const { items: countriesCatalog } = useCountries('en')
+  >(null);
+  const [fieldValue, setFieldValue] = useState('');
+  const [locationSheetCountry, setLocationSheetCountry] = useState('');
+  const [sportsSearch, setSportsSearch] = useState('');
+  const [tryingSearch, setTryingSearch] = useState('');
+  const [invalidProfileFields, setInvalidProfileFields] = useState<ProfileRequiredField[]>([]);
+  const { items: sportsCatalog } = useSports('en');
+  const { items: vibesCatalog } = useVibes('en');
+  const { items: citiesCatalog } = useCities(undefined, 'en');
+  const { items: countriesCatalog } = useCountries('en');
   const availableCountries = useMemo(
     () =>
       countriesCatalog.length
         ? countriesCatalog
         : [{ key: FIRST_MARKET_COUNTRY_KEY, label: FIRST_MARKET_COUNTRY_LABEL }],
     [countriesCatalog]
-  )
-  const navigate = useNavigate()
-  const location = useLocation()
+  );
+  const navigate = useNavigate();
+  const location = useLocation();
   const labelForSport = useMemo(() => {
-    const keyMap = new Map<string, string>()
-    const labelMap = new Map<string, string>()
+    const keyMap = new Map<string, string>();
+    const labelMap = new Map<string, string>();
     sportsCatalog.forEach((s) => {
-      keyMap.set(s.key.toLowerCase(), s.label)
-      labelMap.set(s.label.toLowerCase(), s.label)
-    })
+      keyMap.set(s.key.toLowerCase(), s.label);
+      labelMap.set(s.label.toLowerCase(), s.label);
+    });
     return (value: string) => {
-      if (!value) return value
-      const lower = value.toLowerCase()
-      return keyMap.get(lower) || labelMap.get(lower) || value
-    }
-  }, [sportsCatalog])
+      if (!value) return value;
+      const lower = value.toLowerCase();
+      return keyMap.get(lower) || labelMap.get(lower) || value;
+    };
+  }, [sportsCatalog]);
 
   const keyForLabel = useMemo(() => {
-    const map = new Map<string, string>()
+    const map = new Map<string, string>();
     sportsCatalog.forEach((s) => {
-      map.set(s.label, s.key)
-      map.set(s.key, s.key)
-      map.set(s.label.toLowerCase(), s.key)
-      map.set(s.key.toLowerCase(), s.key)
-    })
-    return (label: string) => map.get(label) || map.get(label?.toLowerCase?.() || '') || label
-  }, [sportsCatalog])
+      map.set(s.label, s.key);
+      map.set(s.key, s.key);
+      map.set(s.label.toLowerCase(), s.key);
+      map.set(s.key.toLowerCase(), s.key);
+    });
+    return (label: string) => map.get(label) || map.get(label?.toLowerCase?.() || '') || label;
+  }, [sportsCatalog]);
 
   const labelForVibe = useMemo(() => {
-    const map = new Map<string, string>()
+    const map = new Map<string, string>();
     vibesCatalog.forEach((v) => {
-      map.set(v.key, v.label)
-      map.set(v.key.toLowerCase(), v.label)
-    })
-    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
-  }, [vibesCatalog])
+      map.set(v.key, v.label);
+      map.set(v.key.toLowerCase(), v.label);
+    });
+    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key;
+  }, [vibesCatalog]);
 
   const vibeKeyToUnion = useMemo(() => {
-    const map = new Map<string, MateCardProps['vibe']>()
+    const map = new Map<string, MateCardProps['vibe']>();
     vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      map.set(v.key, union)
-      map.set(v.key.toLowerCase(), union)
-    })
-    return map
-  }, [vibesCatalog])
+      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe'];
+      map.set(v.key, union);
+      map.set(v.key.toLowerCase(), union);
+    });
+    return map;
+  }, [vibesCatalog]);
 
   const vibeUnionToKey = useMemo(() => {
-    const map = new Map<string, string>()
+    const map = new Map<string, string>();
     vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
+      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe'];
       if (union) {
-        map.set(union as string, v.key)
-        map.set((union as string).toLowerCase(), v.key)
+        map.set(union as string, v.key);
+        map.set((union as string).toLowerCase(), v.key);
       }
-    })
-    return map
-  }, [vibesCatalog])
+    });
+    return map;
+  }, [vibesCatalog]);
 
   const labelForCity = useMemo(() => {
-    const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
-    return (key?: string) => (key ? map.get(key) || key : '')
-  }, [citiesCatalog])
+    const map = new Map(citiesCatalog.map((c) => [c.key, c.label]));
+    return (key?: string) => (key ? map.get(key) || key : '');
+  }, [citiesCatalog]);
 
   const labelForCountry = useMemo(() => {
-    const map = new Map(availableCountries.map((c) => [c.key, c.label]))
-    return (key?: string | null) => (key ? map.get(key) || key : '')
-  }, [availableCountries])
+    const map = new Map(availableCountries.map((c) => [c.key, c.label]));
+    return (key?: string | null) => (key ? map.get(key) || key : '');
+  }, [availableCountries]);
 
   const countryKeyForCity = useMemo(() => {
-    const map = new Map(citiesCatalog.map((c) => [c.key, c.country_key]))
-    return (cityKey?: string) => (cityKey ? map.get(cityKey) || '' : '')
-  }, [citiesCatalog])
+    const map = new Map(citiesCatalog.map((c) => [c.key, c.country_key]));
+    return (cityKey?: string) => (cityKey ? map.get(cityKey) || '' : '');
+  }, [citiesCatalog]);
 
   const livingLocationText = useMemo(() => {
     const cityLabel =
-      labelForCity(FIRST_MARKET_CITY_KEY) || draftProfile.location || FIRST_MARKET_CITY_LABEL
-    const countryLabel = labelForCountry(FIRST_MARKET_COUNTRY_KEY) || FIRST_MARKET_COUNTRY_LABEL
-    if (cityLabel && countryLabel) return `${cityLabel}, ${countryLabel}`
-    return cityLabel || countryLabel || 'Not set'
-  }, [draftProfile.location, labelForCity, labelForCountry])
+      labelForCity(FIRST_MARKET_CITY_KEY) || draftProfile.location || FIRST_MARKET_CITY_LABEL;
+    const countryLabel = labelForCountry(FIRST_MARKET_COUNTRY_KEY) || FIRST_MARKET_COUNTRY_LABEL;
+    if (cityLabel && countryLabel) return `${cityLabel}, ${countryLabel}`;
+    return cityLabel || countryLabel || 'Not set';
+  }, [draftProfile.location, labelForCity, labelForCountry]);
 
   // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
   const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
     key && typeof key === 'string'
       ? ((key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()) as MateCardProps['vibe'])
-      : null
+      : null;
 
   // Memo: derive resolvedProfile (display-ready, labels filled, union vibe)
   const resolvedProfile = useMemo<MateCardProps | null>(() => {
-    if (!vm?.card) return null
+    if (!vm?.card) return null;
     const favoriteLabels = (
       vm.favoriteSportKeys.length ? vm.favoriteSportKeys : vm.card.sports || []
-    ).map(labelForSport)
+    ).map(labelForSport);
     const tryingLabels = (
       vm.tryingSportKeys.length ? vm.tryingSportKeys : vm.card.trying || []
-    ).map(labelForSport)
+    ).map(labelForSport);
     const locationLabel = vm.card.cityKey
       ? labelForCity(vm.card.cityKey) || vm.card.location
-      : vm.card.location
-    let vibeUnion: MateCardProps['vibe'] = null
+      : vm.card.location;
+    let vibeUnion: MateCardProps['vibe'] = null;
     if (vm.card.vibe) {
-      vibeUnion = vm.card.vibe
+      vibeUnion = vm.card.vibe;
     } else if (vm.card.vibeKey) {
       vibeUnion =
         vibeKeyToUnion.get(vm.card.vibeKey) ||
         vibeKeyToUnion.get(vm.card.vibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(vm.card.vibeKey)
+        vibeKeyToUnionFallback(vm.card.vibeKey);
     } else {
-      vibeUnion = null
+      vibeUnion = null;
     }
     return {
       ...vm.card,
@@ -227,104 +227,104 @@ export function ProfilePage() {
       trying: tryingLabels,
       location: locationLabel,
       vibe: vibeUnion,
-    }
-  }, [vm, labelForSport, labelForCity, vibeKeyToUnion])
+    };
+  }, [vm, labelForSport, labelForCity, vibeKeyToUnion]);
 
   // Memo: derive resolvedDraftProfile (for HeroCard, always label fields, union vibe)
   const resolvedDraftProfile = useMemo<MateCardProps>(() => {
     const locationLabel = draftProfile.cityKey
       ? labelForCity(draftProfile.cityKey) || draftProfile.location
-      : draftProfile.location
-    let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
-    const draftVibeKey = (draftProfile as any).vibeKey
+      : draftProfile.location;
+    let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe;
+    const draftVibeKey = (draftProfile as any).vibeKey;
     if (!vibeUnion && draftVibeKey) {
       vibeUnion =
         vibeKeyToUnion.get(draftVibeKey) ||
         vibeKeyToUnion.get(draftVibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(draftVibeKey)
+        vibeKeyToUnionFallback(draftVibeKey);
     }
     return {
       ...draftProfile,
       location: locationLabel,
       vibe: vibeUnion,
-    }
-  }, [draftProfile, labelForCity, vibeKeyToUnion])
+    };
+  }, [draftProfile, labelForCity, vibeKeyToUnion]);
 
-  const usernameFromVm = vm?.username
-  const usernameFromUser = (user as any)?.username
+  const usernameFromVm = vm?.username;
+  const usernameFromUser = (user as any)?.username;
   const username =
-    usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
+    usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || '';
   const headerFlag = getFlagEmoji(
     (resolvedProfile?.countryKey || draftProfile.countryKey || '').toString()
-  )
+  );
 
-  const [rawProfile, setRawProfile] = useState<any>(null)
-  const hasBootstrappedRef = React.useRef(false)
+  const [rawProfile, setRawProfile] = useState<any>(null);
+  const hasBootstrappedRef = React.useRef(false);
 
   // 1. Fetch Data Only (Stable dependencies)
   const fetchProfileData = useCallback(async () => {
-    if (!isAuthenticated) return
-    const authUser = useAuthStore.getState().user as any
-    const fallbackAvatar = authUser?.avatar || authUser?.avatar_url || authUser?.avatarUrl || ''
+    if (!isAuthenticated) return;
+    const authUser = useAuthStore.getState().user as any;
+    const fallbackAvatar = authUser?.avatar || authUser?.avatar_url || authUser?.avatarUrl || '';
 
     try {
       // 1. Fetch Profile + notification summary in parallel
-      let payload: any = null
+      let payload: any = null;
       const [profileSettled, notificationsSettled] = await Promise.allSettled([
         profileService.getProfile(),
         notificationsService.listNotifications({ limit: 1 }),
-      ])
+      ]);
 
       if (notificationsSettled.status === 'fulfilled') {
-        const unread = (notificationsSettled.value as any)?.data?.unread_count
+        const unread = (notificationsSettled.value as any)?.data?.unread_count;
         if (typeof unread === 'number') {
-          setUnreadCount(unread)
+          setUnreadCount(unread);
         }
       }
 
       if (profileSettled.status === 'fulfilled') {
-        payload = (profileSettled.value as any)?.data ?? profileSettled.value
+        payload = (profileSettled.value as any)?.data ?? profileSettled.value;
       } else {
-        const err: any = profileSettled.reason
-        console.warn('Profile load failed (expected for new users):', err)
-        const status = err?.status || err?.response?.status
+        const err: any = profileSettled.reason;
+        console.warn('Profile load failed (expected for new users):', err);
+        const status = err?.status || err?.response?.status;
         if (status === 404) {
-          setShowEditSheet(true)
+          setShowEditSheet(true);
         }
-        setVm(null)
-        setRawProfile(null) // Clear raw
+        setVm(null);
+        setRawProfile(null); // Clear raw
 
         const prefill: MateCardProps = {
           ...emptyProfile,
           name: authUser?.name || '',
           avatar: fallbackAvatar,
-        }
-        setDraftProfile(prefill)
-        setIsProfileLoaded(true)
-        return
+        };
+        setDraftProfile(prefill);
+        setIsProfileLoaded(true);
+        return;
       }
 
       // 2. Process Onboarding & Sync User
       if (payload) {
-        const data = payload.user || payload
-        setRawProfile(payload)
+        const data = payload.user || payload;
+        setRawProfile(payload);
 
-        const completedAt = data.onboarding_completed_at
+        const completedAt = data.onboarding_completed_at;
 
         if (completedAt) {
-          setShowProfileRequiredSheet(false)
+          setShowProfileRequiredSheet(false);
         } else {
-          setShowProfileRequiredSheet(true)
+          setShowProfileRequiredSheet(true);
         }
 
         // Sync to AuthStore
-        const { user: authUser, token, setAuthData } = useAuthStore.getState()
+        const { user: authUser, token, setAuthData } = useAuthStore.getState();
         if (authUser && token) {
-          const newName = data.display_name || authUser.name
-          const newAvatar = data.avatar_url || authUser.avatar
-          const newLocation = data.city_key || authUser.location
-          const newGender = data.gender || authUser.gender
-          const newBio = data.bio || authUser.bio
+          const newName = data.display_name || authUser.name;
+          const newAvatar = data.avatar_url || authUser.avatar;
+          const newLocation = data.city_key || authUser.location;
+          const newGender = data.gender || authUser.gender;
+          const newBio = data.bio || authUser.bio;
 
           const isChanged =
             authUser.name !== newName ||
@@ -332,7 +332,7 @@ export function ProfilePage() {
             authUser.location !== newLocation ||
             authUser.gender !== newGender ||
             authUser.bio !== newBio ||
-            authUser.onboarding_completed_at !== data.onboarding_completed_at
+            authUser.onboarding_completed_at !== data.onboarding_completed_at;
 
           if (isChanged) {
             setAuthData(
@@ -347,57 +347,57 @@ export function ProfilePage() {
                   data.onboarding_completed_at || authUser.onboarding_completed_at,
               },
               token
-            )
+            );
           }
         }
 
         // 3. STOP if Onboarding
         // 3. STOP if Onboarding
         if (!completedAt) {
-          setIsProfileLoaded(true)
-          return
+          setIsProfileLoaded(true);
+          return;
         }
       }
 
       // Preferences API removed.
     } catch (err) {
-      console.error('Core profile load failed', err)
-      setVm(null)
+      console.error('Core profile load failed', err);
+      setVm(null);
       const prefill: MateCardProps = {
         ...emptyProfile,
         name: authUser?.name || '',
         avatar: fallbackAvatar,
-      }
-      setDraftProfile(prefill)
+      };
+      setDraftProfile(prefill);
     } finally {
-      setIsProfileLoaded(true)
+      setIsProfileLoaded(true);
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated]);
 
   // 2. Map Data to VM (Reactive to dictionary changes)
   useEffect(() => {
-    if (!rawProfile) return
+    if (!rawProfile) return;
 
-    const payload = rawProfile
-    const data = payload.user ? payload.user : payload
-    const sportsRows = payload.sports || []
+    const payload = rawProfile;
+    const data = payload.user ? payload.user : payload;
+    const sportsRows = payload.sports || [];
 
     // Fallback: if data has favorite_sports array (direct format) use it, else use sportsRows
     const favoriteKeys =
       payload.favorite_sports ||
       data.favorite_sports ||
-      sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+      sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key);
     const tryingKeys =
       payload.trying_sports ||
       data.trying_sports ||
-      sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+      sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key);
 
-    const vibeKey = data.vibe_key || null
+    const vibeKey = data.vibe_key || null;
     const vibeUnion = vibeKey
       ? vibeKeyToUnion.get(vibeKey) ||
-        vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(vibeKey)
-      : null
+      vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
+      vibeKeyToUnionFallback(vibeKey)
+      : null;
 
     const mapped: MateCardProps = {
       name:
@@ -419,9 +419,9 @@ export function ProfilePage() {
       hostedCount: data.hosted_count || 0,
       gender: data.gender || null,
       ageRangeKey: data.age_range_key || null,
-    }
-    const rawUsername = data.username || (user as any)?.username || ''
-    const nextUsername = isUuid(rawUsername) ? '' : rawUsername
+    };
+    const rawUsername = data.username || (user as any)?.username || '';
+    const nextUsername = isUuid(rawUsername) ? '' : rawUsername;
 
     setVm({
       username: nextUsername,
@@ -429,7 +429,7 @@ export function ProfilePage() {
       card: mapped,
       favoriteSportKeys: favoriteKeys || [],
       tryingSportKeys: tryingKeys || [],
-    })
+    });
 
     // Only update draft if not editing to avoid overwriting user input
     setDraftProfile((prev) => {
@@ -439,297 +439,297 @@ export function ProfilePage() {
       // We'll update it but we rely on showEditSheet state or similar?
       // Actually, previous logic ALWAYS overwrote draftProfile. We maintain that behavior for now but it's reactive.
       // To be safe, we just set it.
-      return mapped
-    })
-    setDraftUsername(nextUsername)
-  }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar])
+      return mapped;
+    });
+    setDraftUsername(nextUsername);
+  }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar]);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      hasBootstrappedRef.current = false
-      return
+      hasBootstrappedRef.current = false;
+      return;
     }
-    if (hasBootstrappedRef.current) return
-    hasBootstrappedRef.current = true
-    fetchProfileData()
-  }, [isAuthenticated, fetchProfileData])
+    if (hasBootstrappedRef.current) return;
+    hasBootstrappedRef.current = true;
+    fetchProfileData();
+  }, [isAuthenticated, fetchProfileData]);
 
   // 1.5 Handle deep link from ProfileRequiredSheet (navigation from other pages)
   useEffect(() => {
     if (location.state?.openEdit) {
-      setShowEditSheet(true)
+      setShowEditSheet(true);
       // Clear state so it doesn't re-trigger
-      window.history.replaceState({}, document.title)
+      window.history.replaceState({}, document.title);
     }
-  }, [location.state])
+  }, [location.state]);
 
   // Monitor first-time onboarding completion via global state
-  const prevOnboardedRef = React.useRef(!!(user as any)?.onboarding_completed_at)
+  const prevOnboardedRef = React.useRef(!!(user as any)?.onboarding_completed_at);
   useEffect(() => {
-    const isNowOnboarded = !!(user as any)?.onboarding_completed_at
+    const isNowOnboarded = !!(user as any)?.onboarding_completed_at;
     if (!prevOnboardedRef.current && isNowOnboarded) {
       // Immediate trigger for overlap effect
-      setShowEditSheet(false)
-      setShowCompletionSheet(true)
-      setShowProfileRequiredSheet(false)
+      setShowEditSheet(false);
+      setShowCompletionSheet(true);
+      setShowProfileRequiredSheet(false);
     }
-    prevOnboardedRef.current = isNowOnboarded
-  }, [(user as any)?.onboarding_completed_at])
+    prevOnboardedRef.current = isNowOnboarded;
+  }, [(user as any)?.onboarding_completed_at]);
 
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
       sessionsPerWeek: '',
       timeOfDay: draftPreferredTime || 'Morning',
       days: [],
-    }
-    setDraftGoal(baseGoal)
-    setDraftDaySlots(goalDaySlots)
-    setDraftPreferredTime(baseGoal.timeOfDay || 'Morning')
-    setShowGoalSheet(true)
-  }
+    };
+    setDraftGoal(baseGoal);
+    setDraftDaySlots(goalDaySlots);
+    setDraftPreferredTime(baseGoal.timeOfDay || 'Morning');
+    setShowGoalSheet(true);
+  };
 
   const handleSaveGoal = async () => {
-    if (isSavingGoal) return
-    setIsSavingGoal(true)
+    if (isSavingGoal) return;
+    setIsSavingGoal(true);
     try {
-      setGoal({ ...draftGoal, timeOfDay: draftPreferredTime })
-      setGoalDaySlots(draftDaySlots)
-      setShowGoalSheet(false)
+      setGoal({ ...draftGoal, timeOfDay: draftPreferredTime });
+      setGoalDaySlots(draftDaySlots);
+      setShowGoalSheet(false);
     } catch (err) {
-      console.error('Failed to save preferences', err)
+      console.error('Failed to save preferences', err);
     } finally {
-      setIsSavingGoal(false)
+      setIsSavingGoal(false);
     }
-  }
+  };
 
   const handleShare = async () => {
-    const shareUsername = username || draftUsername
-    if (!shareUsername) return
+    const shareUsername = username || draftUsername;
+    if (!shareUsername) return;
 
-    const url = `${window.location.origin}/mate/${shareUsername}`
+    const url = `${window.location.origin}/mate/${shareUsername}`;
     const shareData = {
       title: 'SportsMatch Activity Card',
       text: `Check out ${draftProfile.name} activity profile`,
       url,
-    }
+    };
 
     try {
       if (navigator.share) {
-        await navigator.share(shareData)
+        await navigator.share(shareData);
       } else {
-        setShowShareSheet(true)
+        setShowShareSheet(true);
       }
     } catch (err: any) {
-      console.error('Share failed', err)
+      console.error('Share failed', err);
     }
-  }
+  };
 
   const handleShareToLine = () => {
-    const shareUsername = username || draftUsername
-    const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `Check out ${draftProfile.name} activity profile\n${url}`
-    window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`
-    setShowShareSheet(false)
-  }
+    const shareUsername = username || draftUsername;
+    const url = `${window.location.origin}/mate/${shareUsername}`;
+    const text = `Check out ${draftProfile.name} activity profile\n${url}`;
+    window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
+    setShowShareSheet(false);
+  };
 
   const handleCopyLink = async () => {
-    const shareUsername = username || draftUsername
-    const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `Check out ${draftProfile.name} activity profile\n${url}`
+    const shareUsername = username || draftUsername;
+    const url = `${window.location.origin}/mate/${shareUsername}`;
+    const text = `Check out ${draftProfile.name} activity profile\n${url}`;
 
     try {
-      await navigator.clipboard.writeText(text)
+      await navigator.clipboard.writeText(text);
       setAlertDialog({
         open: true,
         title: 'Copied',
         description: 'Link and text copied to clipboard',
         type: 'success',
-      })
+      });
     } catch (err) {
-      window.prompt('Copy this link', text)
+      window.prompt('Copy this link', text);
     } finally {
-      setShowShareSheet(false)
+      setShowShareSheet(false);
     }
-  }
+  };
 
   const handleOpenProfileEdit = () => {
-    setDraftProfile(resolvedProfile ?? emptyProfile)
-    setDraftUsername(vm?.username || '')
-    setShowEditSheet(true)
-  }
+    setDraftProfile(resolvedProfile ?? emptyProfile);
+    setDraftUsername(vm?.username || '');
+    setShowEditSheet(true);
+  };
 
-  const hasProfileFieldError = (field: ProfileRequiredField) => invalidProfileFields.includes(field)
+  const hasProfileFieldError = (field: ProfileRequiredField) => invalidProfileFields.includes(field);
 
   const clearProfileFieldError = (field: ProfileRequiredField) => {
-    setInvalidProfileFields((prev) => prev.filter((item) => item !== field))
-  }
+    setInvalidProfileFields((prev) => prev.filter((item) => item !== field));
+  };
 
   useEffect(() => {
-    if (!invalidProfileFields.length) return
+    if (!invalidProfileFields.length) return;
 
     const currentVibeKey =
       (draftProfile as any).vibeKey ||
       vibeUnionToKey.get(draftProfile.vibe as string) ||
-      undefined
+      undefined;
 
     setInvalidProfileFields((prev) =>
       prev.filter((field) => {
         switch (field) {
           case 'name':
-            return !draftProfile.name?.trim()
+            return !draftProfile.name?.trim();
           case 'username':
-            return !vm?.username && !draftUsername.trim()
+            return !vm?.username && !draftUsername.trim();
           case 'vibe':
-            return !currentVibeKey
+            return !currentVibeKey;
           case 'gender':
-            return !draftProfile.gender
+            return !draftProfile.gender;
           case 'sports':
-            return !draftProfile.sports?.length
+            return !draftProfile.sports?.length;
           case 'trying':
-            return !draftProfile.trying?.length
+            return !draftProfile.trying?.length;
           case 'bio':
-            return !draftProfile.blurb?.trim()
+            return !draftProfile.blurb?.trim();
           default:
-            return false
+            return false;
         }
       })
-    )
-  }, [draftProfile, draftUsername, invalidProfileFields.length, vm?.username, vibeUnionToKey])
+    );
+  }, [draftProfile, draftUsername, invalidProfileFields.length, vm?.username, vibeUnionToKey]);
 
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
-    let nextValue = rawKey ?? value
+    let nextValue = rawKey ?? value;
     if (field === 'vibe') {
-      const vibe = value as NonNullable<MateCardProps['vibe']>
-      nextValue = rawKey || (vibe ? vibeUnionToKey.get(vibe) : undefined) || value
+      const vibe = value as NonNullable<MateCardProps['vibe']>;
+      nextValue = rawKey || (vibe ? vibeUnionToKey.get(vibe) : undefined) || value;
     }
-    setFieldError(null)
-    setActiveField(field)
+    setFieldError(null);
+    setActiveField(field);
     if (field === 'location') {
-      setLocationSheetCountry(FIRST_MARKET_COUNTRY_KEY)
-      setFieldValue(FIRST_MARKET_CITY_KEY)
+      setLocationSheetCountry(FIRST_MARKET_COUNTRY_KEY);
+      setFieldValue(FIRST_MARKET_CITY_KEY);
     } else {
-      setLocationSheetCountry('')
-      setFieldValue(nextValue)
+      setLocationSheetCountry('');
+      setFieldValue(nextValue);
     }
-  }
+  };
 
   const handleSaveField = async () => {
-    if (!activeField) return
-    const value = fieldValue.trim()
-    const next = { ...draftProfile }
+    if (!activeField) return;
+    const value = fieldValue.trim();
+    const next = { ...draftProfile };
 
     switch (activeField) {
       case 'name':
-        next.name = value
-        clearProfileFieldError('name')
-        break
+        next.name = value;
+        clearProfileFieldError('name');
+        break;
       case 'username':
         if (!value) {
-          setFieldError('Please enter a username')
-          return
+          setFieldError('Please enter a username');
+          return;
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
-          setFieldError('Username can only include letters, numbers, underscores, and periods')
-          return
+          setFieldError('Username can only include letters, numbers, underscores, and periods');
+          return;
         }
         if (value.length < 3 || value.length > 10) {
-          setFieldError('Username length must be between 3 and 10 characters')
-          return
+          setFieldError('Username length must be between 3 and 10 characters');
+          return;
         }
         {
-          const currentUsername = ((vm?.username || (user as any)?.username || '') as string).trim()
-          const isSameUsername = value.toLowerCase() === currentUsername.toLowerCase()
+          const currentUsername = ((vm?.username || (user as any)?.username || '') as string).trim();
+          const isSameUsername = value.toLowerCase() === currentUsername.toLowerCase();
           if (!isSameUsername) {
-            setIsSavingProfile(true)
+            setIsSavingProfile(true);
             try {
               // 200 => already exists, 404 => available
-              await profileService.getProfileByUsername(value)
-              setFieldError('Username already exists, please choose another one')
-              return
+              await profileService.getProfileByUsername(value);
+              setFieldError('Username already exists, please choose another one');
+              return;
             } catch (err: any) {
-              const status = err?.status || err?.response?.status
+              const status = err?.status || err?.response?.status;
               if (status !== 404) {
-                setFieldError('Unable to verify username right now, please try again later')
-                return
+                setFieldError('Unable to verify username right now, please try again later');
+                return;
               }
             } finally {
-              setIsSavingProfile(false)
+              setIsSavingProfile(false);
             }
           }
         }
-        setDraftUsername(value)
-        clearProfileFieldError('username')
-        break
+        setDraftUsername(value);
+        clearProfileFieldError('username');
+        break;
       case 'location':
-        next.location = labelForCity(value) || value
-        next.cityKey = value
-        break
+        next.location = labelForCity(value) || value;
+        next.cityKey = value;
+        break;
       case 'vibe':
-        next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
-        next.vibeKey = value
-        clearProfileFieldError('vibe')
-        break
+        next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe']);
+        next.vibeKey = value;
+        clearProfileFieldError('vibe');
+        break;
       case 'nationality':
-        next.countryKey = value
-        break
+        next.countryKey = value;
+        break;
       case 'bio':
-        next.blurb = value
-        clearProfileFieldError('bio')
-        break
+        next.blurb = value;
+        clearProfileFieldError('bio');
+        break;
       case 'gender':
-        next.gender = value
-        clearProfileFieldError('gender')
-        break
+        next.gender = value;
+        clearProfileFieldError('gender');
+        break;
       default:
-        break
+        break;
     }
-    setDraftProfile(next)
-    setActiveField(null)
-  }
+    setDraftProfile(next);
+    setActiveField(null);
+  };
 
   const saveSports = () => {
     // Sports selections are local draft only; final save happens on "Done".
     if (draftProfile.sports.length > 0) {
-      clearProfileFieldError('sports')
+      clearProfileFieldError('sports');
     }
     if (draftProfile.trying.length > 0) {
-      clearProfileFieldError('trying')
+      clearProfileFieldError('trying');
     }
-    setShowSportsSheet(false)
-    setShowTryingSheet(false)
-  }
+    setShowSportsSheet(false);
+    setShowTryingSheet(false);
+  };
 
   const handleSaveProfile = async () => {
-    if (isSavingProfile) return
+    if (isSavingProfile) return;
 
     const currentVibeKey =
       (draftProfile as any).vibeKey ||
       vibeUnionToKey.get(draftProfile.vibe as string) ||
-      undefined
+      undefined;
 
-    const missingFields: ProfileRequiredField[] = []
-    if (!draftProfile.name?.trim()) missingFields.push('name')
-    if (!vm?.username && !draftUsername.trim()) missingFields.push('username')
-    if (!currentVibeKey) missingFields.push('vibe')
-    if (!draftProfile.gender) missingFields.push('gender')
-    if (!draftProfile.sports?.length) missingFields.push('sports')
-    if (!draftProfile.trying?.length) missingFields.push('trying')
-    if (!draftProfile.blurb?.trim()) missingFields.push('bio')
+    const missingFields: ProfileRequiredField[] = [];
+    if (!draftProfile.name?.trim()) missingFields.push('name');
+    if (!vm?.username && !draftUsername.trim()) missingFields.push('username');
+    if (!currentVibeKey) missingFields.push('vibe');
+    if (!draftProfile.gender) missingFields.push('gender');
+    if (!draftProfile.sports?.length) missingFields.push('sports');
+    if (!draftProfile.trying?.length) missingFields.push('trying');
+    if (!draftProfile.blurb?.trim()) missingFields.push('bio');
 
     if (missingFields.length > 0) {
-      setInvalidProfileFields(missingFields)
-      return
+      setInvalidProfileFields(missingFields);
+      return;
     }
 
-    setInvalidProfileFields([])
-    setIsSavingProfile(true)
+    setInvalidProfileFields([]);
+    setIsSavingProfile(true);
     try {
       const favoriteKeys = Array.from(
         new Set((draftProfile.sports || []).filter(Boolean).map((label) => keyForLabel(label)))
-      )
+      );
       const tryingKeys = Array.from(
         new Set((draftProfile.trying || []).filter(Boolean).map((label) => keyForLabel(label)))
-      )
+      );
 
       const payload: any = {
         display_name: draftProfile.name,
@@ -745,35 +745,35 @@ export function ProfilePage() {
         favorite_sports: favoriteKeys,
         trying_sports: tryingKeys,
         avatar_url: draftProfile.avatar || undefined,
-      }
+      };
       if (draftUsername && !isUuid(draftUsername)) {
-        payload.username = draftUsername
+        payload.username = draftUsername;
       }
 
-      const res = await profileService.saveProfile(payload)
-      const responseData = (res as any).data || res
-      const savedUser = responseData.user || responseData
+      const res = await profileService.saveProfile(payload);
+      const responseData = (res as any).data || res;
+      const savedUser = responseData.user || responseData;
 
       // If we got a valid updated count from backend, use it. Otherwise estimate.
       const newCount =
         typeof savedUser?.username_updated_count === 'number'
           ? savedUser.username_updated_count
-          : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
+          : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0);
 
       const updated = {
         ...draftProfile,
         sports: draftProfile.sports.filter(Boolean),
         trying: draftProfile.trying.filter(Boolean),
-      }
+      };
       setVm({
         username: draftUsername || vm?.username || '',
         usernameUpdatedCount: newCount,
         card: updated,
         favoriteSportKeys: favoriteKeys,
         tryingSportKeys: tryingKeys,
-      })
+      });
       // Update AuthStore immediately
-      const { user: authUser, token, setAuthData } = useAuthStore.getState()
+      const { user: authUser, token, setAuthData } = useAuthStore.getState();
       if (authUser && token) {
         // savedUser from response has DB fields
         const updatedUser = {
@@ -785,37 +785,37 @@ export function ProfilePage() {
           location: savedUser.city_key || authUser.location,
           onboarding_completed_at:
             savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
-        }
-        setAuthData(updatedUser, token)
+        };
+        setAuthData(updatedUser, token);
       }
 
-      setShowEditSheet(false)
-      setRawProfile(responseData)
+      setShowEditSheet(false);
+      setRawProfile(responseData);
     } catch (err: any) {
       // keep sheet open for retry
-      console.error('Failed to save profile', err)
-      const status = err?.status || err?.response?.status
-      const errorData = err?.response?.data?.error || {}
-      const constraint = errorData.details?.constraint || ''
+      console.error('Failed to save profile', err);
+      const status = err?.status || err?.response?.status;
+      const errorData = err?.response?.data?.error || {};
+      const constraint = errorData.details?.constraint || '';
 
       if (status === 409) {
         if (constraint.includes('username')) {
-          alert('Username already exists, please choose another one')
+          alert('Username already exists, please choose another one');
         } else {
-          alert('Save failed: data conflict, please check your input')
+          alert('Save failed: data conflict, please check your input');
         }
       } else {
-        alert('Save failed, please try again later')
+        alert('Save failed, please try again later');
       }
     } finally {
-      setIsSavingProfile(false)
+      setIsSavingProfile(false);
     }
-  }
+  };
 
   if (isLoading || !isProfileLoaded) {
-    return <PageLoading />
+    return <PageLoading />;
   }
-  if (!isAuthenticated) return null
+  if (!isAuthenticated) return null;
 
   const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">
@@ -827,12 +827,12 @@ export function ProfilePage() {
               aria-label="Add game"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800 hover:bg-slate-50 active:bg-slate-100"
               onClick={() => {
-                const isProfileComplete = !!(user as any)?.onboarding_completed_at
+                const isProfileComplete = !!(user as any)?.onboarding_completed_at;
 
                 if (!isProfileComplete) {
-                  setShowProfileRequiredSheet(true)
+                  setShowProfileRequiredSheet(true);
                 } else {
-                  navigate('/create-event')
+                  navigate('/create-event');
                 }
               }}
             >
@@ -889,7 +889,7 @@ export function ProfilePage() {
         </div>
       </div>
     </div>
-  )
+  );
 
   return (
     <div className="min-h-screen">
@@ -901,13 +901,13 @@ export function ProfilePage() {
         defaultAvatar={draftProfile.avatar || userAvatar || ''}
         onAvatarUpdated={(url) => {
           // 1. Update local UI state immediately
-          setDraftProfile((prev) => ({ ...prev, avatar: url }))
-          setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
+          setDraftProfile((prev) => ({ ...prev, avatar: url }));
+          setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev));
 
           // 2. Update Auth Store immediately so other components (like Header) update
-          const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
+          const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState();
           if (authUser && token) {
-            setAuth({ ...authUser, avatar: url }, token)
+            setAuth({ ...authUser, avatar: url }, token);
           }
 
           // 3. Persist to Backend in background
@@ -915,18 +915,18 @@ export function ProfilePage() {
             .saveProfile({ avatar_url: url })
             .then((res) => {
               // Update rawProfile to match, so useEffect doesn't revert it
-              const data = (res as any)?.data ?? res
+              const data = (res as any)?.data ?? res;
               // Keep latest avatar url with cache-busting params if present
               if (data && data.user) {
-                data.user.avatar_url = url
+                data.user.avatar_url = url;
               } else if (data) {
-                data.avatar_url = url
+                data.avatar_url = url;
               }
-              setRawProfile(data)
+              setRawProfile(data);
             })
             .catch((err) => {
-              console.error('Failed to save avatar URL to DB', err)
-            })
+              console.error('Failed to save avatar URL to DB', err);
+            });
         }}
       />
 
@@ -935,11 +935,11 @@ export function ProfilePage() {
         open={showProfileRequiredSheet}
         dismissible={true}
         onClose={() => {
-          setShowProfileRequiredSheet(false)
+          setShowProfileRequiredSheet(false);
         }}
         onConfirm={() => {
-          setShowProfileRequiredSheet(false)
-          setShowEditSheet(true)
+          setShowProfileRequiredSheet(false);
+          setShowEditSheet(true);
         }}
       />
 
@@ -981,18 +981,18 @@ export function ProfilePage() {
       <BottomSheet
         open={showEditSheet}
         onClose={() => {
-          if (isSavingProfile) return
-          setShowEditSheet(false)
+          if (isSavingProfile) return;
+          setShowEditSheet(false);
         }}
         showHandle={false}
         disableContainer
       >
         <SheetLayout
           onClose={() => {
-            if (isSavingProfile) return
-            setShowEditSheet(false)
+            if (isSavingProfile) return;
+            setShowEditSheet(false);
           }}
-          title="My Sport Card"
+          title="Profile"
           subtitle="Keep your activity status up to date"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
@@ -1167,8 +1167,8 @@ export function ProfilePage() {
                     'vibe',
                     draftProfile.vibe || '',
                     (draftProfile as any).vibeKey ||
-                      vibeUnionToKey.get(draftProfile.vibe as string) ||
-                      ''
+                    vibeUnionToKey.get(draftProfile.vibe as string) ||
+                    ''
                   )
                 }
                 className={clsx(
@@ -1186,8 +1186,8 @@ export function ProfilePage() {
                   <p className="text-base font-semibold text-slate-900">
                     {labelForVibe(
                       (draftProfile as any).vibeKey ||
-                        vibeUnionToKey.get(draftProfile.vibe as string) ||
-                        (draftProfile.vibe as string)
+                      vibeUnionToKey.get(draftProfile.vibe as string) ||
+                      (draftProfile.vibe as string)
                     ) || 'Not set'}
                   </p>
                 </div>
@@ -1276,7 +1276,7 @@ export function ProfilePage() {
             vibe: 'Workout Vibe',
             bio: 'Bio',
             gender: 'Gender',
-          }
+          };
           const subtitleMap: Record<string, string> = {
             name: 'Enter the name shown on your card.',
             username: 'Your handle that others can use to find you.',
@@ -1285,8 +1285,8 @@ export function ProfilePage() {
             vibe: 'Choose the activity vibe that best matches your current rhythm.',
             bio: 'Share your activity updates and goals.',
             gender: 'Select your biological sex for gender-specific events.',
-          }
-          const fieldKey = activeField ?? ''
+          };
+          const fieldKey = activeField ?? '';
           return (
             <SheetLayout
               onClose={() => setActiveField(null)}
@@ -1308,15 +1308,15 @@ export function ProfilePage() {
                     const active =
                       v.key === fieldValue ||
                       vibeUnionToKey.get(fieldValue) === v.key ||
-                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() === v.key.toLowerCase()
+                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() === v.key.toLowerCase();
 
                     // Try to map dictionary key to Vibe enum key to get colors
                     // Dictionary keys might be upper case like 'GROWTH', tokens are 'Growth'
                     // We need a reliable mapping or try to match case-insensitively
                     const tokenKey = Object.keys(vibeTokens).find(
                       (k) => k.toUpperCase() === v.key.toUpperCase()
-                    ) as Vibe | undefined
-                    const tokens = tokenKey ? vibeTokens[tokenKey] : undefined
+                    ) as Vibe | undefined;
+                    const tokens = tokenKey ? vibeTokens[tokenKey] : undefined;
 
                     return (
                       <button
@@ -1330,24 +1330,24 @@ export function ProfilePage() {
                         style={
                           active && tokens
                             ? {
-                                background: tokens.bg,
-                                color: tokens.text,
-                                borderColor: 'transparent',
-                              }
+                              background: tokens.bg,
+                              color: tokens.text,
+                              borderColor: 'transparent',
+                            }
                             : active
                               ? {
-                                  // Fallback if no token found
-                                  borderColor: '#3B82F6',
-                                  backgroundColor: '#EFF6FF',
-                                  color: '#1E40AF',
-                                }
+                                // Fallback if no token found
+                                borderColor: '#3B82F6',
+                                backgroundColor: '#EFF6FF',
+                                color: '#1E40AF',
+                              }
                               : undefined
                         }
                       >
                         <p className="text-lg font-bold">{v.label}</p>
                         {v.subtitle && <p className="mt-1 text-sm opacity-80">{v.subtitle}</p>}
                       </button>
-                    )
+                    );
                   })}
                 </div>
               ) : activeField === 'nationality' ? (
@@ -1372,10 +1372,10 @@ export function ProfilePage() {
                     <select
                       value={locationSheetCountry}
                       onChange={(e) => {
-                        const nextCountry = e.target.value
-                        setLocationSheetCountry(nextCountry)
+                        const nextCountry = e.target.value;
+                        setLocationSheetCountry(nextCountry);
                         if (fieldValue && nextCountry !== FIRST_MARKET_COUNTRY_KEY) {
-                          setFieldValue('')
+                          setFieldValue('');
                         }
                       }}
                       className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
@@ -1435,8 +1435,8 @@ export function ProfilePage() {
                     type="text"
                     value={fieldValue}
                     onChange={(e) => {
-                      setFieldValue(e.target.value)
-                      setFieldError(null)
+                      setFieldValue(e.target.value);
+                      setFieldError(null);
                     }}
                     className={clsx(
                       'w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none',
@@ -1450,7 +1450,7 @@ export function ProfilePage() {
                 </div>
               )}
             </SheetLayout>
-          )
+          );
         })()}
       </BottomSheet>
       <BottomSheet
@@ -1513,8 +1513,8 @@ export function ProfilePage() {
             {sportsCatalog
               .filter((sport) => sport.label.toLowerCase().includes(sportsSearch.toLowerCase()))
               .map((sport) => {
-                const selected = draftProfile.sports.includes(sport.label)
-                const disabled = !selected && draftProfile.sports.length >= 3
+                const selected = draftProfile.sports.includes(sport.label);
+                const disabled = !selected && draftProfile.sports.length >= 3;
                 return (
                   <label
                     key={sport.key}
@@ -1538,14 +1538,14 @@ export function ProfilePage() {
                         setDraftProfile((prev) => {
                           const next = selected
                             ? prev.sports.filter((s) => s !== sport.label)
-                            : [...prev.sports, sport.label]
-                          return { ...prev, sports: next }
-                        })
+                            : [...prev.sports, sport.label];
+                          return { ...prev, sports: next };
+                        });
                       }}
                       className="h-5 w-5 accent-blue-600"
                     />
                   </label>
-                )
+                );
               })}
           </div>
         </SheetLayout>
@@ -1610,8 +1610,8 @@ export function ProfilePage() {
             {sportsCatalog
               .filter((sport) => sport.label.toLowerCase().includes(tryingSearch.toLowerCase()))
               .map((sport) => {
-                const selected = draftProfile.trying.includes(sport.label)
-                const disabled = !selected && draftProfile.trying.length >= 2
+                const selected = draftProfile.trying.includes(sport.label);
+                const disabled = !selected && draftProfile.trying.length >= 2;
                 return (
                   <label
                     key={sport.key}
@@ -1635,14 +1635,14 @@ export function ProfilePage() {
                         setDraftProfile((prev) => {
                           const next = selected
                             ? prev.trying.filter((s) => s !== sport.label)
-                            : [...prev.trying, sport.label]
-                          return { ...prev, trying: next }
-                        })
+                            : [...prev.trying, sport.label];
+                          return { ...prev, trying: next };
+                        });
                       }}
                       className="h-5 w-5 accent-blue-600"
                     />
                   </label>
-                )
+                );
               })}
           </div>
         </SheetLayout>
@@ -1695,20 +1695,20 @@ export function ProfilePage() {
             </p>
             <div className="flex flex-wrap gap-2">
               {['Morning', 'Afternoon', 'Evening'].map((slot) => {
-                const active = draftPreferredTime === slot
+                const active = draftPreferredTime === slot;
                 return (
                   <button
                     key={slot}
                     type="button"
                     onClick={() => {
-                      setDraftPreferredTime(slot)
+                      setDraftPreferredTime(slot);
                       setDraftDaySlots((prev) => {
-                        const next: Record<string, string[]> = {}
+                        const next: Record<string, string[]> = {};
                         Object.keys(prev).forEach((day) => {
-                          next[day] = [slot]
-                        })
-                        return next
-                      })
+                          next[day] = [slot];
+                        });
+                        return next;
+                      });
                     }}
                     className={clsx(
                       'rounded-full border px-4 py-2 text-sm font-semibold',
@@ -1719,7 +1719,7 @@ export function ProfilePage() {
                   >
                     {slot}
                   </button>
-                )
+                );
               })}
             </div>
 
@@ -1736,7 +1736,7 @@ export function ProfilePage() {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {['Morning', 'Afternoon', 'Evening'].map((slot) => {
-                          const active = draftDaySlots[day]?.includes(slot)
+                          const active = draftDaySlots[day]?.includes(slot);
                           return (
                             <button
                               key={slot}
@@ -1746,13 +1746,13 @@ export function ProfilePage() {
                                   const next = {
                                     ...prev,
                                     [day]: [...(prev[day] ?? [])],
-                                  }
+                                  };
                                   if (next[day].includes(slot)) {
-                                    next[day] = next[day].filter((s) => s !== slot)
+                                    next[day] = next[day].filter((s) => s !== slot);
                                   } else {
-                                    next[day].push(slot)
+                                    next[day].push(slot);
                                   }
-                                  return next
+                                  return next;
                                 })
                               }
                               className={clsx(
@@ -1764,7 +1764,7 @@ export function ProfilePage() {
                             >
                               {slot}
                             </button>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -1804,5 +1804,5 @@ export function ProfilePage() {
         onClose={() => setShowCompletionSheet(false)}
       />
     </div>
-  )
+  );
 }
