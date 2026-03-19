@@ -64,7 +64,6 @@ export function ContactUsPage() {
     } catch (error) {
       console.error(error)
       setIsSubmitting(false)
-      // Ideally show toast here
     }
   }
 
@@ -105,7 +104,6 @@ export function ContactUsPage() {
 
       <main className="mx-auto max-w-2xl px-4 py-6">
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Feedback Type Selection */}
           <div className="space-y-3">
             <label className="text-base font-bold text-slate-900">Feedback Type</label>
             <div className="mt-2 grid grid-cols-1 gap-3">
@@ -130,7 +128,6 @@ export function ContactUsPage() {
             </div>
           </div>
 
-          {/* Content Area */}
           <div className="space-y-3">
             <label htmlFor="content" className="text-base font-bold text-slate-900">
               Details
@@ -169,7 +166,6 @@ export function ContactUsPage() {
             </label>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting || !content.trim()}

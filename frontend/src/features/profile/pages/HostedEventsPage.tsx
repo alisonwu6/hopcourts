@@ -7,7 +7,7 @@ export function HostedEventsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <div className="relative sticky top-0 z-10 flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
+      <div className="sticky top-0 z-10 flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
         <button
           type="button"
           onClick={() => navigate(-1)}

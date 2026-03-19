@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { AlertDialog } from '@/components/AlertDialog'
 import { useAuthStore } from '@/hooks'
-import { profileService } from '@/features/profile/profile.service'
+import { profileService } from '@/features/profile/services/profileService'
 
 export function AccountSettingsPage() {
   const navigate = useNavigate()

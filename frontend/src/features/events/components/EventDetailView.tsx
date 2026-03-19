@@ -661,7 +661,6 @@ function JoinBar({
         >
           <span className="flex flex-col items-center leading-tight">
             <span className="text-sm font-semibold">Tap to Check In</span>
-            <span className="mt-1 text-xs font-medium">Opens {formatTime(openTime)}</span>
           </span>
         </Button>
       )

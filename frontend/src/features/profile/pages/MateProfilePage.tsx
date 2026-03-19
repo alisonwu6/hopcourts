@@ -4,6 +4,9 @@ import { ArrowLeft, Frown } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
+import { EventCard } from '@/features/events/components/EventCard'
+import { eventsService } from '@/features/events/services/eventsService'
+import type { PlayerEvent } from '@/types'
 
 import { api } from '@/api/client'
 import type { ApiResponse } from '@/api/types'
@@ -79,6 +82,8 @@ export function MateProfilePage() {
   const [profileData, setProfileData] = useState<MateCardProps | null>(null)
   const [loading, setLoading] = useState(!mate)
   const [error, setError] = useState<string | null>(null)
+  const [hostedUpcomingEvents, setHostedUpcomingEvents] = useState<PlayerEvent[]>([])
+  const [isHostedEventsLoading, setIsHostedEventsLoading] = useState(false)
 
   useEffect(() => {
     const normalizeSports = (list: any[]) => {
@@ -194,6 +199,46 @@ export function MateProfilePage() {
   }, [mate, profileData, labelForSport, labelForVibe, labelForCity, vibeKeyToUnion, username])
 
   const headerName = profile?.username || profile?.name || username || ''
+  const targetProfileUsername = (profile?.username || username || '').trim()
+
+  useEffect(() => {
+    if (!targetProfileUsername) {
+      setHostedUpcomingEvents([])
+      setIsHostedEventsLoading(false)
+      return
+    }
+
+    let cancelled = false
+
+    const loadHostedUpcomingEvents = async () => {
+      setIsHostedEventsLoading(true)
+      try {
+        const response = await eventsService.getProfileEventsByUsername(targetProfileUsername, {
+          role: 'hosted',
+          time: 'upcoming',
+          limit: 10,
+          offset: 0,
+        })
+        const filtered = response.success ? response.data?.data ?? [] : []
+        if (!cancelled) {
+          setHostedUpcomingEvents(filtered)
+        }
+      } catch (err) {
+        console.error('Failed to load hosted upcoming events', err)
+        if (!cancelled) {
+          setHostedUpcomingEvents([])
+        }
+      } finally {
+        if (!cancelled) setIsHostedEventsLoading(false)
+      }
+    }
+
+    void loadHostedUpcomingEvents()
+
+    return () => {
+      cancelled = true
+    }
+  }, [targetProfileUsername])
 
   return (
     <div className="min-h-screen">
@@ -226,7 +271,34 @@ export function MateProfilePage() {
             <p className="max-w-xs text-sm text-slate-500">{error}</p>
           </div>
         ) : (
-          profile && <HeroCard profile={profile} showShare={false} actionDisabled={loading} />
+          profile && (
+            <>
+              <HeroCard profile={profile} showShare={false} actionDisabled={loading} />
+              <div className="mt-4 space-y-3 px-3">
+                <h3 className="px-1 text-lg font-semibold text-slate-700">Upcoming Hosted Events</h3>
+                {isHostedEventsLoading ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+                    Loading events...
+                  </div>
+                ) : hostedUpcomingEvents.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
+                    This user has no upcoming hosted events.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {hostedUpcomingEvents.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        sportLabel={labelForSport(event.sport)}
+                        onViewDetails={(id) => navigate(`/event/${id}`)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )
         )}
 
 

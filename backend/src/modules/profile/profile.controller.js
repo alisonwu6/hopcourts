@@ -2,6 +2,7 @@ const {
   resolveUserId,
   getProfile,
   getProfileByUsername,
+  getProfileSessionsByUsername,
   upsertProfile,
   getPreferences,
   upsertPreferences,
@@ -12,6 +13,11 @@ const {
 } = require('./profile.service')
 const { ok } = require('../../lib/respond')
 const { mapUserProfile } = require('./profile.mapper')
+
+function parseNumber(value, fallback) {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : fallback
+}
 
 async function handleGetMeProfile(req, res, next) {
   try {
@@ -86,6 +92,20 @@ async function handleGetProfileByUsername(req, res, next) {
   }
 }
 
+async function handleGetProfileSessionsByUsername(req, res, next) {
+  try {
+    const { username } = req.params
+    const role = req.query.role ? String(req.query.role) : undefined
+    const time = req.query.time ? String(req.query.time) : undefined
+    const limit = Math.min(Math.max(parseNumber(req.query.limit, 20), 1), 50)
+    const offset = Math.max(parseNumber(req.query.offset, 0), 0)
+    const data = await getProfileSessionsByUsername(username, { role, time, limit, offset })
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+}
+
 async function handleDeleteAccount(req, res, next) {
   try {
     const userId = resolveUserId(req)
@@ -109,6 +129,7 @@ async function handleGetTeammates(req, res, next) {
 module.exports = {
   handleGetMeProfile,
   handleGetProfileByUsername,
+  handleGetProfileSessionsByUsername,
   handlePutMeProfile,
   handleGetPreferences,
   handlePutPreferences,

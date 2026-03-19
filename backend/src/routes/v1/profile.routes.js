@@ -6,6 +6,7 @@ const {
   handlePutPreferences,
   handleGetStats,
   handleGetProfileByUsername,
+  handleGetProfileSessionsByUsername,
   handleDeleteAccount,
   handleGetTeammates,
 } = require('../../modules/profile/profile.controller')
@@ -15,6 +16,7 @@ const { verifyToken } = require('../../middleware/verifyToken')
 const router = express.Router()
 
 // Public routes
+router.get('/profiles/:username/sessions', handleGetProfileSessionsByUsername)
 router.get('/profiles/:username', handleGetProfileByUsername)
 
 router.get('/me/profile', verifyToken, handleGetMeProfile)

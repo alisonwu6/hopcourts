@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS venues (
   
   is_official BOOLEAN DEFAULT false,
   owner_user_id UUID REFERENCES users(id),
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'pending', 'suspended')),
+  status TEXT DEFAULT 'unclaimed' CHECK (status IN ('unclaimed', 'claimed')),
 
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
