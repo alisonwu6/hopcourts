@@ -3,17 +3,19 @@ const { query } = require('../src/lib/db')
 async function createVenue(input) {
   const sql = `
     INSERT INTO public.venues (
+      name,
       name_display,
-      address_display,
+      address,
       lat,
       lng,
       status
     ) VALUES (
-      $1, $2, $3, $4, $5
+      $1, $2, $3, $4, $5, $6
     )
     RETURNING *
   `
   const params = [
+    input.name,
     input.name,
     input.address,
     input.lat,
@@ -48,6 +50,8 @@ async function findNearbyVenues({ lat, lng, radiusMeters = 100 }) {
 async function getVenueById(id) {
   const sql = `
     SELECT v.*,
+      COALESCE(v.name_display, v.name) as name_display,
+      v.address as address_display,
       COALESCE(vp.logo_url, v.logo_url) as logo_url,
       (SELECT COUNT(*)::int FROM public.sessions s 
        WHERE s.venue_id = v.id 
@@ -82,6 +86,8 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
   // Note: Using subquery for counts is simpler for now than GROUP BY everything
   const sql = `
     SELECT v.*,
+      COALESCE(v.name_display, v.name) as name_display,
+      v.address as address_display,
       COALESCE(vp.logo_url, v.logo_url) as logo_url,
       (SELECT COUNT(*)::int FROM public.sessions s 
        WHERE s.venue_id = v.id 
@@ -217,7 +223,7 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
   let params = []
 
   if (search) {
-    conditions.push(`(v.name_display ILIKE $1 OR v.id::text = $1)`)
+    conditions.push(`(COALESCE(v.name_display, v.name) ILIKE $1 OR v.id::text = $1)`)
     params.push(`%${search}%`)
   }
 
@@ -275,7 +281,7 @@ async function patchVenueDisplay(id, { name_display, address_display }) {
     UPDATE public.venues 
     SET 
       name_display = COALESCE($2, name_display),
-      address_display = COALESCE($3, address_display),
+      address = COALESCE($3, address),
       updated_at = NOW()
     WHERE id = $1
     RETURNING *

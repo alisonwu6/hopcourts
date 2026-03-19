@@ -27,12 +27,20 @@ const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   timestamp: new Date(),
 })
 
+const normalizeVenue = (venue: any): ApiVenue => ({
+  ...venue,
+  name_display: venue?.name_display || venue?.name || '',
+  address_display: venue?.address_display || venue?.address || '',
+})
+
 export const venuesService = {
   async listVenues(filter: VenueFilter = {}): Promise<ApiResponse<PaginatedResponse<ApiVenue>>> {
     try {
       const params: any = { ...filter }
       const res = await httpGet<any>('/venues', { params, auth: false })
-      const items = Array.isArray(res.data) ? res.data : []
+      const payload = res?.data ?? res
+      const rawItems = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : []
+      const items = rawItems.map(normalizeVenue)
       
       return wrapSuccess({
         data: items,
@@ -53,7 +61,8 @@ export const venuesService = {
   async getVenueById(id: string): Promise<ApiResponse<ApiVenue>> {
     try {
       const res = await httpGet<any>(`/venues/${id}`, { auth: false })
-      return wrapSuccess(res.data)
+      const payload = res?.data ?? res
+      return wrapSuccess(normalizeVenue(payload?.data ?? payload))
     } catch (err: any) {
       return {
         success: false,
