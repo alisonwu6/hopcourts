@@ -28,8 +28,6 @@ import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 import { TeammatesPage } from '@/features/profile/pages/TeammatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
-import { AdminLoginPage } from '@/features/admin/pages/AdminLoginPage'
-import { AdminRouteGuard } from '@/features/admin/components/AdminRouteGuard'
 import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
 import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
 import { VenueSessionCreatePage } from '@/features/venue-portal/pages/VenueSessionCreatePage'
@@ -69,14 +67,9 @@ export default function App() {
       <Route path="/rules" element={<Navigate to="/guidelines" replace />} />
 
       {/* Admin / Governance (C0) */}
-      <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route
         path="/admin/venues"
-        element={
-          <AdminRouteGuard>
-            <AdminVenueManagementPage />
-          </AdminRouteGuard>
-        }
+        element={<AdminVenueManagementPage />}
       />
 
       <Route
