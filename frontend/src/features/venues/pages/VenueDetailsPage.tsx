@@ -34,6 +34,7 @@ export function VenueDetailsPage() {
   )
 
   // ... (rest of state)
+  const [errors, setErrors] = useState<Record<string, boolean>>({})
   const [claimFormData, setClaimFormData] = useState({
     contact_name: '',
     contact_person: '',
@@ -98,19 +99,26 @@ export function VenueDetailsPage() {
     if (!venueId) return
 
     // Validate required fields
-    if (
-      !claimFormData.contact_name ||
-      !claimFormData.contact_person ||
-      !claimFormData.contact_title ||
-      !claimFormData.contact_phone ||
-      !claimFormData.contact_email
-    ) {
-      alert('Please fill in all required fields')
+    const newErrors: Record<string, boolean> = {
+      contact_name: !claimFormData.contact_name.trim(),
+      contact_person: !claimFormData.contact_person.trim(),
+      contact_title: !claimFormData.contact_title.trim(),
+      contact_phone: !claimFormData.contact_phone.trim(),
+      contact_email: !claimFormData.contact_email.trim(),
+    }
+
+    if (Object.values(newErrors).some(Boolean)) {
+      setErrors(newErrors)
       return
     }
 
+    setErrors({})
+
     setIsClaiming(true)
-    const res = await venuesService.requestVenueClaim(venueId, claimFormData)
+    const res = await venuesService.requestVenueClaim(venueId, {
+      ...claimFormData,
+      contact_email: claimFormData.contact_email,
+    })
     if (res.success) {
       setClaimSuccess(true)
       setShowClaimForm(false)
@@ -122,6 +130,7 @@ export function VenueDetailsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
+
       <ActionToolbar
         title={venue.name_display}
         onBack={() => navigate(-1)}
@@ -248,49 +257,72 @@ export function VenueDetailsPage() {
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-bold text-slate-900">Fill in application details</h2>
-            <div className="mt-4 space-y-4">
+            <h2 className="text-xl font-bold text-slate-900">Apply to manage this venue</h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Tell us a bit about your role at this venue.
+              <br />
+              Our team will review your request before granting access.
+            </p>
+            <div className="mt-6 space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Manager name (or company name)*
+                  Organization / Venue name *
                 </label>
                 <input
                   type="text"
                   value={claimFormData.contact_name}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setClaimFormData({ ...claimFormData, contact_name: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    if (errors.contact_name) setErrors({ ...errors, contact_name: false })
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    errors.contact_name
+                      ? 'border-red-500 bg-red-50/50 focus:border-red-500 focus:ring-red-500'
+                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
                   placeholder="e.g. ABC Sports Center"
                 />
+                {errors.contact_name && <p className="mt-1 text-xs text-red-500">This field is required</p>}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Contact person name *
+                  Your name *
                 </label>
                 <input
                   type="text"
                   value={claimFormData.contact_person}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setClaimFormData({ ...claimFormData, contact_person: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    if (errors.contact_person) setErrors({ ...errors, contact_person: false })
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    errors.contact_person
+                      ? 'border-red-500 bg-red-50/50 focus:border-red-500 focus:ring-red-500'
+                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
                   placeholder="e.g. Alex Wang"
                 />
+                {errors.contact_person && <p className="mt-1 text-xs text-red-500">This field is required</p>}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Job title *
+                  Your role at this venue *
                 </label>
                 <input
                   type="text"
                   value={claimFormData.contact_title}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setClaimFormData({ ...claimFormData, contact_title: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="e.g. Venue Manager"
+                    if (errors.contact_title) setErrors({ ...errors, contact_title: false })
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    errors.contact_title
+                      ? 'border-red-500 bg-red-50/50 focus:border-red-500 focus:ring-red-500'
+                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
+                  placeholder="e.g. Venue manager / Owner / Staff"
                 />
+                {errors.contact_title && <p className="mt-1 text-xs text-red-500">This field is required</p>}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-700">
@@ -299,36 +331,48 @@ export function VenueDetailsPage() {
                 <input
                   type="tel"
                   value={claimFormData.contact_phone}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setClaimFormData({ ...claimFormData, contact_phone: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="e.g. 0912-345-678"
+                    if (errors.contact_phone) setErrors({ ...errors, contact_phone: false })
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    errors.contact_phone
+                      ? 'border-red-500 bg-red-50/50 focus:border-red-500 focus:ring-red-500'
+                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
+                  placeholder="e.g. +886 912 345 678"
                 />
+                {errors.contact_phone && <p className="mt-1 text-xs text-red-500">This field is required</p>}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Contact email *
+                  Email *
                 </label>
                 <input
                   type="email"
                   value={claimFormData.contact_email}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setClaimFormData({ ...claimFormData, contact_email: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    if (errors.contact_email) setErrors({ ...errors, contact_email: false })
+                  }}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                    errors.contact_email
+                      ? 'border-red-500 bg-red-50/50 focus:border-red-500 focus:ring-red-500'
+                      : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
                   placeholder="contact@example.com"
                 />
+                {errors.contact_email && <p className="mt-1 text-xs text-red-500">This field is required</p>}
               </div>
               <div>
                 <label className="mb-1 block text-sm font-semibold text-slate-700">
-                  Additional notes (optional)
+                  Additional details (optional)
                 </label>
                 <textarea
                   value={claimFormData.note}
                   onChange={(e) => setClaimFormData({ ...claimFormData, note: e.target.value })}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="e.g. We are the venue operator"
+                  placeholder="e.g. I manage bookings for this venue."
                   rows={3}
                 />
               </div>
@@ -336,8 +380,7 @@ export function VenueDetailsPage() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setShowClaimForm(false)}
-                disabled={isClaiming}
-                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
                 Cancel
               </button>
@@ -346,7 +389,7 @@ export function VenueDetailsPage() {
                 disabled={isClaiming}
                 className="flex-1 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
               >
-                {isClaiming ? 'Submitting...' : 'Submit'}
+                {isClaiming ? 'Submitting...' : 'Apply'}
               </button>
             </div>
           </div>

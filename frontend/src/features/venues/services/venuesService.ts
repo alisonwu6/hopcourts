@@ -81,8 +81,14 @@ export const venuesService = {
     note?: string
   }): Promise<ApiResponse<any>> {
     try {
+      // Mock API call to run frontend flow directly
+      await new Promise(resolve => setTimeout(resolve, 500))
+      return wrapSuccess({ id: 'mocked-claim-id', ...claimData })
+      
+      /*
       const res = await httpPost<any>(`/venues/${id}/claim`, { body: claimData, auth: false })
       return wrapSuccess(res.data)
+      */
     } catch (err: any) {
       return {
         success: false,
