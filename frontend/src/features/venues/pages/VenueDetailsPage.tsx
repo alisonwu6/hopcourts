@@ -15,12 +15,9 @@ export function VenueDetailsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!id) return;
-      setIsLoading(true);
-      
       const [venueRes, eventsRes] = await Promise.all([
         venuesService.getVenueById(id),
-        eventsService.listUpcomingEvents({ venueId: id, limit: 10 })
+        eventsService.getEvents({ venueId: id, limit: 10 })
       ]);
 
       if (venueRes.success && venueRes.data) {

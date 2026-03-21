@@ -88,36 +88,31 @@ export const venuesService = {
 
   async getVenueById(id: string): Promise<ApiResponse<ApiVenue>> {
     try {
-      // Mock for specific venue to show portal integration
-      if (id === '525643ea-df39-4f1b-b57a-eb71e9f1fa16') {
-        await new Promise(resolve => setTimeout(resolve, 300))
-        return wrapSuccess({
-          id,
-          name_display: 'ABC Sports Center',
-          address_display: '33 Brodie St, Brisbane QLD 4000',
-          lat: -27.4698,
-          lng: 153.0251,
-          status: 'claimed',
-          logo_url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200',
-          description: 'Premium sports facility featuring world-class indoor and outdoor courts. We provide a safe, high-energy environment for athletes of all levels to train, compete, and connect.',
-          amenities: ['Parking', 'Restrooms', 'Night lighting', 'Showers', 'Wi-Fi', 'Contactless pay'],
-          operating_hours: [
-            { day: 'Monday', open_time: '06:00', close_time: '22:00', is_closed: false },
-            { day: 'Tuesday', open_time: '06:00', close_time: '22:00', is_closed: false },
-            { day: 'Wednesday', open_time: '06:00', close_time: '22:00', is_closed: false },
-            { day: 'Thursday', open_time: '06:00', close_time: '22:00', is_closed: false },
-            { day: 'Friday', open_time: '06:00', close_time: '22:00', is_closed: false },
-            { day: 'Saturday', open_time: '08:00', close_time: '20:00', is_closed: false },
-            { day: 'Sunday', open_time: '08:00', close_time: '18:00', is_closed: false }
-          ],
-          active_sessions_count: 5,
-          created_at: new Date().toISOString()
-        })
-      }
-
-      const res = await httpGet<any>(`/venues/${id}`, { auth: false })
-      const payload = res?.data ?? res
-      return wrapSuccess(normalizeVenue(payload?.data ?? payload))
+      // Mock for all venues to support frontend-only flow
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      return wrapSuccess({
+        id,
+        name_display: id === '525643ea-df39-4f1b-b57a-eb71e9f1fa16' ? 'ABC Sports Center' : 'Stadium Pro Brisbane',
+        address_display: id === '525643ea-df39-4f1b-b57a-eb71e9f1fa16' ? '33 Brodie St, Brisbane QLD 4000' : '45 Charlotte St, Brisbane QLD 4000',
+        lat: -27.4698,
+        lng: 153.0251,
+        status: id === '525643ea-df39-4f1b-b57a-eb71e9f1fa16' ? 'claimed' : 'unclaimed',
+        logo_url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200',
+        description: 'Premium sports facility featuring world-class indoor and outdoor courts. We provide a safe, high-energy environment for athletes of all levels to train, compete, and connect.',
+        amenities: ['Parking', 'Restrooms', 'Night lighting', 'Showers', 'Wi-Fi', 'Contactless pay'],
+        operating_hours: [
+          { day: 'Monday', open_time: '06:00', close_time: '22:00', is_closed: false },
+          { day: 'Tuesday', open_time: '06:00', close_time: '22:00', is_closed: false },
+          { day: 'Wednesday', open_time: '06:00', close_time: '22:00', is_closed: false },
+          { day: 'Thursday', open_time: '06:00', close_time: '22:00', is_closed: false },
+          { day: 'Friday', open_time: '06:00', close_time: '22:00', is_closed: false },
+          { day: 'Saturday', open_time: '08:00', close_time: '20:00', is_closed: false },
+          { day: 'Sunday', open_time: '08:00', close_time: '18:00', is_closed: false }
+        ],
+        active_sessions_count: 5,
+        created_at: new Date().toISOString()
+      })
     } catch (err: any) {
       return {
         success: false,
