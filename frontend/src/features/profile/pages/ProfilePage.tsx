@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react';
+import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight } from 'lucide-react';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { type MateCardProps } from '@/features/mates/components/MateCard';
@@ -883,6 +883,24 @@ export function ProfilePage() {
           onJoinedClick={() => navigate('/profile/joined-events')}
           onTeammatesClick={() => navigate('/circle')}
         />
+        <div className="mt-2 px-3">
+          <div
+            onClick={() => navigate('/venue-portal')}
+            className="bg-white rounded-2xl p-3.5 border border-2 border-slate-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <dt className="font-black text-slate-900 uppercase tracking-tight text-xs">Venue Portal</dt>
+                <dd className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Manage courts & schedule</dd>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-300" />
+          </div>
+        </div>
+
         <div className="mt-4 space-y-4 px-3">
           <h3 className="px-1 text-xl font-semibold text-slate-700">Recent Activities</h3>
           <ProfileEventsPanel mode="all" showTimeTabs={false} />

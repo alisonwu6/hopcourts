@@ -41,23 +41,7 @@ export function VenueDashboardPage() {
     return <div className="p-8 text-center text-slate-500">Loading your portal...</div>
   }
 
-  if (!loading && venues.length === 0) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-8 flex flex-col items-center justify-center font-sans">
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md text-center">
-            <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4">🏟️</div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Welcome to the Venue Official Portal</h1>
-            <p className="text-slate-600 mb-8 text-sm leading-relaxed">
-            You currently do not manage any venues.<br/>
-            Find your venue on the map and click "I am the venue owner" to claim it.
-            </p>
-            <Link to="/map" className="inline-block w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30">
-            Go to Map to Claim
-            </Link>
-        </div>
-      </div>
-    )
-  }
+
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -106,65 +90,97 @@ export function VenueDashboardPage() {
                     <Link 
                         to={`/venues/${dashboardData.venue.id}`} 
                         target="_blank"
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                        className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors border border-transparent hover:border-blue-100 flex items-center gap-1.5"
                     >
-                        Preview public page ↗
+                        View Public Venue Page <span className="text-base">↗</span>
                     </Link>
                 </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Active Official Activities</div>
+                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Active Events</div>
                         <div className="flex items-baseline gap-2">
-                            <div className="text-4xl font-bold text-indigo-600">{dashboardData.stats.active_sessions}</div>
-                            <div className="text-xs text-slate-400">Sessions</div>
+                            <div className="text-4xl font-bold text-indigo-600">{dashboardData.stats.active_events}</div>
+                            <div className="text-xs text-slate-400">Published</div>
                         </div>
                     </div>
-                    {/* Placeholder Stats */}
-                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 opacity-60">
-                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Check-ins (This Week)</div>
-                         <div className="flex items-baseline gap-2">
-                            <div className="text-4xl font-bold text-slate-300">-</div>
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Participants This Week</div>
+                        <div className="flex items-baseline gap-2">
+                            <div className="text-4xl font-bold text-slate-900">{dashboardData.stats.participants_this_week}</div>
+                            <div className="text-xs text-slate-400">Total</div>
                         </div>
                     </div>
-                     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 opacity-60">
-                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Followers</div>
-                         <div className="flex items-baseline gap-2">
-                            <div className="text-4xl font-bold text-slate-300">-</div>
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <div className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-2">Players Played Here</div>
+                        <div className="flex items-baseline gap-2">
+                            <div className="text-4xl font-bold text-emerald-600 font-mono">{dashboardData.stats.players_played_here}</div>
+                            <div className="text-xs text-slate-400">Total Players</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Actions */}
                 <h3 className="text-lg font-bold text-slate-800 mt-8 mb-4">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Create Event (One-off) */}
                     <div 
-                        onClick={() => selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/sessions/new`)}
+                        onClick={() => selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/sessions/create`)}
+                        className="bg-white rounded-xl p-6 border border-slate-200 group cursor-pointer hover:border-indigo-300 hover:shadow-lg hover:bg-slate-50/50 transition-all duration-300 flex flex-col justify-between"
+                    >
+                        <div>
+                            <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">✨</div>
+                            <h3 className="font-bold text-lg text-slate-800 mb-2 group-hover:text-indigo-700 transition-colors">Create Event</h3>
+                            <p className="text-slate-500 text-sm mb-4">Create a one-off special event or session outside your regular schedule.</p>
+                        </div>
+                        <div className="text-right">
+                             <button
+                                onClick={(e) => { e.stopPropagation(); selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/sessions/create`) }}
+                                className="text-slate-400 group-hover:text-indigo-600 text-sm font-bold flex items-center justify-end gap-1 ml-auto transition-colors"
+                             >
+                                Create Now <span className="text-lg leading-none">&rarr;</span>
+                             </button>
+                         </div>
+                    </div>
+
+                    {/* Manage Weekly Schedule (CORE) */}
+                    <div 
+                        onClick={() => selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/schedule`)}
                         className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl p-6 text-white overflow-hidden relative group cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all duration-300"
                     >
                         <div className="absolute right-0 top-0 p-8 opacity-10 text-9xl leading-none font-black select-none pointer-events-none">
-                            +
+                            📅
                         </div>
-                        <div className="relative z-10">
-                            <h3 className="font-bold text-xl mb-2">Publish Official Event</h3>
-                            <p className="text-indigo-100 text-sm mb-6 max-w-[80%]">Create official events hosted by your venue with verified badges and higher priority.</p>
-                            <button className="bg-white text-indigo-700 hover:bg-indigo-50 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-lg">
-                                Create Now
+                        <div className="relative z-10 h-full flex flex-col justify-between">
+                            <div>
+                                <h3 className="font-bold text-xl mb-2">Manage Weekly Schedule</h3>
+                                <p className="text-indigo-100 text-sm mb-6">Set your recurring weekly rules. The system will auto-generate sessions for players to join.</p>
+                            </div>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/schedule`) }}
+                                className="bg-white text-indigo-700 hover:bg-indigo-50 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors shadow-lg w-fit"
+                            >
+                                Set Schedule
                             </button>
                         </div>
                     </div>
 
+                    {/* Edit Venue Profile */}
                     <div 
                         onClick={() => selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/profile`)}
                         className="bg-white rounded-xl p-6 border border-slate-200 group cursor-pointer hover:border-indigo-300 hover:shadow-lg hover:bg-slate-50/50 transition-all duration-300 flex flex-col justify-between"
                     >
                          <div>
-                            <h3 className="font-bold text-lg text-slate-800 mb-2 group-hover:text-indigo-700 transition-colors">Venue Profile Management</h3>
-                            <p className="text-slate-500 text-sm mb-4">Upload logo and cover image, and set detailed hours and facility descriptions.</p>
+                            <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-lg flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">⚙️</div>
+                            <h3 className="font-bold text-lg text-slate-800 mb-2 group-hover:text-indigo-700 transition-colors">Edit Venue Profile</h3>
+                            <p className="text-slate-500 text-sm mb-4">Upload logo and cover image, and set detailed facility info.</p>
                          </div>
                          <div className="text-right">
-                             <button className="text-slate-400 group-hover:text-indigo-600 text-sm font-bold flex items-center justify-end gap-1 ml-auto transition-colors">
+                             <button
+                                onClick={(e) => { e.stopPropagation(); selectedVenueId && navigate(`/venue-portal/${selectedVenueId}/profile`) }}
+                                className="text-slate-400 group-hover:text-indigo-600 text-sm font-bold flex items-center justify-end gap-1 ml-auto transition-colors"
+                             >
                                 Go to Settings <span className="text-lg leading-none">&rarr;</span>
                              </button>
                          </div>

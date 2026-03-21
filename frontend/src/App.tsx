@@ -1,51 +1,51 @@
-import { type ReactNode, useEffect } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { BottomNav } from '@/components'
-import Header from '@/components/navigation/Header'
-import { useAuthStore } from '@/hooks'
-import { LoginPage } from '@/features/auth/pages/LoginPage'
-import { SignupPage } from '@/features/auth/pages/SignupPage'
-import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
-import { AuthCallback } from '@/features/auth/pages/AuthCallback'
-import { ResetPasswordPage } from '@/features/auth/pages/ResetPassword'
-import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage'
-import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
-import { VenueListPage } from '@/features/venues/pages/VenueListPage'
-import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
-import { ProfilePage } from '@/features/profile/pages/ProfilePage'
-import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage'
-import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage'
-import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage'
-import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPage'
-import { AboutPage } from '@/features/settings/pages/AboutPage'
-import { StoryPage } from '@/features/settings/pages/StoryPage'
-import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
-import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage'
-import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
-import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
-import CreateEventPage from '@/features/events/pages/CreateEventPage'
-import { HomePage } from '@/features/home/pages/HomePage'
-import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
-import { TeammatesPage } from '@/features/profile/pages/TeammatesPage'
-import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
-import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
-import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
-import { VenueSessionCreatePage } from '@/features/venue-portal/pages/VenueSessionCreatePage'
-import { VenuePortalRouteGuard } from '@/features/venue-portal/VenuePortalRouteGuard'
-import { PageLoading } from '@/components/PageLoading'
+import { type ReactNode, useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BottomNav } from '@/components';
+import Header from '@/components/navigation/Header';
+import { useAuthStore } from '@/hooks';
+import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { SignupPage } from '@/features/auth/pages/SignupPage';
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
+import { AuthCallback } from '@/features/auth/pages/AuthCallback';
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPassword';
+import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage';
+import { EventDetailPage } from '@/features/events/pages/EventDetailPage';
+import { VenueListPage } from '@/features/venues/pages/VenueListPage';
+import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage';
+import { ProfilePage } from '@/features/profile/pages/ProfilePage';
+import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage';
+import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage';
+import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage';
+import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPage';
+import { AboutPage } from '@/features/settings/pages/AboutPage';
+import { StoryPage } from '@/features/settings/pages/StoryPage';
+import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage';
+import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage';
+import { ContactUsPage } from '@/features/settings/pages/ContactUsPage';
+import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage';
+import CreateEventPage from '@/features/events/pages/CreateEventPage';
+import { HomePage } from '@/features/home/pages/HomePage';
+import { MateProfilePage } from '@/features/profile/pages/MateProfilePage';
+import { TeammatesPage } from '@/features/profile/pages/TeammatesPage';
+import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage';
+import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage';
+import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage';
+import { VenueSessionCreatePage } from '@/features/venue-portal/pages/VenueSessionCreatePage';
+import { VenueSchedulePage } from '@/features/venue-portal/pages/VenueSchedulePage';
+import { PageLoading } from '@/components/PageLoading';
 
-const RequireAuth = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuthStore()
-  if (isLoading) return null
-  if (!isAuthenticated) return <Navigate to="/login" replace />
-  return children
-}
+const RequireAuth = ({ children }: { children: ReactNode; }) => {
+  const { isAuthenticated, isLoading } = useAuthStore();
+  if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+};
 
 export default function App() {
-  const { isAuthenticated, isLoading } = useAuthStore()
+  const { isAuthenticated, isLoading } = useAuthStore();
 
   if (isLoading) {
-    return <PageLoading />
+    return <PageLoading />;
   }
 
   return (
@@ -66,41 +66,34 @@ export default function App() {
       <Route path="/guidelines" element={<UsageRulesPage />} />
       <Route path="/rules" element={<Navigate to="/guidelines" replace />} />
 
-      {/* Admin / Governance (C0) */}
+      {/* Admin (sportsmatch) */}
       <Route
         path="/admin/venues"
         element={<AdminVenueManagementPage />}
       />
 
+      {/* Admin for venues management */}
       <Route
         path="/venue-portal"
-        element={
-          <VenuePortalRouteGuard>
-            <VenueDashboardPage />
-          </VenuePortalRouteGuard>
-        }
+        element={<VenueDashboardPage />}
+      />
+      <Route
+        path="/venue-portal/:venueId/schedule"
+        element={<VenueSchedulePage />}
       />
       <Route
         path="/venue-portal/:venueId/profile"
-        element={
-          <VenuePortalRouteGuard>
-            <VenueProfilePage />
-          </VenuePortalRouteGuard>
-        }
+        element={<VenueProfilePage />}
       />
       <Route
-        path="/venue-portal/:venueId/sessions/new"
-        element={
-          <VenuePortalRouteGuard>
-            <VenueSessionCreatePage />
-          </VenuePortalRouteGuard>
-        }
+        path="/venue-portal/:venueId/sessions/create"
+        element={<VenueSessionCreatePage />}
       />
 
       {/* Main App Routes */}
       <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
     </Routes>
-  )
+  );
 }
 
 function AppChrome({
@@ -109,21 +102,21 @@ function AppChrome({
   showHeader = true,
   showNav = true,
 }: {
-  children: ReactNode
-  showActions?: boolean
-  showHeader?: boolean
-  showNav?: boolean
+  children: ReactNode;
+  showActions?: boolean;
+  showHeader?: boolean;
+  showNav?: boolean;
 }) {
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
-  const noHeaderPaths = ['/events', '/event/', '/create-event']
-  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
-  const headerVisible = showHeader && !hideHeader
-  const navVisible = showNav && !pathname.startsWith('/event/')
+  const noHeaderPaths = ['/events', '/event/', '/create-event'];
+  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment));
+  const headerVisible = showHeader && !hideHeader;
+  const navVisible = showNav && !pathname.startsWith('/event/');
 
   return (
     <div
@@ -136,12 +129,12 @@ function AppChrome({
       {children}
       {navVisible && <BottomNav />}
     </div>
-  )
+  );
 }
 
 function AuthenticatedApp() {
-  const { user } = useAuthStore()
-  const location = useLocation()
+  const { user } = useAuthStore();
+  const location = useLocation();
 
   // No global onboarding guard - handled within ProfilePage flow
 
@@ -299,7 +292,7 @@ function AuthenticatedApp() {
       <Route path="/mates" element={<Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
+  );
 }
 
 function GuestApp() {
@@ -376,5 +369,5 @@ function GuestApp() {
       <Route path="/settings/account" element={<Navigate to="/events" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
+  );
 }
