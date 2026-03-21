@@ -1,30 +1,30 @@
-import { useNavigate } from 'react-router-dom'
-import { Lock, X } from 'lucide-react'
-import { BottomSheet } from '@/components/BottomSheet'
+import { useNavigate } from 'react-router-dom';
+import { Lock, X } from 'lucide-react';
+import { BottomSheet } from '@/components/BottomSheet';
 
 type Props = {
-  open: boolean
-  onClose: () => void
-  onConfirm?: () => void
-  dismissible?: boolean
-}
+  open: boolean;
+  onClose: () => void;
+  onConfirm?: () => void;
+  dismissible?: boolean;
+};
 
 export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = false }: Props) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleConfirm = () => {
     // If a custom onConfirm handler is provided, use it (e.g. to open edit sheet directly)
     if (onConfirm) {
-      onConfirm()
+      onConfirm();
     } else {
       // Default behavior: navigate to profile page, which should handle the rest
       // Or we can pass a state to tell ProfilePage to open edit mode?
       // For now, let's just go to profile. The user will see their profile and hopefully edit it.
       // But purely navigating to /profile might not open the edit sheet automatically unless we pass state.
-      navigate('/profile', { state: { openEdit: true } })
+      navigate('/profile', { state: { openEdit: true } });
     }
-    onClose()
-  }
+    onClose();
+  };
 
   return (
     <BottomSheet
@@ -48,10 +48,10 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
           <Lock className="h-7 w-7" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900">Set up your sport card first</h3>
+        <h3 className="text-xl font-bold text-slate-900">Set up your profile first</h3>
         <p className="mt-2 text-sm text-slate-500">
           Before hosting or joining an event,<br />
-          please complete your sport card.
+          please complete your profile.
         </p>
         <button
           type="button"
@@ -62,5 +62,5 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
         </button>
       </div>
     </BottomSheet>
-  )
+  );
 }
