@@ -11,6 +11,7 @@ interface VenueSessionCreateViewProps {
     onSubmit: (e: React.FormEvent) => void;
     onCancel: () => void;
     SPORTS: string[];
+    courts: { id: string; name: string }[];
 }
 
 export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
@@ -20,25 +21,37 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
     setFormData,
     onSubmit,
     onCancel,
-    SPORTS
+    SPORTS,
+    courts
 }) => {
     if (loading && !venueData) return <PageLoading />;
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans pb-20 text-slate-700">
-            <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <h1 className="font-black text-slate-900 text-base uppercase tracking-tight">Create One-Off Event</h1>
+        <div className="mx-auto min-h-screen w-full max-w-screen-md bg-slate-50 pb-20 relative font-sans text-slate-700">
+            <header className="bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-50 shadow-sm">
+                <div className="w-full flex items-center justify-between">
                     <button 
+                        type="button"
                         onClick={onCancel} 
                         className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors"
                     >
                         Cancel
                     </button>
+                    
+                    <h1 className="font-black text-slate-900 text-base uppercase tracking-tight absolute left-1/2 -translate-x-1/2">Create Event</h1>
+                    
+                    <button 
+                        form="create-event-form"
+                        type="submit"
+                        disabled={loading}
+                        className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:opacity-70 transition-opacity disabled:opacity-30"
+                    >
+                        {loading ? 'Publishing...' : 'Publish'}
+                    </button>
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto p-6">
+            <main className="p-6">
                 <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 md:p-10 mb-8 overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-10 opacity-5 text-8xl font-black select-none pointer-events-none">✨</div>
                     
@@ -52,12 +65,12 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                         <VenueBadge variant="published" className="ml-auto">Official</VenueBadge>
                     </div>
 
-                    <form onSubmit={onSubmit} className="space-y-8">
+                    <form id="create-event-form" onSubmit={onSubmit} className="space-y-8">
                         
                         {/* 1. Basic Info */}
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Identity</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Event Title</label>
                                     <input 
@@ -69,15 +82,28 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                                         onChange={e => setFormData({...formData, title: e.target.value})}
                                     />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Sport</label>
-                                    <select 
-                                        className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner appearance-none"
-                                        value={formData.sportKey}
-                                        onChange={e => setFormData({...formData, sportKey: e.target.value})}
-                                    >
-                                        {SPORTS.map(s => <option key={s} value={s.toUpperCase()}>{s}</option>)}
-                                    </select>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Sport</label>
+                                        <select 
+                                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner appearance-none"
+                                            value={formData.sportKey}
+                                            onChange={e => setFormData({...formData, sportKey: e.target.value})}
+                                        >
+                                            {SPORTS.map(s => <option key={s} value={s.toUpperCase()}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Spot / Court</label>
+                                        <select 
+                                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner appearance-none"
+                                            value={formData.court_id}
+                                            onChange={e => setFormData({...formData, court_id: e.target.value})}
+                                        >
+                                            <option value="">No Spot Assigned</option>
+                                            {courts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </section>
@@ -188,27 +214,6 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                                 </div>
                             </div>
                         </section>
-
-                        <div className="pt-10 flex gap-4">
-                            <VenueButton 
-                                variant="secondary" 
-                                size="lg" 
-                                className="flex-1"
-                                onClick={onCancel}
-                                type="button"
-                            >
-                                Discard
-                            </VenueButton>
-                            <VenueButton 
-                                variant="primary" 
-                                size="lg" 
-                                className="flex-1"
-                                isLoading={loading}
-                                type="submit"
-                            >
-                                Publish Event
-                            </VenueButton>
-                        </div>
                     </form>
                 </div>
             </main>

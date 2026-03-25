@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { venuePortalService } from '../services/venuePortalService';
-import { VenueProfileView } from '../views/VenueProfileView';
-import { 
-    Car, 
-    Bath, 
-    ShowerHead, 
-    DoorClosed, 
-    Armchair, 
-    Lightbulb, 
-    Sun, 
-    House, 
-    ShoppingBag, 
-    Users, 
-    Droplets, 
-    Coffee, 
-    SmartphoneNfc, 
-    Wifi 
+import { VenueProfileView, VenueProfileData } from '../views/VenueProfileView';
+import {
+    Car,
+    Bath,
+    ShowerHead,
+    DoorClosed,
+    Armchair,
+    Lightbulb,
+    Sun,
+    House,
+    ShoppingBag,
+    Users,
+    Droplets,
+    Coffee,
+    SmartphoneNfc,
+    Wifi
 } from 'lucide-react';
 
 const AMENITIES_CATEGORIES = [
@@ -70,15 +70,19 @@ interface OperatingDay {
  * Orchestrates API calls and data flow for the VenueProfileView.
  */
 export function VenueProfilePage() {
-    const { venueId } = useParams<{ venueId: string }>();
+    const { venueId } = useParams<{ venueId: string; }>();
     const navigate = useNavigate();
+    const [mode, setMode] = useState<'view' | 'edit'>('view');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    
-    const [formData, setFormData] = useState({
+
+    const [formData, setFormData] = useState<VenueProfileData>({
+        name_display: '',
+        address_display: '',
         logo_url: '',
         description: '',
         amenities: [] as string[],
+        spaces: [] as { name: string; supported_sports: string[] }[],
         operating_hours: DAYS.map(d => ({
             day: d,
             open_time: '06:00',
@@ -100,9 +104,15 @@ export function VenueProfilePage() {
         const res = await venuePortalService.getVenueProfile(venueId);
         if (res.success && res.data) {
             setFormData({
+                name_display: res.data.name_display || 'Stadium Pro Brisbane', 
+                address_display: res.data.address_display || '45 Charlotte St, Brisbane QLD 4000',
                 logo_url: res.data.logo_url || '',
                 description: res.data.description || '',
                 amenities: res.data.amenities || [],
+                spaces: res.data.spaces?.length > 0 ? res.data.spaces : [
+                    { name: 'Court 1', supported_sports: ['Basketball', 'Tennis'] },
+                    { name: 'Court 2', supported_sports: ['Basketball'] }
+                ],
                 operating_hours: res.data.operating_hours || DAYS.map(d => ({
                     day: d,
                     open_time: '06:00',
@@ -134,7 +144,7 @@ export function VenueProfilePage() {
         setSaving(true);
         const res = await venuePortalService.updateVenueProfile(venueId, formData);
         if (res.success) {
-            navigate('/venue-portal');
+            setMode('view');
         } else {
             console.error('Update failed:', res.error?.message);
         }
@@ -142,9 +152,11 @@ export function VenueProfilePage() {
     };
 
     return (
-        <VenueProfileView 
+        <VenueProfileView
             loading={loading}
             saving={saving}
+            mode={mode}
+            onToggleMode={setMode}
             formData={formData}
             setFormData={setFormData}
             onBack={() => navigate('/venue-portal')}

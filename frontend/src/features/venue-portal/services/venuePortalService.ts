@@ -112,7 +112,13 @@ export const venuePortalService = {
           { day: 'Saturday', open_time: '06:00', close_time: '22:00', is_closed: false },
           { day: 'Sunday', open_time: '06:00', close_time: '22:00', is_closed: false }
         ],
-        social_links: {}
+        social_links: {},
+        courts: [
+          { id: 'c1', name: 'Court 1' },
+          { id: 'c2', name: 'Court 2' },
+          { id: 'c3', name: 'Court 3' },
+          { id: 'c4', name: 'Court 4' }
+        ]
       })
       /*
       const res = await httpGet<any>(`/venue-portal/venues/${venueId}/profile`)

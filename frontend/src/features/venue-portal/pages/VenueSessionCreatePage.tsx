@@ -17,11 +17,13 @@ export function VenueSessionCreatePage() {
     
     const [loading, setLoading] = useState(true);
     const [venueData, setVenueData] = useState<VenueDashboardData['venue'] | null>(null);
+    const [courts, setCourts] = useState<{ id: string; name: string }[]>([]);
     
     // Form State
     const [formData, setFormData] = useState({
         title: '',
         sportKey: 'BADMINTON',
+        court_id: '',
         description: '',
         date: '',
         startTime: '19:00',
@@ -40,9 +42,16 @@ export function VenueSessionCreatePage() {
 
     const loadVenueInfo = async (id: string) => {
         setLoading(true);
-        const res = await venuePortalService.getVenueDashboard(id);
-        if (res.success && res.data) {
-            setVenueData(res.data.venue);
+        const [dashRes, profileRes] = await Promise.all([
+            venuePortalService.getVenueDashboard(id),
+            venuePortalService.getVenueProfile(id)
+        ]);
+
+        if (dashRes.success && dashRes.data) {
+            setVenueData(dashRes.data.venue);
+        }
+        if (profileRes.success && profileRes.data) {
+            setCourts(profileRes.data.courts || []);
         }
         setLoading(false);
     };
@@ -98,6 +107,7 @@ export function VenueSessionCreatePage() {
             onSubmit={handleSubmit}
             onCancel={() => navigate('/venue-portal')}
             SPORTS={SPORTS}
+            courts={courts}
         />
     );
 }

@@ -11,6 +11,7 @@ interface ScheduleSlot {
     level: string;
     gender: string;
     price: number;
+    court_id?: string;
 }
 
 interface GeneratedSession {
@@ -25,6 +26,7 @@ interface GeneratedSession {
     level: string;
     gender: string;
     price: number;
+    court_id?: string;
 }
 
 interface VenueDefaults {
@@ -33,6 +35,7 @@ interface VenueDefaults {
     level: string;
     gender: string;
     price: number;
+    court_id?: string;
 }
 
 export function useVenueScheduleData() {
@@ -40,7 +43,7 @@ export function useVenueScheduleData() {
     const [slots, setSlots] = useState<ScheduleSlot[]>([]);
     const [generatedSessions, setGeneratedSessions] = useState<GeneratedSession[]>([]);
     const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [viewMode, setViewMode] = useState<'calendar' | 'template'>('template');
+    const [viewMode, setViewMode] = useState<'calendar' | 'template'>('calendar');
     
     const [venueDefaults, setVenueDefaults] = useState<VenueDefaults>({
         sport: 'Badminton',
@@ -80,7 +83,8 @@ export function useVenueScheduleData() {
                     participants_count,
                     level: slot.level,
                     gender: slot.gender,
-                    price: slot.price
+                    price: slot.price,
+                    court_id: slot.court_id
                 });
             });
             current = addDays(current, 1);
