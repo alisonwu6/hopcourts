@@ -302,3 +302,67 @@ describe('createVenueEvent', () => {
     ).rejects.toMatchObject({ status: 422 })
   })
 })
+
+// ── Unit 6: createRecurringEvents ───────────────────────────────────────────
+
+describe('createRecurringEvents', () => {
+  const mockVenue = {
+    id: 'venue-1',
+    name: 'ABC Sports Center',
+    name_display: 'ABC Sports Center',
+    address: '33 Brodie St',
+    lat: -27.47,
+    lng: 153.02,
+  }
+
+  beforeEach(() => {
+    venuesModel.getVenueById.mockResolvedValue(mockVenue)
+    sessionsModel.createSession.mockImplementation(async (input) => ({
+      id: `session-${Math.random().toString(36).slice(2, 6)}`,
+      starts_at: input.startAt,
+    }))
+  })
+
+  it('creates 4 sessions spaced 7 days apart', async () => {
+    const result = await service.createRecurringEvents('venue-1', 'user-1', {
+      sport_key: 'BASKETBALL',
+      start_at: '19:04',
+      end_at: '21:06',
+      skill_level: 'beginner',
+      gender_rule: 'mixed',
+      max_capacity: 4,
+      pricing_model: 'free',
+      fee: null,
+    })
+
+    expect(sessionsModel.createSession).toHaveBeenCalledTimes(4)
+    expect(result.created).toHaveLength(4)
+
+    // Verify dates are 7 days apart
+    const calls = sessionsModel.createSession.mock.calls
+    const firstDate = calls[0][0].startAt
+    for (let i = 1; i < 4; i++) {
+      const expectedDate = new Date(firstDate)
+      expectedDate.setDate(expectedDate.getDate() + 7 * i)
+      expect(calls[i][0].startAt).toEqual(expectedDate)
+    }
+  })
+
+  it('all sessions have is_official=true', async () => {
+    await service.createRecurringEvents('venue-1', 'user-1', {
+      sport_key: 'BASKETBALL',
+      start_at: '19:00',
+      end_at: '21:00',
+      skill_level: 'beginner',
+      gender_rule: 'mixed',
+      max_capacity: 4,
+      pricing_model: 'free',
+    })
+
+    const calls = sessionsModel.createSession.mock.calls
+    for (const [payload] of calls) {
+      expect(payload.isOfficial).toBe(true)
+      expect(payload.status).toBe('published')
+    }
+  })
+})
