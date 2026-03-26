@@ -415,3 +415,53 @@ describe('listVenueEvents', () => {
     expect(result).toEqual({})
   })
 })
+
+// ── Unit 8: getEventDetail ──────────────────────────────────────────────────
+
+describe('getEventDetail', () => {
+  it('returns event with participant_count', async () => {
+    sessionsModel.getSessionById.mockResolvedValue({
+      id: 'session-1',
+      venue_id: 'venue-1',
+      sport_key: 'BASKETBALL',
+      starts_at: '2026-04-06T19:04:00.000Z',
+      ends_at: '2026-04-06T21:06:00.000Z',
+      max_people: 4,
+      skill_level: 'beginner',
+      gender: 'mixed',
+      is_free: true,
+      price_per_person: null,
+      status: 'published',
+      description: 'test',
+    })
+    sessionsModel.getParticipantCount.mockResolvedValue(3)
+    venuesModel.getApprovedClaimByUser.mockResolvedValue({ id: 'claim-1' })
+
+    const result = await service.getEventDetail('session-1', 'user-1')
+
+    expect(result.id).toBe('session-1')
+    expect(result.participant_count).toBe(3)
+    expect(sessionsModel.getSessionById).toHaveBeenCalledWith('session-1')
+    expect(venuesModel.getApprovedClaimByUser).toHaveBeenCalledWith('venue-1', 'user-1')
+  })
+
+  it('throws notFound when session does not exist', async () => {
+    sessionsModel.getSessionById.mockResolvedValue(null)
+
+    await expect(service.getEventDetail('bad-id', 'user-1')).rejects.toMatchObject({
+      status: 404,
+    })
+  })
+
+  it('throws forbidden when user does not own the venue', async () => {
+    sessionsModel.getSessionById.mockResolvedValue({
+      id: 'session-1',
+      venue_id: 'venue-1',
+    })
+    venuesModel.getApprovedClaimByUser.mockResolvedValue(null)
+
+    await expect(service.getEventDetail('session-1', 'user-2')).rejects.toMatchObject({
+      status: 403,
+    })
+  })
+})

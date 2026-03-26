@@ -203,4 +203,14 @@ router.post('/venues/:id/sessions', async (req, res, next) => {
   }
 })
 
+// GET /events/:eventId - Get event detail (ownership checked in service)
+router.get('/events/:eventId', async (req, res, next) => {
+  try {
+    const data = await venuePortalService.getEventDetail(req.params.eventId, req.userId)
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
+
 module.exports = { venuePortalRouter: router }

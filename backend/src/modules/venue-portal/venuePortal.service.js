@@ -189,6 +189,25 @@ async function listVenueEvents(venueId, { from, to } = {}) {
   return grouped
 }
 
+async function getEventDetail(eventId, userId) {
+  const session = await sessionsModel.getSessionById(eventId)
+  if (!session) {
+    throw Errors.notFound('Event not found')
+  }
+
+  const claim = await venuesModel.getApprovedClaimByUser(session.venue_id, userId)
+  if (!claim) {
+    throw Errors.forbidden('You do not manage this venue')
+  }
+
+  const participantCount = await sessionsModel.getParticipantCount(eventId)
+
+  return {
+    ...session,
+    participant_count: participantCount,
+  }
+}
+
 module.exports = {
   getMyVenue,
   getVenueProfile,
@@ -197,4 +216,5 @@ module.exports = {
   createVenueEvent,
   createRecurringEvents,
   listVenueEvents,
+  getEventDetail,
 }
