@@ -3,6 +3,7 @@ const venuesModel = require('../../../models/venues.model')
 const sessionsModel = require('../../../models/sessions.model')
 const { verifyToken } = require('../../middleware/verifyToken')
 const { ok } = require('../../lib/respond')
+const { verifyVenueOwner } = require('../../middleware/verifyVenueOwner')
 const venuePortalService = require('../../modules/venue-portal/venuePortal.service')
 
 const router = express.Router()
@@ -26,6 +27,16 @@ router.get('/me/venues', async (req, res, next) => {
     const userId = req.userId
     const venues = await venuesModel.getManagedVenues(userId)
     res.json({ success: true, data: venues })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /venues/:id - Get venue profile with opening hours and amenities
+router.get('/venues/:id', verifyVenueOwner, async (req, res, next) => {
+  try {
+    const data = await venuePortalService.getVenueProfile(req.params.id)
+    return ok(res, data)
   } catch (err) {
     next(err)
   }

@@ -17,6 +17,20 @@ async function getMyVenue(userId) {
   }
 }
 
+async function getVenueProfile(venueId) {
+  const profile = await venuesModel.getVenueProfile(venueId)
+  const amenities = (profile && profile.amenities) || {}
+  return {
+    logo_url: (profile && profile.logo_url) || null,
+    opening_hours: (profile && profile.opening_hours) || [],
+    facilities: amenities.facilities || {},
+    playing: amenities.playing || {},
+    services: amenities.services || {},
+    supply: amenities.supply || {},
+  }
+}
+
 module.exports = {
   getMyVenue,
+  getVenueProfile,
 }

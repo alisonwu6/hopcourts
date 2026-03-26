@@ -57,3 +57,65 @@ describe('getMyVenue', () => {
     })
   })
 })
+
+// ── Unit 2: getVenueProfile ─────────────────────────────────────────────────
+
+describe('getVenueProfile', () => {
+  it('returns profile with opening_hours and amenities groups', async () => {
+    venuesModel.getVenueProfile.mockResolvedValue({
+      venue_id: 'venue-1',
+      logo_url: 'https://example.com/logo.png',
+      opening_hours: [
+        { is_open: true, open_at: '06:00', close_at: '22:00' },
+        { is_open: true, open_at: '06:00', close_at: '22:00' },
+        { is_open: false, open_at: null, close_at: null },
+        { is_open: true, open_at: '06:00', close_at: '22:00' },
+        { is_open: true, open_at: '06:00', close_at: '22:00' },
+        { is_open: true, open_at: '06:00', close_at: '22:00' },
+        { is_open: true, open_at: '06:00', close_at: '22:00' },
+      ],
+      amenities: {
+        facilities: { parking: true, restroom: true },
+        playing: { lighting: true },
+        services: { coaching: false },
+        supply: { water: true },
+      },
+    })
+
+    const result = await service.getVenueProfile('venue-1')
+
+    expect(result.logo_url).toBe('https://example.com/logo.png')
+    expect(result.opening_hours).toHaveLength(7)
+    expect(result.facilities).toEqual({ parking: true, restroom: true })
+    expect(result.playing).toEqual({ lighting: true })
+    expect(result.services).toEqual({ coaching: false })
+    expect(result.supply).toEqual({ water: true })
+  })
+
+  it('returns empty defaults when profile has no amenities', async () => {
+    venuesModel.getVenueProfile.mockResolvedValue({
+      venue_id: 'venue-1',
+      logo_url: null,
+      opening_hours: null,
+      amenities: null,
+    })
+
+    const result = await service.getVenueProfile('venue-1')
+
+    expect(result.opening_hours).toEqual([])
+    expect(result.facilities).toEqual({})
+    expect(result.playing).toEqual({})
+    expect(result.services).toEqual({})
+    expect(result.supply).toEqual({})
+  })
+
+  it('returns empty defaults when no profile exists', async () => {
+    venuesModel.getVenueProfile.mockResolvedValue(null)
+
+    const result = await service.getVenueProfile('venue-1')
+
+    expect(result.logo_url).toBeNull()
+    expect(result.opening_hours).toEqual([])
+    expect(result.facilities).toEqual({})
+  })
+})
