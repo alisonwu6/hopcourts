@@ -4,6 +4,7 @@ jest.mock('../../../../models/venues.model')
 jest.mock('../../../../models/sessions.model')
 
 const venuesModel = require('../../../../models/venues.model')
+const sessionsModel = require('../../../../models/sessions.model')
 const { Errors } = require('../../../lib/errors')
 
 let service
@@ -200,5 +201,104 @@ describe('getVenueStats', () => {
       total_players: 126,
     })
     expect(venuesModel.getVenueStats).toHaveBeenCalledWith('venue-1')
+  })
+})
+
+// ── Unit 5: createVenueEvent ────────────────────────────────────────────────
+
+describe('createVenueEvent', () => {
+  const mockVenue = {
+    id: 'venue-1',
+    name: 'ABC Sports Center',
+    name_display: 'ABC Sports Center',
+    address: '33 Brodie St, Brisbane QLD 4000',
+    lat: -27.47,
+    lng: 153.02,
+  }
+
+  beforeEach(() => {
+    venuesModel.getVenueById.mockResolvedValue(mockVenue)
+    sessionsModel.createSession.mockResolvedValue({ id: 'session-1' })
+  })
+
+  it('maps event fields to session fields correctly', async () => {
+    await service.createVenueEvent('venue-1', 'user-1', {
+      title: 'Friday Basketball',
+      sport_key: 'BASKETBALL',
+      date: '21/03/2026',
+      start_at: '19:04',
+      end_at: '21:06',
+      note: 'Bring your own ball',
+      max_capacity: 4,
+      pricing_model: 'free',
+      fee: null,
+      skill_level: 'beginner',
+      gender_rule: 'mixed',
+    })
+
+    expect(sessionsModel.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hostUserId: 'user-1',
+        venueId: 'venue-1',
+        sportKey: 'BASKETBALL',
+        title: 'Friday Basketball',
+        description: 'Bring your own ball',
+        startAt: new Date('2026-03-21T19:04:00.000Z'),
+        endAt: new Date('2026-03-21T21:06:00.000Z'),
+        capacity: 4,
+        skillLevel: 'beginner',
+        gender: 'mixed',
+        isFree: true,
+        pricePerPerson: null,
+        isOfficial: true,
+        status: 'published',
+        visibility: 'public',
+        locationName: 'ABC Sports Center',
+        address: '33 Brodie St, Brisbane QLD 4000',
+        lat: -27.47,
+        lng: 153.02,
+      })
+    )
+  })
+
+  it('maps pricing_model=paid correctly', async () => {
+    await service.createVenueEvent('venue-1', 'user-1', {
+      sport_key: 'BASKETBALL',
+      date: '21/03/2026',
+      start_at: '19:00',
+      end_at: '21:00',
+      max_capacity: 4,
+      pricing_model: 'paid',
+      fee: 15,
+      skill_level: 'beginner',
+      gender_rule: 'mixed',
+    })
+
+    expect(sessionsModel.createSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isFree: false,
+        pricePerPerson: 15,
+      })
+    )
+  })
+
+  it('throws validation error when sport_key is missing', async () => {
+    await expect(
+      service.createVenueEvent('venue-1', 'user-1', {
+        date: '21/03/2026',
+        start_at: '19:00',
+        end_at: '21:00',
+      })
+    ).rejects.toMatchObject({ status: 422 })
+  })
+
+  it('throws validation error when date is missing', async () => {
+    await expect(
+      service.createVenueEvent('venue-1', 'user-1', {
+        sport_key: 'BASKETBALL',
+        start_at: '19:00',
+        end_at: '21:00',
+      })
+    ).rejects.toMatchObject({ status: 422 })
   })
 })

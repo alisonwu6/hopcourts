@@ -140,7 +140,17 @@ router.patch('/venues/:id/profile', async (req, res, next) => {
   }
 })
 
-// POST /venues/:id/sessions - Create Official Session
+// POST /venues/:id/events - Create a single venue event
+router.post('/venues/:id/events', verifyVenueOwner, async (req, res, next) => {
+  try {
+    const session = await venuePortalService.createVenueEvent(req.params.id, req.userId, req.body)
+    return ok(res, session)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /venues/:id/sessions - Create Official Session (legacy)
 router.post('/venues/:id/sessions', async (req, res, next) => {
   try {
     const userId = req.userId

@@ -53,9 +53,56 @@ async function getVenueStats(venueId) {
   return venuesModel.getVenueStats(venueId)
 }
 
+function parseDateAndTime(dateStr, timeStr) {
+  // dateStr: "DD/MM/YYYY", timeStr: "HH:mm"
+  const [day, month, year] = dateStr.split('/')
+  return new Date(`${year}-${month}-${day}T${timeStr}:00.000Z`)
+}
+
+async function createVenueEvent(venueId, userId, eventData) {
+  if (!eventData.sport_key) {
+    throw Errors.validation('sport_key is required')
+  }
+  if (!eventData.date) {
+    throw Errors.validation('date is required')
+  }
+  if (!eventData.start_at) {
+    throw Errors.validation('start_at is required')
+  }
+
+  const venue = await venuesModel.getVenueById(venueId)
+  const isFree = eventData.pricing_model !== 'paid'
+
+  const payload = {
+    hostUserId: userId,
+    venueId,
+    sportKey: eventData.sport_key,
+    title: eventData.title || null,
+    description: eventData.note || null,
+    startAt: parseDateAndTime(eventData.date, eventData.start_at),
+    endAt: eventData.end_at ? parseDateAndTime(eventData.date, eventData.end_at) : null,
+    capacity: eventData.max_capacity || null,
+    skillLevel: eventData.skill_level || 'any',
+    gender: eventData.gender_rule || 'mixed',
+    isFree,
+    pricePerPerson: isFree ? null : (eventData.fee || null),
+    priceMode: isFree ? 'total' : 'person',
+    isOfficial: true,
+    status: 'published',
+    visibility: 'public',
+    locationName: venue.name_display || venue.name,
+    address: venue.address,
+    lat: venue.lat,
+    lng: venue.lng,
+  }
+
+  return sessionsModel.createSession(payload)
+}
+
 module.exports = {
   getMyVenue,
   getVenueProfile,
   updateVenueProfile,
   getVenueStats,
+  createVenueEvent,
 }
