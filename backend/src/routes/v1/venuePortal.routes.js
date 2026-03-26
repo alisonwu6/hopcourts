@@ -92,6 +92,19 @@ router.get('/venues/:id/dashboard', async (req, res, next) => {
   }
 })
 
+// GET /venues/:id/events - List venue events grouped by date
+router.get('/venues/:id/events', verifyVenueOwner, async (req, res, next) => {
+  try {
+    const data = await venuePortalService.listVenueEvents(req.params.id, {
+      from: req.query.from,
+      to: req.query.to,
+    })
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // POST /venues/:id/recurring-events - Create recurring events for next 4 weeks
 router.post('/venues/:id/recurring-events', verifyVenueOwner, async (req, res, next) => {
   try {

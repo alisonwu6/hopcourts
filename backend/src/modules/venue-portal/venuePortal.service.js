@@ -168,6 +168,27 @@ async function createRecurringEvents(venueId, userId, eventData) {
   return { created, errors }
 }
 
+async function listVenueEvents(venueId, { from, to } = {}) {
+  const sessions = await sessionsModel.listVenueSessions(venueId, { from, to })
+
+  const grouped = {}
+  for (const session of sessions) {
+    const date = new Date(session.starts_at)
+    const dateKey = `${String(date.getUTCDate()).padStart(2, '0')}/${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`
+    const timeStr = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`
+
+    if (!grouped[dateKey]) grouped[dateKey] = []
+    grouped[dateKey].push({
+      event_id: session.id,
+      sport: session.sport_key,
+      start_at: timeStr,
+      participant_count: session.participant_count,
+    })
+  }
+
+  return grouped
+}
+
 module.exports = {
   getMyVenue,
   getVenueProfile,
@@ -175,4 +196,5 @@ module.exports = {
   getVenueStats,
   createVenueEvent,
   createRecurringEvents,
+  listVenueEvents,
 }

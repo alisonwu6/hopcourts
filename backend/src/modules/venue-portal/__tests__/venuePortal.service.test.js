@@ -366,3 +366,52 @@ describe('createRecurringEvents', () => {
     }
   })
 })
+
+// ── Unit 7: listVenueEvents ─────────────────────────────────────────────────
+
+describe('listVenueEvents', () => {
+  it('groups sessions by date key (DD/MM/YYYY)', async () => {
+    sessionsModel.listVenueSessions.mockResolvedValue([
+      {
+        id: 'session-1',
+        sport_key: 'BASKETBALL',
+        starts_at: '2026-04-06T18:12:00.000Z',
+        participant_count: 3,
+      },
+      {
+        id: 'session-2',
+        sport_key: 'BADMINTON',
+        starts_at: '2026-04-06T20:00:00.000Z',
+        participant_count: 1,
+      },
+      {
+        id: 'session-3',
+        sport_key: 'BASKETBALL',
+        starts_at: '2026-04-13T18:12:00.000Z',
+        participant_count: 0,
+      },
+    ])
+
+    const result = await service.listVenueEvents('venue-1', {
+      from: '2026-04-01',
+      to: '2026-04-30',
+    })
+
+    expect(result['06/04/2026']).toHaveLength(2)
+    expect(result['13/04/2026']).toHaveLength(1)
+    expect(result['06/04/2026'][0]).toEqual({
+      event_id: 'session-1',
+      sport: 'BASKETBALL',
+      start_at: '18:12',
+      participant_count: 3,
+    })
+  })
+
+  it('returns empty object when no events in range', async () => {
+    sessionsModel.listVenueSessions.mockResolvedValue([])
+
+    const result = await service.listVenueEvents('venue-1', { from: '2026-04-01', to: '2026-04-30' })
+
+    expect(result).toEqual({})
+  })
+})

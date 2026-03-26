@@ -524,6 +524,31 @@ async function listSessionsByRelations({
   return rows
 }
 
+async function listVenueSessions(venueId, { from, to } = {}) {
+  const conditions = ['s.venue_id = $1']
+  const params = [venueId]
+  let idx = params.length
+
+  if (from) {
+    params.push(from)
+    conditions.push(`s.starts_at >= $${++idx}`)
+  }
+  if (to) {
+    params.push(to)
+    conditions.push(`s.starts_at <= $${++idx}`)
+  }
+
+  const sql = `
+    SELECT s.id, s.sport_key, s.starts_at, s.ends_at, s.title, s.status, s.max_people,
+      (SELECT COUNT(*)::int FROM public.session_participants WHERE session_id = s.id) AS participant_count
+    FROM public.sessions s
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY s.starts_at ASC
+  `
+  const { rows } = await query(sql, params)
+  return rows
+}
+
 module.exports = {
   listUpcomingSessions,
   listSessionsByUserInterests,
@@ -539,4 +564,5 @@ module.exports = {
   getParticipantCount,
   deleteSession,
   countHostedSessions,
+  listVenueSessions,
 }
