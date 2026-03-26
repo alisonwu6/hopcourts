@@ -2,11 +2,23 @@ const express = require('express')
 const venuesModel = require('../../../models/venues.model')
 const sessionsModel = require('../../../models/sessions.model')
 const { verifyToken } = require('../../middleware/verifyToken')
+const { ok } = require('../../lib/respond')
+const venuePortalService = require('../../modules/venue-portal/venuePortal.service')
 
 const router = express.Router()
 
 // Protection: Authentication required
 router.use(verifyToken)
+
+// GET /me - Get the logged-in venue owner's primary venue
+router.get('/me', async (req, res, next) => {
+  try {
+    const data = await venuePortalService.getMyVenue(req.userId)
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
 
 // GET /me/venues - List all venues managed by the logged-in user
 router.get('/me/venues', async (req, res, next) => {
