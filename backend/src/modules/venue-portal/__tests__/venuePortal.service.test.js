@@ -119,3 +119,65 @@ describe('getVenueProfile', () => {
     expect(result.facilities).toEqual({})
   })
 })
+
+// ── Unit 3: updateVenueProfile ──────────────────────────────────────────────
+
+describe('updateVenueProfile', () => {
+  it('packs amenities and calls upsertVenueProfile', async () => {
+    venuesModel.upsertVenueProfile.mockResolvedValue({ venue_id: 'venue-1' })
+
+    const data = {
+      logo_url: 'https://example.com/logo.png',
+      opening_hours: Array(7).fill({ is_open: true, open_at: '06:00', close_at: '22:00' }),
+      facilities: { parking: true, restroom: true },
+      playing: { lighting: true },
+      services: { coaching: false },
+      supply: { water: true },
+    }
+
+    await service.updateVenueProfile('venue-1', data)
+
+    expect(venuesModel.upsertVenueProfile).toHaveBeenCalledWith('venue-1', {
+      logo_url: 'https://example.com/logo.png',
+      opening_hours: data.opening_hours,
+      amenities: {
+        facilities: { parking: true, restroom: true },
+        playing: { lighting: true },
+        services: { coaching: false },
+        supply: { water: true },
+      },
+    })
+  })
+
+  it('throws validation error when opening_hours is not array of 7', async () => {
+    const data = {
+      opening_hours: [{ is_open: true, open_at: '06:00', close_at: '22:00' }],
+    }
+
+    await expect(service.updateVenueProfile('venue-1', data)).rejects.toMatchObject({
+      status: 422,
+    })
+  })
+
+  it('allows update without opening_hours', async () => {
+    venuesModel.upsertVenueProfile.mockResolvedValue({ venue_id: 'venue-1' })
+
+    const data = {
+      logo_url: 'https://example.com/new-logo.png',
+      facilities: { parking: true },
+    }
+
+    await service.updateVenueProfile('venue-1', data)
+
+    expect(venuesModel.upsertVenueProfile).toHaveBeenCalledWith('venue-1', {
+      logo_url: 'https://example.com/new-logo.png',
+      opening_hours: undefined,
+      amenities: {
+        facilities: { parking: true },
+        playing: undefined,
+        services: undefined,
+        supply: undefined,
+      },
+    })
+  })
+})

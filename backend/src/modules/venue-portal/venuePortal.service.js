@@ -30,7 +30,27 @@ async function getVenueProfile(venueId) {
   }
 }
 
+async function updateVenueProfile(venueId, data) {
+  if (data.opening_hours && (!Array.isArray(data.opening_hours) || data.opening_hours.length !== 7)) {
+    throw Errors.validation('opening_hours must be an array of exactly 7 entries (Monday–Sunday)')
+  }
+
+  const payload = {
+    logo_url: data.logo_url,
+    opening_hours: data.opening_hours,
+    amenities: {
+      facilities: data.facilities,
+      playing: data.playing,
+      services: data.services,
+      supply: data.supply,
+    },
+  }
+
+  return venuesModel.upsertVenueProfile(venueId, payload)
+}
+
 module.exports = {
   getMyVenue,
   getVenueProfile,
+  updateVenueProfile,
 }

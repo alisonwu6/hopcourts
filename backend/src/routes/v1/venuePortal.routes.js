@@ -42,6 +42,16 @@ router.get('/venues/:id', verifyVenueOwner, async (req, res, next) => {
   }
 })
 
+// PUT /venues/:id - Update venue profile (opening hours, amenities, logo)
+router.put('/venues/:id', verifyVenueOwner, async (req, res, next) => {
+  try {
+    const result = await venuePortalService.updateVenueProfile(req.params.id, req.body)
+    return ok(res, result)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // GET /venues/:id/dashboard - Get stats and info for a specific venue
 router.get('/venues/:id/dashboard', async (req, res, next) => {
   try {
