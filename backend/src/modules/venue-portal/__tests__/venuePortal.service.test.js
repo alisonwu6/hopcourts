@@ -465,3 +465,72 @@ describe('getEventDetail', () => {
     })
   })
 })
+
+// ── Unit 9: updateVenueEvent ────────────────────────────────────────────────
+
+describe('updateVenueEvent', () => {
+  beforeEach(() => {
+    sessionsModel.getSessionById.mockResolvedValue({
+      id: 'session-1',
+      venue_id: 'venue-1',
+    })
+    venuesModel.getApprovedClaimByUser.mockResolvedValue({ id: 'claim-1' })
+    sessionsModel.updateSession.mockResolvedValue({ id: 'session-1', sport_key: 'BASKETBALL' })
+  })
+
+  it('maps event fields and calls updateSession', async () => {
+    await service.updateVenueEvent('session-1', 'user-1', {
+      sport_key: 'BASKETBALL',
+      start_at: '19:04',
+      end_at: '21:06',
+      skill_level: 'beginner',
+      gender_rule: 'mixed',
+      max_capacity: 4,
+      pricing_model: 'free',
+      fee: null,
+    })
+
+    expect(sessionsModel.updateSession).toHaveBeenCalledWith(
+      'session-1',
+      expect.objectContaining({
+        sportKey: 'BASKETBALL',
+        skillLevel: 'beginner',
+        gender: 'mixed',
+        maxPeople: 4,
+        isFree: true,
+        pricePerPerson: null,
+      })
+    )
+  })
+
+  it('throws notFound when session does not exist', async () => {
+    sessionsModel.getSessionById.mockResolvedValue(null)
+
+    await expect(
+      service.updateVenueEvent('bad-id', 'user-1', { sport_key: 'BASKETBALL' })
+    ).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('throws forbidden when user does not own the venue', async () => {
+    venuesModel.getApprovedClaimByUser.mockResolvedValue(null)
+
+    await expect(
+      service.updateVenueEvent('session-1', 'user-2', { sport_key: 'BASKETBALL' })
+    ).rejects.toMatchObject({ status: 403 })
+  })
+
+  it('maps pricing_model=paid correctly', async () => {
+    await service.updateVenueEvent('session-1', 'user-1', {
+      pricing_model: 'paid',
+      fee: 20,
+    })
+
+    expect(sessionsModel.updateSession).toHaveBeenCalledWith(
+      'session-1',
+      expect.objectContaining({
+        isFree: false,
+        pricePerPerson: 20,
+      })
+    )
+  })
+})

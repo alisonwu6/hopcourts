@@ -208,6 +208,43 @@ async function getEventDetail(eventId, userId) {
   }
 }
 
+async function updateVenueEvent(eventId, userId, eventData) {
+  const session = await sessionsModel.getSessionById(eventId)
+  if (!session) {
+    throw Errors.notFound('Event not found')
+  }
+
+  const claim = await venuesModel.getApprovedClaimByUser(session.venue_id, userId)
+  if (!claim) {
+    throw Errors.forbidden('You do not manage this venue')
+  }
+
+  const isFree = eventData.pricing_model !== undefined
+    ? eventData.pricing_model !== 'paid'
+    : undefined
+
+  const patch = {
+    sportKey: eventData.sport_key,
+    startAt: eventData.start_at !== undefined && eventData.date
+      ? parseDateAndTime(eventData.date, eventData.start_at)
+      : undefined,
+    endAt: eventData.end_at !== undefined && eventData.date
+      ? parseDateAndTime(eventData.date, eventData.end_at)
+      : undefined,
+    skillLevel: eventData.skill_level,
+    gender: eventData.gender_rule,
+    maxPeople: eventData.max_capacity,
+    title: eventData.title,
+    description: eventData.note,
+    isFree,
+    pricePerPerson: isFree === undefined
+      ? undefined
+      : isFree ? null : (eventData.fee || null),
+  }
+
+  return sessionsModel.updateSession(eventId, patch)
+}
+
 module.exports = {
   getMyVenue,
   getVenueProfile,
@@ -217,4 +254,5 @@ module.exports = {
   createRecurringEvents,
   listVenueEvents,
   getEventDetail,
+  updateVenueEvent,
 }

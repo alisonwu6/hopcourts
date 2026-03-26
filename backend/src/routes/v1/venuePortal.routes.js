@@ -213,4 +213,14 @@ router.get('/events/:eventId', async (req, res, next) => {
   }
 })
 
+// PUT /events/:eventId - Update event (ownership checked in service)
+router.put('/events/:eventId', async (req, res, next) => {
+  try {
+    const data = await venuePortalService.updateVenueEvent(req.params.eventId, req.userId, req.body)
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
+
 module.exports = { venuePortalRouter: router }
