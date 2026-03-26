@@ -49,8 +49,13 @@ async function updateVenueProfile(venueId, data) {
   return venuesModel.upsertVenueProfile(venueId, payload)
 }
 
+async function getVenueStats(venueId) {
+  return venuesModel.getVenueStats(venueId)
+}
+
 module.exports = {
   getMyVenue,
   getVenueProfile,
   updateVenueProfile,
+  getVenueStats,
 }

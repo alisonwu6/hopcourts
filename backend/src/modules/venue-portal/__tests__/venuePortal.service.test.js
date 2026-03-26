@@ -181,3 +181,24 @@ describe('updateVenueProfile', () => {
     })
   })
 })
+
+// ── Unit 4: getVenueStats ───────────────────────────────────────────────────
+
+describe('getVenueStats', () => {
+  it('returns stats from model', async () => {
+    venuesModel.getVenueStats.mockResolvedValue({
+      active_users: 3,
+      participants_of_the_week: 42,
+      total_players: 126,
+    })
+
+    const result = await service.getVenueStats('venue-1')
+
+    expect(result).toEqual({
+      active_users: 3,
+      participants_of_the_week: 42,
+      total_players: 126,
+    })
+    expect(venuesModel.getVenueStats).toHaveBeenCalledWith('venue-1')
+  })
+})

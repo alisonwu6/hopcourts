@@ -52,6 +52,16 @@ router.put('/venues/:id', verifyVenueOwner, async (req, res, next) => {
   }
 })
 
+// GET /venues/:id/stats - Venue dashboard metrics
+router.get('/venues/:id/stats', verifyVenueOwner, async (req, res, next) => {
+  try {
+    const data = await venuePortalService.getVenueStats(req.params.id)
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // GET /venues/:id/dashboard - Get stats and info for a specific venue
 router.get('/venues/:id/dashboard', async (req, res, next) => {
   try {

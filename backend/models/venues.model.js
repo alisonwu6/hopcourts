@@ -341,6 +341,27 @@ async function upsertVenueProfile(venueId, data) {
   return rows[0]
 }
 
+async function getVenueStats(venueId) {
+  const sql = `
+    SELECT
+      (SELECT COUNT(DISTINCT user_id)::int
+       FROM public.check_ins
+       WHERE venue_id = $1 AND checked_in_at >= NOW() - INTERVAL '7 days') AS active_users,
+      (SELECT COUNT(*)::int
+       FROM public.session_participants sp
+       JOIN public.sessions s ON sp.session_id = s.id
+       WHERE s.venue_id = $1
+         AND s.starts_at >= date_trunc('week', NOW())
+         AND s.starts_at < date_trunc('week', NOW()) + INTERVAL '7 days') AS participants_of_the_week,
+      (SELECT COUNT(DISTINCT sp.user_id)::int
+       FROM public.session_participants sp
+       JOIN public.sessions s ON sp.session_id = s.id
+       WHERE s.venue_id = $1) AS total_players
+  `
+  const { rows } = await query(sql, [venueId])
+  return rows[0]
+}
+
 module.exports = {
   createVenue,
   findNearbyVenues,
@@ -361,5 +382,6 @@ module.exports = {
   // C1 Export
   getManagedVenues,
   getVenueProfile,
-  upsertVenueProfile
+  upsertVenueProfile,
+  getVenueStats,
 }
