@@ -311,9 +311,9 @@ async function getVenueProfile(venueId) {
 async function upsertVenueProfile(venueId, data) {
   const sql = `
     INSERT INTO public.venue_profiles (
-      venue_id, logo_url, cover_url, description, social_links, opening_hours, images, updated_at
+      venue_id, logo_url, cover_url, description, social_links, opening_hours, images, amenities, updated_at
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, NOW()
+      $1, $2, $3, $4, $5, $6, $7, $8, NOW()
     )
     ON CONFLICT (venue_id) DO UPDATE SET
       logo_url = COALESCE($2, public.venue_profiles.logo_url),
@@ -322,6 +322,7 @@ async function upsertVenueProfile(venueId, data) {
       social_links = COALESCE($5, public.venue_profiles.social_links),
       opening_hours = COALESCE($6, public.venue_profiles.opening_hours),
       images = COALESCE($7, public.venue_profiles.images),
+      amenities = COALESCE($8, public.venue_profiles.amenities),
       updated_at = NOW()
     RETURNING *
   `
@@ -332,10 +333,32 @@ async function upsertVenueProfile(venueId, data) {
     data.description || null,
     data.social_links ? JSON.stringify(data.social_links) : null,
     data.opening_hours ? JSON.stringify(data.opening_hours) : null,
-    data.images ? JSON.stringify(data.images) : null
+    data.images ? JSON.stringify(data.images) : null,
+    data.amenities ? JSON.stringify(data.amenities) : null,
   ]
-  
+
   const { rows } = await query(sql, params)
+  return rows[0]
+}
+
+async function getVenueStats(venueId) {
+  const sql = `
+    SELECT
+      (SELECT COUNT(DISTINCT user_id)::int
+       FROM public.check_ins
+       WHERE venue_id = $1 AND checked_in_at >= NOW() - INTERVAL '7 days') AS active_users,
+      (SELECT COUNT(*)::int
+       FROM public.session_participants sp
+       JOIN public.sessions s ON sp.session_id = s.id
+       WHERE s.venue_id = $1
+         AND s.starts_at >= date_trunc('week', NOW())
+         AND s.starts_at < date_trunc('week', NOW()) + INTERVAL '7 days') AS participants_of_the_week,
+      (SELECT COUNT(DISTINCT sp.user_id)::int
+       FROM public.session_participants sp
+       JOIN public.sessions s ON sp.session_id = s.id
+       WHERE s.venue_id = $1) AS total_players
+  `
+  const { rows } = await query(sql, [venueId])
   return rows[0]
 }
 
@@ -359,5 +382,6 @@ module.exports = {
   // C1 Export
   getManagedVenues,
   getVenueProfile,
-  upsertVenueProfile
+  upsertVenueProfile,
+  getVenueStats,
 }
