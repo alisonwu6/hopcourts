@@ -39,6 +39,7 @@ export function VenueSchedulePage() {
 
     // 3. Page-level UI states (Container owns these)
     const [venue, setVenue] = useState<ManagedVenue | null>(null);
+    const [courts, setCourts] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -52,9 +53,17 @@ export function VenueSchedulePage() {
 
     const fetchData = async () => {
         setLoading(true);
-        const res = await venuePortalService.getVenueDashboard(venueId!);
-        if (res.success && res.data) {
-            setVenue(res.data.venue);
+        // Fetch dashboard and profile (for courts)
+        const [dashRes, profileRes] = await Promise.all([
+            venuePortalService.getVenueDashboard(venueId!),
+            venuePortalService.getVenueProfile(venueId!)
+        ]);
+
+        if (dashRes.success && dashRes.data) {
+            setVenue(dashRes.data.venue);
+        }
+        if (profileRes.success && profileRes.data) {
+            setCourts(profileRes.data.courts || []);
         }
         setLoading(false);
     };
@@ -88,6 +97,7 @@ export function VenueSchedulePage() {
             SPORTS={SPORTS}
             LEVELS={LEVELS}
             GENDERS={GENDERS}
+            courts={courts}
             MOCK_PARTICIPANTS={MOCK_PARTICIPANTS}
             setSelectedSession={(session) => {
                 scheduleData.setSelectedSession(session);

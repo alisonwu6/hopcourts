@@ -61,9 +61,10 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-40 bg-slate-900/10 backdrop-blur-[2px] font-sans">
-            <div className="fixed right-0 top-0 bottom-0 w-full md:w-[420px] bg-white shadow-2xl z-50 animate-in slide-in-from-right duration-300 flex flex-col p-0">
-                {/* Drawer Header */}
+        <div className="fixed inset-0 z-[100] bg-slate-900/10 backdrop-blur-[2px] font-sans flex justify-center">
+            <div className="w-full max-w-screen-md relative h-full">
+                <div className="absolute right-0 top-0 bottom-0 w-full md:w-[420px] bg-white shadow-2xl z-[110] animate-in slide-in-from-right duration-300 flex flex-col p-0">
+                    {/* Drawer Header */}
                 <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/20 backdrop-blur-sm">
                     <div className="flex items-center gap-3">
                         {showParticipants && (
@@ -237,6 +238,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                         </div>
                     )}
                 </div>
+            </div>
             </div>
         </div>
     );

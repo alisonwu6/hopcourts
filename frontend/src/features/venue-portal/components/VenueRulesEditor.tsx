@@ -12,6 +12,7 @@ interface ScheduleSlot {
     level: string;
     gender: string;
     price: number;
+    court_id?: string;
 }
 
 interface VenueDefaults {
@@ -20,6 +21,7 @@ interface VenueDefaults {
     level: string;
     gender: string;
     price: number;
+    court_id?: string;
 }
 
 interface RulesEditorProps {
@@ -37,6 +39,7 @@ interface RulesEditorProps {
     SPORTS: string[];
     LEVELS: string[];
     GENDERS: string[];
+    courts: { id: string; name: string }[];
 }
 
 export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
@@ -53,24 +56,31 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
     DAYS,
     SPORTS,
     LEVELS,
-    GENDERS
+    GENDERS,
+    courts
 }) => {
     return (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in slide-in-from-bottom-2 duration-300 font-sans">
+        <div className="w-full space-y-6 animate-in slide-in-from-bottom-2 duration-300 font-sans">
             {/* Default Template Settings */}
             <div className="bg-white rounded-3xl p-7 border border-slate-100 shadow-xl shadow-slate-200/50">
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100/50 shadow-inner">
-                        <Settings className="w-5 h-5 text-indigo-500" />
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100/50 shadow-inner">
+                            <Settings className="w-5 h-5 text-indigo-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-black text-slate-900 text-sm tracking-tight uppercase">Quick Prep Rules</h3>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Templates for new slots</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-black text-slate-900 text-sm tracking-tight uppercase">Quick Prep Rules</h3>
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Templates for new slots</p>
+                    
+                    <div className="hidden md:flex flex-col items-end text-right">
+                        <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">System Mode</div>
+                        <div className="text-[10px] text-indigo-500 font-extrabold tracking-tight uppercase bg-indigo-50/50 px-2 py-0.5 rounded-full border border-indigo-100/30">B2B Auto-Cluster Active</div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    {/* Fields ... */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Sport</label>
                         <select 
@@ -82,25 +92,43 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Level</label>
+                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Spot / Court</label>
+                        <select 
+                            value={venueDefaults.court_id} 
+                            onChange={e => setVenueDefaults({...venueDefaults, court_id: e.target.value})} 
+                            className="w-full bg-slate-50 border border-slate-200/50 rounded-xl px-3 py-2 text-xs font-black text-slate-700 tracking-tight focus:border-indigo-500 hover:border-slate-300 transition-all outline-none"
+                        >
+                            <option value="">No Default</option>
+                            {courts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Level</label>
                         <select value={venueDefaults.level} onChange={e => setVenueDefaults({...venueDefaults, level: e.target.value})} className="w-full bg-slate-50 border border-slate-200/50 rounded-xl px-3 py-2 text-xs font-black text-slate-700 tracking-tight focus:border-indigo-500 hover:border-slate-300 transition-all outline-none">
                             {LEVELS.map(l => <option key={l}>{l}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Gender</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Gender</label>
                         <select value={venueDefaults.gender} onChange={e => setVenueDefaults({...venueDefaults, gender: e.target.value})} className="w-full bg-slate-50 border border-slate-200/50 rounded-xl px-3 py-2 text-xs font-black text-slate-700 tracking-tight focus:border-indigo-500 hover:border-slate-300 transition-all outline-none">
                             {GENDERS.map(g => <option key={g}>{g}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Capacity</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Cap.</label>
                         <input type="number" value={venueDefaults.max_participants} onChange={e => setVenueDefaults({...venueDefaults, max_participants: parseInt(e.target.value)})} className="w-full bg-slate-50 border border-slate-200/50 rounded-xl px-3 py-2 text-xs font-black text-slate-700 tracking-tight focus:border-indigo-500" />
                     </div>
                     <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Price (A$)</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Fee</label>
                         <input type="number" value={venueDefaults.price} onChange={e => setVenueDefaults({...venueDefaults, price: parseFloat(e.target.value)})} className="w-full bg-slate-50 border border-slate-200/50 rounded-xl px-3 py-2 text-xs font-black text-slate-700 tracking-tight focus:border-indigo-500" />
                     </div>
+                </div>
+                
+                <div className="mt-6 pt-6 border-t border-slate-50">
+                    <p className="text-[11px] text-slate-400 font-semibold leading-relaxed max-w-2xl">
+                        <span className="text-indigo-600 font-bold uppercase tracking-widest text-[9px] mr-2">Smart Generation:</span>
+                        Syncing will auto-generate session instances for the next 28 days based on your recurring rules.
+                    </p>
                 </div>
             </div>
 
@@ -143,34 +171,45 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                             <div key={slot.id} className="bg-slate-50/50 rounded-[1.5rem] p-6 border border-slate-100 hover:border-indigo-100 hover:bg-white hover:shadow-xl hover:shadow-indigo-50/50 transition-all duration-300">
                                 <div className="space-y-5">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div>
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Sport Category</label>
-                                            <select
-                                                value={slot.sport}
-                                                onChange={(e) => handleUpdateSlot(slot.id, { sport: e.target.value })}
-                                                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm focus:border-indigo-500 transition-colors"
-                                            >
-                                                {SPORTS.map(s => <option key={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Session Timing</label>
-                                            <div className="flex items-center gap-1.5">
-                                                <input type="time" value={slot.start_time} onChange={e => handleUpdateSlot(slot.id, { start_time: e.target.value })} className={`flex-1 bg-white border rounded-xl px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm ${!slot.start_time ? 'border-amber-200 bg-amber-50/10' : 'border-slate-100'}`} />
-                                                <span className="text-slate-300 font-bold">—</span>
-                                                <input type="time" value={slot.end_time} onChange={e => handleUpdateSlot(slot.id, { end_time: e.target.value })} className={`flex-1 bg-white border rounded-xl px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm ${!slot.end_time ? 'border-amber-200 bg-amber-50/10' : 'border-slate-100'}`} />
-                                            </div>
-                                        </div>
-                                        <div className="flex items-end gap-3">
-                                            <div className="flex-1">
-                                                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Max Cap.</label>
-                                                <input type="number" value={slot.max_participants} onChange={e => handleUpdateSlot(slot.id, { max_participants: parseInt(e.target.value) })} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition-all" />
-                                            </div>
-                                            <VenueButton variant="danger" size="md" onClick={() => handleDeleteSlot(slot.id)} icon={<Trash2 className="w-4 h-4" />} />
-                                        </div>
+                                         <div>
+                                             <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Sport Category</label>
+                                             <select
+                                                 value={slot.sport}
+                                                 onChange={(e) => handleUpdateSlot(slot.id, { sport: e.target.value })}
+                                                 className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm focus:border-indigo-500 transition-colors"
+                                             >
+                                                 {SPORTS.map(s => <option key={s}>{s}</option>)}
+                                             </select>
+                                         </div>
+                                         <div>
+                                             <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Session Timing</label>
+                                             <div className="flex items-center gap-1.5">
+                                                 <input type="time" value={slot.start_time} onChange={e => handleUpdateSlot(slot.id, { start_time: e.target.value })} className={`flex-1 bg-white border rounded-xl px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm ${!slot.start_time ? 'border-amber-200 bg-amber-50/10' : 'border-slate-100'}`} />
+                                                 <span className="text-slate-300 font-bold">—</span>
+                                                 <input type="time" value={slot.end_time} onChange={e => handleUpdateSlot(slot.id, { end_time: e.target.value })} className={`flex-1 bg-white border rounded-xl px-3 py-2.5 text-xs font-black text-slate-700 shadow-sm ${!slot.end_time ? 'border-amber-200 bg-amber-50/10' : 'border-slate-100'}`} />
+                                             </div>
+                                         </div>
+                                         <div className="flex items-end gap-3">
+                                             <div className="flex-1">
+                                                 <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Max Cap.</label>
+                                                 <input type="number" value={slot.max_participants} onChange={e => handleUpdateSlot(slot.id, { max_participants: parseInt(e.target.value) })} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition-all" />
+                                             </div>
+                                             <VenueButton variant="danger" size="md" onClick={() => handleDeleteSlot(slot.id)} icon={<Trash2 className="w-4 h-4" />} />
+                                         </div>
                                     </div>
                                     
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-5 border-t border-slate-100/80">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-5 border-t border-slate-100/80">
+                                        <div>
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Spot / Court</label>
+                                            <select
+                                                value={slot.court_id}
+                                                onChange={(e) => handleUpdateSlot(slot.id, { court_id: e.target.value })}
+                                                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm focus:border-indigo-500 transition-colors"
+                                            >
+                                                <option value="">No Spot Assigned</option>
+                                                {courts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            </select>
+                                        </div>
                                         <div>
                                             <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Skill Tier</label>
                                             <select value={slot.level} onChange={e => handleUpdateSlot(slot.id, { level: e.target.value })} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-black text-slate-600 shadow-sm">
@@ -202,56 +241,11 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                         )}
                     </div>
 
-                    <div className="mt-12 flex flex-col items-end gap-3 border-t border-slate-50 pt-8">
-                        <VenueButton 
-                            onClick={handleSaveAndGenerate}
-                            disabled={saving || slots.length === 0}
-                            size="lg"
-                            className="w-full md:w-auto min-w-[240px] shadow-xl shadow-indigo-200"
-                            icon={<Save className="w-5 h-5" />}
-                        >
-                            {saving ? 'Processing Sync...' : 'Sync Calendar Now'}
-                        </VenueButton>
-                        <div className="flex items-center gap-2 group">
-                            <Plus className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Applying rules back to live preview</p>
-                        </div>
-                    </div>
+                    <div className="mt-8 border-t border-slate-50" />
                 </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 pb-20">
-                <div className="bg-indigo-600 rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><Plus className="w-40 h-40 -mr-20 -mt-20" /></div>
-                    <h3 className="text-xl font-black uppercase tracking-tight mb-4 relative z-10">Smart Generation</h3>
-                    <p className="text-indigo-50/80 text-xs font-medium leading-relaxed mb-6 max-w-[280px] relative z-10">Syncing will generate session instances for the next 28 days automatically based on these rules.</p>
-                    <div className="flex gap-3 relative z-10">
-                        <div className="bg-white/15 px-4 py-3 rounded-2xl border border-white/10 backdrop-blur-sm shadow-inner flex-1">
-                            <div className="text-[9px] font-black uppercase tracking-widest mb-1.5 text-indigo-200">System Mode</div>
-                            <div className="text-[10px] text-white font-bold tracking-tight uppercase">B2B Auto-Cluster Active</div>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/20">
-                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6 flex items-center gap-3">
-                        <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100/50">
-                            <DollarSign className="w-4 h-4 text-amber-500" />
-                        </div>
-                        Financial Guide
-                    </h3>
-                    <div className="space-y-4">
-                        <div className="flex gap-4 group">
-                            <div className="w-1.5 h-1.5 rounded-full bg-slate-200 mt-2 group-hover:bg-indigo-400 transition-colors shrink-0"></div>
-                            <div className="text-[11px] font-medium text-slate-500 leading-relaxed italic">The price set here is the <span className="text-slate-900 font-bold">Standard Per Spot</span> rate. You can manually adjust specific dates in the calendar for holiday surges or discounts.</div>
-                        </div>
-                        <div className="flex gap-4 group">
-                            <div className="w-1.5 h-1.5 rounded-full bg-slate-200 mt-2 group-hover:bg-amber-400 transition-colors shrink-0"></div>
-                            <div className="text-[11px] font-medium text-slate-500 leading-relaxed italic">Maximum Capacity determines when a session is automatically marked as <span className="text-amber-500 font-bold uppercase tracking-widest text-[9px]">Full</span> on the player view.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };

@@ -73,20 +73,7 @@ export const VenueCalendarGrid: React.FC<CalendarGridProps> = ({
                 ))}
             </div>
 
-            {generatedSessions.length === 0 ? (
-                <div className="py-24 flex flex-col items-center justify-center text-slate-400 bg-white">
-                    <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center mb-4 border border-slate-100/50">
-                        <CalendarIcon className="w-7 h-7 text-slate-200" />
-                    </div>
-                    <p className="font-black uppercase tracking-widest text-xs text-slate-500">No sessions published</p>
-                    <button 
-                        onClick={() => setViewMode('template')} 
-                        className="text-indigo-600 mt-2 font-black uppercase tracking-[0.2em] hover:text-indigo-700 transition-all text-[10px]"
-                    >
-                        Define Rules & Sync
-                    </button>
-                </div>
-            ) : (
+            <div className="relative">
                 <div className="grid grid-cols-7 bg-white">
                     {calendarDays.map((day, idx) => {
                         const sessionsOnDay = generatedSessions.filter(s => isSameDay(s.date, day));
@@ -151,7 +138,7 @@ export const VenueCalendarGrid: React.FC<CalendarGridProps> = ({
                         );
                     })}
                 </div>
-            )}
+            </div>
         </div>
     );
 };

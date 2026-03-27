@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { PageLoading } from '@/components/PageLoading';
 import { VenueButton } from '../components/ui/VenueButton';
 import { Clock, MousePointer2, Settings2 } from 'lucide-react';
+import { VenueBottomNav } from '../components/VenueBottomNav';
+import { VenuePortalHeader } from '../components/VenuePortalHeader';
 
 interface OperatingDay {
     day: string;
@@ -10,10 +12,13 @@ interface OperatingDay {
     is_closed: boolean;
 }
 
-interface VenueProfileData {
+export interface VenueProfileData {
+    name_display: string;
+    address_display: string;
     logo_url: string;
     description: string;
     amenities: string[];
+    spaces: { name: string; supported_sports: string[] }[];
     operating_hours: OperatingDay[];
     social_links: {
         facebook?: string;
@@ -35,6 +40,8 @@ interface AmenityCategory {
 interface VenueProfileViewProps {
     loading: boolean;
     saving: boolean;
+    mode: 'view' | 'edit';
+    onToggleMode: (mode: 'view' | 'edit') => void;
     formData: VenueProfileData;
     setFormData: (data: VenueProfileData) => void;
     onBack: () => void;
@@ -46,6 +53,8 @@ interface VenueProfileViewProps {
 export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
     loading,
     saving,
+    mode,
+    onToggleMode,
     formData,
     setFormData,
     onBack,
@@ -64,6 +73,32 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
         setFormData({ ...formData, amenities: next });
     };
 
+    const addSpace = () => {
+        setFormData({ ...formData, spaces: [...(formData.spaces || []), { name: '', supported_sports: [] }] });
+    };
+
+    const removeSpace = (index: number) => {
+        const next = [...(formData.spaces || [])];
+        next.splice(index, 1);
+        setFormData({ ...formData, spaces: next });
+    };
+
+    const updateSpaceName = (index: number, name: string) => {
+        const next = [...(formData.spaces || [])];
+        next[index] = { ...next[index], name };
+        setFormData({ ...formData, spaces: next });
+    };
+
+    const toggleSportInSpace = (spaceIndex: number, sport: string) => {
+        const next = [...(formData.spaces || [])];
+        const sports = next[spaceIndex].supported_sports;
+        const nextSports = sports.includes(sport)
+            ? sports.filter(s => s !== sport)
+            : [...sports, sport];
+        next[spaceIndex] = { ...next[spaceIndex], supported_sports: nextSports };
+        setFormData({ ...formData, spaces: next });
+    };
+
     const updateDay = (day: string, field: keyof OperatingDay, value: string | boolean) => {
         const nextHours = formData.operating_hours.map(h =>
             h.day === day ? { ...h, [field]: value } : h
@@ -71,22 +106,142 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
         setFormData({ ...formData, operating_hours: nextHours });
     };
 
-    return (
-        <div className="min-h-screen bg-slate-50 font-sans pb-20 text-slate-700">
-            <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={onBack}
-                        className="p-2 -ml-2 rounded-xl hover:bg-slate-100 text-slate-500 transition-all active:scale-95 text-xl font-black"
-                    >
-                        ←
-                    </button>
-                    <h1 className="font-black text-slate-900 tracking-tight uppercase">Venue Settings</h1>
-                </div>
-            </header>
+    const leftAction = mode === 'edit' && (
+        <button 
+            type="button"
+            onClick={() => !saving && onToggleMode('view')} 
+            disabled={saving}
+            className="text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 p-2 transition-all disabled:opacity-30"
+        >
+            Cancel
+        </button>
+    );
 
-            <main className="max-w-2xl mx-auto p-6">
-                <form onSubmit={onSubmit} className="space-y-6">
+    const rightAction = mode === 'view' ? (
+        <button 
+            type="button"
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleMode('edit');
+            }} 
+            className="text-[11px] font-black text-[oklch(0.511_0.262_276.966)] uppercase tracking-widest hover:opacity-70 p-2 transition-opacity"
+        >
+            Edit
+        </button>
+    ) : (
+        <button 
+            type="submit"
+            form="venue-profile-form"
+            disabled={saving}
+            className="text-[11px] font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-700 p-2 transition-all flex items-center gap-1.5 disabled:opacity-50"
+        >
+            {saving ? (
+                <>
+                   <div className="w-3 h-3 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                   <span>Saving...</span>
+                </>
+            ) : (
+                'Update'
+            )}
+        </button>
+    );
+
+    return (
+        <div className="mx-auto min-h-screen w-full max-w-screen-md bg-slate-50 pb-20 relative font-sans text-slate-700">
+            <VenuePortalHeader 
+                title="Venue Profile"
+                subtitle={formData.name_display}
+                leftAction={leftAction || undefined}
+                rightAction={rightAction}
+            />
+
+            <main className={mode === 'view' ? "bg-slate-50 relative pb-4" : "p-6"}>
+                {mode === 'view' ? (
+                   <div className="bg-white px-6 py-8 shadow-sm border-b border-slate-100">
+                     <div className="flex flex-col items-start gap-4">
+                        <div className="h-24 w-24 overflow-hidden rounded-[2.5rem] border-4 border-slate-50 shadow-xl shrink-0 bg-slate-50 flex items-center justify-center text-4xl">
+                            {formData.logo_url ? <img src={formData.logo_url} className="h-full w-full object-cover" /> : '🏟️'}
+                        </div>
+                        <div className="mt-2 min-w-0">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{formData.name_display}</h1>
+                            <div className="mt-3 flex items-start gap-2 text-sm text-slate-500 font-medium">
+                                <span className="text-slate-300 mt-0.5">📍</span>
+                                <span>{formData.address_display}</span>
+                            </div>
+                            <div className="mt-4 flex gap-2">
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-600 border border-slate-200/50">
+                                  ✓ OFFICIAL
+                                </span>
+                            </div>
+                        </div>
+                     </div>
+
+                     {formData.description && (
+                        <div className="mt-8">
+                           <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">About</h2>
+                           <p className="text-sm text-slate-600 leading-relaxed font-medium bg-slate-50/50 p-4 rounded-2xl border border-slate-50 italic">"{formData.description}"</p>
+                        </div>
+                     )}
+
+                     {formData.amenities.length > 0 && (
+                        <div className="mt-8">
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Amenities & Services</h2>
+                            <div className="grid grid-cols-2 gap-3">
+                                {formData.amenities.map(item => (
+                                    <div key={item} className="flex items-center gap-2.5 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100/50">
+                                      <span className="text-[oklch(0.511_0.262_276.966)]">✓</span>
+                                      <span className="text-xs font-bold text-slate-700">{item}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                     )}
+
+                     {formData.spaces && formData.spaces.length > 0 && (
+                        <div className="mt-8">
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Courts & Supported Sports</h2>
+                            <div className="space-y-3">
+                                {formData.spaces.map((space, idx) => (
+                                    <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                                      <div className="font-black text-slate-700 uppercase tracking-tight mb-2 flex items-center gap-2">
+                                          <span className="w-5 h-5 rounded-[4px] bg-[oklch(0.511_0.262_276.966)] text-white flex items-center justify-center text-[10px]">📍</span>
+                                          {space.name || `Unnamed Space`}
+                                      </div>
+                                      <div className="flex flex-wrap gap-2">
+                                        {space.supported_sports.length > 0 ? space.supported_sports.map(sport => (
+                                            <span key={sport} className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">{sport}</span>
+                                        )) : <span className="text-slate-400 text-xs italic">No sports configured</span>}
+                                      </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                     )}
+
+                     {formData.operating_hours.length > 0 && (
+                        <div className="mt-8">
+                            <div className="flex items-center gap-2 mb-4">
+                              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operating Hours 🕒</h2>
+                            </div>
+                            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                              {formData.operating_hours.map(hour => (
+                                <div key={hour.day} className="flex justify-between items-center text-xs">
+                                    <span className="font-black text-slate-500 uppercase tracking-widest text-[9px] w-20">{hour.day}</span>
+                                    <div className="h-px flex-1 bg-slate-200/50 mx-4" />
+                                    {hour.is_closed ? (
+                                        <span className="font-bold text-red-400 uppercase tracking-widest text-[9px]">Closed</span>
+                                    ) : (
+                                        <span className="font-black text-[oklch(0.511_0.262_276.966)] tabular-nums">{hour.open_time} — {hour.close_time}</span>
+                                    )}
+                                </div>
+                              ))}
+                            </div>
+                        </div>
+                     )}
+                   </div>
+                ) : (
+                <form id="venue-profile-form" onSubmit={onSubmit} className="space-y-6">
 
                     {/* Basic Information Section */}
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 flex flex-col items-center">
@@ -100,15 +255,94 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                             )}
                         </div>
 
-                        <div className="w-full">
-                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Logo URL (Profile Picture)</label>
-                            <input
-                                type="url"
-                                value={formData.logo_url}
-                                onChange={e => setFormData({ ...formData, logo_url: e.target.value })}
-                                className="w-full rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3.5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
-                                placeholder="https://example.com/logo.png"
-                            />
+                        <div className="w-full space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1 flex justify-between">
+                                    <span>Venue Name</span>
+                                    <span className="text-slate-400 font-bold opacity-70">ADMIN MANAGED</span>
+                                </label>
+                                <div className="w-full rounded-2xl bg-slate-50 border border-slate-200/60 px-4 py-3.5 text-sm font-bold text-slate-700 opacity-80 select-none cursor-not-allowed">
+                                    {formData.name_display}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1 flex justify-between">
+                                    <span>Address</span>
+                                    <span className="text-slate-400 font-bold opacity-70">ADMIN MANAGED</span>
+                                </label>
+                                <div className="w-full rounded-2xl bg-slate-50 border border-slate-200/60 px-4 py-3.5 text-sm font-bold text-slate-700 opacity-80 select-none cursor-not-allowed">
+                                    {formData.address_display}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Logo URL (Profile Picture)</label>
+                                <input
+                                    type="url"
+                                    value={formData.logo_url}
+                                    onChange={e => setFormData({ ...formData, logo_url: e.target.value })}
+                                    className="w-full rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3.5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
+                                    placeholder="https://example.com/logo.png"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">About</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    className="w-full rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3.5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
+                                    rows={3}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Spaces & Supported Sports Section */}
+                    <div className="bg-white rounded-[2rem] p-4 sm:p-8 shadow-sm border border-slate-100">
+                        <div className="flex items-center justify-between mb-6 border-b pb-3 border-slate-50">
+                           <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest">Courts & Supported Sports</h2>
+                           <button type="button" onClick={addSpace} className="text-[10px] font-black text-[oklch(0.511_0.262_276.966)] uppercase hover:opacity-70">+ Add Space</button>
+                        </div>
+                        
+                        <div className="space-y-4">
+                           {(formData.spaces || []).map((space, index) => (
+                               <div key={index} className="p-5 bg-slate-50 rounded-3xl border border-slate-100 relative group">
+                                  <button type="button" title="Remove" onClick={() => removeSpace(index)} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition-colors">✕</button>
+                                  
+                                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Space Name / Number</label>
+                                  <input 
+                                     type="text" 
+                                     placeholder="e.g. Court 1, Field A, Studio Room" 
+                                     value={space.name}
+                                     onChange={e => updateSpaceName(index, e.target.value)}
+                                     className="w-full rounded-2xl bg-white border border-slate-100 px-4 py-3.5 text-sm font-bold text-slate-900 mb-4 outline-none focus:ring-4 focus:ring-[oklch(0.511_0.262_276.966)]/10 focus:border-[oklch(0.511_0.262_276.966)] shadow-inner transition-all" 
+                                  />
+
+                                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Supported Sports</label>
+                                  <div className="grid grid-cols-2 gap-2">
+                                      {['Badminton', 'Tennis', 'Pickleball', 'Basketball', 'Soccer', 'Padel', 'Volleyball'].map(sport => {
+                                          const isSelected = space.supported_sports.includes(sport);
+                                          return (
+                                              <button
+                                                  key={sport}
+                                                  type="button"
+                                                  onClick={() => toggleSportInSpace(index, sport)}
+                                                  className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${isSelected
+                                                      ? 'bg-[oklch(0.511_0.262_276.966)] text-white border-[oklch(0.511_0.262_276.966)] shadow-md shadow-[oklch(0.511_0.262_276.966)]/20'
+                                                      : 'bg-white text-slate-400 border-slate-100 opacity-60'}`}
+                                              >
+                                                  {sport}
+                                              </button>
+                                          );
+                                      })}
+                                  </div>
+                               </div>
+                           ))}
+                           {(!formData.spaces || formData.spaces.length === 0) && (
+                               <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">No Courts Configured</p>
+                                   <VenueButton variant="primary" size="sm" type="button" onClick={addSpace}>Add First Space</VenueButton>
+                               </div>
+                           )}
                         </div>
                     </div>
 
@@ -243,28 +477,12 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                         </div>
                     ))}
 
-                    <div className="flex gap-4 pt-6">
-                        <VenueButton
-                            variant="secondary"
-                            size="lg"
-                            className="flex-1"
-                            onClick={onBack}
-                            type="button"
-                        >
-                            Cancel
-                        </VenueButton>
-                        <VenueButton
-                            variant="primary"
-                            size="lg"
-                            className="flex-1"
-                            isLoading={saving}
-                            type="submit"
-                        >
-                            Submit
-                        </VenueButton>
-                    </div>
+
                 </form>
+                )}
             </main>
+
+            <VenueBottomNav />
         </div>
     );
 };
