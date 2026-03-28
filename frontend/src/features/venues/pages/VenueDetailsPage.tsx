@@ -6,7 +6,7 @@ import { PageLoading } from '@/components/PageLoading';
 import { VenueDetailsView } from '../views/VenueDetailsView';
 
 export function VenueDetailsPage() {
-  const { id } = useParams<{ id: string }>();
+  const { venueId } = useParams<{ venueId: string }>();
   const navigate = useNavigate();
   const [venue, setVenue] = useState<ApiVenue | null>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
@@ -15,9 +15,14 @@ export function VenueDetailsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!venueId) {
+        setIsLoading(false)
+        return
+      }
+
       const [venueRes, eventsRes] = await Promise.all([
-        venuesService.getVenueById(id),
-        eventsService.getEvents({ venueId: id, limit: 10 })
+        venuesService.getVenueById(venueId),
+        eventsService.getEvents({ venueId, limit: 10 })
       ]);
 
       if (venueRes.success && venueRes.data) {
@@ -31,14 +36,41 @@ export function VenueDetailsPage() {
     };
 
     fetchData();
-  }, [id]);
+  }, [venueId]);
 
   const handleClaim = async () => {
     if (!venue) return;
     setIsClaiming(true);
-    // Mock claim process
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    navigate(`/claim/${venue.id}`);
+
+    const contact_name = window.prompt('Your full name')?.trim() || ''
+    const contact_person = window.prompt('Contact person')?.trim() || contact_name
+    const contact_title = window.prompt('Your role/title (e.g. Manager)')?.trim() || ''
+    const contact_phone = window.prompt('Phone number')?.trim() || ''
+    const contact_email = window.prompt('Contact email')?.trim() || ''
+    const note = window.prompt('Optional note/proof (optional)')?.trim() || undefined
+
+    if (!contact_name || !contact_person || !contact_title || !contact_phone || !contact_email) {
+      alert('Claim cancelled. Required fields were missing.')
+      setIsClaiming(false)
+      return
+    }
+
+    const claimRes = await venuesService.requestVenueClaim(venue.id, {
+      contact_name,
+      contact_person,
+      contact_title,
+      contact_phone,
+      contact_email,
+      note,
+    })
+
+    if (!claimRes.success) {
+      alert(claimRes.error?.message || 'Claim request failed')
+      setIsClaiming(false)
+      return
+    }
+
+    alert('Claim request submitted successfully. We will review it soon.')
     setIsClaiming(false);
   };
 

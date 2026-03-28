@@ -15,7 +15,7 @@ export interface ApiVenue {
   address_display: string
   lat: string | number 
   lng: string | number
-  status: 'unclaimed' | 'claimed'
+  status: 'unclaimed' | 'claimed' | 'suspended'
   logo_url?: string
   description?: string
   amenities?: string[]
@@ -44,85 +44,50 @@ const normalizeVenue = (venue: any): ApiVenue => ({
 export const venuesService = {
   async listVenues(filter: VenueFilter = {}): Promise<ApiResponse<PaginatedResponse<ApiVenue>>> {
     try {
-      // Mock for frontend flow
-      await new Promise(resolve => setTimeout(resolve, 300))
-      const items: ApiVenue[] = [
-        {
-          id: '525643ea-df39-4f1b-b57a-eb71e9f1fa16',
-          name_display: 'ABC Sports Center',
-          address_display: '33 Brodie St, Brisbane QLD 4000',
-          lat: -27.4698,
-          lng: 153.0251,
-          status: 'claimed',
-          logo_url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200',
-          active_sessions_count: 5,
-          created_at: new Date().toISOString()
+      const response = await httpGet<any>('/venues', {
+        params: {
+          lat: filter.lat,
+          lng: filter.lng,
+          radiusKm: filter.radiusKm,
+          limit: filter.limit,
+          offset: filter.offset,
         },
-        {
-          id: 'unclaimed-venue-1',
-          name_display: '33 Brodie St',
-          address_display: '33 brodie street',
-          lat: -27.4699,
-          lng: 153.0252,
-          status: 'unclaimed',
-          active_sessions_count: 0,
-          created_at: new Date().toISOString()
-        }
-      ]
-      
+      })
+
+      const rows: any[] = Array.isArray(response?.data) ? response.data : []
+      const items: ApiVenue[] = rows.map(normalizeVenue)
+
       return wrapSuccess({
         data: items,
         total: items.length,
-        page: 1,
-        pageSize: items.length,
+        page: filter.offset ? Math.floor(filter.offset / (filter.limit || 50)) + 1 : 1,
+        pageSize: filter.limit || items.length,
         hasMore: false,
       })
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'FETCH_VENUES_FAILED', message: err.message },
+        error: { code: 'FETCH_VENUES_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }
   },
 
-  async getVenueById(id: string): Promise<ApiResponse<ApiVenue>> {
+  async getVenueById(venueId: string): Promise<ApiResponse<ApiVenue>> {
     try {
-      // Mock for all venues to support frontend-only flow
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      return wrapSuccess({
-        id,
-        name_display: id === '525643ea-df39-4f1b-b57a-eb71e9f1fa16' ? 'ABC Sports Center' : 'Stadium Pro Brisbane',
-        address_display: id === '525643ea-df39-4f1b-b57a-eb71e9f1fa16' ? '33 Brodie St, Brisbane QLD 4000' : '45 Charlotte St, Brisbane QLD 4000',
-        lat: -27.4698,
-        lng: 153.0251,
-        status: id === '525643ea-df39-4f1b-b57a-eb71e9f1fa16' ? 'claimed' : 'unclaimed',
-        logo_url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200',
-        description: 'Premium sports facility featuring world-class indoor and outdoor courts. We provide a safe, high-energy environment for athletes of all levels to train, compete, and connect.',
-        amenities: ['Parking', 'Restrooms', 'Night lighting', 'Showers', 'Wi-Fi', 'Contactless pay'],
-        operating_hours: [
-          { day: 'Monday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Tuesday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Wednesday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Thursday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Friday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Saturday', open_time: '08:00', close_time: '20:00', is_closed: false },
-          { day: 'Sunday', open_time: '08:00', close_time: '18:00', is_closed: false }
-        ],
-        active_sessions_count: 5,
-        created_at: new Date().toISOString()
-      })
+      const response = await httpGet<any>(`/venues/${venueId}`)
+      const venue = normalizeVenue(response?.data || {})
+      return wrapSuccess(venue)
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'FETCH_VENUE_FAILED', message: err.message },
+        error: { code: 'FETCH_VENUE_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }
   },
 
-  async requestVenueClaim(id: string, claimData: {
+  async requestVenueClaim(venueId: string, claimData: {
     contact_name: string
     contact_person: string
     contact_title: string
@@ -131,13 +96,15 @@ export const venuesService = {
     note?: string
   }): Promise<ApiResponse<any>> {
     try {
-      // Mock API call to run frontend flow directly
-      await new Promise(resolve => setTimeout(resolve, 500))
-      return wrapSuccess({ id: 'mocked-claim-id', ...claimData })
+      const response = await httpPost<any>(`/venues/${venueId}/claim`, {
+        body: claimData,
+        auth: false,
+      })
+      return wrapSuccess(response?.data)
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'CLAIM_REQUEST_FAILED', message: err.response?.data?.error || err.message },
+        error: { code: 'CLAIM_REQUEST_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }

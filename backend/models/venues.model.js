@@ -60,6 +60,7 @@ async function getVenueById(id) {
     FROM public.venues v
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     WHERE v.id = $1
+      AND v.status <> 'suspended'
   `
   const { rows } = await query(sql, [id])
   return rows[0]
@@ -68,6 +69,10 @@ async function getVenueById(id) {
 async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
   let conditions = []
   let params = []
+
+  // Public venues list should not expose suspended venues.
+  conditions.push(`v.status <> $${params.length + 1}`)
+  params.push('suspended')
   
   // Basic geo filtering if provided
   if (lat && lng && radiusKm) {
