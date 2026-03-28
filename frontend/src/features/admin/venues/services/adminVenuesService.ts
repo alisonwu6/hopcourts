@@ -1,4 +1,5 @@
 import { ApiResponse } from '@/types'
+import { httpGet } from '@/api/http'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -166,28 +167,90 @@ let mockClaims: AdminVenueClaim[] = [
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
+const mapBackendVenueToAdmin = (row: any): AdminVenue => {
+  // Derive status based on venue status and claim status
+  let status: VenueStatus = 'unclaimed'
+  if (row.status === 'suspended') {
+    status = 'suspended'
+  } else if (row.claim_status === 'approved') {
+    status = 'claimed'
+  } else if (row.pending_claim_id) {
+    status = 'claim_pending'
+  }
+
+  // Extract operator info from approved claim
+  const operator_email = row.claim_status === 'approved' ? row.contact_email : undefined
+  const operator_name = row.claim_status === 'approved' ? row.contact_person || row.contact_name : undefined
+
+  return {
+    id: row.id,
+    name_display: row.name_display || row.name,
+    address_display: row.address || '',
+    status,
+    operator_email,
+    operator_name,
+    last_activity_at: row.last_activity_at,
+  }
+}
+
+  const mapBackendClaimToAdmin = (row: any): AdminVenueClaim => {
+    return {
+      id: row.id,
+      venue_id: row.venue_id,
+      venue_name: row.venue_name || '',
+      venue_address: row.venue_address || '',
+      applicant_name: row.applicant_name || '',
+      applicant_email: row.applicant_email || '',
+      applicant_role: row.applicant_role || '',
+      applicant_phone: row.applicant_phone || '',
+      note: row.note,
+      status: row.status as ClaimStatus,
+      submitted_at: row.submitted_at,
+      reviewed_at: row.reviewed_at,
+      reviewed_by: row.reviewed_by,
+    }
+  }
 export const adminVenuesService = {
   async getAdminVenues(params: { search?: string } = {}): Promise<ApiResponse<AdminVenue[]>> {
-    await wait()
-    const keyword = (params.search || '').trim().toLowerCase()
-    const rows = keyword
-      ? mockVenues.filter(
-          (v) =>
-            v.name_display.toLowerCase().includes(keyword) ||
-            v.id.toLowerCase().includes(keyword) ||
-            v.address_display.toLowerCase().includes(keyword),
-        )
-      : mockVenues
-    return wrapSuccess([...rows])
+    try {
+      const data = await httpGet<any>('/admin/venues', {
+        params: {
+          search: params.search || '',
+        },
+      })
+
+      if (!data.success || !data.data) {
+        return wrapError('API_ERROR', 'Failed to fetch venues')
+      }
+
+      // Map backend response to frontend type
+      const venues = data.data.map(mapBackendVenueToAdmin)
+      return wrapSuccess(venues)
+    } catch (error) {
+      console.error('Failed to fetch admin venues:', error)
+      return wrapError('FETCH_ERROR', error instanceof Error ? error.message : 'Unknown error')
+    }
   },
 
   async getAdminClaims(params: { status?: ClaimStatus | 'all' } = {}): Promise<ApiResponse<AdminVenueClaim[]>> {
-    await wait()
-    const rows =
-      !params.status || params.status === 'all'
-        ? mockClaims
-        : mockClaims.filter((c) => c.status === params.status)
-    return wrapSuccess([...rows])
+    try {
+      const data = await httpGet<any>('/admin/venue-claims', {
+        params: {
+          status: params.status && params.status !== 'all' ? params.status : '',
+        },
+      })
+
+      if (!data.success || !data.data) {
+        return wrapError('API_ERROR', 'Failed to fetch claims')
+      }
+
+      // Map backend response to frontend type
+      const claims = data.data.map(mapBackendClaimToAdmin)
+      return wrapSuccess(claims)
+    } catch (error) {
+      console.error('Failed to fetch admin claims:', error)
+      return wrapError('FETCH_ERROR', error instanceof Error ? error.message : 'Unknown error')
+    }
   },
 
   async approveVenueClaim(claimId: string): Promise<ApiResponse<{ claimId: string }>> {

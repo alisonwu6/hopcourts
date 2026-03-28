@@ -121,6 +121,10 @@ async function getAdminVenues(filters) {
   return venuesModel.getAdminVenues(filters)
 }
 
+async function getAdminClaims(filters) {
+  return venuesModel.getAdminClaims(filters)
+}
+
 async function revokeVenueClaim(claimId, adminId, reason) {
   const result = await venuesModel.revokeVenueClaim(claimId)
   
@@ -194,6 +198,7 @@ module.exports = {
   reviewVenueClaim,
   isVenueOwner,
   getAdminVenues,
+  getAdminClaims,
   revokeVenueClaim,
   patchVenueDisplay,
   approveVenueClaim

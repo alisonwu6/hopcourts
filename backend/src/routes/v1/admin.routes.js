@@ -24,6 +24,21 @@ router.get('/venues', async (req, res, next) => {
   }
 })
 
+// GET /admin/venue-claims - List all venue claims for review
+router.get('/venue-claims', async (req, res, next) => {
+  try {
+    const filters = {
+      status: req.query.status,
+      limit: req.query.limit ? parseInt(req.query.limit) : 50,
+      offset: req.query.offset ? parseInt(req.query.offset) : 0
+    }
+    const claims = await venuesService.getAdminClaims(filters)
+    res.json({ success: true, data: claims })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // POST /admin/venue-claims/:id/revoke - Revoke an approved claim (Audit Reason Required)
 router.post('/venue-claims/:id/revoke', async (req, res, next) => {
   try {

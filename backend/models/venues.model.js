@@ -278,6 +278,46 @@ async function revokeVenueClaim(claimId) {
   return claimRows[0]
 }
 
+async function getAdminClaims({ status = undefined, limit = 50, offset = 0 } = {}) {
+  let conditions = []
+  let params = []
+  let paramIndex = 1
+
+  if (status && status !== 'all') {
+    conditions.push(`vc.status = $${paramIndex++}`)
+    params.push(status)
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+  const sql = `
+    SELECT 
+      vc.id,
+      vc.venue_id,
+      v.name_display as venue_name,
+      v.address as venue_address,
+      vc.contact_name as applicant_name,
+      vc.contact_email as applicant_email,
+      vc.contact_title as applicant_role,
+      vc.contact_phone as applicant_phone,
+      vc.note,
+      vc.status,
+      vc.created_at as submitted_at,
+      vc.reviewed_at,
+      u.email as reviewed_by
+    FROM public.venue_claims vc
+    JOIN public.venues v ON vc.venue_id = v.id
+    LEFT JOIN public.users u ON vc.reviewed_by_admin_id = u.id
+    ${whereClause}
+    ORDER BY vc.created_at DESC
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `
+  params.push(limit, offset)
+  
+  const { rows } = await query(sql, params)
+  return rows
+}
+
 async function patchVenueDisplay(id, { name_display, address_display }) {
   const sql = `
     UPDATE public.venues 
@@ -379,6 +419,7 @@ module.exports = {
   // C0 Export
   writeAuditLog,
   getAdminVenues,
+  getAdminClaims,
   revokeVenueClaim,
   patchVenueDisplay,
   // C1 Export
