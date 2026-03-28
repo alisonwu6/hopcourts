@@ -1,5 +1,5 @@
 /*
- * Usage: node scripts/check_session_schema.js
+ * Usage: node scripts/check_schema_contracts.js
  *
  * Contract-driven schema validation:
  * - DB table columns (from migration SQL) vs OpenAPI schema properties
@@ -22,14 +22,18 @@ function readOpenApiDoc(filePath) {
 
 function getDbColumns(sqlContent, tableName) {
   const normalized = sqlContent.replace(/\r\n/g, '\n')
-  const searchStr = `CREATE TABLE ${tableName} (`
-  const tableStart = normalized.indexOf(searchStr)
+  const escaped = tableName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const tableRegex = new RegExp(
+    `CREATE\\s+TABLE\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?(?:public\\.)?"?${escaped}"?\\s*\\(`,
+    'i'
+  )
+  const match = normalized.match(tableRegex)
 
-  if (tableStart === -1) {
+  if (!match || match.index === undefined) {
     return []
   }
 
-  const afterStart = normalized.substring(tableStart)
+  const afterStart = normalized.substring(match.index)
   const lines = afterStart.split('\n')
   const cols = []
 
