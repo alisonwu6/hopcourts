@@ -236,6 +236,9 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
       v.*,
       c.id as claim_id,
       c.status as claim_status,
+      c.contact_name,
+      c.contact_title,
+      c.contact_phone,
       c.contact_email,
       pc.id as pending_claim_id,
       pc.contact_name as pending_contact_name,
@@ -304,10 +307,21 @@ async function getAdminClaims({ status = undefined, limit = 50, offset = 0 } = {
       vc.status,
       vc.created_at as submitted_at,
       vc.reviewed_at,
-      u.email as reviewed_by
+      vc.owner_id,
+      u.email as reviewed_by,
+      ral.note as rejection_reason
     FROM public.venue_claims vc
     JOIN public.venues v ON vc.venue_id = v.id
     LEFT JOIN public.users u ON vc.reviewed_by_admin_id = u.id
+    LEFT JOIN LATERAL (
+      SELECT note
+      FROM public.venue_audit_logs al
+      WHERE al.target_type = 'venue_claim'
+        AND al.target_id = vc.id
+        AND al.action = 'revoke_claim'
+      ORDER BY al.created_at DESC
+      LIMIT 1
+    ) ral ON true
     ${whereClause}
     ORDER BY vc.created_at DESC
     LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
@@ -316,6 +330,28 @@ async function getAdminClaims({ status = undefined, limit = 50, offset = 0 } = {
   
   const { rows } = await query(sql, params)
   return rows
+}
+
+async function suspendVenue(id) {
+  const sql = `
+    UPDATE public.venues
+    SET status = 'suspended', updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `
+  const { rows } = await query(sql, [id])
+  return rows[0]
+}
+
+async function unsuspendVenue(id) {
+  const sql = `
+    UPDATE public.venues
+    SET status = 'claimed', updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `
+  const { rows } = await query(sql, [id])
+  return rows[0]
 }
 
 async function patchVenueDisplay(id, { name_display, address_display }) {
@@ -422,6 +458,8 @@ module.exports = {
   getAdminClaims,
   revokeVenueClaim,
   patchVenueDisplay,
+  suspendVenue,
+  unsuspendVenue,
   // C1 Export
   getManagedVenues,
   getVenueProfile,

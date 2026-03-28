@@ -1,5 +1,6 @@
 import { ApiResponse } from '@/types'
 import { httpGet } from '@/api/http'
+import { httpPatch, httpPost } from '@/api/http'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -208,6 +209,7 @@ const mapBackendVenueToAdmin = (row: any): AdminVenue => {
       submitted_at: row.submitted_at,
       reviewed_at: row.reviewed_at,
       reviewed_by: row.reviewed_by,
+      rejection_reason: row.rejection_reason,
     }
   }
 export const adminVenuesService = {
@@ -254,41 +256,46 @@ export const adminVenuesService = {
   },
 
   async approveVenueClaim(claimId: string): Promise<ApiResponse<{ claimId: string }>> {
-    await wait()
-    const claim = mockClaims.find((c) => c.id === claimId)
-    if (!claim) return wrapError('NOT_FOUND', 'Claim not found')
+    try {
+      const claimData = await httpGet<any>(`/admin/venue-claims`, {
+        params: { status: 'pending' },
+      })
 
-    mockClaims = mockClaims.map((c) =>
-      c.id === claimId ? { ...c, status: 'approved', reviewed_at: new Date().toISOString() } : c,
-    )
-    mockVenues = mockVenues.map((v) =>
-      v.id === claim.venue_id
-        ? { 
-            ...v, 
-            status: 'claimed', 
-            operator_name: claim.applicant_name,
-            operator_email: claim.applicant_email,
-            operator_role: claim.applicant_role,
-            operator_phone: claim.applicant_phone
-          }
-        : v,
-    )
-    return wrapSuccess({ claimId })
+      const claim = claimData?.data?.find((row: any) => row.id === claimId)
+      if (!claim || !claim.applicant_email) {
+        return wrapError('NOT_FOUND', 'Claim or applicant email not found')
+      }
+
+      const data = await httpPost<any>(`/admin/venue-claims/${claimId}/approve`, {
+        body: { officialEmail: claim.applicant_email },
+      })
+
+      if (!data.success) {
+        return wrapError('API_ERROR', data.error?.message || 'Failed to approve claim')
+      }
+
+      return wrapSuccess({ claimId })
+    } catch (error) {
+      return wrapError('FETCH_ERROR', error instanceof Error ? error.message : 'Unknown error')
+    }
   },
 
   async rejectVenueClaim(claimId: string, reason: string): Promise<ApiResponse<{ claimId: string }>> {
-    await wait()
     if (!reason?.trim()) return wrapError('VALIDATION', 'Rejection reason is required')
-    const claim = mockClaims.find((c) => c.id === claimId)
-    if (!claim) return wrapError('NOT_FOUND', 'Claim not found')
 
-    mockClaims = mockClaims.map((c) =>
-      c.id === claimId ? { ...c, status: 'rejected', reviewed_at: new Date().toISOString() } : c,
-    )
-    mockVenues = mockVenues.map((v) =>
-      v.id === claim.venue_id ? { ...v, status: 'unclaimed' } : v,
-    )
-    return wrapSuccess({ claimId })
+    try {
+      const data = await httpPost<any>(`/admin/venue-claims/${claimId}/revoke`, {
+        body: { reason: reason.trim() },
+      })
+
+      if (!data.success) {
+        return wrapError('API_ERROR', data.error?.message || 'Failed to reject claim')
+      }
+
+      return wrapSuccess({ claimId })
+    } catch (error) {
+      return wrapError('FETCH_ERROR', error instanceof Error ? error.message : 'Unknown error')
+    }
   },
 
   async patchVenueDisplay(
@@ -302,38 +309,57 @@ export const adminVenuesService = {
       operator_phone?: string;
     },
   ): Promise<ApiResponse<AdminVenue>> {
-    await wait()
-    mockVenues = mockVenues.map((v) =>
-      v.id !== venueId
-        ? v
-        : {
-            ...v,
-            name_display: data.name_display ?? v.name_display,
-            address_display: data.address_display ?? v.address_display,
-            operator_name: data.operator_name !== undefined ? data.operator_name : v.operator_name,
-            operator_email: data.operator_email !== undefined ? data.operator_email : v.operator_email,
-            operator_role: data.operator_role !== undefined ? data.operator_role : v.operator_role,
-            operator_phone: data.operator_phone !== undefined ? data.operator_phone : v.operator_phone,
-          },
-    )
-    const updated = mockVenues.find((v) => v.id === venueId)!
-    return wrapSuccess(updated)
+    try {
+      const payload = {
+        name_display: data.name_display,
+        address_display: data.address_display,
+      }
+
+      const result = await httpPatch<any>(`/admin/venues/${venueId}`, { body: payload })
+      if (!result.success || !result.data) {
+        return wrapError('API_ERROR', 'Failed to patch venue')
+      }
+
+      const updated: AdminVenue = {
+        id: result.data.id,
+        name_display: result.data.name_display || '',
+        address_display: result.data.address || '',
+        status: (result.data.status || 'unclaimed') as VenueStatus,
+      }
+      return wrapSuccess(updated)
+    } catch (error) {
+      return wrapError('FETCH_ERROR', error instanceof Error ? error.message : 'Unknown error')
+    }
   },
 
   async suspendVenue(venueId: string, reason: string): Promise<ApiResponse<{ venueId: string }>> {
-    await wait()
     if (!reason?.trim()) return wrapError('VALIDATION', 'Suspension reason is required')
-    mockVenues = mockVenues.map((v) =>
-      v.id === venueId ? { ...v, status: 'suspended', suspended_reason: reason } : v,
-    )
-    return wrapSuccess({ venueId })
+    try {
+      const data = await httpPost<any>(`/admin/venues/${venueId}/suspend`, {
+        body: { reason: reason.trim() },
+      })
+
+      if (!data.success) {
+        return wrapError('API_ERROR', data.error?.message || 'Failed to suspend venue')
+      }
+
+      return wrapSuccess({ venueId })
+    } catch (error) {
+      return wrapError('FETCH_ERROR', error instanceof Error ? error.message : 'Unknown error')
+    }
   },
 
   async unsuspendVenue(venueId: string): Promise<ApiResponse<{ venueId: string }>> {
-    await wait()
-    mockVenues = mockVenues.map((v) =>
-      v.id === venueId ? { ...v, status: 'claimed', suspended_reason: undefined } : v,
-    )
-    return wrapSuccess({ venueId })
+    try {
+      const data = await httpPost<any>(`/admin/venues/${venueId}/unsuspend`)
+
+      if (!data.success) {
+        return wrapError('API_ERROR', data.error?.message || 'Failed to restore venue')
+      }
+
+      return wrapSuccess({ venueId })
+    } catch (error) {
+      return wrapError('FETCH_ERROR', error instanceof Error ? error.message : 'Unknown error')
+    }
   },
 }

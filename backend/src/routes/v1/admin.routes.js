@@ -39,8 +39,8 @@ router.get('/venue-claims', async (req, res, next) => {
   }
 })
 
-// POST /admin/venue-claims/:id/revoke - Revoke an approved claim (Audit Reason Required)
-router.post('/venue-claims/:id/revoke', async (req, res, next) => {
+// POST /admin/venue-claims/:claimId/revoke - Revoke an approved claim (Audit Reason Required)
+router.post('/venue-claims/:claimId/revoke', async (req, res, next) => {
   try {
     const adminId = req.userId
     const reason = req.body.reason
@@ -52,15 +52,15 @@ router.post('/venue-claims/:id/revoke', async (req, res, next) => {
       })
     }
     
-    const result = await venuesService.revokeVenueClaim(req.params.id, adminId, reason.trim())
+    const result = await venuesService.revokeVenueClaim(req.params.claimId, adminId, reason.trim())
     res.json({ success: true, data: result })
   } catch (err) {
     next(err)
   }
 })
 
-// POST /admin/venue-claims/:id/approve - Approve claim and assign to official email
-router.post('/venue-claims/:id/approve', async (req, res, next) => {
+// POST /admin/venue-claims/:claimId/approve - Approve claim and assign to official email
+router.post('/venue-claims/:claimId/approve', async (req, res, next) => {
   try {
     const adminId = req.userId
     const { officialEmail } = req.body
@@ -69,22 +69,53 @@ router.post('/venue-claims/:id/approve', async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'Valid official email is required.' })
     }
     
-    const result = await venuesService.approveVenueClaim(req.params.id, adminId, officialEmail)
+    const result = await venuesService.approveVenueClaim(req.params.claimId, adminId, officialEmail)
     res.json({ success: true, data: result })
   } catch (err) {
     next(err)
   }
 })
 
-// PATCH /admin/venues/:id - Correction of name or address only
-router.patch('/venues/:id', async (req, res, next) => {
+// PATCH /admin/venues/:venueId - Correction of name or address only
+router.patch('/venues/:venueId', async (req, res, next) => {
   try {
     const adminId = req.userId
     const data = {
       name_display: req.body.name_display,
       address_display: req.body.address_display
     }
-    const result = await venuesService.patchVenueDisplay(req.params.id, adminId, data)
+    const result = await venuesService.patchVenueDisplay(req.params.venueId, adminId, data)
+    res.json({ success: true, data: result })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /admin/venues/:venueId/suspend - Suspend venue management access
+router.post('/venues/:venueId/suspend', async (req, res, next) => {
+  try {
+    const adminId = req.userId
+    const reason = req.body.reason
+
+    if (!reason || reason.trim().length < 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Suspension reason is mandatory and must be at least 5 characters.'
+      })
+    }
+
+    const result = await venuesService.suspendVenue(req.params.venueId, adminId, reason.trim())
+    res.json({ success: true, data: result })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /admin/venues/:venueId/unsuspend - Restore venue management access
+router.post('/venues/:venueId/unsuspend', async (req, res, next) => {
+  try {
+    const adminId = req.userId
+    const result = await venuesService.unsuspendVenue(req.params.venueId, adminId)
     res.json({ success: true, data: result })
   } catch (err) {
     next(err)

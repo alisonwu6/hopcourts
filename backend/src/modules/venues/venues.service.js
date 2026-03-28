@@ -155,6 +155,34 @@ async function patchVenueDisplay(venueId, adminId, data) {
   return result
 }
 
+async function suspendVenue(venueId, adminId, reason) {
+  const result = await venuesModel.suspendVenue(venueId)
+
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'suspend_venue',
+    targetId: venueId,
+    targetType: 'venue',
+    note: reason,
+  })
+
+  return result
+}
+
+async function unsuspendVenue(venueId, adminId) {
+  const result = await venuesModel.unsuspendVenue(venueId)
+
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'unsuspend_venue',
+    targetId: venueId,
+    targetType: 'venue',
+    note: 'Venue access restored by admin',
+  })
+
+  return result
+}
+
 async function approveVenueClaim(claimId, adminId, officialEmail) {
   // 1. Validate Official Email User Exists (Invite Flow Mock)
   // Use shared model for consistency
@@ -201,5 +229,7 @@ module.exports = {
   getAdminClaims,
   revokeVenueClaim,
   patchVenueDisplay,
+  suspendVenue,
+  unsuspendVenue,
   approveVenueClaim
 }

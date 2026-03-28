@@ -2,362 +2,32 @@ openapi: 3.0.3
 info:
   title: SportsMatch API
   version: 1.0.0
+
+# 1. Environment Configuration
 servers:
-  - url: /api/v1
+  - url: http://localhost:3000/api/v1
+    description: local environment
+
 tags:
   - name: Health
-  - name: Master Data
+  - name: Dictionaries
   - name: Profile
   - name: Sessions
   - name: Venues
-paths:
-  /health:
-    get:
-      tags: [Health]
-      summary: Health check
-      responses:
-        "200":
-          description: ok
-  /sessions:
-    get:
-      tags: [Sessions]
-      summary: List upcoming sessions
-      parameters:
-        - in: query
-          name: sport_key
-          schema: { type: string }
-        - in: query
-          name: city_key
-          schema: { type: string }
-        - in: query
-          name: from
-          schema: { type: string, format: date-time }
-        - in: query
-          name: to
-          schema: { type: string, format: date-time }
-        - in: query
-          name: limit
-          schema: { type: integer, default: 50 }
-      responses:
-        "200":
-          description: ok
-    post:
-      tags: [Sessions]
-      summary: Create a session
-      security: [{ ApiKeyHeader: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Session'
-      responses:
-        "200":
-          description: ok
-  /sessions/my:
-    get:
-      tags: [Sessions]
-      summary: List my sessions
-      description: |
-        Supports new query style (`role` + `time`) and legacy `type` for backward compatibility.
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: query
-          name: role
-          description: Role scope of sessions.
-          schema:
-            type: string
-            enum: [all, hosted, joined]
-        - in: query
-          name: time
-          description: Time scope of sessions.
-          schema:
-            type: string
-            enum: [upcoming, history]
-        - in: query
-          name: type
-          description: Legacy query parameter. Prefer using role+time.
-          schema:
-            type: string
-            enum: [upcoming, history, hosted, joined]
-        - in: query
-          name: limit
-          schema: { type: integer, default: 20 }
-        - in: query
-          name: offset
-          schema: { type: integer, default: 0 }
-      responses:
-        "200":
-          description: ok
-  /sessions/{id}:
-    get:
-      tags: [Sessions]
-      summary: Get session by id
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-  /sessions/{id}/join:
-    post:
-      tags: [Sessions]
-      summary: Join a session
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-    delete:
-      tags: [Sessions]
-      summary: Leave a session
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-  /sessions/{sessionId}/check-in:
-    post:
-      tags: [Sessions]
-      summary: Check-in to a session
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: path
-          name: sessionId
-          required: true
-          schema: { type: string, format: uuid }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [lat, lng]
-              properties:
-                lat: { type: number }
-                lng: { type: number }
-      responses:
-        "200":
-          description: ok
-  /meta/dictionaries:
-    get:
-      tags: [Master Data]
-      summary: Get dictionaries meta
-      responses:
-        "200":
-          description: ok
-  /sports:
-    get:
-      tags: [Master Data]
-      summary: List sports
-      parameters:
-        - in: query
-          name: lang
-          schema: { type: string, enum: [zh, en] }
-      responses:
-        "200":
-          description: ok
-  /countries:
-    get:
-      tags: [Master Data]
-      summary: List countries
-      responses:
-        "200":
-          description: ok
-  /cities:
-    get:
-      tags: [Master Data]
-      summary: List cities
-      responses:
-        "200":
-          description: ok
-  /vibes:
-    get:
-      tags: [Master Data]
-      summary: List vibes
-      responses:
-        "200":
-          description: ok
-  /age-ranges:
-    get:
-      tags: [Master Data]
-      summary: List age ranges
-      responses:
-        "200":
-          description: ok
-  /me/profile:
-    get:
-      tags: [Profile]
-      summary: Get my profile
-      security: [{ ApiKeyHeader: [] }]
-      responses:
-        "200":
-          description: ok
-    put:
-      tags: [Profile]
-      summary: Update profile
-      security: [{ ApiKeyHeader: [] }]
-      responses:
-        "200":
-          description: ok
-  /me/preferences:
-    get:
-      tags: [Profile]
-      summary: Get my preferences
-      security: [{ ApiKeyHeader: [] }]
-      responses:
-        "200":
-          description: ok
-  /me/onboarding:
-    get:
-      tags: [Profile]
-      summary: Get onboarding status
-      security: [{ ApiKeyHeader: [] }]
-      responses:
-        "200":
-          description: ok
-  /me/stats:
-    get:
-      tags: [Profile]
-      summary: Get my stats
-      security: [{ ApiKeyHeader: [] }]
-      responses:
-        "200":
-          description: ok
-  /me/teammates:
-    get:
-      tags: [Profile]
-      summary: List my teammates
-      security: [{ ApiKeyHeader: [] }]
-      responses:
-        "200":
-          description: ok
-  /profiles/{username}:
-    get:
-      tags: [Profile]
-      summary: Get user profile by username
-      parameters:
-        - in: path
-          name: username
-          required: true
-          schema: { type: string }
-      responses:
-        "200":
-          description: ok
-  /profiles/{username}/follow:
-    post:
-      tags: [Profile]
-      summary: Follow a user
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: path
-          name: username
-          required: true
-          schema: { type: string }
-      responses:
-        "200":
-          description: ok
-    delete:
-      tags: [Profile]
-      summary: Unfollow a user
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: path
-          name: username
-          required: true
-          schema: { type: string }
-      responses:
-        "200":
-          description: ok
-  /venues:
-    get:
-      tags: [Venues]
-      summary: List venues
-      parameters:
-        - in: query
-          name: lat
-          schema: { type: number }
-        - in: query
-          name: lng
-          schema: { type: number }
-        - in: query
-          name: radiusKm
-          schema: { type: number }
-      responses:
-        "200":
-          description: ok
-  /venues/{id}:
-    get:
-      tags: [Venues]
-      summary: Get venue by id
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-  /venues/{id}/claim:
-    post:
-      tags: [Venues]
-      summary: Request to claim a venue (Lead generation)
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string, format: uuid }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/VenueClaimRequest'
-      responses:
-        "200":
-          description: ok
-  /venues/venue-claims/{id}/approve:
-    post:
-      tags: [Venues]
-      summary: Approve a venue claim (Admin)
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-  /venues/venue-claims/{id}/reject:
-    post:
-      tags: [Venues]
-      summary: Reject a venue claim (Admin)
-      security: [{ ApiKeyHeader: [] }]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
+  - name: Admin
+  - name: Venue Portal
+  - name: Notifications
+  - name: Feedback
+
+# 2. Security Definitions (Authentication)
 components:
   securitySchemes:
-    ApiKeyHeader:
-      type: apiKey
-      in: header
-      name: x-user-id
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # 3. Reusable Data Models (Schemas)
   schemas:
     Session:
       type: object
@@ -424,3 +94,852 @@ components:
         contact_phone: { type: string }
         contact_email: { type: string }
         note: { type: string }
+
+
+# 4. API Endpoints
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      responses:
+        "200":
+          description: ok
+
+  /sports:
+    get:
+      tags: [Dictionaries]
+      summary: List sports
+      parameters:
+        - in: query
+          name: lang
+          description: Language code used by sports endpoint.
+          schema: { type: string, enum: [zh, en] }
+      responses:
+        "200":
+          description: ok
+
+  /sessions:
+    get:
+      tags: [Sessions]
+      summary: List upcoming sessions
+      parameters:
+        - in: query
+          name: sport_key
+          schema: { type: string }
+        - in: query
+          name: city_key
+          schema: { type: string }
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          schema: { type: string, format: date-time }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: ok
+    post:
+      tags: [Sessions]
+      summary: Create a session
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        "200":
+          description: ok
+
+  /sessions/my:
+    get:
+      tags: [Sessions]
+      summary: List my sessions
+      description: |
+        Supports new query style (`role` + `time`) and legacy `type` for backward compatibility.
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: query
+          name: role
+          description: Role scope of sessions.
+          schema:
+            type: string
+            enum: [all, hosted, joined]
+        - in: query
+          name: time
+          description: Time scope of sessions.
+          schema:
+            type: string
+            enum: [upcoming, history]
+        - in: query
+          name: type
+          description: Legacy query parameter. Prefer using role+time.
+          schema:
+            type: string
+            enum: [upcoming, history, hosted, joined]
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: ok
+
+  /sessions/{id}:
+    get:
+      tags: [Sessions]
+      summary: Get session by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+    put:
+      tags: [Sessions]
+      summary: Update a session
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        "200":
+          description: ok
+    delete:
+      tags: [Sessions]
+      summary: Delete a session
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /sessions/{id}/join:
+    post:
+      tags: [Sessions]
+      summary: Join a session
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+    delete:
+      tags: [Sessions]
+      summary: Leave a session
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /sessions/{id}/leave:
+    post:
+      tags: [Sessions]
+      summary: Leave a session (frontend-compatible endpoint)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /sessions/{sessionId}/check-in:
+    post:
+      tags: [Sessions]
+      summary: Check-in to a session
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat: { type: number }
+                lng: { type: number }
+      responses:
+        "200":
+          description: ok
+
+  /meta/dictionaries:
+    get:
+      tags: [Dictionaries]
+      summary: Get dictionaries meta
+      responses:
+        "200":
+          description: ok
+
+  /countries:
+    get:
+      tags: [Dictionaries]
+      summary: List countries
+      responses:
+        "200":
+          description: ok
+
+  /cities:
+    get:
+      tags: [Dictionaries]
+      summary: List cities
+      responses:
+        "200":
+          description: ok
+
+  /vibes:
+    get:
+      tags: [Dictionaries]
+      summary: List vibes
+      responses:
+        "200":
+          description: ok
+
+  /age-ranges:
+    get:
+      tags: [Dictionaries]
+      summary: List age ranges
+      responses:
+        "200":
+          description: ok
+
+  /me/profile:
+    get:
+      tags: [Profile]
+      summary: Get my profile
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+    put:
+      tags: [Profile]
+      summary: Update profile
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+    patch:
+      tags: [Profile]
+      summary: Partial update profile
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /me/preferences:
+    get:
+      tags: [Profile]
+      summary: Get my preferences
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+    put:
+      tags: [Profile]
+      summary: Update my preferences
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+    patch:
+      tags: [Profile]
+      summary: Partial update my preferences
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /me/account:
+    delete:
+      tags: [Profile]
+      summary: Delete my account
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /me/stats:
+    get:
+      tags: [Profile]
+      summary: Get my stats
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /me/teammates:
+    get:
+      tags: [Profile]
+      summary: List my teammates
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /profiles/{username}:
+    get:
+      tags: [Profile]
+      summary: Get user profile by username
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: ok
+
+  /profiles/{username}/sessions:
+    get:
+      tags: [Profile]
+      summary: Get sessions by username
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: ok
+
+  /venues:
+    get:
+      tags: [Venues]
+      summary: List venues
+      parameters:
+        - in: query
+          name: lat
+          schema: { type: number }
+        - in: query
+          name: lng
+          schema: { type: number }
+        - in: query
+          name: radiusKm
+          schema: { type: number }
+      responses:
+        "200":
+          description: ok
+
+  /venues/{venueId}:
+    get:
+      tags: [Venues]
+      summary: Get venue by id
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /venues/{venueId}/claim:
+    post:
+      tags: [Venues]
+      summary: Request to claim a venue (Lead generation)
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VenueClaimRequest'
+      responses:
+        "200":
+          description: ok
+
+  /venues/venue-claims/{claimId}/approve:
+    post:
+      tags: [Venues]
+      summary: Approve a venue claim (Admin)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /venues/venue-claims/{claimId}/reject:
+    post:
+      tags: [Venues]
+      summary: Reject a venue claim (Admin)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /admin/venues:
+    get:
+      tags: [Admin]
+      summary: List all venues for governance
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: ok
+
+  /admin/venue-claims:
+    get:
+      tags: [Admin]
+      summary: List venue claims for admin review
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          description: Filter claims by status. Omit for all statuses.
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+        - in: query
+          name: limit
+          schema: { type: integer, default: 50 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: ok
+
+  /admin/venue-claims/{claimId}/approve:
+    post:
+      tags: [Admin]
+      summary: Approve claim and assign official email
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [officialEmail]
+              properties:
+                officialEmail: { type: string, format: email }
+      responses:
+        "200":
+          description: ok
+
+  /admin/venue-claims/{claimId}/revoke:
+    post:
+      tags: [Admin]
+      summary: Revoke approved claim
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 5 }
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/venues/{venueId}:
+    get:
+      tags: [Venue Portal]
+      summary: Get managed venue profile (owner view)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+    put:
+      tags: [Venue Portal]
+      summary: Update managed venue profile (owner view)
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: ok
+
+  /admin/venues/{venueId}:
+    patch:
+      tags: [Admin]
+      summary: Patch venue display fields
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name_display: { type: string }
+                address_display: { type: string }
+      responses:
+        "200":
+          description: ok
+
+  /admin/venues/{venueId}/suspend:
+    post:
+      tags: [Admin]
+      summary: Suspend a venue from operator management
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 5 }
+      responses:
+        "200":
+          description: ok
+
+  /admin/venues/{venueId}/unsuspend:
+    post:
+      tags: [Admin]
+      summary: Restore a suspended venue to claimed status
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/me:
+    get:
+      tags: [Venue Portal]
+      summary: Get current venue owner primary venue
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/me/venues:
+    get:
+      tags: [Venue Portal]
+      summary: List venues managed by current user
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/venues/{venueId}/stats:
+    get:
+      tags: [Venue Portal]
+      summary: Get managed venue stats
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/venues/{venueId}/dashboard:
+    get:
+      tags: [Venue Portal]
+      summary: Get managed venue dashboard
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/venues/{venueId}/events:
+    get:
+      tags: [Venue Portal]
+      summary: List venue events grouped by date
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: from
+          schema: { type: string, format: date-time }
+        - in: query
+          name: to
+          schema: { type: string, format: date-time }
+      responses:
+        "200":
+          description: ok
+    post:
+      tags: [Venue Portal]
+      summary: Create a single venue event
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/venues/{venueId}/recurring-events:
+    post:
+      tags: [Venue Portal]
+      summary: Create recurring events for venue
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/venues/{venueId}/profile:
+    get:
+      tags: [Venue Portal]
+      summary: Get managed venue profile
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+    patch:
+      tags: [Venue Portal]
+      summary: Update managed venue profile
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                logo_url: { type: string }
+                cover_url: { type: string }
+                description: { type: string }
+                social_links: { type: object, additionalProperties: true }
+                opening_hours: { type: object, additionalProperties: true }
+                images:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/venues/{venueId}/sessions:
+    post:
+      tags: [Venue Portal]
+      summary: Create official session for managed venue
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Session'
+      responses:
+        "200":
+          description: ok
+
+  /venue-portal/events/{eventId}:
+    get:
+      tags: [Venue Portal]
+      summary: Get venue event detail
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+    put:
+      tags: [Venue Portal]
+      summary: Update venue event
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: ok
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark one notification as read
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
+  /notifications/read-all:
+    patch:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      security: [{ BearerAuth: [] }]
+      responses:
+        "200":
+          description: ok
+
+  /feedback:
+    post:
+      tags: [Feedback]
+      summary: Create feedback
+      security: [{ BearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "201":
+          description: ok
+
