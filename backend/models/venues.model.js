@@ -191,7 +191,9 @@ async function getVenueClaimById(id) {
 async function updateVenueClaimStatus(claimId, status) {
   const sql = `
     UPDATE public.venue_claims
-    SET status = $2, claimed_at = CASE WHEN $2 = 'approved' THEN NOW() ELSE NULL END
+    SET
+      status = $2,
+      reviewed_at = CASE WHEN $2 IN ('approved', 'rejected') THEN NOW() ELSE reviewed_at END
     WHERE id = $1
     RETURNING *
   `
@@ -209,7 +211,7 @@ async function updateVenueStatus(venueId, status) {
 
 async function writeAuditLog({ adminId, action, targetId, targetType, note }) {
   const sql = `
-    INSERT INTO public.admin_audit_logs (
+    INSERT INTO public.venue_audit_logs (
       admin_id, action, target_id, target_type, note
     ) VALUES ($1, $2, $3, $4, $5)
     RETURNING *
@@ -261,10 +263,10 @@ async function revokeVenueClaim(claimId) {
   const claim = await getVenueClaimById(claimId)
   if (!claim) throw new Error('Claim not found')
 
-  // 2. Set claim to revoked
+  // 2. Mark claim as rejected since venue_claims status only allows pending/approved/rejected.
   const sqlUpdateClaim = `
     UPDATE public.venue_claims 
-    SET status = 'revoked', claimed_at = NULL 
+    SET status = 'rejected', reviewed_at = NOW()
     WHERE id = $1 
     RETURNING *
   `

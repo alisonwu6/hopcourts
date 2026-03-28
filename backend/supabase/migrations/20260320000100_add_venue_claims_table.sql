@@ -1,5 +1,7 @@
 -- Create venue_claims table for venue claim/ownership flow
 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS public.venue_claims (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   

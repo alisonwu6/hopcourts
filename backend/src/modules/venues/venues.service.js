@@ -170,7 +170,11 @@ async function approveVenueClaim(claimId, adminId, officialEmail) {
   // This updates claim status and venue status
   const result = await reviewVenueClaim(claimId, 'approved')
   
-  // 4. Audit Log
+  // 4. Grant 'venue' role to the official account owner
+  // They keep 'player' and gain 'venue': ['player', 'venue']
+  await usersModel.addRoleToUser(officialUserId, 'venue')
+
+  // 5. Audit Log
   await venuesModel.writeAuditLog({
     adminId,
     action: 'approve_claim_invite',
@@ -189,7 +193,6 @@ module.exports = {
   requestVenueClaim,
   reviewVenueClaim,
   isVenueOwner,
-  // C0 Governance
   getAdminVenues,
   revokeVenueClaim,
   patchVenueDisplay,
