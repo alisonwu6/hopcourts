@@ -487,34 +487,6 @@ paths:
         "200":
           description: ok
 
-  /venues/venue-claims/{claimId}/approve:
-    post:
-      tags: [Venues]
-      summary: Approve a venue claim (Admin)
-      security: [{ BearerAuth: [] }]
-      parameters:
-        - in: path
-          name: claimId
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-
-  /venues/venue-claims/{claimId}/reject:
-    post:
-      tags: [Venues]
-      summary: Reject a venue claim (Admin)
-      security: [{ BearerAuth: [] }]
-      parameters:
-        - in: path
-          name: claimId
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-
   /admin/venues:
     get:
       tags: [Admin]
@@ -579,10 +551,33 @@ paths:
         "200":
           description: ok
 
+  /admin/venue-claims/{claimId}/reject:
+    post:
+      tags: [Admin]
+      summary: Reject a pending claim
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: claimId
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 5 }
+      responses:
+        "200":
+          description: ok
+
   /admin/venue-claims/{claimId}/revoke:
     post:
       tags: [Admin]
-      summary: Revoke approved claim
+      summary: Revoke an approved claim
       security: [{ BearerAuth: [] }]
       parameters:
         - in: path
@@ -638,7 +633,7 @@ paths:
   /admin/venues/{venueId}:
     patch:
       tags: [Admin]
-      summary: Patch venue display fields
+      summary: Patch venue display and operator fields
       security: [{ BearerAuth: [] }]
       parameters:
         - in: path
@@ -654,6 +649,10 @@ paths:
               properties:
                 name_display: { type: string }
                 address_display: { type: string }
+                operator_name: { type: string }
+                operator_email: { type: string, format: email }
+                operator_role: { type: string }
+                operator_phone: { type: string }
       responses:
         "200":
           description: ok

@@ -1,6 +1,5 @@
 const express = require('express')
 const venuesService = require('./venues.service')
-const { verifyToken } = require('../../middleware/verifyToken')
 
 const router = express.Router()
 
@@ -54,34 +53,6 @@ router.post('/:id/claim', async (req, res, next) => {
     res.json({ success: true, data: claim })
   } catch (err) {
     if (err.message === 'Venue already claimed' || err.message === 'Claim already pending') {
-      return res.status(400).json({ success: false, error: err.message })
-    }
-    next(err)
-  }
-})
-
-// POST /venue-claims/:id/approve - Approve claim (Admin only)
-router.post('/venue-claims/:id/approve', verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Add admin role check here
-    const claim = await venuesService.reviewVenueClaim(req.params.id, 'approved')
-    res.json({ success: true, data: claim })
-  } catch (err) {
-    if (err.message === 'Claim not found' || err.message === 'Claim already processed') {
-      return res.status(400).json({ success: false, error: err.message })
-    }
-    next(err)
-  }
-})
-
-// POST /venue-claims/:id/reject - Reject claim (Admin only)
-router.post('/venue-claims/:id/reject', verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Add admin role check here
-    const claim = await venuesService.reviewVenueClaim(req.params.id, 'rejected')
-    res.json({ success: true, data: claim })
-  } catch (err) {
-    if (err.message === 'Claim not found' || err.message === 'Claim already processed') {
       return res.status(400).json({ success: false, error: err.message })
     }
     next(err)

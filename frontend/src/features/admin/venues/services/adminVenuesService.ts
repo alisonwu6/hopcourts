@@ -190,6 +190,9 @@ const mapBackendVenueToAdmin = (row: any): AdminVenue => {
     status,
     operator_email,
     operator_name,
+    operator_role: row.claim_status === 'approved' ? row.contact_title : undefined,
+    operator_phone: row.claim_status === 'approved' ? row.contact_phone : undefined,
+    suspended_reason: row.suspended_reason,
     last_activity_at: row.last_activity_at,
   }
 }
@@ -284,7 +287,7 @@ export const adminVenuesService = {
     if (!reason?.trim()) return wrapError('VALIDATION', 'Rejection reason is required')
 
     try {
-      const data = await httpPost<any>(`/admin/venue-claims/${claimId}/revoke`, {
+      const data = await httpPost<any>(`/admin/venue-claims/${claimId}/reject`, {
         body: { reason: reason.trim() },
       })
 
@@ -313,6 +316,10 @@ export const adminVenuesService = {
       const payload = {
         name_display: data.name_display,
         address_display: data.address_display,
+        operator_name: data.operator_name,
+        operator_email: data.operator_email,
+        operator_role: data.operator_role,
+        operator_phone: data.operator_phone,
       }
 
       const result = await httpPatch<any>(`/admin/venues/${venueId}`, { body: payload })
@@ -325,6 +332,10 @@ export const adminVenuesService = {
         name_display: result.data.name_display || '',
         address_display: result.data.address || '',
         status: (result.data.status || 'unclaimed') as VenueStatus,
+        operator_name: data.operator_name,
+        operator_email: data.operator_email,
+        operator_role: data.operator_role,
+        operator_phone: data.operator_phone,
       }
       return wrapSuccess(updated)
     } catch (error) {

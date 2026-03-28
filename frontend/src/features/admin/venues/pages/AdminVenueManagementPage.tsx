@@ -335,6 +335,11 @@ export function AdminVenueManagementPage() {
                                   {claim.reviewed_by && <span className="ml-1">({claim.reviewed_by})</span>}
                                 </div>
                               )}
+                              {claim.status === 'rejected' && claim.rejection_reason && (
+                                <div className="mt-2 rounded-md bg-red-50 px-2 py-1 text-[11px] italic text-red-600">
+                                  "{claim.rejection_reason}"
+                                </div>
+                              )}
                             </td>
                             <td className="px-5 py-4 text-xs text-slate-500">
                               {fmtDateTime(claim.submitted_at)}
@@ -814,7 +819,7 @@ export function AdminVenueManagementPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 pb-4 pt-6">
-              <h2 className="text-lg font-bold text-slate-900">Edit Display Info</h2>
+              <h2 className="text-lg font-bold text-slate-900">Edit Venue Info</h2>
               <button onClick={() => setEditingVenue(null)} className="text-slate-400 hover:text-slate-600">
                 ✕
               </button>
@@ -846,7 +851,7 @@ export function AdminVenueManagementPage() {
 
               <div className="pt-2 border-t border-slate-100">
                 <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Operator Details</p>
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="space-y-3">
                   <div>
                     <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Name</label>
                     <input
@@ -865,8 +870,6 @@ export function AdminVenueManagementPage() {
                       className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
                     />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</label>
                     <input
@@ -901,7 +904,7 @@ export function AdminVenueManagementPage() {
                 disabled={actionLoading}
                 className="flex-1 rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white hover:bg-slate-700 disabled:opacity-50"
               >
-                {actionLoading ? 'Saving…' : 'Save Changes'}
+                {actionLoading ? 'Updating' : 'Update'}
               </button>
             </div>
           </div>

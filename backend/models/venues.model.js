@@ -1,4 +1,4 @@
-const { query } = require('../src/lib/db')
+const { query, getPool } = require('../src/lib/db')
 
 async function createVenue(input) {
   const sql = `
@@ -243,6 +243,7 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
       pc.id as pending_claim_id,
       pc.contact_name as pending_contact_name,
       pc.contact_email as pending_contact_email,
+      sal.note as suspended_reason,
       (SELECT MAX(starts_at) FROM public.sessions s WHERE s.venue_id = v.id) as last_activity_at
     FROM public.venues v
     LEFT JOIN public.venue_claims c ON c.venue_id = v.id AND c.status = 'approved'
@@ -252,6 +253,15 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
       WHERE venue_id = v.id AND status = 'pending' 
       ORDER BY created_at DESC LIMIT 1
     ) pc ON true
+    LEFT JOIN LATERAL (
+      SELECT note
+      FROM public.venue_audit_logs al
+      WHERE al.target_type = 'venue'
+        AND al.target_id = v.id
+        AND al.action = 'suspend_venue'
+      ORDER BY al.created_at DESC
+      LIMIT 1
+    ) sal ON true
     ${whereClause}
     ORDER BY v.created_at DESC
     LIMIT $${params.length + 1} OFFSET $${params.length + 2}
@@ -265,6 +275,7 @@ async function revokeVenueClaim(claimId) {
   // 1. Get the claim to know the venue_id
   const claim = await getVenueClaimById(claimId)
   if (!claim) throw new Error('Claim not found')
+  if (claim.status !== 'approved') throw new Error('Only approved claim can be revoked')
 
   // 2. Mark claim as rejected since venue_claims status only allows pending/approved/rejected.
   const sqlUpdateClaim = `
@@ -318,7 +329,7 @@ async function getAdminClaims({ status = undefined, limit = 50, offset = 0 } = {
       FROM public.venue_audit_logs al
       WHERE al.target_type = 'venue_claim'
         AND al.target_id = vc.id
-        AND al.action = 'revoke_claim'
+        AND al.action IN ('reject_claim', 'revoke_claim')
       ORDER BY al.created_at DESC
       LIMIT 1
     ) ral ON true
@@ -354,18 +365,52 @@ async function unsuspendVenue(id) {
   return rows[0]
 }
 
-async function patchVenueDisplay(id, { name_display, address_display }) {
-  const sql = `
-    UPDATE public.venues 
-    SET 
-      name_display = COALESCE($2, name_display),
-      address = COALESCE($3, address),
-      updated_at = NOW()
-    WHERE id = $1
-    RETURNING *
-  `
-  const { rows } = await query(sql, [id, name_display, address_display])
-  return rows[0]
+async function patchVenueDisplay(
+  id,
+  { name_display, address_display, operator_name, operator_email, operator_role, operator_phone }
+) {
+  const pool = getPool()
+  const client = await pool.connect()
+
+  try {
+    await client.query('BEGIN')
+
+    const venueSql = `
+      UPDATE public.venues
+      SET
+        name_display = COALESCE($2, name_display),
+        address = COALESCE($3, address),
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `
+    const { rows: venueRows } = await client.query(venueSql, [id, name_display, address_display])
+
+    const operatorFieldsProvided = [operator_name, operator_email, operator_role, operator_phone].some(
+      (value) => value !== undefined
+    )
+
+    if (operatorFieldsProvided) {
+      const claimSql = `
+        UPDATE public.venue_claims
+        SET
+          contact_name = COALESCE($2, contact_name),
+          contact_email = COALESCE($3, contact_email),
+          contact_title = COALESCE($4, contact_title),
+          contact_phone = COALESCE($5, contact_phone)
+        WHERE venue_id = $1 AND status = 'approved'
+      `
+      await client.query(claimSql, [id, operator_name, operator_email, operator_role, operator_phone])
+    }
+
+    await client.query('COMMIT')
+    return venueRows[0]
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 async function getManagedVenues(userId) {

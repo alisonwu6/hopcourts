@@ -125,6 +125,20 @@ async function getAdminClaims(filters) {
   return venuesModel.getAdminClaims(filters)
 }
 
+async function rejectVenueClaim(claimId, adminId, reason) {
+  const result = await reviewVenueClaim(claimId, 'rejected')
+
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'reject_claim',
+    targetId: claimId,
+    targetType: 'venue_claim',
+    note: reason,
+  })
+
+  return result
+}
+
 async function revokeVenueClaim(claimId, adminId, reason) {
   const result = await venuesModel.revokeVenueClaim(claimId)
   
@@ -149,7 +163,14 @@ async function patchVenueDisplay(venueId, adminId, data) {
     action: 'patch_venue',
     targetId: venueId,
     targetType: 'venue',
-    note: `Updated name/address: ${data.name_display || ''}`
+    note: `Updated display/operator fields: ${[
+      data.name_display ? 'name' : null,
+      data.address_display ? 'address' : null,
+      data.operator_name !== undefined ? 'operator_name' : null,
+      data.operator_email !== undefined ? 'operator_email' : null,
+      data.operator_role !== undefined ? 'operator_role' : null,
+      data.operator_phone !== undefined ? 'operator_phone' : null,
+    ].filter(Boolean).join(', ')}`
   })
   
   return result
@@ -227,6 +248,7 @@ module.exports = {
   isVenueOwner,
   getAdminVenues,
   getAdminClaims,
+  rejectVenueClaim,
   revokeVenueClaim,
   patchVenueDisplay,
   suspendVenue,

@@ -39,6 +39,26 @@ router.get('/venue-claims', async (req, res, next) => {
   }
 })
 
+// POST /admin/venue-claims/:claimId/reject - Reject a pending claim (Audit Reason Required)
+router.post('/venue-claims/:claimId/reject', async (req, res, next) => {
+  try {
+    const adminId = req.userId
+    const reason = req.body.reason
+
+    if (!reason || reason.trim().length < 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Audit reason is mandatory and must be at least 5 characters.'
+      })
+    }
+
+    const result = await venuesService.rejectVenueClaim(req.params.claimId, adminId, reason.trim())
+    res.json({ success: true, data: result })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // POST /admin/venue-claims/:claimId/revoke - Revoke an approved claim (Audit Reason Required)
 router.post('/venue-claims/:claimId/revoke', async (req, res, next) => {
   try {
@@ -76,13 +96,17 @@ router.post('/venue-claims/:claimId/approve', async (req, res, next) => {
   }
 })
 
-// PATCH /admin/venues/:venueId - Correction of name or address only
+// PATCH /admin/venues/:venueId - Correction of display and operator fields
 router.patch('/venues/:venueId', async (req, res, next) => {
   try {
     const adminId = req.userId
     const data = {
       name_display: req.body.name_display,
-      address_display: req.body.address_display
+      address_display: req.body.address_display,
+      operator_name: req.body.operator_name,
+      operator_email: req.body.operator_email,
+      operator_role: req.body.operator_role,
+      operator_phone: req.body.operator_phone,
     }
     const result = await venuesService.patchVenueDisplay(req.params.venueId, adminId, data)
     res.json({ success: true, data: result })
