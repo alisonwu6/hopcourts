@@ -259,6 +259,7 @@ export function ProfilePage() {
   );
 
   const [rawProfile, setRawProfile] = useState<any>(null);
+  const hasVenueAccess = (rawProfile?.user?.role ?? []).includes('venue');
   const hasBootstrappedRef = React.useRef(false);
 
   // 1. Fetch Data Only (Stable dependencies)
@@ -883,23 +884,29 @@ export function ProfilePage() {
           onJoinedClick={() => navigate('/profile/joined-events')}
           onTeammatesClick={() => navigate('/circle')}
         />
-        <div className="mt-2 px-3">
-          <div
-            onClick={() => navigate('/venue-portal')}
-            className="bg-white rounded-2xl p-3.5 border border-2 border-slate-100 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
-                <Building2 className="w-5 h-5" />
+        {hasVenueAccess && (
+          <div className="mt-2 px-3">
+            <div
+              onClick={() => navigate('/venue-portal')}
+              className="flex cursor-pointer items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-3.5 transition-all active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <dt className="text-xs font-black uppercase tracking-tight text-slate-900">
+                    Venue Portal
+                  </dt>
+                  <dd className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                    Manage courts & schedule
+                  </dd>
+                </div>
               </div>
-              <div>
-                <dt className="font-black text-slate-900 uppercase tracking-tight text-xs">Venue Portal</dt>
-                <dd className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Manage courts & schedule</dd>
-              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300" />
             </div>
-            <ChevronRight className="w-4 h-4 text-slate-300" />
           </div>
-        </div>
+        )}
 
         <div className="mt-4 space-y-4 px-3">
           <h3 className="px-1 text-xl font-semibold text-slate-700">Recent Activities</h3>

@@ -22,6 +22,7 @@ function mapUserProfile(payload = {}) {
     vibe_key: user.vibe_key || null,
     age_range_key: user.age_range_key || null,
     gender: user.gender || null,
+    role: Array.isArray(user.role) ? user.role : [],
     onboarding_completed_at: user.onboarding_completed_at || null,
     created_at: user.created_at,
     updated_at: user.updated_at,

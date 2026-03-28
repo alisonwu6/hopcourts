@@ -2,7 +2,7 @@ const { query } = require('../src/lib/db')
 
 async function getUserById(id) {
   const { rows } = await query(
-    `select id, email, username, display_name, city_key, nationality_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at, onboarding_completed_at
+    `select id, email, username, display_name, city_key, nationality_key, age_range_key, gender, vibe_key, bio, avatar_url, role, created_at, updated_at, onboarding_completed_at
      from public.users where id = $1`,
     [id]
   )
@@ -59,7 +59,7 @@ async function upsertUser(user) {
 
 async function findUserByEmail(email) {
   const { rows } = await query(
-    `select id, username, display_name, city_key, nationality_key, age_range_key, gender, vibe_key, bio, avatar_url, created_at, updated_at, email
+    `select id, username, display_name, city_key, nationality_key, age_range_key, gender, vibe_key, bio, avatar_url, role, created_at, updated_at, email
      from public.users where email = $1`,
     [email]
   )
@@ -94,11 +94,27 @@ async function deleteUser(id) {
   return rowCount > 0
 }
 
+/**
+ * addRoleToUser — appends a role to the user's TEXT[] role column.
+ * Safe to call multiple times (idempotent: no-op if role already present).
+ */
+async function addRoleToUser(userId, role) {
+  const { rows } = await query(
+    `UPDATE public.users
+     SET role = array_append(role, $2), updated_at = NOW()
+     WHERE id = $1 AND NOT (role @> ARRAY[$2]::text[])
+     RETURNING *`,
+    [userId, role]
+  )
+  return rows[0] || null
+}
+
 module.exports = { 
   getUserById, 
   getUserByUsername, 
   upsertUser,
   findUserByEmail,
   createUserFromSupabaseProfile,
-  deleteUser
+  deleteUser,
+  addRoleToUser,
 }
