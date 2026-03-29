@@ -26,6 +26,7 @@ function buildListParams(query) {
   return {
     sportKey: query.sport_key || query.sport ? String(query.sport_key || query.sport) : undefined,
     city: query.city ? String(query.city) : undefined,
+    venueId: query.venue_id ? String(query.venue_id) : undefined,
     from: parseDate(query.from),
     to: parseDate(query.to),
     limit,
