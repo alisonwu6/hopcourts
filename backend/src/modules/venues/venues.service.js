@@ -1,6 +1,7 @@
 const venuesModel = require('../../../models/venues.model')
 const usersModel = require('../../../models/users.model')
 const { query } = require('../../lib/db')
+const { geocodeAddress } = require('../../utils/geocoding')
 
 // Simple Levenshtein distance for string similarity
 function levenshtein(a, b) {
@@ -155,7 +156,18 @@ async function revokeVenueClaim(claimId, adminId, reason) {
 }
 
 async function patchVenueDisplay(venueId, adminId, data) {
-  const result = await venuesModel.patchVenueDisplay(venueId, data)
+  const patchData = { ...data }
+
+  const nextAddress = typeof data.address_display === 'string' ? data.address_display.trim() : ''
+  if (nextAddress) {
+    const geocoded = await geocodeAddress(nextAddress)
+    if (geocoded) {
+      patchData.lat = geocoded.lat
+      patchData.lng = geocoded.lng
+    }
+  }
+
+  const result = await venuesModel.patchVenueDisplay(venueId, patchData)
   
   // Audit log is mandatory
   await venuesModel.writeAuditLog({
@@ -170,6 +182,7 @@ async function patchVenueDisplay(venueId, adminId, data) {
       data.operator_email !== undefined ? 'operator_email' : null,
       data.operator_role !== undefined ? 'operator_role' : null,
       data.operator_phone !== undefined ? 'operator_phone' : null,
+      patchData.lat !== undefined && patchData.lng !== undefined ? 'lat_lng' : null,
     ].filter(Boolean).join(', ')}`
   })
   
