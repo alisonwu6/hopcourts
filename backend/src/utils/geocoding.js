@@ -10,7 +10,7 @@ async function geocodeAddress(address) {
     return geocodeCache.get(input)
   }
 
-  const token = process.env.MAPBOX_TOKEN || process.env.VITE_MAPBOX_TOKEN
+  const token = process.env.MAPBOX_TOKEN
   if (!token) return null
 
   const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json?limit=1&language=en&access_token=${token}`

@@ -161,10 +161,12 @@ async function patchVenueDisplay(venueId, adminId, data) {
   const nextAddress = typeof data.address_display === 'string' ? data.address_display.trim() : ''
   if (nextAddress) {
     const geocoded = await geocodeAddress(nextAddress)
-    if (geocoded) {
-      patchData.lat = geocoded.lat
-      patchData.lng = geocoded.lng
+    if (!geocoded) {
+      throw new Error('Unable to geocode venue address. Check MAPBOX_TOKEN and address format.')
     }
+
+    patchData.lat = geocoded.lat
+    patchData.lng = geocoded.lng
   }
 
   const result = await venuesModel.patchVenueDisplay(venueId, patchData)
@@ -218,6 +220,11 @@ async function unsuspendVenue(venueId, adminId) {
 }
 
 async function approveVenueClaim(claimId, adminId, officialEmail) {
+  const claim = await venuesModel.getVenueClaimById(claimId)
+  if (!claim) {
+    throw new Error('Claim not found')
+  }
+
   // 1. Validate Official Email User Exists (Invite Flow Mock)
   // Use shared model for consistency
   const user = await usersModel.findUserByEmail(officialEmail)
@@ -235,6 +242,22 @@ async function approveVenueClaim(claimId, adminId, officialEmail) {
   // 3. Approve Claim (Standard Flow)
   // This updates claim status and venue status
   const result = await reviewVenueClaim(claimId, 'approved')
+
+  // 3.1 Re-geocode official venue address on approval to avoid stale coordinates
+  // from older player-originated venue records.
+  const venue = await venuesModel.getVenueById(claim.venue_id)
+  const venueAddress = String(venue?.address || '').trim()
+  if (venueAddress) {
+    const geocoded = await geocodeAddress(venueAddress)
+    if (!geocoded) {
+      throw new Error('Unable to geocode venue address during claim approval. Check MAPBOX_TOKEN and address format.')
+    }
+
+    await venuesModel.patchVenueDisplay(claim.venue_id, {
+      lat: geocoded.lat,
+      lng: geocoded.lng,
+    })
+  }
   
   // 4. Grant 'venue' role to the official account owner
   // They keep 'player' and gain 'venue': ['player', 'venue']
