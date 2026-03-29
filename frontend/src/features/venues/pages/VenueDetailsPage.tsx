@@ -107,7 +107,7 @@ export function VenueDetailsPage() {
     <VenueDetailsView
       venue={venue}
       upcomingEvents={upcomingEvents}
-      onBack={() => navigate(-1)}
+      onBack={() => navigate('/venues')}
       onShare={handleShare}
       onClaim={handleClaim}
       isClaiming={isClaiming}

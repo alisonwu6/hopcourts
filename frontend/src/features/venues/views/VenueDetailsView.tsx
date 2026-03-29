@@ -129,6 +129,37 @@ export function VenueDetailsView({
             </div>
           </div>
         )}
+
+        {venue.spaces && venue.spaces.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
+              Courts & Supported Sports
+            </h2>
+            <div className="space-y-3">
+              {venue.spaces.map((space, idx) => (
+                <div key={`${space.name}-${idx}`} className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                  <div className="font-black text-slate-700 uppercase tracking-tight mb-2">
+                    {space.name}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {space.supported_sports.length > 0 ? (
+                      space.supported_sports.map((sport) => (
+                        <span
+                          key={sport}
+                          className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm"
+                        >
+                          {sport}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-slate-400 text-xs italic">No sports configured</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Claim CTA (Only for unclaimed) */}

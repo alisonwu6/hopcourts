@@ -22,11 +22,14 @@ async function getVenueProfile(venueId) {
   const amenities = (profile && profile.amenities) || {}
   return {
     logo_url: (profile && profile.logo_url) || null,
+    description: (profile && profile.description) || '',
+    social_links: (profile && profile.social_links) || {},
     opening_hours: (profile && profile.opening_hours) || [],
     facilities: amenities.facilities || {},
     playing: amenities.playing || {},
     services: amenities.services || {},
     supply: amenities.supply || {},
+    spaces: Array.isArray(profile?.spaces) ? profile.spaces : [],
   }
 }
 
@@ -35,9 +38,16 @@ async function updateVenueProfile(venueId, data) {
     throw Errors.validation('opening_hours must be an array of exactly 7 entries (Monday–Sunday)')
   }
 
+  if (data.spaces && !Array.isArray(data.spaces)) {
+    throw Errors.validation('spaces must be an array')
+  }
+
   const payload = {
     logo_url: data.logo_url,
+    description: data.description,
+    social_links: data.social_links,
     opening_hours: data.opening_hours,
+    spaces: data.spaces,
     amenities: {
       facilities: data.facilities,
       playing: data.playing,
@@ -57,6 +67,13 @@ function parseDateAndTime(dateStr, timeStr) {
   // dateStr: "DD/MM/YYYY", timeStr: "HH:mm"
   const [day, month, year] = dateStr.split('/')
   return new Date(`${year}-${month}-${day}T${timeStr}:00.000Z`)
+}
+
+function buildVenuePlaceName(venue, eventData) {
+  const venueDisplayName = venue.name_display || venue.name
+  const courtName = String(eventData?.court_name || '').trim()
+  if (!courtName) return venueDisplayName
+  return `${venueDisplayName} - ${courtName}`
 }
 
 async function createVenueEvent(venueId, userId, eventData) {
@@ -90,7 +107,7 @@ async function createVenueEvent(venueId, userId, eventData) {
     isOfficial: true,
     status: 'published',
     visibility: 'public',
-    locationName: venue.name_display || venue.name,
+    locationName: buildVenuePlaceName(venue, eventData),
     address: venue.address,
     lat: venue.lat,
     lng: venue.lng,
@@ -151,7 +168,7 @@ async function createRecurringEvents(venueId, userId, eventData) {
       isOfficial: true,
       status: 'published',
       visibility: 'public',
-      locationName: venue.name_display || venue.name,
+      locationName: buildVenuePlaceName(venue, eventData),
       address: venue.address,
       lat: venue.lat,
       lng: venue.lng,
@@ -219,6 +236,9 @@ async function updateVenueEvent(eventId, userId, eventData) {
     throw Errors.forbidden('You do not manage this venue')
   }
 
+  const hasCourtNameField = Object.prototype.hasOwnProperty.call(eventData, 'court_name')
+  const venue = hasCourtNameField ? await venuesModel.getVenueById(session.venue_id) : null
+
   const isFree = eventData.pricing_model !== undefined
     ? eventData.pricing_model !== 'paid'
     : undefined
@@ -236,6 +256,7 @@ async function updateVenueEvent(eventId, userId, eventData) {
     maxPeople: eventData.max_capacity,
     title: eventData.title,
     description: eventData.note,
+    locationName: hasCourtNameField ? buildVenuePlaceName(venue, eventData) : undefined,
     isFree,
     pricePerPerson: isFree === undefined
       ? undefined

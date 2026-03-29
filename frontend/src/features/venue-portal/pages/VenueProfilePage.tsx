@@ -83,12 +83,7 @@ export function VenueProfilePage() {
         description: '',
         amenities: [] as string[],
         spaces: [] as { name: string; supported_sports: string[] }[],
-        operating_hours: DAYS.map(d => ({
-            day: d,
-            open_time: '06:00',
-            close_time: '22:00',
-            is_closed: false
-        })) as OperatingDay[],
+        operating_hours: [] as OperatingDay[],
         social_links: {}
     });
 
@@ -101,25 +96,29 @@ export function VenueProfilePage() {
     const loadProfile = async () => {
         if (!venueId) return;
         setLoading(true);
-        const res = await venuePortalService.getVenueProfile(venueId);
-        if (res.success && res.data) {
+        const [venuesRes, profileRes] = await Promise.all([
+            venuePortalService.getMyVenues(),
+            venuePortalService.getVenueProfile(venueId),
+        ]);
+
+        const currentVenue = venuesRes.success && venuesRes.data
+            ? venuesRes.data.find((v) => v.id === venueId) || venuesRes.data[0] || null
+            : null;
+
+        if (profileRes.success && profileRes.data) {
+            const operatingHours = Array.isArray(profileRes.data.operating_hours)
+                ? profileRes.data.operating_hours
+                : [];
+
             setFormData({
-                name_display: res.data.name_display || 'Stadium Pro Brisbane', 
-                address_display: res.data.address_display || '45 Charlotte St, Brisbane QLD 4000',
-                logo_url: res.data.logo_url || '',
-                description: res.data.description || '',
-                amenities: res.data.amenities || [],
-                spaces: res.data.spaces?.length > 0 ? res.data.spaces : [
-                    { name: 'Court 1', supported_sports: ['Basketball', 'Tennis'] },
-                    { name: 'Court 2', supported_sports: ['Basketball'] }
-                ],
-                operating_hours: res.data.operating_hours || DAYS.map(d => ({
-                    day: d,
-                    open_time: '06:00',
-                    close_time: '22:00',
-                    is_closed: false
-                })),
-                social_links: res.data.social_links || {}
+                name_display: currentVenue?.name_display || '',
+                address_display: currentVenue?.address_display || '',
+                logo_url: profileRes.data.logo_url || '',
+                description: profileRes.data.description || '',
+                amenities: profileRes.data.amenities || [],
+                spaces: Array.isArray(profileRes.data.spaces) ? profileRes.data.spaces : [],
+                operating_hours: operatingHours,
+                social_links: profileRes.data.social_links || {}
             });
         }
         setLoading(false);
@@ -144,6 +143,7 @@ export function VenueProfilePage() {
         setSaving(true);
         const res = await venuePortalService.updateVenueProfile(venueId, formData);
         if (res.success) {
+            await loadProfile();
             setMode('view');
         } else {
             console.error('Update failed:', res.error?.message);
@@ -159,7 +159,7 @@ export function VenueProfilePage() {
             onToggleMode={setMode}
             formData={formData}
             setFormData={setFormData}
-            onBack={() => navigate('/venue-portal')}
+            onBack={() => navigate('/admin')}
             onSubmit={handleSubmit}
             onApplyAll={handleApplyAll}
             AMENITIES_CATEGORIES={AMENITIES_CATEGORIES}

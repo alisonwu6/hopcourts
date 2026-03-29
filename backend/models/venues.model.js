@@ -53,6 +53,10 @@ async function getVenueById(id) {
       COALESCE(v.name_display, v.name) as name_display,
       v.address as address_display,
       COALESCE(vp.logo_url, v.logo_url) as logo_url,
+      COALESCE(vp.description, v.description) as description,
+      vp.opening_hours,
+      vp.amenities,
+      vp.spaces,
       (SELECT COUNT(*)::int FROM public.sessions s 
        WHERE s.venue_id = v.id 
          AND s.ends_at > NOW() 
@@ -372,7 +376,7 @@ async function unsuspendVenue(id) {
 
 async function patchVenueDisplay(
   id,
-  { name_display, address_display, operator_name, operator_email, operator_role, operator_phone }
+  { name_display, address_display, operator_name, operator_email, operator_role, operator_phone, lat, lng }
 ) {
   const pool = getPool()
   const client = await pool.connect()
@@ -385,11 +389,13 @@ async function patchVenueDisplay(
       SET
         name_display = COALESCE($2, name_display),
         address = COALESCE($3, address),
+        lat = COALESCE($4, lat),
+        lng = COALESCE($5, lng),
         updated_at = NOW()
       WHERE id = $1
       RETURNING *
     `
-    const { rows: venueRows } = await client.query(venueSql, [id, name_display, address_display])
+    const { rows: venueRows } = await client.query(venueSql, [id, name_display, address_display, lat, lng])
 
     const operatorFieldsProvided = [operator_name, operator_email, operator_role, operator_phone].some(
       (value) => value !== undefined
@@ -431,42 +437,66 @@ async function getManagedVenues(userId) {
 }
 
 async function getVenueProfile(venueId) {
-  const sql = `SELECT * FROM public.venue_profiles WHERE venue_id = $1`
+  const sql = `SELECT to_jsonb(vp) AS profile FROM public.venue_profiles vp WHERE vp.venue_id = $1`
   const { rows } = await query(sql, [venueId])
-  return rows[0]
+  return rows[0]?.profile || null
 }
 
 async function upsertVenueProfile(venueId, data) {
-  const sql = `
+  const baseSql = `
     INSERT INTO public.venue_profiles (
-      venue_id, logo_url, cover_url, description, social_links, opening_hours, images, amenities, updated_at
+      venue_id, logo_url, cover_url
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, NOW()
+      $1, $2, $3
     )
     ON CONFLICT (venue_id) DO UPDATE SET
       logo_url = COALESCE($2, public.venue_profiles.logo_url),
-      cover_url = COALESCE($3, public.venue_profiles.cover_url),
-      description = COALESCE($4, public.venue_profiles.description),
-      social_links = COALESCE($5, public.venue_profiles.social_links),
-      opening_hours = COALESCE($6, public.venue_profiles.opening_hours),
-      images = COALESCE($7, public.venue_profiles.images),
-      amenities = COALESCE($8, public.venue_profiles.amenities),
-      updated_at = NOW()
+      cover_url = COALESCE($3, public.venue_profiles.cover_url)
     RETURNING *
   `
-  const params = [
+
+  const baseParams = [
     venueId,
     data.logo_url || null,
     data.cover_url || null,
+  ]
+
+  const { rows } = await query(baseSql, baseParams)
+  const baseRow = rows[0]
+
+  const extendedSql = `
+    UPDATE public.venue_profiles
+    SET
+      description = COALESCE($2, description),
+      social_links = COALESCE($3::jsonb, social_links),
+      opening_hours = COALESCE($4::jsonb, opening_hours),
+      images = COALESCE($5::jsonb, images),
+      amenities = COALESCE($6::jsonb, amenities),
+      spaces = COALESCE($7::jsonb, spaces),
+      updated_at = NOW()
+    WHERE venue_id = $1
+    RETURNING *
+  `
+
+  const extendedParams = [
+    venueId,
     data.description || null,
     data.social_links ? JSON.stringify(data.social_links) : null,
     data.opening_hours ? JSON.stringify(data.opening_hours) : null,
     data.images ? JSON.stringify(data.images) : null,
     data.amenities ? JSON.stringify(data.amenities) : null,
+    data.spaces ? JSON.stringify(data.spaces) : null,
   ]
 
-  const { rows } = await query(sql, params)
-  return rows[0]
+  try {
+    const ext = await query(extendedSql, extendedParams)
+    return ext.rows[0] || baseRow
+  } catch (err) {
+    if (err && err.code === '42703') {
+      return baseRow
+    }
+    throw err
+  }
 }
 
 async function getVenueStats(venueId) {
