@@ -246,6 +246,7 @@ export interface SaveEventPayload {
 export interface PlayerEvent {
   id: string
   venueId?: string
+  courtName?: string
   title: string
   sport: string
   heroImageUrl?: string

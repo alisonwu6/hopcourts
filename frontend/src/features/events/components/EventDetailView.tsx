@@ -311,6 +311,7 @@ export function EventDetailView({
                   <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
                 </button>
               </div>
+              {event.courtName && <InfoRow icon={LandPlot} label={`Court: ${event.courtName}`} />}
               <InfoRow icon={CircleDollarSign} label={feeLine2} />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                 <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>

@@ -33,6 +33,23 @@ const formatTwdNoDecimal = (value: unknown): string => {
   return Math.round(n).toLocaleString('zh-TW')
 }
 
+const deriveCourtName = (session: any): string | undefined => {
+  const explicitCourt = String(session?.court_name || '').trim()
+  if (explicitCourt) return explicitCourt
+
+  const placeName = String(session?.place_name || '').trim()
+  const venueName = String(session?.venue_name_display || '').trim()
+  if (!placeName || !venueName || !session?.venue_id) return undefined
+
+  const prefix = `${venueName} - `
+  if (placeName.startsWith(prefix)) {
+    const parsed = placeName.slice(prefix.length).trim()
+    return parsed || undefined
+  }
+
+  return undefined
+}
+
 const DEFAULT_LIST_TTL_MS = 30_000
 const DEFAULT_DETAIL_TTL_MS = 60_000
 const DEFAULT_MY_EVENTS_TTL_MS = 15_000
@@ -164,9 +181,13 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
 }
 
 const mapSessionToEvent = (session: any): PlayerEvent => {
+  const courtName = deriveCourtName(session)
+  const locationName = session.venue_name_display || session.place_name
+
   return {
     id: session.id,
     venueId: session.venue_id,
+    courtName,
     title: session.title,
     sport: session.sport_key,
     vibeIcon: '🎯', // TODO: Map sport to icon
@@ -177,7 +198,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     startTime: new Date(session.starts_at),
     endTime: session.ends_at ? new Date(session.ends_at) : new Date(session.starts_at),
     location: {
-      name: session.place_name,
+      name: locationName,
       address: session.address ?? '',
       city: '', // TODO: logic to extract city
       lat: session.lat,

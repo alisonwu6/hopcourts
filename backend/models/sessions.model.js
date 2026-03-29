@@ -205,6 +205,7 @@ async function getSessionById(sessionId) {
        h.city_key as host_city_key,
        c.name_en as host_city_name,
        v.status as venue_status,
+       v.name_display as venue_name_display,
        v.logo_url as venue_logo_url
      from public.sessions s
      left join public.users h on s.host_user_id = h.id
