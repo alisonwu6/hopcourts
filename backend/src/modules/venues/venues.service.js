@@ -81,15 +81,45 @@ async function requestVenueClaim(venueId, userId, claimData) {
   if (!venue) throw new Error('Venue not found')
   if (venue.status === 'claimed') throw new Error('Venue already claimed')
 
+  const normalizedClaim = {
+    contact_name: String(claimData?.contact_name || '').trim(),
+    contact_person: String(claimData?.contact_person || '').trim(),
+    contact_title: String(claimData?.contact_title || '').trim(),
+    contact_phone: String(claimData?.contact_phone || '').trim(),
+    contact_email: String(claimData?.contact_email || '').trim(),
+    note: claimData?.note ? String(claimData.note).trim() : undefined,
+  }
+
+  if (userId) {
+    const user = await usersModel.getUserById(userId)
+    const fallbackName = String(user?.display_name || '').trim()
+    const fallbackEmail = String(user?.email || '').trim()
+
+    if (!normalizedClaim.contact_name && fallbackName) {
+      normalizedClaim.contact_name = fallbackName
+    }
+    if (!normalizedClaim.contact_email && fallbackEmail) {
+      normalizedClaim.contact_email = fallbackEmail
+    }
+  }
+
+  if (!normalizedClaim.contact_person && normalizedClaim.contact_name) {
+    normalizedClaim.contact_person = normalizedClaim.contact_name
+  }
+
+  if (!normalizedClaim.contact_name || !normalizedClaim.contact_person || !normalizedClaim.contact_title || !normalizedClaim.contact_phone || !normalizedClaim.contact_email) {
+    throw new Error('Claim form is incomplete')
+  }
+
   // Check if there is already a pending claim for this venue with this email
-  const existingClaim = await venuesModel.getPendingClaimByEmail(venueId, claimData.contact_email)
+  const existingClaim = await venuesModel.getPendingClaimByEmail(venueId, normalizedClaim.contact_email)
   if (existingClaim) throw new Error('Claim already pending')
 
   // Check if there's already an approved claim for this venue
   const approvedClaim = await venuesModel.getApprovedClaim(venueId)
   if (approvedClaim) throw new Error('Venue already claimed')
 
-  return venuesModel.createVenueClaim(venueId, userId, claimData)
+  return venuesModel.createVenueClaim(venueId, userId, normalizedClaim)
 }
 
 // Check if user is the official owner of a venue

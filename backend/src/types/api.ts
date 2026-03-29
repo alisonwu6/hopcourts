@@ -1900,7 +1900,7 @@ export interface components {
             status?: "pending" | "approved" | "rejected";
         };
         VenueClaimRequest: {
-            contact_name: string;
+            contact_name?: string;
             contact_person: string;
             contact_title: string;
             contact_phone: string;

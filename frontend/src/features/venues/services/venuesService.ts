@@ -33,6 +33,15 @@ export interface ApiVenue {
   created_at: string
 }
 
+export interface VenueClaimRequest {
+  contact_name: string
+  contact_person: string
+  contact_title: string
+  contact_phone: string
+  contact_email: string
+  note?: string
+}
+
 const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   success: true,
   data,
@@ -158,18 +167,10 @@ export const venuesService = {
     }
   },
 
-  async requestVenueClaim(venueId: string, claimData: {
-    contact_name: string
-    contact_person: string
-    contact_title: string
-    contact_phone: string
-    contact_email: string
-    note?: string
-  }): Promise<ApiResponse<any>> {
+  async requestVenueClaim(venueId: string, claimData: VenueClaimRequest): Promise<ApiResponse<any>> {
     try {
       const response = await httpPost<any>(`/venues/${venueId}/claim`, {
         body: claimData,
-        auth: false,
       })
       return wrapSuccess(response?.data)
     } catch (err: any) {

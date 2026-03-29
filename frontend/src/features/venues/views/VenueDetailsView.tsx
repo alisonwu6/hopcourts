@@ -164,25 +164,25 @@ export function VenueDetailsView({
 
       {/* Claim CTA (Only for unclaimed) */}
       {venue.status !== 'claimed' && (
-        <div className="mx-6 mt-8 p-6 rounded-[2.5rem] bg-indigo-600 text-white shadow-xl shadow-indigo-200 flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 flex items-center justify-center bg-white/20 rounded-2xl backdrop-blur-sm">
-              <Sparkles className="h-5 w-5 text-indigo-100" />
+        <div className="mx-6 mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+              <Sparkles className="h-5 w-5" />
             </div>
-            <div>
-              <h3 className="text-sm font-black uppercase tracking-widest">Own this Venue?</h3>
-              <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-wider mt-0.5">
-                Verified venues get official checkmarks
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-black tracking-tight text-slate-900">Own this venue?</h3>
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                Verified venues get official checkmarks and portal access.
               </p>
             </div>
           </div>
           <VenueButton
-            variant="ghost"
-            className="w-full bg-white text-indigo-600 hover:bg-indigo-50 font-black tracking-widest text-[10px] uppercase h-12 rounded-2xl"
+            variant="secondary"
+            className="mt-5 h-11 w-full rounded-[18px] px-5 text-[11px] font-black uppercase tracking-[0.18em] hover:bg-slate-900"
             onClick={onClaim}
             isLoading={isClaiming}
           >
-            Claim & Manage Profile
+            Claim venue
           </VenueButton>
         </div>
       )}

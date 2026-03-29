@@ -86,9 +86,11 @@ components:
         status: { type: string, enum: [pending, approved, rejected] }
     VenueClaimRequest:
       type: object
-      required: [contact_name, contact_person, contact_title, contact_phone, contact_email]
+      required: [contact_person, contact_title, contact_phone, contact_email]
       properties:
-        contact_name: { type: string }
+        contact_name:
+          type: string
+          description: Optional override. If omitted, backend uses authenticated user's display name.
         contact_person: { type: string }
         contact_title: { type: string }
         contact_phone: { type: string }
@@ -472,6 +474,7 @@ paths:
     post:
       tags: [Venues]
       summary: Request to claim a venue (Lead generation)
+      security: [{ BearerAuth: [] }]
       parameters:
         - in: path
           name: venueId

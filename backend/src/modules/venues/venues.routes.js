@@ -1,5 +1,6 @@
 const express = require('express')
 const venuesService = require('./venues.service')
+const { verifyToken } = require('../../middleware/verifyToken')
 
 const router = express.Router()
 
@@ -33,8 +34,8 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// POST /venues/:id/claim - Request venue claim (Public, no login required)
-router.post('/:id/claim', async (req, res, next) => {
+// POST /venues/:id/claim - Request venue claim (Authenticated)
+router.post('/:id/claim', verifyToken, async (req, res, next) => {
   try {
     const claimData = {
       contact_name: req.body.contact_name,
@@ -45,9 +46,7 @@ router.post('/:id/claim', async (req, res, next) => {
       note: req.body.note
     }
     
-    // Optional: if token exists, we can still link it, but it's not required
-    // For now, let's keep it clean as per user feedback: "no identity needed"
-    const userId = null; 
+    const userId = req.userId || null
     
     const claim = await venuesService.requestVenueClaim(req.params.id, userId, claimData)
     res.json({ success: true, data: claim })
