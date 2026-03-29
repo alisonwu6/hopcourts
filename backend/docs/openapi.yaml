@@ -597,10 +597,10 @@ paths:
         "200":
           description: ok
 
-  /venue-portal/venues/{venueId}:
+  /admin/venues/{venueId}:
     get:
       tags: [Venue Portal]
-      summary: Get managed venue profile (owner view)
+      summary: Get venue profile for owner/admin portal
       security: [{ BearerAuth: [] }]
       parameters:
         - in: path
@@ -612,7 +612,7 @@ paths:
           description: ok
     put:
       tags: [Venue Portal]
-      summary: Update managed venue profile (owner view)
+      summary: Update venue profile for owner/admin portal
       security: [{ BearerAuth: [] }]
       parameters:
         - in: path
@@ -625,12 +625,64 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: true
+              required: [logo_url, opening_hours, facilities, playing, services, supply]
+              properties:
+                logo_url: { type: string }
+                description: { type: string }
+                social_links:
+                  type: object
+                  additionalProperties: { type: string }
+                opening_hours:
+                  type: array
+                  minItems: 7
+                  maxItems: 7
+                  items:
+                    type: object
+                    required: [is_open, open_at, close_at]
+                    properties:
+                      is_open: { type: boolean }
+                      open_at: { type: string, nullable: true, example: "06:00" }
+                      close_at: { type: string, nullable: true, example: "22:00" }
+                facilities:
+                  type: object
+                  properties:
+                    parking: { type: boolean }
+                    restroom: { type: boolean }
+                    shower: { type: boolean }
+                    changing_room: { type: boolean }
+                    seating_area: { type: boolean }
+                playing:
+                  type: object
+                  properties:
+                    lighting: { type: boolean }
+                    indoor: { type: boolean }
+                    outdoor: { type: boolean }
+                services:
+                  type: object
+                  properties:
+                    equipment_rental: { type: boolean }
+                    coaching: { type: boolean }
+                supply:
+                  type: object
+                  properties:
+                    water: { type: boolean }
+                    vending_machine: { type: boolean }
+                    contactless_pay: { type: boolean }
+                    wifi: { type: boolean }
+                spaces:
+                  type: array
+                  items:
+                    type: object
+                    required: [name, supported_sports]
+                    properties:
+                      name: { type: string }
+                      supported_sports:
+                        type: array
+                        items: { type: string }
       responses:
         "200":
           description: ok
 
-  /admin/venues/{venueId}:
     patch:
       tags: [Admin]
       summary: Patch venue display and operator fields
@@ -694,28 +746,19 @@ paths:
         "200":
           description: ok
 
-  /venue-portal/me:
+  /admin/me:
     get:
       tags: [Venue Portal]
-      summary: Get current venue owner primary venue
+      summary: Get current operator primary venue
       security: [{ BearerAuth: [] }]
       responses:
         "200":
           description: ok
 
-  /venue-portal/me/venues:
+  /admin/venues/{venueId}/stats:
     get:
       tags: [Venue Portal]
-      summary: List venues managed by current user
-      security: [{ BearerAuth: [] }]
-      responses:
-        "200":
-          description: ok
-
-  /venue-portal/venues/{venueId}/stats:
-    get:
-      tags: [Venue Portal]
-      summary: Get managed venue stats
+      summary: Get venue stats for owner/admin portal
       security: [{ BearerAuth: [] }]
       parameters:
         - in: path
@@ -726,21 +769,7 @@ paths:
         "200":
           description: ok
 
-  /venue-portal/venues/{venueId}/dashboard:
-    get:
-      tags: [Venue Portal]
-      summary: Get managed venue dashboard
-      security: [{ BearerAuth: [] }]
-      parameters:
-        - in: path
-          name: venueId
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-
-  /venue-portal/venues/{venueId}/events:
+  /admin/venues/{venueId}/events:
     get:
       tags: [Venue Portal]
       summary: List venue events grouped by date
@@ -752,9 +781,11 @@ paths:
           schema: { type: string, format: uuid }
         - in: query
           name: from
+          required: true
           schema: { type: string, format: date-time }
         - in: query
           name: to
+          required: true
           schema: { type: string, format: date-time }
       responses:
         "200":
@@ -774,12 +805,27 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: true
+              required:
+                [title, sport_key, date, start_at, end_at, max_capacity, pricing_model, skill_level, gender_rule]
+              properties:
+                title: { type: string }
+                sport_key: { type: string }
+                date: { type: string, example: "21/03/2026" }
+                start_at: { type: string, example: "19:04" }
+                end_at: { type: string, example: "21:06" }
+                note: { type: string }
+                court_id: { type: string, format: uuid, nullable: true }
+                court_name: { type: string, nullable: true }
+                max_capacity: { type: integer }
+                pricing_model: { type: string, enum: [free, paid] }
+                fee: { type: number, nullable: true }
+                skill_level: { type: string, enum: [beginner, intermediate, advanced] }
+                gender_rule: { type: string, enum: [mixed, men, women] }
       responses:
         "200":
           description: ok
 
-  /venue-portal/venues/{venueId}/recurring-events:
+  /admin/venues/{venueId}/recurring-events:
     post:
       tags: [Venue Portal]
       summary: Create recurring events for venue
@@ -795,73 +841,24 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: true
-      responses:
-        "200":
-          description: ok
-
-  /venue-portal/venues/{venueId}/profile:
-    get:
-      tags: [Venue Portal]
-      summary: Get managed venue profile
-      security: [{ BearerAuth: [] }]
-      parameters:
-        - in: path
-          name: venueId
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        "200":
-          description: ok
-    patch:
-      tags: [Venue Portal]
-      summary: Update managed venue profile
-      security: [{ BearerAuth: [] }]
-      parameters:
-        - in: path
-          name: venueId
-          required: true
-          schema: { type: string, format: uuid }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
+              required:
+                [sport_key, start_at, end_at, max_capacity, pricing_model, skill_level, gender_rule]
               properties:
-                logo_url: { type: string }
-                cover_url: { type: string }
-                description: { type: string }
-                social_links: { type: object, additionalProperties: true }
-                opening_hours: { type: object, additionalProperties: true }
-                images:
-                  type: array
-                  items: { type: string }
+                sport_key: { type: string }
+                start_at: { type: string, example: "19:04" }
+                end_at: { type: string, example: "21:06" }
+                court_id: { type: string, format: uuid, nullable: true }
+                court_name: { type: string, nullable: true }
+                max_capacity: { type: integer }
+                pricing_model: { type: string, enum: [free, paid] }
+                fee: { type: number, nullable: true }
+                skill_level: { type: string, enum: [beginner, intermediate, advanced] }
+                gender_rule: { type: string, enum: [mixed, men, women] }
       responses:
         "200":
           description: ok
 
-  /venue-portal/venues/{venueId}/sessions:
-    post:
-      tags: [Venue Portal]
-      summary: Create official session for managed venue
-      security: [{ BearerAuth: [] }]
-      parameters:
-        - in: path
-          name: venueId
-          required: true
-          schema: { type: string, format: uuid }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Session'
-      responses:
-        "200":
-          description: ok
-
-  /venue-portal/events/{eventId}:
+  /admin/events/{eventId}:
     get:
       tags: [Venue Portal]
       summary: Get venue event detail
@@ -889,7 +886,18 @@ paths:
           application/json:
             schema:
               type: object
-              additionalProperties: true
+              required: [sport_key, start_at, end_at, max_capacity, pricing_model, skill_level, gender_rule]
+              properties:
+                sport_key: { type: string }
+                start_at: { type: string, example: "19:04" }
+                end_at: { type: string, example: "21:06" }
+                court_id: { type: string, format: uuid, nullable: true }
+                court_name: { type: string, nullable: true }
+                skill_level: { type: string, enum: [beginner, intermediate, advanced] }
+                gender_rule: { type: string, enum: [mixed, men, women] }
+                max_capacity: { type: integer }
+                pricing_model: { type: string, enum: [free, paid] }
+                fee: { type: number, nullable: true }
       responses:
         "200":
           description: ok

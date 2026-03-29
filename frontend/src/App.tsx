@@ -74,19 +74,19 @@ export default function App() {
 
       {/* Admin for venues management */}
       <Route
-        path="/venue-portal/:venueId?"
+        path="/admin/:venueId?"
         element={<VenueDashboardPage />}
       />
       <Route
-        path="/venue-portal/:venueId/schedule"
+        path="/admin/:venueId/schedule"
         element={<VenueSchedulePage />}
       />
       <Route
-        path="/venue-portal/:venueId/profile"
+        path="/admin/:venueId/profile"
         element={<VenueProfilePage />}
       />
       <Route
-        path="/venue-portal/:venueId/sessions/create"
+        path="/admin/:venueId/sessions/create"
         element={<VenueSessionCreatePage />}
       />
 

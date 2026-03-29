@@ -110,7 +110,7 @@ export const VenueScheduleView: React.FC<VenueScheduleViewProps> = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Create Event (One-off) */}
                             <div 
-                                onClick={() => venueId && navigate(`/venue-portal/${venueId}/sessions/create`)}
+                                onClick={() => venueId && navigate(`/admin/${venueId}/sessions/create`)}
                                 className="bg-white rounded-2xl p-5 border border-slate-200 group cursor-pointer hover:border-indigo-300 hover:shadow-md hover:bg-slate-50/50 transition-all duration-300 flex flex-col justify-between"
                             >
                                 <div className="relative z-10">
@@ -119,7 +119,7 @@ export const VenueScheduleView: React.FC<VenueScheduleViewProps> = ({
                                 </div>
                                 <div className="mt-auto">
                                      <button
-                                        onClick={(e) => { e.stopPropagation(); venueId && navigate(`/venue-portal/${venueId}/sessions/create`) }}
+                                                                      onClick={(e) => { e.stopPropagation(); venueId && navigate(`/admin/${venueId}/sessions/create`) }}
                                         className="bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm w-fit"
                                      >
                                         Create Now

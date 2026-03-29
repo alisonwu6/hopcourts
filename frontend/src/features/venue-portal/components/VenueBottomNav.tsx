@@ -20,10 +20,10 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
     const target = segment.replace(/\/$/, '');
     
     // Dashboard should only be active on the exact venue dashboard page
-    if (target === '/venue-portal') {
-      // Matches /venue-portal/{venueId} but NOT /venue-portal/{venueId}/schedule
-      const dashboardPattern = /^\/venue-portal\/[^\/]+$/;
-      return dashboardPattern.test(path) || path === '/venue-portal';
+    if (target === '/admin') {
+      // Matches /admin/{venueId} but NOT /admin/{venueId}/schedule
+      const dashboardPattern = /^\/admin\/[^\/]+$/;
+      return dashboardPattern.test(path) || path === '/admin';
     }
     
     // Other pages (/schedule, /profile)
@@ -33,7 +33,7 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
   const handleNav = (path: string, requiresVenue: boolean = false) => {
     if (requiresVenue) {
         if (!activeVenueId) return; // Cannot navigate without venue context
-        navigate(`/venue-portal/${activeVenueId}${path}`);
+      navigate(`/admin/${activeVenueId}${path}`);
     } else {
         navigate(path);
     }
@@ -52,7 +52,7 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
       icon: LayoutDashboard,
       path: '',
       requiresVenue: true,
-      matchSegments: ['/venue-portal/'],
+      matchSegments: ['/admin/'],
     },
     {
       label: 'Venue',

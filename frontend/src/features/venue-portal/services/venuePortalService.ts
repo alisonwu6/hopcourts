@@ -1,5 +1,5 @@
 import { ApiResponse } from '@/types'
-import { httpGet, httpPatch, httpPost } from '@/api/http'
+import { httpGet, httpPost, httpPut } from '@/api/http'
 
 const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   success: true,
@@ -20,72 +20,240 @@ export interface VenueDashboardData {
   venue: ManagedVenue
   claim_info: any
   stats: {
+    sessions_completed: number
     active_events: number
     participants_this_week: number
     players_played_here: number
   }
 }
 
+export interface AdminMyVenue {
+  venue_id: string
+  venue_name: string
+  venue_address: string
+}
+
+export interface VenueStats {
+  active_users: number
+  participants_of_the_week: number
+  total_players: number
+}
+
+export type GroupedVenueEvents = Record<string, Array<{
+  event_id: string
+  sport: string
+  start_at: string
+  participant_count: number
+}>>
+
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
+
+const AMENITY_GROUPS = {
+  facilities: [
+    { label: 'Parking', key: 'parking' },
+    { label: 'Restrooms', key: 'restroom' },
+    { label: 'Showers', key: 'shower' },
+    { label: 'Changing rooms', key: 'changing_room' },
+    { label: 'Seating area', key: 'seating_area' },
+  ],
+  playing: [
+    { label: 'Night lighting', key: 'lighting' },
+    { label: 'Indoor', key: 'indoor' },
+    { label: 'Outdoor', key: 'outdoor' },
+  ],
+  services: [
+    { label: 'Equipment rental', key: 'equipment_rental' },
+    { label: 'Coaching', key: 'coaching' },
+  ],
+  supply: [
+    { label: 'Water refill', key: 'water' },
+    { label: 'Vending machine', key: 'vending_machine' },
+    { label: 'Contactless pay', key: 'contactless_pay' },
+    { label: 'Wi-Fi', key: 'wifi' },
+  ],
+} as const
+
+interface VenueProfileHour {
+  day: string
+  open_time: string
+  close_time: string
+  is_closed: boolean
+}
+
+const toManagedVenue = (row: any): ManagedVenue => ({
+  id: row?.id,
+  name_display: row?.name_display || row?.name || 'Unnamed Venue',
+  address_display: row?.address_display || row?.address || '',
+  status: row?.status || 'claimed',
+  claim_status: row?.claim_status || 'approved',
+  contact_email: row?.contact_email,
+})
+
+const toManagedVenueFromMyVenue = (row: AdminMyVenue): ManagedVenue => ({
+  id: row?.venue_id,
+  name_display: row?.venue_name || 'Unnamed Venue',
+  address_display: row?.venue_address || '',
+  status: 'claimed',
+  claim_status: 'approved',
+})
+
+const toNumber = (value: unknown, fallback = 0) => {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : fallback
+}
+
+const extractSelectedAmenities = (raw: any): string[] => {
+  if (Array.isArray(raw?.amenities)) {
+    return raw.amenities.filter(Boolean)
+  }
+
+  const sources = {
+    facilities: raw?.facilities || raw?.amenities?.facilities || {},
+    playing: raw?.playing || raw?.amenities?.playing || {},
+    services: raw?.services || raw?.amenities?.services || {},
+    supply: raw?.supply || raw?.amenities?.supply || {},
+  }
+
+  const selected = new Set<string>()
+  ;(Object.keys(AMENITY_GROUPS) as Array<keyof typeof AMENITY_GROUPS>).forEach((groupKey) => {
+    const mappings = AMENITY_GROUPS[groupKey]
+    mappings.forEach(({ label, key }) => {
+      if (sources[groupKey]?.[key]) selected.add(label)
+    })
+  })
+
+  return Array.from(selected)
+}
+
+const buildAmenitiesPayload = (selected: string[] = []) => {
+  const selectedSet = new Set(selected)
+
+  return {
+    facilities: AMENITY_GROUPS.facilities.reduce<Record<string, boolean>>((acc, { label, key }) => {
+      acc[key] = selectedSet.has(label)
+      return acc
+    }, {}),
+    playing: AMENITY_GROUPS.playing.reduce<Record<string, boolean>>((acc, { label, key }) => {
+      acc[key] = selectedSet.has(label)
+      return acc
+    }, {}),
+    services: AMENITY_GROUPS.services.reduce<Record<string, boolean>>((acc, { label, key }) => {
+      acc[key] = selectedSet.has(label)
+      return acc
+    }, {}),
+    supply: AMENITY_GROUPS.supply.reduce<Record<string, boolean>>((acc, { label, key }) => {
+      acc[key] = selectedSet.has(label)
+      return acc
+    }, {}),
+  }
+}
+
+const normalizeOpeningHours = (hours: any): VenueProfileHour[] => {
+  if (!Array.isArray(hours)) return []
+
+  return hours.map((item, index) => ({
+    day: DAYS[index] || `Day ${index + 1}`,
+    open_time: item?.open_at || '06:00',
+    close_time: item?.close_at || '22:00',
+    is_closed: item?.is_open === false,
+  }))
+}
+
+const serializeOpeningHours = (hours: VenueProfileHour[] = []) => {
+  return DAYS.map((_, index) => {
+    const found = hours[index]
+    if (!found) {
+      return { is_open: false, open_at: null, close_at: null }
+    }
+
+    const isOpen = !found.is_closed
+    return {
+      is_open: isOpen,
+      open_at: isOpen ? found.open_time : null,
+      close_at: isOpen ? found.close_time : null,
+    }
+  })
+}
+
+const normalizeVenueProfile = (venueId: string, data: any) => {
+  const spaces = Array.isArray(data?.spaces)
+    ? data.spaces
+    : Array.isArray(data?.courts)
+      ? data.courts.map((court: any) => ({ name: court?.name || 'Court', supported_sports: [] }))
+      : []
+
+  const courts = Array.isArray(data?.courts)
+    ? data.courts
+    : spaces.map((space: any, idx: number) => ({ id: space?.id || `court-${idx + 1}`, name: space?.name || `Court ${idx + 1}` }))
+
+  return {
+    id: venueId,
+    name_display: data?.name_display || data?.name || '',
+    address_display: data?.address_display || data?.address || '',
+    logo_url: data?.logo_url || '',
+    cover_url: data?.cover_url || '',
+    description: data?.description || '',
+    amenities: extractSelectedAmenities(data),
+    spaces,
+    courts,
+    operating_hours: Array.isArray(data?.operating_hours)
+      ? data.operating_hours
+      : normalizeOpeningHours(data?.opening_hours),
+    social_links: data?.social_links || {},
+    images: Array.isArray(data?.images) ? data.images : [],
+  }
+}
+
 export const venuePortalService = {
-  /**
-   * List all venues managed by the current user.
-   */
-  async getMyVenues(): Promise<ApiResponse<ManagedVenue[]>> {
+  async getMyVenue(): Promise<ApiResponse<AdminMyVenue>> {
     try {
-      // Mock API for frontend flow
-      await new Promise(resolve => setTimeout(resolve, 500))
-      return wrapSuccess([
-        {
-          id: '525643ea-df39-4f1b-b57a-eb71e9f1fa16',
-          name_display: 'ABC Sports Center',
-          address_display: '33 Brodie St, Brisbane QLD 4000',
-          status: 'active',
-          claim_status: 'approved'
-        }
-      ])
-      /*
-      const res = await httpGet<ManagedVenue[]>('/venue-portal/me/venues')
-      return wrapSuccess(res.data)
-      */
+      const res = await httpGet<AdminMyVenue>('/admin/me')
+      return wrapSuccess((res as any)?.data || (res as any))
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'FETCH_MY_VENUES_FAILED', message: err.message },
+        error: { code: 'FETCH_MY_VENUE_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }
   },
 
   /**
-   * Get dashboard statistics for a specific venue.
+   * List all venues managed by the current user.
    */
-  async getVenueDashboard(venueId: string): Promise<ApiResponse<VenueDashboardData>> {
+  async getMyVenues(): Promise<ApiResponse<ManagedVenue[]>> {
     try {
-      // Mock API for frontend flow
-      await new Promise(resolve => setTimeout(resolve, 300))
-      return wrapSuccess({
-        venue: {
-          id: venueId,
-          name_display: 'ABC Sports Center',
-          address_display: '33 Brodie St, Brisbane QLD 4000',
-          status: 'active',
-          claim_status: 'approved'
-        },
-        claim_info: {},
-        stats: {
-          active_events: 3,
-          participants_this_week: 42,
-          players_played_here: 126
-        }
-      })
-      /*
-      const res = await httpGet<VenueDashboardData>(`/venue-portal/venues/${venueId}/dashboard`)
-      return wrapSuccess(res.data)
-      */
+      const myVenueRes = await this.getMyVenue()
+      if (!myVenueRes.success || !myVenueRes.data) {
+        return myVenueRes as any
+      }
+
+      return wrapSuccess([toManagedVenueFromMyVenue(myVenueRes.data)])
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'FETCH_VENUE_DASHBOARD_FAILED', message: err.message },
+        error: { code: 'FETCH_MY_VENUES_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  /**
+   * Get venue stats.
+   */
+  async getVenueStats(venueId: string): Promise<ApiResponse<VenueStats>> {
+    try {
+      const res = await httpGet<VenueStats>(`/admin/venues/${venueId}/stats`)
+      const data = (res as any)?.data || {}
+      return wrapSuccess({
+        active_users: toNumber(data?.active_users),
+        participants_of_the_week: toNumber(data?.participants_of_the_week),
+        total_players: toNumber(data?.total_players),
+      })
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'FETCH_VENUE_STATS_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }
@@ -96,38 +264,12 @@ export const venuePortalService = {
    */
   async getVenueProfile(venueId: string): Promise<ApiResponse<any>> {
     try {
-      // Mock API for frontend flow
-      await new Promise(resolve => setTimeout(resolve, 300))
-      return wrapSuccess({
-        id: venueId,
-        logo_url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200',
-        description: 'Premium sports facility with indoor and outdoor courts.',
-        amenities: ['Parking', 'Restrooms', 'Night lighting'],
-        operating_hours: [
-          { day: 'Monday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Tuesday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Wednesday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Thursday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Friday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Saturday', open_time: '06:00', close_time: '22:00', is_closed: false },
-          { day: 'Sunday', open_time: '06:00', close_time: '22:00', is_closed: false }
-        ],
-        social_links: {},
-        courts: [
-          { id: 'c1', name: 'Court 1' },
-          { id: 'c2', name: 'Court 2' },
-          { id: 'c3', name: 'Court 3' },
-          { id: 'c4', name: 'Court 4' }
-        ]
-      })
-      /*
-      const res = await httpGet<any>(`/venue-portal/venues/${venueId}/profile`)
-      return wrapSuccess(res.data)
-      */
+      const res = await httpGet<any>(`/admin/venues/${venueId}`)
+      return wrapSuccess(normalizeVenueProfile(venueId, (res as any)?.data || {}))
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'FETCH_PROFILE_FAILED', message: err.message },
+        error: { code: 'FETCH_PROFILE_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }
@@ -138,18 +280,28 @@ export const venuePortalService = {
    */
   async updateVenueProfile(venueId: string, data: any): Promise<ApiResponse<any>> {
     try {
-      // Mock API for frontend flow
-      console.log('Updating Venue Profile:', venueId, data)
-      await new Promise(resolve => setTimeout(resolve, 800))
-      return wrapSuccess({ success: true })
-      /*
-      const res = await httpPatch<any>(`/venue-portal/venues/${venueId}/profile`, { body: data })
-      return wrapSuccess(res.data)
-      */
+      const payload = {
+        logo_url: data?.logo_url,
+        description: data?.description,
+        social_links: data?.social_links || {},
+        opening_hours: serializeOpeningHours(data?.operating_hours || []),
+        spaces: Array.isArray(data?.spaces)
+          ? data.spaces.map((space: any) => ({
+              name: String(space?.name || '').trim(),
+              supported_sports: Array.isArray(space?.supported_sports)
+                ? space.supported_sports.filter(Boolean)
+                : [],
+            }))
+          : [],
+        ...buildAmenitiesPayload(data?.amenities),
+      }
+
+      const res = await httpPut<any>(`/admin/venues/${venueId}`, { body: payload })
+      return wrapSuccess((res as any)?.data || (res as any))
     } catch (err: any) {
        return {
         success: false,
-        error: { code: 'UPDATE_PROFILE_FAILED', message: err.message },
+        error: { code: 'UPDATE_PROFILE_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }
@@ -158,19 +310,43 @@ export const venuePortalService = {
   /**
    * Create an official session for the venue.
    */
-  async createOfficialSession(venueId: string, payload: any): Promise<ApiResponse<any>> {
+  async createVenueEvent(venueId: string, payload: any): Promise<ApiResponse<any>> {
     try {
-      // Mock API for frontend flow
-      await new Promise(resolve => setTimeout(resolve, 500))
-      return wrapSuccess({ success: true })
-      /*
-      const res = await httpPost<any>(`/venue-portal/venues/${venueId}/sessions`, { body: payload })
-      return wrapSuccess(res.data)
-      */
+      const res = await httpPost<any>(`/admin/venues/${venueId}/events`, { body: payload })
+      return wrapSuccess((res as any)?.data || (res as any))
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'CREATE_SESSION_FAILED', message: err.message },
+        error: { code: 'CREATE_EVENT_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  async createRecurringEvents(venueId: string, payload: any): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpPost<any>(`/admin/venues/${venueId}/recurring-events`, { body: payload })
+      return wrapSuccess((res as any)?.data || (res as any))
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'CREATE_RECURRING_EVENTS_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  async listVenueEvents(
+    venueId: string,
+    params: { from: string; to: string }
+  ): Promise<ApiResponse<GroupedVenueEvents>> {
+    try {
+      const res = await httpGet<GroupedVenueEvents>(`/admin/venues/${venueId}/events`, { params })
+      return wrapSuccess((res as any)?.data || (res as any) || {})
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'FETCH_VENUE_EVENTS_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }

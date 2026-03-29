@@ -86,7 +86,7 @@ export function VenueDashboardView({
                    <Calendar className="w-8 h-8 text-slate-900" />
                 </div>
                 <div className="text-3xl font-black tracking-tighter text-slate-900 leading-none mb-1">
-                  {dashboardData.stats.players_played_here + 520}
+                  {dashboardData.stats.sessions_completed}
                 </div>
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sessions Completed</div>
               </div>
@@ -96,7 +96,7 @@ export function VenueDashboardView({
                    <Building2 className="w-8 h-8 text-indigo-600" />
                 </div>
                 <div className="text-3xl font-black tracking-tighter text-indigo-600 leading-none mb-1">
-                  {dashboardData.stats.players_played_here + 1200}
+                  {dashboardData.stats.players_played_here}
                 </div>
                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Players</div>
               </div>

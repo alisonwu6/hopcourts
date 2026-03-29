@@ -1200,14 +1200,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/venue-portal/venues/{venueId}": {
+    "/admin/venues/{venueId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get managed venue profile (owner view) */
+        /** Get venue profile for owner/admin portal */
         get: {
             parameters: {
                 query?: never;
@@ -1228,7 +1228,7 @@ export interface paths {
                 };
             };
         };
-        /** Update managed venue profile (owner view) */
+        /** Update venue profile for owner/admin portal */
         put: {
             parameters: {
                 query?: never;
@@ -1241,7 +1241,36 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        [key: string]: unknown;
+                        logo_url: string;
+                        opening_hours: {
+                            is_open: boolean;
+                            /** @example 06:00 */
+                            open_at: string | null;
+                            /** @example 22:00 */
+                            close_at: string | null;
+                        }[];
+                        facilities: {
+                            parking?: boolean;
+                            restroom?: boolean;
+                            shower?: boolean;
+                            changing_room?: boolean;
+                            seating_area?: boolean;
+                        };
+                        playing: {
+                            lighting?: boolean;
+                            indoor?: boolean;
+                            outdoor?: boolean;
+                        };
+                        services: {
+                            equipment_rental?: boolean;
+                            coaching?: boolean;
+                        };
+                        supply: {
+                            water?: boolean;
+                            vending_machine?: boolean;
+                            contactless_pay?: boolean;
+                            wifi?: boolean;
+                        };
                     };
                 };
             };
@@ -1255,22 +1284,6 @@ export interface paths {
                 };
             };
         };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/venues/{venueId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -1388,14 +1401,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/venue-portal/me": {
+    "/admin/me": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get current venue owner primary venue */
+        /** Get current operator primary venue */
         get: {
             parameters: {
                 query?: never;
@@ -1422,48 +1435,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/venue-portal/me/venues": {
+    "/admin/venues/{venueId}/stats": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List venues managed by current user */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/venue-portal/venues/{venueId}/stats": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get managed venue stats */
+        /** Get venue stats for owner/admin portal */
         get: {
             parameters: {
                 query?: never;
@@ -1492,43 +1471,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/venue-portal/venues/{venueId}/dashboard": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get managed venue dashboard */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    venueId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/venue-portal/venues/{venueId}/events": {
+    "/admin/venues/{venueId}/events": {
         parameters: {
             query?: never;
             header?: never;
@@ -1538,9 +1481,9 @@ export interface paths {
         /** List venue events grouped by date */
         get: {
             parameters: {
-                query?: {
-                    from?: string;
-                    to?: string;
+                query: {
+                    from: string;
+                    to: string;
                 };
                 header?: never;
                 path: {
@@ -1573,7 +1516,23 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        [key: string]: unknown;
+                        title: string;
+                        sport_key: string;
+                        /** @example 21/03/2026 */
+                        date: string;
+                        /** @example 19:04 */
+                        start_at: string;
+                        /** @example 21:06 */
+                        end_at: string;
+                        note?: string;
+                        max_capacity: number;
+                        /** @enum {string} */
+                        pricing_model: "free" | "paid";
+                        fee?: number | null;
+                        /** @enum {string} */
+                        skill_level: "beginner" | "intermediate" | "advanced";
+                        /** @enum {string} */
+                        gender_rule: "mixed" | "men" | "women";
                     };
                 };
             };
@@ -1593,7 +1552,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/venue-portal/venues/{venueId}/recurring-events": {
+    "/admin/venues/{venueId}/recurring-events": {
         parameters: {
             query?: never;
             header?: never;
@@ -1615,7 +1574,19 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        [key: string]: unknown;
+                        sport_key: string;
+                        /** @example 19:04 */
+                        start_at: string;
+                        /** @example 21:06 */
+                        end_at: string;
+                        max_capacity: number;
+                        /** @enum {string} */
+                        pricing_model: "free" | "paid";
+                        fee?: number | null;
+                        /** @enum {string} */
+                        skill_level: "beginner" | "intermediate" | "advanced";
+                        /** @enum {string} */
+                        gender_rule: "mixed" | "men" | "women";
                     };
                 };
             };
@@ -1635,118 +1606,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/venue-portal/venues/{venueId}/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get managed venue profile */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    venueId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update managed venue profile */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    venueId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        logo_url?: string;
-                        cover_url?: string;
-                        description?: string;
-                        social_links?: {
-                            [key: string]: unknown;
-                        };
-                        opening_hours?: {
-                            [key: string]: unknown;
-                        };
-                        images?: string[];
-                    };
-                };
-            };
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/venue-portal/venues/{venueId}/sessions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create official session for managed venue */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    venueId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["Session"];
-                };
-            };
-            responses: {
-                /** @description ok */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/venue-portal/events/{eventId}": {
+    "/admin/events/{eventId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1787,7 +1647,19 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        [key: string]: unknown;
+                        sport_key: string;
+                        /** @example 19:04 */
+                        start_at: string;
+                        /** @example 21:06 */
+                        end_at: string;
+                        /** @enum {string} */
+                        skill_level: "beginner" | "intermediate" | "advanced";
+                        /** @enum {string} */
+                        gender_rule: "mixed" | "men" | "women";
+                        max_capacity: number;
+                        /** @enum {string} */
+                        pricing_model: "free" | "paid";
+                        fee?: number | null;
                     };
                 };
             };

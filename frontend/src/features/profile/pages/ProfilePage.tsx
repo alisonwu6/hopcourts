@@ -887,7 +887,7 @@ export function ProfilePage() {
         {hasVenueAccess && (
           <div className="mt-2 px-3">
             <div
-              onClick={() => navigate('/venue-portal')}
+              onClick={() => navigate('/admin')}
               className="flex cursor-pointer items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-3.5 transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-3">

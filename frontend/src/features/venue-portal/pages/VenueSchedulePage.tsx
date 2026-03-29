@@ -53,14 +53,14 @@ export function VenueSchedulePage() {
 
     const fetchData = async () => {
         setLoading(true);
-        // Fetch dashboard and profile (for courts)
-        const [dashRes, profileRes] = await Promise.all([
-            venuePortalService.getVenueDashboard(venueId!),
+        const [venuesRes, profileRes] = await Promise.all([
+            venuePortalService.getMyVenues(),
             venuePortalService.getVenueProfile(venueId!)
         ]);
 
-        if (dashRes.success && dashRes.data) {
-            setVenue(dashRes.data.venue);
+        if (venuesRes.success && venuesRes.data) {
+            const current = venuesRes.data.find((v) => v.id === venueId) || venuesRes.data[0] || null
+            setVenue(current)
         }
         if (profileRes.success && profileRes.data) {
             setCourts(profileRes.data.courts || []);
@@ -70,11 +70,44 @@ export function VenueSchedulePage() {
 
     // 5. Flow Control (Container orchestration)
     const handleSaveAndGenerate = async () => {
+        if (!venueId) return;
+        if (slots.length === 0) {
+            return;
+        }
+
         setSaving(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        generateMockSessions(slots);
-        setSaving(false);
+        try {
+            const payloads = slots
+                .filter((slot) => slot.start_time && slot.end_time)
+                .map((slot) => ({
+                    sport_key: String(slot.sport || '').toUpperCase().replace(/\s+/g, '_'),
+                    start_at: slot.start_time,
+                    end_at: slot.end_time,
+                    skill_level: String(slot.level || 'beginner').toLowerCase(),
+                    gender_rule: String(slot.gender || 'mixed').toLowerCase().includes('men')
+                        ? 'men'
+                        : String(slot.gender || 'mixed').toLowerCase().includes('women')
+                            ? 'women'
+                            : 'mixed',
+                    max_capacity: slot.max_participants,
+                    pricing_model: slot.price > 0 ? 'paid' : 'free',
+                    fee: slot.price > 0 ? slot.price : null,
+                }));
+
+            const results = await Promise.all(
+                payloads.map((payload) => venuePortalService.createRecurringEvents(venueId, payload))
+            );
+
+            const hasFailure = results.some((r) => !r.success);
+            if (hasFailure) {
+                console.error('Some recurring events failed:', results);
+            }
+
+            // Keep local calendar preview in sync until events API list rendering is implemented.
+            generateMockSessions(slots);
+        } finally {
+            setSaving(false);
+        }
         setShowSuccess(true);
         
         // Flow: success -> redirect/switch view
