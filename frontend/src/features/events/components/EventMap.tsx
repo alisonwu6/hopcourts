@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useRef, useState } from 'react'
 import Map, { Marker, NavigationControl, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
 import {
+  Building2,
   Calendar,
   MapPin,
   PersonStanding,
@@ -195,7 +196,7 @@ export function EventMap({
               event.location.logo_url ? (
                 <img src={event.location.logo_url} className="h-full w-full object-cover" />
               ) : (
-                '🏟️'
+                <Building2 className="h-6 w-6 text-slate-300" />
               )
             ) : (
               sportIcon
@@ -306,7 +307,7 @@ export function EventMap({
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <span className="text-4xl text-slate-300">🏟️</span>
+                        <Building2 className="h-10 w-10 text-slate-300" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1 space-y-1">
@@ -395,7 +396,7 @@ export function EventMap({
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <span className="text-4xl text-slate-300">🏟️</span>
+                        <Building2 className="h-10 w-10 text-slate-300" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1 space-y-1">

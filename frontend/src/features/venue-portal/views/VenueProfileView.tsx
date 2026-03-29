@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageLoading } from '@/components/PageLoading';
 import { VenueButton } from '../components/ui/VenueButton';
-import { Clock, MousePointer2, Settings2 } from 'lucide-react';
+import { Building2, MousePointer2, Settings2 } from 'lucide-react';
 import { VenueBottomNav } from '../components/VenueBottomNav';
 import { VenuePortalHeader } from '../components/VenuePortalHeader';
 
@@ -161,7 +161,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                    <div className="bg-white px-6 py-8 shadow-sm border-b border-slate-100">
                      <div className="flex flex-col items-start gap-4">
                         <div className="h-24 w-24 overflow-hidden rounded-[2.5rem] border-4 border-slate-50 shadow-xl shrink-0 bg-slate-50 flex items-center justify-center text-4xl">
-                            {formData.logo_url ? <img src={formData.logo_url} className="h-full w-full object-cover" /> : '🏟️'}
+                            {formData.logo_url ? <img src={formData.logo_url} className="h-full w-full object-cover" /> : <Building2 className="h-10 w-10 text-slate-400" />}
                         </div>
                         <div className="mt-2 min-w-0">
                             <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{formData.name_display}</h1>
@@ -251,7 +251,9 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                             {formData.logo_url ? (
                                 <img src={formData.logo_url} alt="Logo" className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-3xl">🏟️</div>
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <Building2 className="h-10 w-10 text-slate-400" />
+                                </div>
                             )}
                         </div>
 

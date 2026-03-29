@@ -1,4 +1,4 @@
-import { CheckCircle, ChevronRight } from 'lucide-react';
+import { Building2, CheckCircle, ChevronRight } from 'lucide-react';
 import { ApiVenue } from '../services/venuesService';
 
 interface VenueCardProps {
@@ -17,7 +17,7 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
         {venue.logo_url ? (
           <img src={venue.logo_url} alt="" className="h-full w-full object-cover" />
         ) : (
-          '🏟️'
+          <Building2 className="h-8 w-8 text-slate-300" />
         )}
       </div>
 

@@ -10,7 +10,7 @@ const mapVenueToEventStub = (venue: ApiVenue): any => ({
   id: `venue-${venue.id}`,
   venueId: venue.id,
   title: venue.name_display,
-  sport: '🏟️',
+  sport: 'VENUE',
   startTime: new Date(),
   heroImageUrl: venue.logo_url,
   location: {

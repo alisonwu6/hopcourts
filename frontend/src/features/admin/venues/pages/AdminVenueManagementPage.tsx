@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Building2 } from 'lucide-react'
 import {
   adminVenuesService,
   AdminVenue,
@@ -206,7 +207,7 @@ export function AdminVenueManagementPage() {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xl">🏟️</span>
+                <Building2 className="h-5 w-5 text-slate-700" />
                 <h1 className="text-xl font-bold text-slate-900">Venue Management</h1>
               </div>
               <p className="mt-0.5 text-xs text-slate-400">

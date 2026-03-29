@@ -1,4 +1,4 @@
-import { MapPin, CheckCircle, AlertCircle, Clock, Sparkles } from 'lucide-react';
+import { Building2, MapPin, CheckCircle, AlertCircle, Clock, Sparkles } from 'lucide-react';
 import { ActionToolbar } from '@/components/navigation/ActionToolbar';
 import { EventCard } from '@/features/events/components/EventCard';
 import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton';
@@ -37,7 +37,7 @@ export function VenueDetailsView({
             {venue.logo_url ? (
               <img src={venue.logo_url} alt="Logo" className="h-full w-full object-cover" />
             ) : (
-              '🏟️'
+              <Building2 className="h-10 w-10 text-slate-300" />
             )}
           </div>
 
