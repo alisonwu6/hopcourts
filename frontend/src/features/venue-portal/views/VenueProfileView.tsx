@@ -63,6 +63,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
     AMENITIES_CATEGORIES
 }) => {
     const [templateHours, setTemplateHours] = useState({ open: '06:00', close: '22:00' });
+    const orderedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     if (loading) return <PageLoading />;
 
@@ -160,7 +161,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                 {mode === 'view' ? (
                    <div className="bg-white px-6 py-8 shadow-sm border-b border-slate-100">
                      <div className="flex flex-col items-start gap-4">
-                        <div className="h-24 w-24 overflow-hidden rounded-[2.5rem] border-4 border-slate-50 shadow-xl shrink-0 bg-slate-50 flex items-center justify-center text-4xl">
+                        <div className="h-24 w-24 overflow-hidden rounded-[2.5rem] border-4 border-slate-50 shadow-sm shrink-0 bg-slate-50 flex items-center justify-center text-4xl">
                             {formData.logo_url ? <img src={formData.logo_url} className="h-full w-full object-cover" /> : <Building2 className="h-10 w-10 text-slate-400" />}
                         </div>
                         <div className="mt-2 min-w-0">
@@ -177,16 +178,16 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                         </div>
                      </div>
 
-                     {formData.description && (
-                        <div className="mt-8">
-                           <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">About</h2>
-                           <p className="text-sm text-slate-600 leading-relaxed font-medium bg-slate-50/50 p-4 rounded-2xl border border-slate-50 italic">"{formData.description}"</p>
-                        </div>
-                     )}
+                     <div className="mt-8">
+                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">About</h2>
+                        <p className="text-sm text-slate-600 leading-relaxed font-medium bg-slate-50/50 p-4 rounded-2xl border border-slate-50 italic">
+                            {formData.description ? `"${formData.description}"` : 'No description yet.'}
+                        </p>
+                     </div>
 
-                     {formData.amenities.length > 0 && (
-                        <div className="mt-8">
-                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Amenities & Services</h2>
+                     <div className="mt-8">
+                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Amenities & Services</h2>
+                        {formData.amenities.length > 0 ? (
                             <div className="grid grid-cols-2 gap-3">
                                 {formData.amenities.map(item => (
                                     <div key={item} className="flex items-center gap-2.5 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100/50">
@@ -195,17 +196,20 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                     )}
+                        ) : (
+                            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-4 py-5 text-xs font-bold text-slate-400">
+                                No amenities configured yet.
+                            </div>
+                        )}
+                     </div>
 
-                     {formData.spaces && formData.spaces.length > 0 && (
-                        <div className="mt-8">
-                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Courts & Supported Sports</h2>
+                     <div className="mt-8">
+                        <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Courts & Supported Sports</h2>
+                        {formData.spaces && formData.spaces.length > 0 ? (
                             <div className="space-y-3">
                                 {formData.spaces.map((space, idx) => (
                                     <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
                                       <div className="font-black text-slate-700 uppercase tracking-tight mb-2 flex items-center gap-2">
-                                          <span className="w-5 h-5 rounded-[4px] bg-[oklch(0.511_0.262_276.966)] text-white flex items-center justify-center text-[10px]">📍</span>
                                           {space.name || `Unnamed Space`}
                                       </div>
                                       <div className="flex flex-wrap gap-2">
@@ -216,29 +220,37 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                     )}
-
-                     {formData.operating_hours.length > 0 && (
-                        <div className="mt-8">
-                            <div className="flex items-center gap-2 mb-4">
-                              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operating Hours 🕒</h2>
+                        ) : (
+                            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-4 py-5 text-xs font-bold text-slate-400">
+                                No courts configured yet.
                             </div>
-                            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
-                              {formData.operating_hours.map(hour => (
-                                <div key={hour.day} className="flex justify-between items-center text-xs">
-                                    <span className="font-black text-slate-500 uppercase tracking-widest text-[9px] w-20">{hour.day}</span>
+                        )}
+                     </div>
+
+                     <div className="mt-8">
+                        <div className="flex items-center gap-2 mb-4">
+                          <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operating Hours</h2>
+                        </div>
+                        <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                          {orderedDays.map(day => {
+                            const hour = formData.operating_hours.find(h => h.day === day);
+                            const isConfigured = Boolean(hour);
+                            return (
+                                <div key={day} className="flex justify-between items-center text-xs">
+                                    <span className="font-black text-slate-500 uppercase tracking-widest text-[9px] w-20">{day}</span>
                                     <div className="h-px flex-1 bg-slate-200/50 mx-4" />
-                                    {hour.is_closed ? (
+                                    {!isConfigured ? (
+                                        <span className="font-bold text-slate-400 uppercase tracking-widest text-[9px]">Not set</span>
+                                    ) : hour?.is_closed ? (
                                         <span className="font-bold text-red-400 uppercase tracking-widest text-[9px]">Closed</span>
                                     ) : (
-                                        <span className="font-black text-[oklch(0.511_0.262_276.966)] tabular-nums">{hour.open_time} — {hour.close_time}</span>
+                                        <span className="font-black text-[oklch(0.511_0.262_276.966)] tabular-nums">{hour?.open_time} — {hour?.close_time}</span>
                                     )}
                                 </div>
-                              ))}
-                            </div>
+                            );
+                          })}
                         </div>
-                     )}
+                     </div>
                    </div>
                 ) : (
                 <form id="venue-profile-form" onSubmit={onSubmit} className="space-y-6">
