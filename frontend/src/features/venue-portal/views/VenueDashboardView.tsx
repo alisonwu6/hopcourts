@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ChevronRight, Calendar, Building2, Sparkles, Users } from 'lucide-react';
+import { Plus, PersonStanding, Calendar, Building2, Sparkles, Users } from 'lucide-react';
 import { VenueBottomNav } from '../components/VenueBottomNav';
 import { ManagedVenue, VenueDashboardData } from '../services/venuePortalService';
 import { VenuePortalHeader } from '../components/VenuePortalHeader';
@@ -55,18 +55,28 @@ export function VenueDashboardView({
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-screen-md bg-slate-50 pb-20 text-slate-900 border-x border-slate-100">
-      <VenuePortalHeader 
+        <VenuePortalHeader
         title="Venue Dashboard"
         subtitle={venueName}
-        leftAction={leftAction}
-        rightAction={(
-           <button 
-              onClick={() => dashboardData && window.open(`/venues/${dashboardData.venue.id}`, '_blank')}
-              className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:opacity-70 whitespace-nowrap"
-           >
-              Public ↗
-           </button>
-        )}
+        leftAction={
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-indigo-500"
+          >
+            <PersonStanding className="h-5 w-5" /> Me
+          </button>
+        }
+        rightAction={
+          <button
+            onClick={() =>
+              dashboardData && window.open(`/venues/${dashboardData.venue.id}`, '_blank')
+            }
+            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-indigo-500"
+          >
+            <Building2 className="h-5 w-5" />
+            Public ↗
+          </button>
+        }
       />
 
       <div className="px-6 py-8">
