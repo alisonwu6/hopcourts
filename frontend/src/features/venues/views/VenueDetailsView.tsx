@@ -11,6 +11,7 @@ interface VenueDetailsViewProps {
   onShare: () => void;
   onClaim: () => void;
   isClaiming: boolean;
+  onViewSessionDetails: (sessionId: string) => void;
 }
 
 export function VenueDetailsView({
@@ -20,6 +21,7 @@ export function VenueDetailsView({
   onShare,
   onClaim,
   isClaiming,
+  onViewSessionDetails,
 }: VenueDetailsViewProps) {
   return (
     <div className="min-h-screen bg-slate-50 pb-20 text-slate-900">
@@ -199,7 +201,12 @@ export function VenueDetailsView({
         {upcomingEvents.length > 0 ? (
           <div className="space-y-4">
             {upcomingEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+              <EventCard
+                key={event.id}
+                event={event}
+                onViewDetails={onViewSessionDetails}
+                disableVenueHostNavigation
+              />
             ))}
           </div>
         ) : (

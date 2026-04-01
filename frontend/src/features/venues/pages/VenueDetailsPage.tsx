@@ -150,6 +150,15 @@ export function VenueDetailsPage() {
     }
   };
 
+  const handleBack = () => {
+    const historyIndex = window.history.state?.idx;
+    if (typeof historyIndex === 'number' && historyIndex > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate('/venues');
+  };
+
   if (isLoading || !venue) {
     return <PageLoading />;
   }
@@ -159,10 +168,11 @@ export function VenueDetailsPage() {
       <VenueDetailsView
         venue={venue}
         upcomingEvents={upcomingEvents}
-        onBack={() => navigate('/venues')}
+        onBack={handleBack}
         onShare={handleShare}
         onClaim={openClaimSheet}
         isClaiming={isClaiming}
+        onViewSessionDetails={(sessionId) => navigate(`/event/${sessionId}`)}
       />
 
       <BottomSheet
