@@ -13,7 +13,7 @@ import type {
 
 export const api = {
   sports: {
-    list: (lang: 'zh' | 'en' = 'zh') =>
+    list: (lang: 'zh' | 'en' = 'en') =>
       httpGet<ApiResponse<{ items: Sport[] }>>('/sports', {
         auth: false,
         params: { lang },
@@ -30,27 +30,27 @@ export const api = {
           cities?: any
         }>
       >('/meta/dictionaries', { auth: false }),
-    sports: (lang: 'zh' | 'en' = 'zh') =>
+    sports: (lang: 'zh' | 'en' = 'en') =>
       httpGet<ApiResponse<{ items: any[] }>>('/sports', {
         auth: false,
         params: { lang },
       }),
-    countries: (lang: 'zh' | 'en' = 'zh') =>
+    countries: (lang: 'zh' | 'en' = 'en') =>
       httpGet<ApiResponse<{ items: Country[] }>>('/countries', {
         auth: false,
         params: { lang },
       }),
-    cities: (country?: string, lang: 'zh' | 'en' = 'zh') =>
+    cities: (country?: string, lang: 'zh' | 'en' = 'en') =>
       httpGet<ApiResponse<{ items: City[] }>>('/cities', {
         auth: false,
         params: { country, lang },
       }),
-    vibes: (lang: 'zh' | 'en' = 'zh') =>
+    vibes: (lang: 'zh' | 'en' = 'en') =>
       httpGet<ApiResponse<{ items: Vibe[] }>>('/vibes', {
         auth: false,
         params: { lang },
       }),
-    ageRanges: (lang: 'zh' | 'en' = 'zh') =>
+    ageRanges: (lang: 'zh' | 'en' = 'en') =>
       httpGet<ApiResponse<{ items: AgeRange[] }>>('/age-ranges', {
         auth: false,
         params: { lang },

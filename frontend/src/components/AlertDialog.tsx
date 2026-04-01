@@ -20,7 +20,7 @@ export function AlertDialog({
   title,
   description,
   type = 'info',
-  actionLabel = '確定',
+  actionLabel = 'OK',
   onAction,
   cancelLabel,
   onCancel,

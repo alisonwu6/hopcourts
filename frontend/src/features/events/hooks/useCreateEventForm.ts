@@ -266,7 +266,7 @@ export function useCreateEventForm() {
     if (!MAPBOX_TOKEN || !address.trim()) return null
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
       address.trim()
-    )}.json?language=zh-Hant&limit=1&access_token=${MAPBOX_TOKEN}`
+    )}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
     try {
       const res = await fetch(url)
       const data = await res.json()
@@ -280,7 +280,7 @@ export function useCreateEventForm() {
 
   const reverseGeocode = async (loc: LatLng) => {
     if (!MAPBOX_TOKEN) return null
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${loc.lng},${loc.lat}.json?language=zh-Hant&limit=1&access_token=${MAPBOX_TOKEN}`
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${loc.lng},${loc.lat}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
     try {
       const res = await fetch(url)
       const data = await res.json()

@@ -15,7 +15,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { MapPicker } from '@/components/map/MapPicker'
 import { PageLoading } from '@/components/PageLoading'
 import { format } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import { useCreateEventForm } from '@/features/events/hooks/useCreateEventForm'
 
 const SKILL_LEVEL_LABELS = {
@@ -891,7 +891,7 @@ function DateTimeField({
     if (!value) return ''
     try {
       const date = new Date(value)
-      return format(date, 'yyyy/MM/dd HH:mm', { locale: zhTW })
+      return format(date, 'yyyy/MM/dd HH:mm', { locale: enUS })
     } catch {
       return ''
     }
@@ -933,7 +933,7 @@ function DateTimeField({
         onChange={onChange}
         required={required}
         className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
-        lang="zh-TW"
+        lang="en-US"
       />
     </div>
   )
