@@ -91,15 +91,6 @@ async function upsertProfile(userId, body = {}) {
     ? body.username.trim().toLowerCase()
     : body.username
 
-  // Enforce single username update rule (Removed as column doesn't exist)
-  /*
-  if (body.username && current.username && body.username !== current.username) {
-    if (current.username_updated_count >= 1) {
-      throw Errors.badRequest('使用者名稱只能修改一次')
-    }
-  }
-  */
-
   // Prepare user data
   let email = body.email || (body.auth_user && body.auth_user.email) || current.email
   let avatarUrl = 
