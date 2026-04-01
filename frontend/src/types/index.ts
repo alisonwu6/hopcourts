@@ -319,6 +319,9 @@ export interface PlayerEvent {
     hideParticipants?: boolean
     heroImageUrl?: string
   }
+  isOfficial?: boolean
+  venueNameDisplay?: string
+  venueLogoUrl?: string
 }
 
 export interface PlayerVenue {

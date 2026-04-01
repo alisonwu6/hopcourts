@@ -133,17 +133,30 @@ async function getSessionDetail(sessionId, userId) {
     participantsModel.listParticipantsWithDetails(sessionId)
   ])
 
-  return { 
-    session, 
-    meta, 
-    host: host ? {
-      id: host.id,
-      display_name: host.display_name,
-      username: host.username,
-      avatar_url: host.avatar_url,
-      bio: host.bio
-    } : null, 
-    participants 
+  const hostSummary = session.is_official && session.venue_id
+    ? {
+      id: session.venue_id,
+      display_name: session.venue_name_display || host?.display_name || null,
+      username: null,
+      avatar_url: session.venue_logo_url || null,
+      bio: null,
+      role: 'venue',
+    }
+    : host
+      ? {
+        id: host.id,
+        display_name: host.display_name,
+        username: host.username,
+        avatar_url: host.avatar_url,
+        bio: host.bio,
+      }
+      : null
+
+  return {
+    session,
+    meta,
+    host: hostSummary,
+    participants,
   }
 }
 
@@ -217,7 +230,20 @@ async function leaveSession({ sessionId, userId }) {
   const session = await getSessionById(sessionId)
   if (!session) throw Errors.notFound('Session not found')
   if (session.host_user_id === userId) {
-    throw Errors.forbidden('Host cannot leave their own session')
+    if (!session.is_official) {
+      throw Errors.forbidden('Host cannot leave their own session')
+    }
+
+    const selfParticipant = await participantsModel.getParticipant({ sessionId, userId })
+    if (!selfParticipant) {
+      const meta = await buildSessionMeta({ sessionId, session, userId })
+      return {
+        session_id: sessionId,
+        joined: false,
+        meta,
+      }
+    }
+
   }
 
   await participantsModel.leaveSession({ sessionId, userId })

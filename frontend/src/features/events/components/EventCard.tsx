@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
+import { useNavigate } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import {
   Calendar,
@@ -23,6 +24,7 @@ type EventCardProps = {
   className?: string
   sportLabel?: string
   cityLabel?: string
+  disableVenueHostNavigation?: boolean
 }
 
 function getFlagEmoji(countryCode: string) {
@@ -38,18 +40,20 @@ export function EventCard({
   className,
   sportLabel: sportLabelProp,
   cityLabel: cityLabelProp,
+  disableVenueHostNavigation = false,
 }: EventCardProps) {
+  const navigate = useNavigate()
 
-  // Official Event Logic
-  const raw = event as any
-  const isOfficial = raw.isOfficial || raw.is_official
-  const venueName = raw.venueNameDisplay || raw.venue_name_display
-  const venueLogo = raw.venueLogoUrl || raw.venue_logo_url
+  const isVenueHost = Boolean(event.isOfficial && event.venueId)
+  const venueName = event.venueNameDisplay
+  const venueLogo = event.venueLogoUrl
+
+  const canNavigateToVenue = isVenueHost && Boolean(event.venueId) && !disableVenueHostNavigation
 
   const displayHost = {
-    name: isOfficial && venueName ? venueName : event.host.name,
-    avatarUrl: isOfficial && venueLogo ? venueLogo : event.host.avatarUrl,
-    isOfficial: Boolean(isOfficial),
+    name: isVenueHost && venueName ? venueName : event.host.name,
+    avatarUrl: isVenueHost ? venueLogo : event.host.avatarUrl,
+    isOfficial: isVenueHost,
   }
 
   const sportLabel = sportLabelProp || event.sport
@@ -114,7 +118,25 @@ export function EventCard({
     >
       {/* 1. Host Header at top */}
       <header className="flex items-center justify-between border-b border-slate-50 px-5 py-3.5">
-        <div className="flex items-center gap-2.5">
+        <div
+          className={clsx('flex items-center gap-2.5', canNavigateToVenue && 'cursor-pointer')}
+          onClick={(e) => {
+            if (canNavigateToVenue && event.venueId) {
+              e.stopPropagation()
+              navigate(`/venues/${event.venueId}`)
+            }
+          }}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && canNavigateToVenue && event.venueId) {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(`/venues/${event.venueId}`)
+            }
+          }}
+          role={canNavigateToVenue ? 'button' : undefined}
+          tabIndex={canNavigateToVenue ? 0 : undefined}
+          aria-label={canNavigateToVenue ? `View venue ${displayHost.name}` : undefined}
+        >
           <AvatarCircle name={displayHost.name} src={displayHost.avatarUrl} size="sm" />
           <div>
             <p className="flex items-center gap-1.5 text-sm font-medium text-slate-900">

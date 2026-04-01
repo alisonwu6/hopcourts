@@ -73,6 +73,7 @@ export function EventDetailPage() {
       onCloseProfileRequired={() => setShowProfileRequired(false)}
       onNavigateEvents={() => navigate('/events')}
       onNavigateMate={(username) => navigate(`/mate/${username}`)}
+      onNavigateVenue={(venueId) => navigate(`/venues/${venueId}`)}
     />
   )
 }

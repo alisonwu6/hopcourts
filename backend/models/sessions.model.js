@@ -117,6 +117,7 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
     roleCondition,
     '(s.ends_at IS NULL OR s.ends_at >= $2)',
     role === 'hosted' ? "(s.status = 'published' OR s.status = 'draft')" : "s.status = 'published'",
+    's.is_official = false',
   ]
 
   if (to) {
@@ -131,11 +132,16 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_en as host_city_name
+      c.name_en as host_city_name,
+      v.status as venue_status,
+      COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
+      v.name_display as venue_name_display
     from public.sessions s
     left join public.session_participants sp on sp.session_id = s.id
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
+    left join public.venues v on s.venue_id = v.id
+    left join public.venue_profiles vp on v.id = vp.venue_id
     where ${conditions.join(' AND ')}
     order by s.starts_at asc
   `
@@ -150,6 +156,7 @@ async function listMyPastSessions({ userId, limit = 50, offset = 0 } = {}) {
     from public.sessions s
     join public.session_participants sp on sp.session_id = s.id
     where sp.user_id = $1
+      and s.is_official = false
       and s.ends_at is not null
       and s.ends_at < $2
     order by s.ends_at desc
@@ -176,12 +183,18 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_en as host_city_name
+      c.name_en as host_city_name,
+      v.status as venue_status,
+      COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
+      v.name_display as venue_name_display
     FROM public.sessions s
     LEFT JOIN public.session_participants sp ON sp.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
+    LEFT JOIN public.venues v ON s.venue_id = v.id
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     WHERE ${roleCondition}
+      AND s.is_official = false
       AND (
         (s.ends_at IS NOT NULL AND s.ends_at < $2)
         OR (s.status = 'draft' AND s.host_user_id = $1)
@@ -206,11 +219,12 @@ async function getSessionById(sessionId) {
        c.name_en as host_city_name,
        v.status as venue_status,
        v.name_display as venue_name_display,
-       v.logo_url as venue_logo_url
+       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url
      from public.sessions s
      left join public.users h on s.host_user_id = h.id
      left join public.cities c on h.city_key = c.key
      left join public.venues v on s.venue_id = v.id
+     left join public.venue_profiles vp on v.id = vp.venue_id
      where s.id = $1`,
     [sessionId]
   )
