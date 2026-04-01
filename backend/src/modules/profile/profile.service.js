@@ -87,6 +87,9 @@ async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
   console.log('[upsertProfile] Current User:', JSON.stringify(current, null, 2))
+  const normalizedUsername = typeof body.username === 'string'
+    ? body.username.trim().toLowerCase()
+    : body.username
 
   // Enforce single username update rule (Removed as column doesn't exist)
   /*
@@ -161,7 +164,7 @@ async function upsertProfile(userId, body = {}) {
   // Strict Onboarding Rule: All fields including bio
   const isProfileComplete =
     (body.display_name || current.display_name || nameFromAuth) &&
-    (body.username || current.username) &&
+    (normalizedUsername || current.username) &&
     (body.city_key ?? current.city_key) &&
     (body.gender ?? current.gender) &&
     (body.vibe_key ?? current.vibe_key) &&
@@ -171,7 +174,7 @@ async function upsertProfile(userId, body = {}) {
   const user = await usersModel.upsertUser({
     id: userId,
     email: email, 
-    username: body.username || current.username || null,
+    username: normalizedUsername || current.username || null,
     display_name:
       body.display_name ||
       current.display_name ||

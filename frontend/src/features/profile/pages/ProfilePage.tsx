@@ -638,13 +638,14 @@ export function ProfilePage() {
           return;
         }
         {
+          const normalizedValue = value.toLowerCase();
           const currentUsername = ((vm?.username || (user as any)?.username || '') as string).trim();
-          const isSameUsername = value.toLowerCase() === currentUsername.toLowerCase();
+          const isSameUsername = normalizedValue === currentUsername.toLowerCase();
           if (!isSameUsername) {
             setIsSavingProfile(true);
             try {
               // 200 => already exists, 404 => available
-              await profileService.getProfileByUsername(value);
+              await profileService.getProfileByUsername(normalizedValue);
               setFieldError('Username already exists, please choose another one');
               return;
             } catch (err: any) {
@@ -657,8 +658,8 @@ export function ProfilePage() {
               setIsSavingProfile(false);
             }
           }
+          setDraftUsername(normalizedValue);
         }
-        setDraftUsername(value);
         clearProfileFieldError('username');
         break;
       case 'location':
@@ -747,8 +748,9 @@ export function ProfilePage() {
         trying_sports: tryingKeys,
         avatar_url: draftProfile.avatar || undefined,
       };
-      if (draftUsername && !isUuid(draftUsername)) {
-        payload.username = draftUsername;
+      const normalizedUsername = draftUsername.trim().toLowerCase();
+      if (normalizedUsername && !isUuid(normalizedUsername)) {
+        payload.username = normalizedUsername;
       }
 
       const res = await profileService.saveProfile(payload);
@@ -767,7 +769,7 @@ export function ProfilePage() {
         trying: draftProfile.trying.filter(Boolean),
       };
       setVm({
-        username: draftUsername || vm?.username || '',
+        username: normalizedUsername || vm?.username || '',
         usernameUpdatedCount: newCount,
         card: updated,
         favoriteSportKeys: favoriteKeys,
@@ -1472,6 +1474,17 @@ export function ProfilePage() {
                     placeholder="Please enter"
                   />
                   {fieldError && <p className="mt-2 text-sm text-red-500">{fieldError}</p>}
+                  {activeField === 'username' && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Usernames are saved in lowercase.
+                      {fieldValue.trim() ? (
+                        <>
+                          {' '}Will save as{' '}
+                          <span className="font-semibold text-slate-700">{fieldValue.trim().toLowerCase()}</span>
+                        </>
+                      ) : null}
+                    </p>
+                  )}
                 </div>
               )}
             </SheetLayout>
