@@ -600,6 +600,20 @@ paths:
         "200":
           description: ok
 
+  /admin/venues/{venueId}/courts:
+    get:
+      tags: [Venue Portal]
+      summary: List configured venue courts/spots
+      security: [{ BearerAuth: [] }]
+      parameters:
+        - in: path
+          name: venueId
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: ok
+
   /admin/venues/{venueId}:
     get:
       tags: [Venue Portal]
@@ -819,11 +833,14 @@ paths:
                 note: { type: string }
                 court_id: { type: string, format: uuid, nullable: true }
                 court_name: { type: string, nullable: true }
+                min_people: { type: integer }
                 max_capacity: { type: integer }
                 pricing_model: { type: string, enum: [free, paid] }
                 fee: { type: number, nullable: true }
-                skill_level: { type: string, enum: [beginner, intermediate, advanced] }
-                gender_rule: { type: string, enum: [mixed, men, women] }
+                price_mode: { type: string, enum: [total, person] }
+                price_note: { type: string, nullable: true }
+                skill_level: { type: string, enum: [any, beginner, intermediate, advanced] }
+                gender_rule: { type: string, enum: [mixed, men, women, male, female] }
       responses:
         "200":
           description: ok
@@ -852,11 +869,14 @@ paths:
                 end_at: { type: string, example: "21:06" }
                 court_id: { type: string, format: uuid, nullable: true }
                 court_name: { type: string, nullable: true }
+                min_people: { type: integer }
                 max_capacity: { type: integer }
                 pricing_model: { type: string, enum: [free, paid] }
                 fee: { type: number, nullable: true }
-                skill_level: { type: string, enum: [beginner, intermediate, advanced] }
-                gender_rule: { type: string, enum: [mixed, men, women] }
+                price_mode: { type: string, enum: [total, person] }
+                price_note: { type: string, nullable: true }
+                skill_level: { type: string, enum: [any, beginner, intermediate, advanced] }
+                gender_rule: { type: string, enum: [mixed, men, women, male, female] }
       responses:
         "200":
           description: ok
@@ -892,15 +912,19 @@ paths:
               required: [sport_key, start_at, end_at, max_capacity, pricing_model, skill_level, gender_rule]
               properties:
                 sport_key: { type: string }
+                date: { type: string, example: "21/03/2026" }
                 start_at: { type: string, example: "19:04" }
                 end_at: { type: string, example: "21:06" }
                 court_id: { type: string, format: uuid, nullable: true }
                 court_name: { type: string, nullable: true }
-                skill_level: { type: string, enum: [beginner, intermediate, advanced] }
-                gender_rule: { type: string, enum: [mixed, men, women] }
+                skill_level: { type: string, enum: [any, beginner, intermediate, advanced] }
+                gender_rule: { type: string, enum: [mixed, men, women, male, female] }
+                min_people: { type: integer }
                 max_capacity: { type: integer }
                 pricing_model: { type: string, enum: [free, paid] }
                 fee: { type: number, nullable: true }
+                price_mode: { type: string, enum: [total, person] }
+                price_note: { type: string, nullable: true }
       responses:
         "200":
           description: ok

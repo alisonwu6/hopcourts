@@ -15,7 +15,7 @@ export function VenueSessionCreatePage() {
     
     const [loading, setLoading] = useState(true);
     const [venueData, setVenueData] = useState<ManagedVenue | null>(null);
-    const [courts, setCourts] = useState<{ id: string; name: string }[]>([]);
+    const [courts, setCourts] = useState<{ id: string; name: string; supported_sports?: string[] }[]>([]);
     
     // Form State
     const [formData, setFormData] = useState({
@@ -28,6 +28,10 @@ export function VenueSessionCreatePage() {
         endTime: '21:00',
         minPeople: 2,
         maxPeople: 4,
+        skillLevel: 'any',
+        genderRule: 'mixed',
+        priceMode: 'total',
+        feeNotes: '',
         pricePerPerson: 0,
         isFree: true
     });
@@ -40,17 +44,17 @@ export function VenueSessionCreatePage() {
 
     const loadVenueInfo = async (id: string) => {
         setLoading(true);
-        const [myVenueRes, profileRes] = await Promise.all([
+        const [myVenueRes, courtsRes] = await Promise.all([
             venuePortalService.getMyVenues(),
-            venuePortalService.getVenueProfile(id)
+            venuePortalService.getVenueCourts(id)
         ]);
 
         if (myVenueRes.success && myVenueRes.data) {
             const current = myVenueRes.data.find((v) => v.id === id) || myVenueRes.data[0] || null
             setVenueData(current)
         }
-        if (profileRes.success && profileRes.data) {
-            setCourts(profileRes.data.courts || []);
+        if (courtsRes.success && courtsRes.data) {
+            setCourts(courtsRes.data);
         }
         setLoading(false);
     };
@@ -70,11 +74,14 @@ export function VenueSessionCreatePage() {
             note: formData.description,
             court_id: formData.court_id || null,
             court_name: selectedCourt?.name || null,
+            min_people: formData.minPeople,
             max_capacity: formData.maxPeople,
             pricing_model: formData.isFree ? 'free' : 'paid',
             fee: formData.isFree ? null : formData.pricePerPerson,
-            skill_level: 'beginner',
-            gender_rule: 'mixed',
+            price_mode: formData.priceMode,
+            price_note: formData.feeNotes || null,
+            skill_level: formData.skillLevel,
+            gender_rule: formData.genderRule,
         };
 
         setLoading(true);
@@ -91,6 +98,22 @@ export function VenueSessionCreatePage() {
         setLoading(false);
     };
 
+    const filteredCourts = courts.filter(c => 
+        !c.supported_sports || 
+        c.supported_sports.length === 0 || 
+        c.supported_sports.some(s => s.toUpperCase() === formData.sportKey.toUpperCase())
+    );
+
+    // Auto-clear court if no longer valid for the selected sport
+    useEffect(() => {
+        if (formData.court_id) {
+            const isSupported = filteredCourts.some(c => c.id === formData.court_id);
+            if (!isSupported) {
+                setFormData(prev => ({ ...prev, court_id: '' }));
+            }
+        }
+    }, [formData.sportKey, filteredCourts, formData.court_id]);
+
     return (
         <VenueSessionCreateView 
             loading={loading}
@@ -100,7 +123,7 @@ export function VenueSessionCreatePage() {
             onSubmit={handleSubmit}
             onCancel={() => navigate('/admin')}
             SPORTS={SPORTS}
-            courts={courts}
+            courts={filteredCourts}
         />
     );
 }

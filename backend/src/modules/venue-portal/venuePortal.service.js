@@ -33,6 +33,19 @@ async function getVenueProfile(venueId) {
   }
 }
 
+async function getVenueCourts(venueId) {
+  const profile = await venuesModel.getVenueProfile(venueId)
+  const spaces = Array.isArray(profile?.spaces) ? profile.spaces : []
+
+  return spaces
+    .map((space, index) => ({
+      id: String(space?.id || `court-${index + 1}`),
+      name: String(space?.name || '').trim(),
+      supported_sports: Array.isArray(space?.supported_sports) ? space.supported_sports.filter(Boolean) : [],
+    }))
+    .filter((court) => court.name)
+}
+
 async function updateVenueProfile(venueId, data) {
   if (data.opening_hours && (!Array.isArray(data.opening_hours) || data.opening_hours.length !== 7)) {
     throw Errors.validation('opening_hours must be an array of exactly 7 entries (Monday–Sunday)')
@@ -76,6 +89,42 @@ function buildVenuePlaceName(venue, eventData) {
   return `${venueDisplayName} - ${courtName}`
 }
 
+function normalizeGenderRule(genderRule) {
+  const value = String(genderRule || 'mixed').toLowerCase()
+  if (value === 'men' || value === 'male') return 'male'
+  if (value === 'women' || value === 'female') return 'female'
+  return 'mixed'
+}
+
+async function validateCourtSupportsSport(venueId, courtId, sportKey) {
+  if (!courtId) return
+  if (!sportKey) return
+
+  const profile = await venuesModel.getVenueProfile(venueId)
+  const spaces = Array.isArray(profile?.spaces) ? profile.spaces : []
+
+  const court = spaces.find((s) => String(s.id || s.name) === String(courtId))
+  if (!court) {
+    // If it's a legacy court name without ID, we can skip or find by name.
+    // The courts API uses name as ID if ID is missing.
+    return
+  }
+
+  const supportedSports = Array.isArray(court.supported_sports)
+    ? court.supported_sports.filter(Boolean)
+    : []
+
+  // If the court has a non-empty supported_sports list, we MUST check it.
+  if (supportedSports.length > 0) {
+    const isSupported = supportedSports.some(
+      (s) => String(s).toUpperCase() === String(sportKey).toUpperCase()
+    )
+    if (!isSupported) {
+      throw Errors.validation(`Court "${court.name}" does not support ${sportKey}.`)
+    }
+  }
+}
+
 async function createVenueEvent(venueId, userId, eventData) {
   if (!eventData.sport_key) {
     throw Errors.validation('sport_key is required')
@@ -86,6 +135,9 @@ async function createVenueEvent(venueId, userId, eventData) {
   if (!eventData.start_at) {
     throw Errors.validation('start_at is required')
   }
+
+  // Guard: Court must support the sport
+  await validateCourtSupportsSport(venueId, eventData.court_id, eventData.sport_key)
 
   const venue = await venuesModel.getVenueById(venueId)
   const isFree = eventData.pricing_model !== 'paid'
@@ -98,12 +150,14 @@ async function createVenueEvent(venueId, userId, eventData) {
     description: eventData.note || null,
     startAt: parseDateAndTime(eventData.date, eventData.start_at),
     endAt: eventData.end_at ? parseDateAndTime(eventData.date, eventData.end_at) : null,
+    minPeople: eventData.min_people || null,
     capacity: eventData.max_capacity || null,
     skillLevel: eventData.skill_level || 'any',
-    gender: eventData.gender_rule || 'mixed',
+    gender: normalizeGenderRule(eventData.gender_rule),
     isFree,
     pricePerPerson: isFree ? null : (eventData.fee || null),
-    priceMode: isFree ? 'total' : 'person',
+    priceMode: isFree ? 'total' : (eventData.price_mode || 'person'),
+    priceNote: eventData.price_note || null,
     isOfficial: true,
     status: 'published',
     visibility: 'public',
@@ -134,6 +188,9 @@ async function createRecurringEvents(venueId, userId, eventData) {
     throw Errors.validation('start_at is required')
   }
 
+  // Guard: Court must support the sport
+  await validateCourtSupportsSport(venueId, eventData.court_id, eventData.sport_key)
+
   const venue = await venuesModel.getVenueById(venueId)
   const isFree = eventData.pricing_model !== 'paid'
 
@@ -159,12 +216,14 @@ async function createRecurringEvents(venueId, userId, eventData) {
       description: eventData.note || null,
       startAt: parseDateAndTime(dateStr, eventData.start_at),
       endAt: eventData.end_at ? parseDateAndTime(dateStr, eventData.end_at) : null,
+      minPeople: eventData.min_people || null,
       capacity: eventData.max_capacity || null,
       skillLevel: eventData.skill_level || 'any',
-      gender: eventData.gender_rule || 'mixed',
+      gender: normalizeGenderRule(eventData.gender_rule),
       isFree,
       pricePerPerson: isFree ? null : (eventData.fee || null),
-      priceMode: isFree ? 'total' : 'person',
+      priceMode: isFree ? 'total' : (eventData.price_mode || 'person'),
+      priceNote: eventData.price_note || null,
       isOfficial: true,
       status: 'published',
       visibility: 'public',
@@ -236,6 +295,13 @@ async function updateVenueEvent(eventId, userId, eventData) {
     throw Errors.forbidden('You do not manage this venue')
   }
 
+  // Guard: Court must support the sport
+  await validateCourtSupportsSport(
+    session.venue_id,
+    eventData.court_id,
+    eventData.sport_key || session.sport_key
+  )
+
   const hasCourtNameField = Object.prototype.hasOwnProperty.call(eventData, 'court_name')
   const venue = hasCourtNameField ? await venuesModel.getVenueById(session.venue_id) : null
 
@@ -252,7 +318,8 @@ async function updateVenueEvent(eventId, userId, eventData) {
       ? parseDateAndTime(eventData.date, eventData.end_at)
       : undefined,
     skillLevel: eventData.skill_level,
-    gender: eventData.gender_rule,
+    gender: eventData.gender_rule !== undefined ? normalizeGenderRule(eventData.gender_rule) : undefined,
+    minPeople: eventData.min_people,
     maxPeople: eventData.max_capacity,
     title: eventData.title,
     description: eventData.note,
@@ -261,6 +328,8 @@ async function updateVenueEvent(eventId, userId, eventData) {
     pricePerPerson: isFree === undefined
       ? undefined
       : isFree ? null : (eventData.fee || null),
+    priceMode: eventData.price_mode,
+    priceNote: eventData.price_note,
   }
 
   return sessionsModel.updateSession(eventId, patch)
@@ -269,6 +338,7 @@ async function updateVenueEvent(eventId, userId, eventData) {
 module.exports = {
   getMyVenue,
   getVenueProfile,
+  getVenueCourts,
   updateVenueProfile,
   getVenueStats,
   createVenueEvent,

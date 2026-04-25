@@ -8,10 +8,14 @@ interface ScheduleSlot {
     end_time: string;
     sport: string;
     max_participants: number;
+    min_participants: number;
     level: string;
     gender: string;
     price: number;
+    price_mode: 'total' | 'person';
+    price_note: string;
     court_id?: string;
+    court_name?: string;
 }
 
 interface GeneratedSession {
@@ -102,6 +106,9 @@ export function useVenueScheduleData() {
             day_of_week: activeDay,
             start_time: '',
             end_time: '',
+            min_participants: 2,
+            price_mode: 'total',
+            price_note: '',
             ...venueDefaults
         };
         setSlots(prev => [...prev, newSlot]);
@@ -139,6 +146,7 @@ export function useVenueScheduleData() {
         setActiveDay,
         slots,
         generatedSessions,
+        setGeneratedSessions,
         currentMonth,
         setCurrentMonth,
         viewMode,

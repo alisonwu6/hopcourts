@@ -39,6 +39,12 @@ export interface VenueStats {
   total_players: number
 }
 
+export interface VenueCourt {
+  id: string
+  name: string
+  supported_sports?: string[]
+}
+
 export type GroupedVenueEvents = Record<string, Array<{
   event_id: string
   sport: string
@@ -275,6 +281,24 @@ export const venuePortalService = {
     }
   },
 
+  async getVenueCourts(venueId: string): Promise<ApiResponse<VenueCourt[]>> {
+    try {
+      const res = await httpGet<VenueCourt[]>(`/admin/venues/${venueId}/courts`)
+      const rows = Array.isArray((res as any)?.data) ? (res as any).data : []
+      return wrapSuccess(rows.map((court: any, idx: number) => ({
+        id: String(court?.id || `court-${idx + 1}`),
+        name: String(court?.name || '').trim(),
+        supported_sports: Array.isArray(court?.supported_sports) ? court.supported_sports.filter(Boolean) : [],
+      })).filter((court: VenueCourt) => court.name))
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'FETCH_VENUE_COURTS_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
   /**
    * Update venue profile branding. 
    */
@@ -350,5 +374,31 @@ export const venuePortalService = {
         timestamp: new Date(),
       } as any
     }
-  }
+  },
+
+  async getEventDetail(eventId: string): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpGet<any>(`/admin/events/${eventId}`)
+      return wrapSuccess((res as any)?.data || (res as any))
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'FETCH_EVENT_DETAIL_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  async updateVenueEvent(eventId: string, payload: any): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpPut<any>(`/admin/events/${eventId}`, { body: payload })
+      return wrapSuccess((res as any)?.data || (res as any))
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'UPDATE_EVENT_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
 }

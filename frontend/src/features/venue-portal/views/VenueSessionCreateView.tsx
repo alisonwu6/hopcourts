@@ -1,7 +1,5 @@
 import React from 'react';
 import { PageLoading } from '@/components/PageLoading';
-import { VenueButton } from '../components/ui/VenueButton';
-import { VenueBadge } from '../components/ui/VenueBadge';
 
 interface VenueSessionCreateViewProps {
     loading: boolean;
@@ -11,7 +9,7 @@ interface VenueSessionCreateViewProps {
     onSubmit: (e: React.FormEvent) => void;
     onCancel: () => void;
     SPORTS: string[];
-    courts: { id: string; name: string }[];
+    courts: { id: string; name: string; supported_sports?: string[] }[];
 }
 
 export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
@@ -24,6 +22,19 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
     SPORTS,
     courts
 }) => {
+    const SKILL_LEVELS = [
+        { label: 'All levels', value: 'any' },
+        { label: 'Beginner', value: 'beginner' },
+        { label: 'Intermediate', value: 'intermediate' },
+        { label: 'Advanced', value: 'advanced' },
+    ];
+
+    const GENDERS = [
+        { label: 'Mixed', value: 'mixed' },
+        { label: 'Women only', value: 'women' },
+        { label: 'Men only', value: 'men' },
+    ];
+
     if (loading && !venueData) return <PageLoading />;
 
     return (
@@ -55,21 +66,12 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                 <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 md:p-10 mb-8 overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-10 opacity-5 text-8xl font-black select-none pointer-events-none">✨</div>
                     
-                    <div className="mb-10 flex items-center gap-4 p-5 bg-indigo-50/50 border border-indigo-100/50 rounded-3xl ring-1 ring-indigo-500/5">
-                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-indigo-100/50 shrink-0">Stadium</div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-[10px] uppercase font-black text-indigo-500 mb-0.5 tracking-widest opacity-80">Host Venue</div>
-                            <div className="font-black text-slate-900 truncate uppercase tracking-tight">{venueData?.name_display}</div>
-                            <div className="text-[10px] text-slate-400 font-bold truncate uppercase tracking-tight">{venueData?.address_display}</div>
-                        </div>
-                        <VenueBadge variant="published" className="ml-auto">Official</VenueBadge>
-                    </div>
 
                     <form id="create-event-form" onSubmit={onSubmit} className="space-y-8">
                         
-                        {/* 1. Basic Info */}
+                        {/* 1. Event Basics */}
                         <section className="space-y-4">
-                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Identity</h2>
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Event Basics</h2>
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Event Title</label>
@@ -105,10 +107,76 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                                         </select>
                                     </div>
                                 </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Max Participants</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="100"
+                                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
+                                            value={formData.maxPeople}
+                                            onChange={e => setFormData({...formData, maxPeople: Number(e.target.value) || 0})}
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Min Participants</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="100"
+                                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
+                                            value={formData.minPeople}
+                                            onChange={e => setFormData({...formData, minPeople: Number(e.target.value) || 0})}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Skill Level</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {SKILL_LEVELS.map((level) => {
+                                            const active = formData.skillLevel === level.value;
+                                            return (
+                                                <button
+                                                    key={level.value}
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, skillLevel: level.value })}
+                                                    className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${active
+                                                        ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                                                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                                                >
+                                                    {level.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Gender</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {GENDERS.map((gender) => {
+                                            const active = formData.genderRule === gender.value;
+                                            return (
+                                                <button
+                                                    key={gender.value}
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, genderRule: gender.value })}
+                                                    className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${active
+                                                        ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                                                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                                                >
+                                                    {gender.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                             </div>
                         </section>
 
-                        {/* 2. Timing */}
+                        {/* 2. Schedule */}
                         <section className="space-y-4">
                             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Schedule</h2>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -145,9 +213,84 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                             </div>
                         </section>
 
-                        {/* 3. Description */}
+                        {/* 3. Pricing */}
+                        <section className="space-y-4 border-t border-slate-50 pt-8">
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Pricing</h2>
+                            <p className="px-1 text-xs text-slate-400">Set event pricing details.</p>
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
+                                    <input
+                                        id="venue-is-free-checkbox"
+                                        type="checkbox"
+                                        checked={formData.isFree}
+                                        onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
+                                        className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <label htmlFor="venue-is-free-checkbox" className="text-sm font-semibold text-slate-800">Free</label>
+                                </div>
+
+                                {!formData.isFree && (
+                                    <div className="grid gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex rounded-lg bg-slate-100 p-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, priceMode: 'total' })}
+                                                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${formData.priceMode === 'total'
+                                                        ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-600'
+                                                        : 'text-slate-500 hover:text-slate-700'}`}
+                                                >
+                                                    Total Cost
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, priceMode: 'person' })}
+                                                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${formData.priceMode === 'person'
+                                                        ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-600'
+                                                        : 'text-slate-500 hover:text-slate-700'}`}
+                                                >
+                                                    Per Person
+                                                </button>
+                                            </div>
+                                            <span className="text-xs text-slate-400">
+                                                {formData.priceMode === 'total'
+                                                    ? 'Per-person fee is estimated from total participants.'
+                                                    : 'Set per-person fee directly.'}
+                                            </span>
+                                        </div>
+
+                                        <div className="relative">
+                                            <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">
+                                                {formData.priceMode === 'total' ? 'Total Cost (TWD)' : 'Per Person (TWD)'}
+                                            </label>
+                                            <input 
+                                                type="number" 
+                                                min="0"
+                                                placeholder={formData.priceMode === 'total' ? 'e.g. 2000' : 'e.g. 200'}
+                                                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
+                                                value={formData.pricePerPerson}
+                                                onChange={e => setFormData({...formData, pricePerPerson: Number(e.target.value) || 0})}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="mb-2 block text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Fee Notes</label>
+                                            <textarea
+                                                rows={3}
+                                                placeholder="e.g. on-site payment"
+                                                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner resize-none"
+                                                value={formData.feeNotes}
+                                                onChange={e => setFormData({ ...formData, feeNotes: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
+                        {/* 4. Event Description */}
                         <section className="space-y-4">
-                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Notes</h2>
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Event Description</h2>
                             <div>
                                 <textarea 
                                     rows={4}
@@ -156,62 +299,6 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                                     value={formData.description}
                                     onChange={e => setFormData({...formData, description: e.target.value})}
                                 />
-                            </div>
-                        </section>
-
-                        {/* 4. Capacity & Price */}
-                        <section className="space-y-4 border-t border-slate-50 pt-8">
-                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Inventory & Price</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-1.5">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Max Capacity</label>
-                                    <input 
-                                        type="number" 
-                                        min="1"
-                                        max="100"
-                                        className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
-                                        value={formData.maxPeople}
-                                        onChange={e => setFormData({...formData, maxPeople: parseInt(e.target.value)})}
-                                    />
-                                </div>
-                                <div className="space-y-4">
-                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Pricing Model</label>
-                                    <div className="flex gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({...formData, isFree: true, pricePerPerson: 0})}
-                                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${formData.isFree 
-                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
-                                                : 'bg-slate-50 text-slate-400 border border-slate-100'}`}
-                                        >
-                                            Free Access
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({...formData, isFree: false})}
-                                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!formData.isFree 
-                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
-                                                : 'bg-slate-50 text-slate-400 border border-slate-100'}`}
-                                        >
-                                            Paid Entry
-                                        </button>
-                                    </div>
-                                    {!formData.isFree && (
-                                        <div className="animate-in slide-in-from-top-2 duration-200">
-                                            <div className="relative">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">$</span>
-                                                <input 
-                                                    type="number" 
-                                                    min="0"
-                                                    placeholder="0.00"
-                                                    className="w-full px-8 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner"
-                                                    value={formData.pricePerPerson}
-                                                    onChange={e => setFormData({...formData, pricePerPerson: parseInt(e.target.value)})}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         </section>
                     </form>

@@ -42,6 +42,16 @@ router.get('/venues/:id', verifyVenueOwner, async (req, res, next) => {
   }
 })
 
+// GET /venues/:id/courts - Get configured courts/spaces for this venue
+router.get('/venues/:id/courts', verifyVenueOwner, async (req, res, next) => {
+  try {
+    const data = await venuePortalService.getVenueCourts(req.params.id)
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // PUT /venues/:id - Update venue profile (opening hours, amenities, logo)
 router.put('/venues/:id', verifyVenueOwner, async (req, res, next) => {
   try {

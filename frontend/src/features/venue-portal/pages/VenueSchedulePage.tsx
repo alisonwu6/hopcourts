@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { startOfMonth, endOfMonth } from 'date-fns';
 import { venuePortalService, ManagedVenue } from '../services/venuePortalService';
 import { VenueScheduleView } from '../views/VenueScheduleView';
 import { useVenueScheduleData } from '../hooks/useVenueScheduleData';
@@ -30,11 +31,13 @@ export function VenueSchedulePage() {
 
     // 2. Logic & State Hook (Round 2 Design)
     const scheduleData = useVenueScheduleData();
-    const { 
-        slots, 
-        generateMockSessions, 
-        setViewMode, 
-        setSelectedSession 
+    const {
+        slots,
+        setGeneratedSessions,
+        currentMonth,
+        generateMockSessions,
+        setViewMode,
+        setSelectedSession
     } = scheduleData;
 
     // 3. Page-level UI states (Container owns these)
@@ -46,26 +49,59 @@ export function VenueSchedulePage() {
 
     // 4. Data Fetching (Container orchestration)
     useEffect(() => {
-        if (venueId) {
-            fetchData();
-        }
+        if (venueId) fetchData();
     }, [venueId]);
+
+    useEffect(() => {
+        if (venueId) fetchEvents(venueId, currentMonth);
+    }, [venueId, currentMonth]);
 
     const fetchData = async () => {
         setLoading(true);
-        const [venuesRes, profileRes] = await Promise.all([
+        const [venuesRes, courtsRes] = await Promise.all([
             venuePortalService.getMyVenues(),
-            venuePortalService.getVenueProfile(venueId!)
+            venuePortalService.getVenueCourts(venueId!)
         ]);
 
         if (venuesRes.success && venuesRes.data) {
-            const current = venuesRes.data.find((v) => v.id === venueId) || venuesRes.data[0] || null
-            setVenue(current)
+            const current = venuesRes.data.find((v) => v.id === venueId) || venuesRes.data[0] || null;
+            setVenue(current);
         }
-        if (profileRes.success && profileRes.data) {
-            setCourts(profileRes.data.courts || []);
+        if (courtsRes.success && courtsRes.data) {
+            setCourts(courtsRes.data);
         }
         setLoading(false);
+    };
+
+    const fetchEvents = async (id: string, month: Date) => {
+        const from = startOfMonth(month).toISOString();
+        const to = endOfMonth(month).toISOString();
+        const res = await venuePortalService.listVenueEvents(id, { from, to });
+        if (!res.success || !res.data) return;
+
+        const sessions = Object.entries(res.data).flatMap(([dateKey, events]) => {
+            // dateKey is "DD/MM/YYYY"
+            const [day, month, year] = dateKey.split('/').map(Number);
+            return (events as any[]).map((ev) => {
+                const [hour, minute] = (ev.start_at || '00:00').split(':').map(Number);
+                const date = new Date(year, month - 1, day, hour, minute);
+                return {
+                    id: ev.event_id,
+                    date,
+                    start_time: ev.start_at || '',
+                    end_time: '',
+                    sport: ev.sport || '',
+                    status: 'published' as const,
+                    max_participants: ev.max_capacity ?? 0,
+                    participants_count: ev.participant_count ?? 0,
+                    level: '',
+                    gender: '',
+                    price: 0,
+                };
+            });
+        });
+
+        setGeneratedSessions(sessions);
     };
 
     // 5. Flow Control (Container orchestration)
@@ -79,20 +115,31 @@ export function VenueSchedulePage() {
         try {
             const payloads = slots
                 .filter((slot) => slot.start_time && slot.end_time)
-                .map((slot) => ({
-                    sport_key: String(slot.sport || '').toUpperCase().replace(/\s+/g, '_'),
-                    start_at: slot.start_time,
-                    end_at: slot.end_time,
-                    skill_level: String(slot.level || 'beginner').toLowerCase(),
-                    gender_rule: String(slot.gender || 'mixed').toLowerCase().includes('men')
-                        ? 'men'
-                        : String(slot.gender || 'mixed').toLowerCase().includes('women')
-                            ? 'women'
-                            : 'mixed',
-                    max_capacity: slot.max_participants,
-                    pricing_model: slot.price > 0 ? 'paid' : 'free',
-                    fee: slot.price > 0 ? slot.price : null,
-                }));
+                .map((slot) => {
+                    const courtName = slot.court_id
+                        ? courts.find((c) => c.id === slot.court_id)?.name ?? slot.court_name
+                        : null
+                    const isFree = slot.price === 0
+                    return {
+                        sport_key: String(slot.sport || '').toUpperCase().replace(/\s+/g, '_'),
+                        start_at: slot.start_time,
+                        end_at: slot.end_time,
+                        court_id: slot.court_id || null,
+                        court_name: courtName || null,
+                        skill_level: String(slot.level || 'any').toLowerCase().replace(/\s+/g, '_'),
+                        gender_rule: String(slot.gender || 'mixed').toLowerCase().includes('men')
+                            ? 'men'
+                            : String(slot.gender || 'mixed').toLowerCase().includes('women')
+                                ? 'women'
+                                : 'mixed',
+                        min_people: slot.min_participants || null,
+                        max_capacity: slot.max_participants,
+                        pricing_model: isFree ? 'free' : 'paid',
+                        fee: isFree ? null : slot.price,
+                        price_mode: slot.price_mode || 'total',
+                        price_note: slot.price_note || null,
+                    }
+                });
 
             const results = await Promise.all(
                 payloads.map((payload) => venuePortalService.createRecurringEvents(venueId, payload))
@@ -103,8 +150,8 @@ export function VenueSchedulePage() {
                 console.error('Some recurring events failed:', results);
             }
 
-            // Keep local calendar preview in sync until events API list rendering is implemented.
-            generateMockSessions(slots);
+            // Refresh calendar with real events from the API.
+            await fetchEvents(venueId, currentMonth);
         } finally {
             setSaving(false);
         }
