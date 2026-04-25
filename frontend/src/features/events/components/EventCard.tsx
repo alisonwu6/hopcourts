@@ -8,6 +8,7 @@ import {
   PersonStanding,
   CircleDollarSign,
   ChartColumnIncreasing,
+  ShieldCheck,
 } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 
@@ -154,6 +155,13 @@ export function EventCard({
             </div>
           </div>
         </div>
+
+        {isVenueHost && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
+            <ShieldCheck size={10} className="text-emerald-600" />
+            OFFICIAL
+          </span>
+        )}
 
       </header>
 

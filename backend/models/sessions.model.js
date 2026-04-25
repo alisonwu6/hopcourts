@@ -104,7 +104,7 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
   
-  let roleCondition = '(sp.user_id = $1 OR s.host_user_id = $1)'
+  let roleCondition = '(sp.user_id = $1 OR (s.host_user_id = $1 AND s.is_official = false))'
   if (role === 'hosted') {
     roleCondition = 's.host_user_id = $1'
   } else if (role === 'joined') {
@@ -117,8 +117,11 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
     roleCondition,
     '(s.ends_at IS NULL OR s.ends_at >= $2)',
     role === 'hosted' ? "(s.status = 'published' OR s.status = 'draft')" : "s.status = 'published'",
-    's.is_official = false',
   ]
+
+  if (role === 'hosted') {
+    conditions.push('s.is_official = false')
+  }
 
   if (to) {
     params.push(to)
@@ -156,7 +159,6 @@ async function listMyPastSessions({ userId, limit = 50, offset = 0 } = {}) {
     from public.sessions s
     join public.session_participants sp on sp.session_id = s.id
     where sp.user_id = $1
-      and s.is_official = false
       and s.ends_at is not null
       and s.ends_at < $2
     order by s.ends_at desc
@@ -169,7 +171,7 @@ async function listMyPastSessions({ userId, limit = 50, offset = 0 } = {}) {
 async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'all' } = {}) {
   const now = new Date()
   const params = [userId, now, limit, offset]
-  let roleCondition = '(sp.user_id = $1 OR s.host_user_id = $1)'
+  let roleCondition = '(sp.user_id = $1 OR (s.host_user_id = $1 AND s.is_official = false))'
   if (role === 'hosted') {
     roleCondition = 's.host_user_id = $1'
   } else if (role === 'joined') {
@@ -194,7 +196,7 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
     LEFT JOIN public.venues v ON s.venue_id = v.id
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     WHERE ${roleCondition}
-      AND s.is_official = false
+      ${role === 'hosted' ? 'AND s.is_official = false' : ''}
       AND (
         (s.ends_at IS NOT NULL AND s.ends_at < $2)
         OR (s.status = 'draft' AND s.host_user_id = $1)

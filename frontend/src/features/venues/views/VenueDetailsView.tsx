@@ -1,4 +1,4 @@
-import { Building2, MapPin, CheckCircle, AlertCircle, Clock, Sparkles } from 'lucide-react';
+import { Building2, MapPin, CheckCircle, AlertCircle, Clock, Sparkles, ShieldCheck } from 'lucide-react';
 import { ActionToolbar } from '@/components/navigation/ActionToolbar';
 import { EventCard } from '@/features/events/components/EventCard';
 import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton';
@@ -55,8 +55,8 @@ export function VenueDetailsView({
             {/* Status Badge */}
             <div className="mt-4 flex gap-2">
               {venue.status === 'claimed' ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-600 border border-slate-200/50">
-                  <CheckCircle className="h-3 w-3" />
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-700 border border-emerald-200/70">
+                  <ShieldCheck className="h-3 w-3 text-emerald-600" />
                   OFFICIAL
                 </span>
               ) : (

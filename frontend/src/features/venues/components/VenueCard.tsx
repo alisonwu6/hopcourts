@@ -1,4 +1,4 @@
-import { Building2, CheckCircle, ChevronRight } from 'lucide-react';
+import { Building2, ShieldCheck, ChevronRight } from 'lucide-react';
 import { ApiVenue } from '../services/venuesService';
 
 interface VenueCardProps {
@@ -30,8 +30,8 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
         </p>
         <div className="mt-3 flex items-center gap-2">
           {venue.status === 'claimed' ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-slate-600 border border-slate-200/50">
-              <CheckCircle size={10} />
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700 border border-emerald-200/70">
+              <ShieldCheck size={10} className="text-emerald-600" />
               OFFICIAL
             </span>
           ) : (
