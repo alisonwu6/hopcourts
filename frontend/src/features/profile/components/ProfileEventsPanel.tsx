@@ -84,6 +84,7 @@ function EventGroupList({
                   <EventCard
                     event={event}
                     sportLabel={sportLabel}
+                    showStatus={mode === 'hosted'}
                     onViewDetails={(id) => {
                       if (mode === 'hosted' && event.status === 'draft') {
                         navigate(`/create-event?id=${id}`)
