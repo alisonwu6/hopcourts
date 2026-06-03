@@ -307,7 +307,7 @@ export function EventDetailView({
             </div>
 
             <div className="my-4">
-              <h1 className="text-[28px] font-semibold text-slate-900">{event.title}</h1>
+              <h1 className="text-[20px] font-semibold text-slate-900">{event.title}</h1>
             </div>
 
             <div className="space-y-3">

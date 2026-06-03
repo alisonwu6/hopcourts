@@ -26,6 +26,7 @@ type EventCardProps = {
   sportLabel?: string
   cityLabel?: string
   disableVenueHostNavigation?: boolean
+  showStatus?: boolean
 }
 
 function getFlagEmoji(countryCode: string) {
@@ -42,6 +43,7 @@ export function EventCard({
   sportLabel: sportLabelProp,
   cityLabel: cityLabelProp,
   disableVenueHostNavigation = false,
+  showStatus = false,
 }: EventCardProps) {
   const navigate = useNavigate()
 
@@ -156,12 +158,15 @@ export function EventCard({
           </div>
         </div>
 
-        {isVenueHost && (
-          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
-            <ShieldCheck size={10} className="text-emerald-600" />
-            OFFICIAL
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {showStatus && event.status && <StatusBadge status={event.status} />}
+          {isVenueHost && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
+              <ShieldCheck size={10} className="text-emerald-600" />
+              OFFICIAL
+            </span>
+          )}
+        </div>
 
       </header>
 
@@ -265,6 +270,31 @@ export function EventCard({
         </div>
       </div>
     </article>
+  )
+}
+
+const STATUS_STYLES: Record<
+  NonNullable<PlayerEvent['status']>,
+  { label: string; className: string }
+> = {
+  draft:     { label: 'Draft',     className: 'bg-amber-50 border-amber-200 text-amber-700' },
+  published: { label: 'Live',      className: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+  cancelled: { label: 'Cancelled', className: 'bg-red-50 border-red-200 text-red-600' },
+  completed: { label: 'Completed', className: 'bg-slate-100 border-slate-200 text-slate-600' },
+}
+
+function StatusBadge({ status }: { status: NonNullable<PlayerEvent['status']> }) {
+  const style = STATUS_STYLES[status]
+  if (!style) return null
+  return (
+    <span
+      className={clsx(
+        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest',
+        style.className
+      )}
+    >
+      {style.label}
+    </span>
   )
 }
 
