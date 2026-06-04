@@ -13,6 +13,7 @@ import { EventDetailPage } from '@/features/events/pages/EventDetailPage';
 import { VenueListPage } from '@/features/venues/pages/VenueListPage';
 import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage';
 import { ProfilePage } from '@/features/profile/pages/ProfilePage';
+import { SavedEventsPage } from '@/features/profile/pages/SavedEventsPage';
 import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage';
 import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage';
 import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage';
@@ -250,6 +251,16 @@ function AuthenticatedApp() {
         }
       />
       <Route
+        path="/profile/saved-events"
+        element={
+          <RequireAuth>
+            <AppChrome showHeader={false} showNav={false}>
+              <SavedEventsPage />
+            </AppChrome>
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/settings"
         element={
           <RequireAuth>
@@ -292,7 +303,7 @@ function AuthenticatedApp() {
       <Route path="/mates" element={<Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  );
+  )
 }
 
 function GuestApp() {

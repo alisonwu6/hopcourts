@@ -1,5 +1,14 @@
 import clsx from 'clsx';
-import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight } from 'lucide-react';
+import {
+  Menu,
+  PlusSquare,
+  Copy,
+  MessageCircle,
+  Bell,
+  Building2,
+  ChevronRight,
+  Bookmark,
+} from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { type MateCardProps } from '@/features/mates/components/MateCard';
@@ -824,22 +833,33 @@ export function ProfilePage() {
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
         <div className="relative flex items-center justify-between bg-white px-4 py-4">
-          <div className="flex items-center">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               aria-label="Add game"
               className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800 hover:bg-slate-50 active:bg-slate-100"
               onClick={() => {
-                const isProfileComplete = !!(user as any)?.onboarding_completed_at;
+                const isProfileComplete = !!(user as any)?.onboarding_completed_at
 
                 if (!isProfileComplete) {
-                  setShowProfileRequiredSheet(true);
+                  setShowProfileRequiredSheet(true)
                 } else {
-                  navigate('/create-event');
+                  navigate('/create-event')
                 }
               }}
             >
               <PlusSquare className="h-6 w-6" />
+            </button>
+
+            <button
+              type="button"
+              aria-label="Saved events"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+              onClick={() => {
+                navigate('/profile/saved-events')
+              }}
+            >
+              <Bookmark className="h-6 w-6" />
             </button>
           </div>
 
@@ -916,7 +936,7 @@ export function ProfilePage() {
         </div>
       </div>
     </div>
-  );
+  )
 
   return (
     <div className="min-h-screen">
