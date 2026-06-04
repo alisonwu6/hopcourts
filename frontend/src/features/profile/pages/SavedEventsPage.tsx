@@ -29,7 +29,7 @@ export function SavedEventsPage() {
             <EventCard
               key={event.id}
               event={event}
-              onViewDetails={(id) => navigate(`/events/${id}`)}
+              onViewDetails={(id) => navigate(`/event/${id}`)}
             />
           ))
         )}
