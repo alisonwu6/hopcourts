@@ -130,7 +130,7 @@ export function VenueDetailsPage() {
     
     const shareData = {
       title: venue.name_display,
-      text: `Check out ${venue.name_display} on SportsMatch!`,
+      text: `Check out ${venue.name_display} on HopCourts!`,
       url: window.location.href,
     };
 

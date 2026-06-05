@@ -32,7 +32,7 @@ export function AboutPage() {
               Your home game.
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-              SportsMatch connects people through real-world sports.
+              HopCourts connects people through real-world sports.
               <br />
               <br />
               The best part of sport isn’t just the workout — it’s the moments shared with people

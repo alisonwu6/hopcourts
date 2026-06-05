@@ -66,7 +66,7 @@ export function ProfileSettingsPage() {
           </div>
 
           <div>
-            <h3 className="mb-2 ml-4 text-sm font-medium text-slate-500">SportsMatch</h3>
+            <h3 className="mb-2 ml-4 text-sm font-medium text-slate-500">HopCourts</h3>
             <div className="divide-y divide-slate-200 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
               {otherItems.map(({ key, label, icon: Icon }) => (
                 <button
@@ -104,7 +104,7 @@ export function ProfileSettingsPage() {
 
         <div className="mt-auto flex flex-col items-center justify-end pt-8 pb-4">
           <p className="text-xs text-slate-400">
-            SportsMatch v{__APP_VERSION__}
+            HopCourts v{__APP_VERSION__}
             {import.meta.env.MODE !== 'production' && (
               <span className="ml-1 opacity-75">({import.meta.env.MODE})</span>
             )}

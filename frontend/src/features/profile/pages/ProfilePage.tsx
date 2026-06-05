@@ -518,7 +518,7 @@ export function ProfilePage() {
 
     const url = `${window.location.origin}/mate/${shareUsername}`;
     const shareData = {
-      title: 'SportsMatch Activity Card',
+      title: 'HopCourts Activity Card',
       text: `Check out ${draftProfile.name} activity profile`,
       url,
     };

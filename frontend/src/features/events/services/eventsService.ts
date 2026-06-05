@@ -116,7 +116,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
   const end = new Date(now.getTime() + 60 * 60 * 1000)
   return {
     id,
-    title: 'SportsMatch Event',
+    title: 'HopCourts Event',
     sport: 'running',
     vibeIcon: '🏃',
     skillLevel: 'mixed',
@@ -129,7 +129,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
     },
     host: {
       id: 'host',
-      name: 'SportsMatch',
+      name: 'HopCourts',
     },
     highFives: 0,
     joined: false,

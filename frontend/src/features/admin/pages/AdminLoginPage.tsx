@@ -24,7 +24,7 @@ export function AdminLoginPage() {
             SM
           </div>
           <h1 className="text-xl font-bold text-slate-900">Admin Panel</h1>
-          <p className="mt-2 text-sm text-slate-500">SportsMatch Admin Portal</p>
+          <p className="mt-2 text-sm text-slate-500">HopCourts Admin Portal</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4 rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-slate-100">
@@ -42,7 +42,7 @@ export function AdminLoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg bg-slate-50 border border-slate-200 px-4 py-2.5 text-sm text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-              placeholder="admin@sportsmatch.com"
+              placeholder="admin@hopcourts.com"
             />
           </div>
 

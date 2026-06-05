@@ -19,7 +19,7 @@ export function UsageRulesPage() {
       <div className="mx-auto w-full max-w-3xl px-4 py-8">
         <div className="space-y-8 text-base leading-relaxed text-slate-600">
           <section>
-            <p>Welcome to SportsMatch.</p>
+            <p>Welcome to HopCourts.</p>
             <p className="mt-3">
               A place to organize and join sports sessions with people across your city.
             </p>
@@ -55,7 +55,7 @@ export function UsageRulesPage() {
             <h2 className="mb-2 text-lg font-bold text-slate-900">3. Session Responsibility</h2>
             <p>
               Hosts are responsible for session details such as time and venue arrangements.
-              Participants should verify event information themselves. SportsMatch does not manage
+              Participants should verify event information themselves. HopCourts does not manage
               or supervise in-person sessions.
             </p>
           </section>

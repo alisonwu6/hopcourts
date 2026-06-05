@@ -162,7 +162,7 @@ export function ContactUsPage() {
               className="cursor-pointer select-none text-sm text-slate-600"
               onClick={() => setAllowReply(!allowReply)}
             >
-              Allow SportsMatch to contact me by email for follow-up
+              Allow HopCourts to contact me by email for follow-up
             </label>
           </div>
 

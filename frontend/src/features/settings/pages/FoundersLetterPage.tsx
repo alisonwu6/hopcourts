@@ -11,7 +11,7 @@ export function FoundersLetterPage() {
         showShare={false}
         showFavorite={false}
         title={
-          <span className="text-lg font-semibold text-slate-900">Why SportsMatch Exists</span>
+          <span className="text-lg font-semibold text-slate-900">Why HopCourts Exists</span>
         }
         contentClassName="max-w-3xl px-4"
         showBack
@@ -25,7 +25,7 @@ export function FoundersLetterPage() {
               A Letter from the Founder
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-              Why SportsMatch Exists
+              Why HopCourts Exists
             </h1>
           </header>
 
@@ -57,7 +57,7 @@ export function FoundersLetterPage() {
             </p>
             <p>But they all share the same truth.</p>
             <p className="text-lg font-semibold text-slate-900">Anyone can be an athlete.</p>
-            <p>SportsMatch started from this belief.</p>
+            <p>HopCourts started from this belief.</p>
             <p>The idea is simple.</p>
             <p>
               Wherever you are, in whatever city you happen to be in, you should be able to open
@@ -71,12 +71,12 @@ export function FoundersLetterPage() {
               But if one day people can travel to any city and still easily find their place to
               play, then the world might become a little healthier, and a little more connected.
             </p>
-            <p>That&apos;s why SportsMatch exists.</p>
+            <p>That&apos;s why HopCourts exists.</p>
           </div>
 
           <footer className="mt-8 border-t border-slate-200 pt-6">
             <p className="font-semibold text-slate-800">— Alison Wu</p>
-            <p className="text-sm font-semibold text-slate-900">Founder, SportsMatch</p>
+            <p className="text-sm font-semibold text-slate-900">Founder, HopCourts</p>
           </footer>
         </article>
       </main>

@@ -211,7 +211,7 @@ export function AdminVenueManagementPage() {
                 <h1 className="text-xl font-bold text-slate-900">Venue Management</h1>
               </div>
               <p className="mt-0.5 text-xs text-slate-400">
-                Manage venue listings and verify operator claims on SportsMatch
+                Manage venue listings and verify operator claims on HopCourts
               </p>
             </div>
           </div>

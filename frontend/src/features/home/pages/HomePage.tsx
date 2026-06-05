@@ -25,7 +25,7 @@ export function HomePage() {
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4">
         <div className="flex w-full justify-center">
-          <img src={logo} alt="SportsMatch" className="h-45 w-auto" />
+          <img src={logo} alt="HopCourts" className="h-45 w-auto" />
         </div>
 
         <main className="flex flex-col">
@@ -58,7 +58,7 @@ export function HomePage() {
                 type="button"
                 onClick={handleIdentityClick}
               >
-                Join SportsMatch
+                Join HopCourts
                 <ArrowRight className="ml-2 h-5 w-5" />
               </button>
             </section>

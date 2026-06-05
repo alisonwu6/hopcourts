@@ -41,11 +41,11 @@ export function SignupPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,199,44,0.2),_transparent_55%)]" />
       <div className="relative z-10 flex min-h-screen items-start justify-center p-6">
         <main className="w-full max-w-md rounded-3xl bg-white/90 p-8 text-center shadow-xl backdrop-blur">
-          <img className="mx-auto h-16 w-auto" src={logoUrl} alt="SportsMatch" />
+          <img className="mx-auto h-16 w-auto" src={logoUrl} alt="HopCourts" />
           <div className="mt-3 space-y-2">
             {/* <h1 className="text-2xl font-semibold text-player-900">Join the movement.</h1> */}
             <p className="text-sm text-player-900/70">
-              SportsMatch helps you stay active by matching you with local players and making it easy to start.
+              HopCourts helps you stay active by matching you with local players and making it easy to start.
             </p>
           </div>
 

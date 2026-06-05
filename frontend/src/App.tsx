@@ -67,7 +67,7 @@ export default function App() {
       <Route path="/guidelines" element={<UsageRulesPage />} />
       <Route path="/rules" element={<Navigate to="/guidelines" replace />} />
 
-      {/* Admin (sportsmatch) */}
+      {/* Admin (HopCourts) */}
       <Route
         path="/admin/venues"
         element={<AdminVenueManagementPage />}

@@ -37,7 +37,7 @@ export default function Header({
             <img
               className="h-10 w-auto flex-shrink-0"
               src={logoUrl}
-              alt="SportsMatch"
+              alt="HopCourts"
               onError={(event) => {
                 const target = event.target as HTMLImageElement
                 target.style.display = 'none'

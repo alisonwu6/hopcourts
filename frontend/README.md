@@ -1,4 +1,4 @@
-# SportsMatch Frontend
+# HopCourts Frontend
 
 ## Supabase configuration
 
