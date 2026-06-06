@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
-import { Sparkles, ArrowRight, SquareX } from 'lucide-react'
+import { Sparkles, ArrowRight, MessageSquareOff, CalendarOff, Users } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 
@@ -52,9 +52,6 @@ export function HomePage() {
               <br />
               No planning needed.
             </h2>
-            <p className="mt-2 text-base font-bold text-emerald-600">
-              The all-in-one instant matchmaker <br /> for your physical life.
-            </p>
           </header>
 
           {/* Call to Action */}
@@ -73,31 +70,50 @@ export function HomePage() {
 
           {/* Why HopCourts */}
           <section className="mt-10 w-full">
-            <p className="mb-6 text-center text-[12px] font-bold uppercase tracking-widest text-slate-400">
-              Here! In HopCourts
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+              Why HopCourts
             </p>
-            <div className="flex justify-center">
-              <div className="space-y-3">
-                <div className="flex items-center gap-1">
-                  <SquareX className="h-5 w-5 shrink-0" />
-                  <p className="text-base font-semibold text-slate-700">No more scattered group chats.</p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                  <MessageSquareOff className="h-5 w-5" />
                 </div>
-                <div className="flex items-center gap-1">
-                  <SquareX className="h-5 w-5 shrink-0" />
-                  <p className="text-base font-semibold text-slate-700">No need to commit to rigid leagues.</p>
+                <div>
+                  <p className="font-bold text-slate-900">No more group chat chaos</p>
+                  <p className="mt-0.5 text-sm text-slate-500">Skip the 47-message threads. Just show up.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-500">
+                  <CalendarOff className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Zero scheduling commitment</p>
+                  <p className="mt-0.5 text-sm text-slate-500">No rigid leagues. Play when you want.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Your sports circle, built naturally</p>
+                  <p className="mt-0.5 text-sm text-slate-500">Play together once. Stay connected. Your circle builds itself.</p>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Manifesto */}
-          <section className="mt-10 border-t border-slate-100 pb-4 pt-6 text-center">
-            <blockquote className="text-lg font-semibold italic leading-relaxed text-slate-700">
+          <section className="mt-8 rounded-2xl bg-slate-900 px-3 py-4 text-center">
+            <blockquote className="text-md font-semibold italic leading-relaxed text-white">
               "Sport is the oldest social network.
               <br />
               We just forgot to build the app for it."
             </blockquote>
-            <p className="mt-2 text-xs font-semibold text-slate-400">— HopCourts</p>
+            <p className="mt-3 text-xs font-semibold text-slate-400">— HopCourts</p>
           </section>
         </main>
       </div>
