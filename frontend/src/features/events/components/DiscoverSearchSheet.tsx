@@ -76,7 +76,7 @@ export function DiscoverEventsSearchSheet({
       <SheetLayout
         onClose={onClose}
         title="Search Filters"
-        subtitle="Customize your search filters"
+        subtitle="Filter by date or sport."
         height="tall"
         className="flex h-full w-full flex-col rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
         contentClassName="flex-1 space-y-6 overflow-y-auto px-5 pb-6 pt-4"
@@ -210,7 +210,7 @@ function CalendarContent({
   return (
     <div>
       <div className="mb-6 flex items-center justify-between px-2">
-        <span className="text-lg font-bold text-slate-900">{format(month, 'yyyy MMM')}</span>
+        <span className="text-lg font-bold text-slate-900">{format(month, 'MMM yyyy')}</span>
         <div className="flex gap-2">
           <button
             type="button"

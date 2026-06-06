@@ -519,7 +519,7 @@ export function ProfilePage() {
     const url = `${window.location.origin}/mate/${shareUsername}`;
     const shareData = {
       title: 'HopCourts Activity Card',
-      text: `Check out ${draftProfile.name} activity profile`,
+      text: `Check out ${draftProfile.name}'s activity profile`,
       url,
     };
 
@@ -537,7 +537,7 @@ export function ProfilePage() {
   const handleShareToLine = () => {
     const shareUsername = username || draftUsername;
     const url = `${window.location.origin}/mate/${shareUsername}`;
-    const text = `Check out ${draftProfile.name} activity profile\n${url}`;
+    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`;
     window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
     setShowShareSheet(false);
   };
@@ -545,7 +545,7 @@ export function ProfilePage() {
   const handleCopyLink = async () => {
     const shareUsername = username || draftUsername;
     const url = `${window.location.origin}/mate/${shareUsername}`;
-    const text = `Check out ${draftProfile.name} activity profile\n${url}`;
+    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`;
 
     try {
       await navigator.clipboard.writeText(text);
@@ -635,7 +635,7 @@ export function ProfilePage() {
         break;
       case 'username':
         if (!value) {
-          setFieldError('Please enter a username');
+          setFieldError('Enter a username');
           return;
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
@@ -643,7 +643,7 @@ export function ProfilePage() {
           return;
         }
         if (value.length < 3 || value.length > 10) {
-          setFieldError('Username length must be between 3 and 10 characters');
+          setFieldError('Username must be 3 to 10 characters');
           return;
         }
         {
@@ -655,12 +655,12 @@ export function ProfilePage() {
             try {
               // 200 => already exists, 404 => available
               await profileService.getProfileByUsername(normalizedValue);
-              setFieldError('Username already exists, please choose another one');
+              setFieldError('Username taken. Try another.');
               return;
             } catch (err: any) {
               const status = err?.status || err?.response?.status;
               if (status !== 404) {
-                setFieldError('Unable to verify username right now, please try again later');
+                setFieldError("Couldn't verify username. Please try again.");
                 return;
               }
             } finally {
@@ -812,12 +812,12 @@ export function ProfilePage() {
 
       if (status === 409) {
         if (constraint.includes('username')) {
-          alert('Username already exists, please choose another one');
+          alert('Username already taken. Please choose another.');
         } else {
-          alert('Save failed: data conflict, please check your input');
+          alert('Save failed due to a conflict. Please check your input.');
         }
       } else {
-        alert('Save failed, please try again later');
+        alert('Save failed. Please try again.');
       }
     } finally {
       setIsSavingProfile(false);
@@ -931,7 +931,7 @@ export function ProfilePage() {
         )}
 
         <div className="mt-4 space-y-4 px-3">
-          <h3 className="px-1 text-xl font-semibold text-slate-700">Recent Activities</h3>
+          <h3 className="px-1 text-xl font-semibold text-slate-700">Recent Activity</h3>
           <ProfileEventsPanel mode="all" showTimeTabs={false} />
         </div>
       </div>
@@ -1040,7 +1040,7 @@ export function ProfilePage() {
             setShowEditSheet(false);
           }}
           title="Profile"
-          subtitle="Keep your activity status up to date"
+          subtitle="Keep your profile up to date"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 min-h-0 overflow-y-auto px-5 pb-24 pt-4 space-y-4"
@@ -1168,7 +1168,7 @@ export function ProfilePage() {
                 className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">Current Living City</p>
+                  <p className="text-sm font-semibold text-slate-700">Current City</p>
                   <p className="text-base font-semibold text-slate-900">{livingLocationText}</p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1252,7 +1252,7 @@ export function ProfilePage() {
                   <p
                     className="text-sm font-semibold text-slate-700"
                   >
-                    My Favorites
+                    My Favourites
                     {hasProfileFieldError('sports') && <span className="ml-1 text-red-500">*</span>}
                   </p>
                   <p className="text-base font-semibold text-slate-900">
@@ -1318,7 +1318,7 @@ export function ProfilePage() {
           const titleMap: Record<string, string> = {
             name: 'Name',
             username: 'Username',
-            location: 'Current Living City',
+            location: 'Current City',
             nationality: 'Nationality',
             vibe: 'Workout Vibe',
             bio: 'Bio',
@@ -1331,7 +1331,7 @@ export function ProfilePage() {
             nationality: 'Select your nationality.',
             vibe: 'Choose the activity vibe that best matches your current rhythm.',
             bio: 'Share your activity updates and goals.',
-            gender: 'Select your biological sex for gender-specific events.',
+            gender: 'Select your gender for gender-specific events.',
           };
           const fieldKey = activeField ?? '';
           return (
@@ -1491,7 +1491,7 @@ export function ProfilePage() {
                         ? 'border-red-500 focus:border-red-500'
                         : 'border-slate-200 focus:border-blue-500'
                     )}
-                    placeholder="Please enter"
+                    placeholder="Type here"
                   />
                   {fieldError && <p className="mt-2 text-sm text-red-500">{fieldError}</p>}
                   {activeField === 'username' && (
@@ -1519,7 +1519,7 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => setShowSportsSheet(false)}
-          title="Choose Favorite Sports"
+          title="Favourite Sports"
           subtitle="Sports you enjoy and feel confident playing."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
@@ -1617,7 +1617,7 @@ export function ProfilePage() {
         <SheetLayout
           onClose={() => setShowTryingSheet(false)}
           title="Sports to Try"
-          subtitle="Pick new challenges you are interested in (up to 2)"
+          subtitle="Sports you'd like to try (up to 2)."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
@@ -1717,7 +1717,7 @@ export function ProfilePage() {
             <div>
               <p className="text-sm font-semibold text-slate-500">Set your weekly rhythm</p>
               <p className="text-xl font-bold text-slate-900">
-                We will recommend mates and events based on this
+                We'll recommend mates and events based on this.
               </p>
             </div>
             <button
@@ -1731,7 +1731,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700">Weekly target sessions</label>
+            <label className="text-sm font-semibold text-slate-700">Weekly target Events</label>
             <input
               type="number"
               min={1}
@@ -1833,7 +1833,7 @@ export function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            We will help you find events and mates that match your rhythm.
+            We'll help you find events and mates that match your rhythm.
           </div>
 
           <div className="flex gap-3">

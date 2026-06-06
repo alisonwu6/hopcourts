@@ -171,7 +171,7 @@ export function AvatarCropSheet({
       onClose()
     } catch (err) {
       console.error('avatar crop/upload failed', err)
-      alert('Upload failed. Please try again or use an image URL instead.')
+      alert('Upload failed. Please try again.')
     } finally {
       setUploading(false)
       resetState()
@@ -193,7 +193,7 @@ export function AvatarCropSheet({
         <SheetLayout
           onClose={onClose}
           title="Adjust Avatar"
-          subtitle="Drag and zoom to center your avatar, then save to upload."
+          subtitle="Drag to reposition and pinch to zoom, then tap Apply."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-4"

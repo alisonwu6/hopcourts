@@ -32,13 +32,13 @@ export function ContactUsPage() {
   const getPlaceholder = (feedbackType: FeedbackType) => {
     switch (feedbackType) {
       case 'issue':
-        return 'Please describe the issue.\nWhat happened and what were you doing when it occurred?'
+        return 'Describe the issue.\nWhat happened and what were you doing at the time?'
       case 'feature':
-        return 'Please describe what you would like to improve.\nWhy would this help you?'
+        return 'Tell us what you\'d like to improve, and why it would make a difference.'
       case 'account':
-        return 'Please describe your account issue.'
+        return 'Tell us about your account issue.'
       default:
-        return 'Please share your issue or suggestion in detail...'
+        return 'Share your thoughts in detail...'
     }
   }
 
@@ -77,9 +77,7 @@ export function ContactUsPage() {
           </div>
           <h2 className="mb-2 text-2xl font-bold text-slate-900">Thanks for your feedback!</h2>
           <p className="mb-8 text-slate-600">
-            We have received your message,
-            <br />
-            and our team will review it shortly.
+            We've received your message and our team will review it shortly.
           </p>
           <button
             onClick={() => navigate(-1)}

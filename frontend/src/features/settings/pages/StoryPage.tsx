@@ -28,7 +28,7 @@ export function StoryPage() {
 
             <div className="mt-8 space-y-4 text-base sm:text-lg">
               <div className="pt-2 text-slate-700">
-                <p>Hi, we're HopCourts, a platform that makes it easy to organize sports sessions.</p>
+                <p>Hi, we're HopCourts, a platform that makes it easy to organize sports events.</p>
               </div>
               <div className="pt-2 text-slate-600">
                 <p>

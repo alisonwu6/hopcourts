@@ -12,7 +12,7 @@ type SportsItem = { key: string; label: string; icon?: string | null }
 type EventStatus = 'check-in-open' | 'ongoing' | null
 
 function groupByDate(events: PlayerEvent[]) {
-  const formatter = new Intl.DateTimeFormat('en-US', {
+  const formatter = new Intl.DateTimeFormat('en-AU', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -209,7 +209,7 @@ export function ProfileEventsPanel({
               ? 'No hosted events yet'
               : mode === 'joined'
                 ? 'No joined events yet'
-                : 'No sessions yet',
+                : 'No events yet',
           description:
             mode === 'hosted'
               ? 'Create an event and invite your mates!'
@@ -219,10 +219,10 @@ export function ProfileEventsPanel({
           icon: '📜',
           title:
             mode === 'hosted'
-              ? 'No hosted history yet'
+              ? 'No past hosted events'
               : mode === 'joined'
-                ? 'No joined history yet'
-                : 'No history yet',
+                ? 'No past joined events'
+                : 'No past events',
           description: 'Completed events will appear here.',
         }
 
@@ -258,7 +258,7 @@ export function ProfileEventsPanel({
           </div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">Loading your sessions...</div>
+          <div className="py-10 text-center text-slate-500">Loading your events...</div>
         ) : (
           <EventGroupList
             groups={groupByDate(activeEvents)}

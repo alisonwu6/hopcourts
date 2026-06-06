@@ -47,7 +47,7 @@ export function TeammatesPage() {
         ) : list.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
             <p>No teammates yet</p>
-            <p className="text-xs mt-1">Anyone who joined the same event will appear here</p>
+            <p className="text-xs mt-1">Anyone who's joined the same event will appear here</p>
           </div>
         ) : (
           list.map((item) => (
@@ -76,7 +76,7 @@ export function TeammatesPage() {
               
               <div className="text-right flex-shrink-0">
                 <div className="text-sm font-bold text-slate-900">
-                  Total {item.sessions_count} events
+                  {item.sessions_count} shared events
                 </div>
                 <div className="text-xs text-slate-400">
                   {item.last_played_at

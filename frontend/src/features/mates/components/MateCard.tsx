@@ -175,7 +175,7 @@ export function MateCard({
 
       <div className="-mt-2 flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
-          <span className="uppercase tracking-wide text-slate-500">Favorites:</span>
+          <span className="uppercase tracking-wide text-slate-500">Favourites:</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {sports.length > 0 ? (
               sports.map((sport) => (

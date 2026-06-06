@@ -107,8 +107,8 @@ export function DiscoverEventsBody({
                 <div className="w-full rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
                   <p className="text-sm">
                     {suggestionType === 'interests'
-                      ? 'Nothing here yet. Add more sports to your profile.'
-                      : "No events from hosts you've joined before yet."}
+                      ? 'Nothing here yet. Add sports to your profile to see suggestions.'
+                      : "No events from hosts you've played with yet."}
                   </p>
                 </div>
               )}
@@ -136,7 +136,7 @@ export function DiscoverEventsBody({
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
             <span className="text-5xl">😮</span>
           </div>
-          <h3 className="text-xl font-bold text-slate-900">No games yet.</h3>
+          <h3 className="text-xl font-bold text-slate-900">No events yet.</h3>
           <p className="mt-2 text-sm text-slate-500">
             Be the one who starts it.
           </p>

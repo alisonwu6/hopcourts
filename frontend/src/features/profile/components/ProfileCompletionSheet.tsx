@@ -30,7 +30,7 @@ export function ProfileCompletionSheet({ open, onClose }: Props) {
         </div>
         <h3 className="text-xl font-bold text-slate-900">Your profile is ready</h3>
         <p className="mt-2 text-sm text-slate-500">
-          You’re all set to explore activities and meet new sports buddies.
+          You’re all set to explore activities and meet new sports mates.
         </p>
         <button
           type="button"

@@ -21,7 +21,7 @@ export function UsageRulesPage() {
           <section>
             <p>Welcome to HopCourts.</p>
             <p className="mt-3">
-              A place to organize and join sports sessions with people across your city.
+              A place to organize and join sports events with people across your city.
             </p>
             <p className="mt-3">
               To keep this community safe and enjoyable for everyone, please follow these
@@ -45,7 +45,7 @@ export function UsageRulesPage() {
               2. Personal Responsibility and Safety
             </h2>
             <p>
-              All sessions are created and organized by users. Before participating, make sure you
+              All events are created and organized by users. Before participating, make sure you
               are physically able to participate and consider any safety risks. If you have health
               concerns, consult a medical professional first.
             </p>
@@ -55,8 +55,8 @@ export function UsageRulesPage() {
             <h2 className="mb-2 text-lg font-bold text-slate-900">3. Session Responsibility</h2>
             <p>
               Hosts are responsible for session details such as time and venue arrangements.
-              Participants should verify event information themselves. HopCourts does not manage
-              or supervise in-person sessions.
+              Participants should verify event information themselves. HopCourts does not manage or
+              supervise in-person events.
             </p>
           </section>
 

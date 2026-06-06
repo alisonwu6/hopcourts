@@ -109,7 +109,7 @@ export function ProfileSettingsPage() {
               <span className="ml-1 opacity-75">({import.meta.env.MODE})</span>
             )}
           </p>
-          <p className="mt-1 text-xs text-slate-300">Designed for Real World Connection</p>
+          <p className="mt-1 text-xs text-slate-300">Built for real-world connections</p>
         </div>
       </div>
     </div>

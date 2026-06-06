@@ -60,7 +60,7 @@ export function AboutPage() {
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">Find Games Easily</h3>
-                <p className="mt-2 text-sm text-slate-600">Start or join sessions near you.</p>
+                <p className="mt-2 text-sm text-slate-600">Start or join events near you.</p>
               </div>
             </div>
           </div>
