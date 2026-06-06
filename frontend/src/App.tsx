@@ -3,11 +3,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { BottomNav } from '@/components';
 import Header from '@/components/navigation/Header';
 import { useAuthStore } from '@/hooks';
-import { LoginPage } from '@/features/auth/pages/LoginPage';
-import { SignupPage } from '@/features/auth/pages/SignupPage';
-import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { AuthCallback } from '@/features/auth/pages/AuthCallback';
-import { ResetPasswordPage } from '@/features/auth/pages/ResetPassword';
 import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage';
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage';
 import { VenueListPage } from '@/features/venues/pages/VenueListPage';
@@ -38,7 +34,7 @@ import { PageLoading } from '@/components/PageLoading';
 const RequireAuth = ({ children }: { children: ReactNode; }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
   if (isLoading) return null;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   return children;
 };
 
@@ -51,15 +47,7 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      {/*
-      <Route path="/signup" element={<SignupPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      */}
       <Route path="/auth/callback" element={<AuthCallback />} />
-      {/*
-      <Route path="/auth/reset" element={<ResetPasswordPage />} />
-      */}
 
       <Route path="/about" element={<AboutPage />} />
       <Route path="/story" element={<StoryPage />} />
@@ -67,29 +55,12 @@ export default function App() {
       <Route path="/guidelines" element={<UsageRulesPage />} />
       <Route path="/rules" element={<Navigate to="/guidelines" replace />} />
 
-      {/* Admin (sportsmatch) */}
-      <Route
-        path="/admin/venues"
-        element={<AdminVenueManagementPage />}
-      />
-
-      {/* Admin for venues management */}
-      <Route
-        path="/admin/:venueId?"
-        element={<VenueDashboardPage />}
-      />
-      <Route
-        path="/admin/:venueId/schedule"
-        element={<VenueSchedulePage />}
-      />
-      <Route
-        path="/admin/:venueId/profile"
-        element={<VenueProfilePage />}
-      />
-      <Route
-        path="/admin/:venueId/sessions/create"
-        element={<VenueSessionCreatePage />}
-      />
+      {/* Admin (HopCourts) */}
+      <Route path="/admin/venues" element={<RequireAuth><AdminVenueManagementPage /></RequireAuth>} />
+      <Route path="/admin/:venueId/schedule" element={<RequireAuth><VenueSchedulePage /></RequireAuth>} />
+      <Route path="/admin/:venueId/profile" element={<RequireAuth><VenueProfilePage /></RequireAuth>} />
+      <Route path="/admin/:venueId/sessions/create" element={<RequireAuth><VenueSessionCreatePage /></RequireAuth>} />
+      <Route path="/admin/:venueId?" element={<RequireAuth><VenueDashboardPage /></RequireAuth>} />
 
       {/* Main App Routes */}
       <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
@@ -134,11 +105,6 @@ function AppChrome({
 }
 
 function AuthenticatedApp() {
-  const { user } = useAuthStore();
-  const location = useLocation();
-
-  // No global onboarding guard - handled within ProfilePage flow
-
   return (
     <Routes>
       <Route
@@ -199,107 +165,16 @@ function AuthenticatedApp() {
         }
       />
 
-      <Route
-        path="/create-event"
-        element={
-          <RequireAuth>
-            <AppChrome showNav={false}>
-              <CreateEventPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-
-      <Route
-        path="/profile"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false}>
-              <ProfilePage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/circle"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <TeammatesPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/profile/hosted-events"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <HostedEventsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/profile/joined-events"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <JoinedEventsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/profile/saved-events"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <SavedEventsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <ProfileSettingsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/settings/account"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <AccountSettingsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/settings/contact"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <ContactUsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/notifications"
-        element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <NotificationsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
-      />
+      <Route path="/create-event" element={<AppChrome showNav={false}><CreateEventPage /></AppChrome>} />
+      <Route path="/profile" element={<AppChrome showHeader={false}><ProfilePage /></AppChrome>} />
+      <Route path="/circle" element={<AppChrome showHeader={false} showNav={false}><TeammatesPage /></AppChrome>} />
+      <Route path="/profile/hosted-events" element={<AppChrome showHeader={false} showNav={false}><HostedEventsPage /></AppChrome>} />
+      <Route path="/profile/joined-events" element={<AppChrome showHeader={false} showNav={false}><JoinedEventsPage /></AppChrome>} />
+      <Route path="/profile/saved-events" element={<AppChrome showHeader={false} showNav={false}><SavedEventsPage /></AppChrome>} />
+      <Route path="/settings" element={<AppChrome showHeader={false} showNav={false}><ProfileSettingsPage /></AppChrome>} />
+      <Route path="/settings/account" element={<AppChrome showHeader={false} showNav={false}><AccountSettingsPage /></AppChrome>} />
+      <Route path="/settings/contact" element={<AppChrome showHeader={false} showNav={false}><ContactUsPage /></AppChrome>} />
+      <Route path="/notifications" element={<AppChrome showHeader={false} showNav={false}><NotificationsPage /></AppChrome>} />
       <Route path="/mates" element={<Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -366,18 +241,17 @@ function GuestApp() {
           </AppChrome>
         }
       />
-      <Route
-        path="/create-event"
-        element={
-          <AppChrome showActions={false} showHeader={false} showNav={false}>
-            <CreateEventPage />
-          </AppChrome>
-        }
-      />
+      <Route path="/create-event" element={<Navigate to="/" replace />} />
+      <Route path="/profile" element={<Navigate to="/" replace />} />
+      <Route path="/profile/hosted-events" element={<Navigate to="/" replace />} />
+      <Route path="/profile/joined-events" element={<Navigate to="/" replace />} />
+      <Route path="/profile/saved-events" element={<Navigate to="/" replace />} />
+      <Route path="/circle" element={<Navigate to="/" replace />} />
+      <Route path="/settings" element={<Navigate to="/" replace />} />
+      <Route path="/settings/account" element={<Navigate to="/" replace />} />
+      <Route path="/settings/contact" element={<Navigate to="/" replace />} />
+      <Route path="/notifications" element={<Navigate to="/" replace />} />
       <Route path="/mates" element={<Navigate to="/" replace />} />
-      <Route path="/profile" element={<Navigate to="/events" replace />} />
-      <Route path="/settings" element={<Navigate to="/events" replace />} />
-      <Route path="/settings/account" element={<Navigate to="/events" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
