@@ -24,11 +24,11 @@ export function HomePage() {
     <div className="relative min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4">
-        <div className="flex w-full justify-center">
+        <div className="my-6 flex w-full justify-center">
           <img
             src={logo}
             alt="HopCourts"
-            className="h-50 w-auto"
+            className="h-30 w-auto"
           />
         </div>
 
