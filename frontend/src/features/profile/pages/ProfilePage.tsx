@@ -9,7 +9,7 @@ import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { profileService } from '@/features/profile/services/profileService'
-import { useCountries, useCities, useSports, useVibes } from '@/features/dictionaries/hooks'
+import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
@@ -100,7 +100,7 @@ export function ProfilePage() {
   const [tryingSearch, setTryingSearch] = useState('')
   const [invalidProfileFields, setInvalidProfileFields] = useState<ProfileRequiredField[]>([])
   const { items: sportsCatalog } = useSports('en')
-  const { items: vibesCatalog } = useVibes('en')
+  const { vibesCatalog, vibeKeyToUnion, labelForVibe, vibeUnionToKey } = useVibeUtils('en')
   const { items: citiesCatalog } = useCities(undefined, 'en')
   const { items: countriesCatalog } = useCountries('en')
   const availableCountries = useMemo(
@@ -137,36 +137,6 @@ export function ProfilePage() {
     return (label: string) => map.get(label) || map.get(label?.toLowerCase?.() || '') || label
   }, [sportsCatalog])
 
-  const labelForVibe = useMemo(() => {
-    const map = new Map<string, string>()
-    vibesCatalog.forEach((v) => {
-      map.set(v.key, v.label)
-      map.set(v.key.toLowerCase(), v.label)
-    })
-    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
-  }, [vibesCatalog])
-
-  const vibeKeyToUnion = useMemo(() => {
-    const map = new Map<string, MateCardProps['vibe']>()
-    vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      map.set(v.key, union)
-      map.set(v.key.toLowerCase(), union)
-    })
-    return map
-  }, [vibesCatalog])
-
-  const vibeUnionToKey = useMemo(() => {
-    const map = new Map<string, string>()
-    vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      if (union) {
-        map.set(union as string, v.key)
-        map.set((union as string).toLowerCase(), v.key)
-      }
-    })
-    return map
-  }, [vibesCatalog])
 
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
@@ -190,12 +160,6 @@ export function ProfilePage() {
     return cityLabel || countryLabel || 'Not set'
   }, [draftProfile.location, labelForCity, labelForCountry])
 
-  // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
-  const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
-    key && typeof key === 'string'
-      ? ((key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()) as MateCardProps['vibe'])
-      : null
-
   // Memo: derive resolvedProfile (display-ready, labels filled, union vibe)
   const resolvedProfile = useMemo<MateCardProps | null>(() => {
     if (!vm?.card) return null
@@ -208,10 +172,7 @@ export function ProfilePage() {
     if (vm.card.vibe) {
       vibeUnion = vm.card.vibe
     } else if (vm.card.vibeKey) {
-      vibeUnion =
-        vibeKeyToUnion.get(vm.card.vibeKey) ||
-        vibeKeyToUnion.get(vm.card.vibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(vm.card.vibeKey)
+      vibeUnion = vibeKeyToUnion(vm.card.vibeKey) as MateCardProps['vibe']
     } else {
       vibeUnion = null
     }
@@ -232,10 +193,7 @@ export function ProfilePage() {
     let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
     const draftVibeKey = (draftProfile as any).vibeKey
     if (!vibeUnion && draftVibeKey) {
-      vibeUnion =
-        vibeKeyToUnion.get(draftVibeKey) ||
-        vibeKeyToUnion.get(draftVibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(draftVibeKey)
+      vibeUnion = vibeKeyToUnion(draftVibeKey) as MateCardProps['vibe']
     }
     return {
       ...draftProfile,
@@ -384,9 +342,7 @@ export function ProfilePage() {
       sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
 
     const vibeKey = data.vibe_key || null
-    const vibeUnion = vibeKey
-      ? vibeKeyToUnion.get(vibeKey) || vibeKeyToUnion.get(vibeKey.toLowerCase()) || vibeKeyToUnionFallback(vibeKey)
-      : null
+    const vibeUnion = vibeKey ? (vibeKeyToUnion(vibeKey) as MateCardProps['vibe']) : null
 
     const mapped: MateCardProps = {
       name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
@@ -395,6 +351,7 @@ export function ProfilePage() {
       countryKey: data.nationality_key || '',
       vibe: vibeUnion,
       vibeKey,
+      vibeLabel: vibeKey ? labelForVibe(vibeKey) : undefined,
       sports: (favoriteKeys || []).map(labelForSport),
       trying: (tryingKeys || []).map(labelForSport),
       blurb: data.bio || '',
@@ -552,7 +509,7 @@ export function ProfilePage() {
   useEffect(() => {
     if (!invalidProfileFields.length) return
 
-    const currentVibeKey = (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined
+    const currentVibeKey = (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined
 
     setInvalidProfileFields((prev) =>
       prev.filter((field) => {
@@ -582,7 +539,7 @@ export function ProfilePage() {
     let nextValue = rawKey ?? value
     if (field === 'vibe') {
       const vibe = value as NonNullable<MateCardProps['vibe']>
-      nextValue = rawKey || (vibe ? vibeUnionToKey.get(vibe) : undefined) || value
+      nextValue = rawKey || (vibe ? vibeUnionToKey(vibe) : undefined) || value
     }
     setFieldError(null)
     setActiveField(field)
@@ -648,7 +605,7 @@ export function ProfilePage() {
         next.cityKey = value
         break
       case 'vibe':
-        next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
+        next.vibe = (vibeKeyToUnion(value) ?? value) as MateCardProps['vibe']
         next.vibeKey = value
         clearProfileFieldError('vibe')
         break
@@ -685,7 +642,7 @@ export function ProfilePage() {
   const handleSaveProfile = async () => {
     if (isSavingProfile) return
 
-    const currentVibeKey = (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined
+    const currentVibeKey = (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined
 
     const missingFields: ProfileRequiredField[] = []
     if (!draftProfile.name?.trim()) missingFields.push('name')
@@ -714,7 +671,7 @@ export function ProfilePage() {
       const payload: any = {
         display_name: draftProfile.name,
         bio: draftProfile.blurb,
-        vibe_key: (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || undefined,
+        vibe_key: (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined,
         city_key: FIRST_MARKET_CITY_KEY,
         nationality_key: draftProfile.countryKey || undefined,
         gender: draftProfile.gender || undefined,
@@ -1162,7 +1119,7 @@ export function ProfilePage() {
                   openFieldSheet(
                     'vibe',
                     draftProfile.vibe || '',
-                    (draftProfile as any).vibeKey || vibeUnionToKey.get(draftProfile.vibe as string) || ''
+                    (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || ''
                   )
                 }
                 className={clsx(
@@ -1178,7 +1135,7 @@ export function ProfilePage() {
                   <p className="text-base font-semibold text-slate-900">
                     {labelForVibe(
                       (draftProfile as any).vibeKey ||
-                        vibeUnionToKey.get(draftProfile.vibe as string) ||
+                        vibeUnionToKey(draftProfile.vibe as string) ||
                         (draftProfile.vibe as string)
                     ) || 'Not set'}
                   </p>
@@ -1297,8 +1254,8 @@ export function ProfilePage() {
                   {vibesCatalog.map((v) => {
                     const active =
                       v.key === fieldValue ||
-                      vibeUnionToKey.get(fieldValue) === v.key ||
-                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() === v.key.toLowerCase()
+                      vibeUnionToKey(fieldValue) === v.key ||
+                      vibeUnionToKey(fieldValue).toLowerCase() === v.key.toLowerCase()
 
                     // Try to map dictionary key to Vibe enum key to get colors
                     // Dictionary keys might be upper case like 'GROWTH', tokens are 'Growth'

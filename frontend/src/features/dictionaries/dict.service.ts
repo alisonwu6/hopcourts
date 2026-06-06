@@ -1,5 +1,5 @@
 import { api } from '@/api/client'
-import type { Country, City, Vibe, AgeRange, Sport } from '@/types/dictionary'
+import type { Country, City, VibeItem, AgeRange, Sport } from '@/types/dictionary'
 
 let metaPromise: Promise<any> | null = null
 
@@ -37,7 +37,7 @@ export const dictionaryService = {
   async listVibes(lang: 'zh' | 'en' = 'en') {
     const res = await api.dictionaries.vibes(lang)
     if (!res.ok) throw new Error('Failed to load vibes')
-    return res.data.items as Vibe[]
+    return res.data.items as VibeItem[]
   },
   async listSports(lang: 'zh' | 'en' = 'en') {
     const res = await api.dictionaries.sports(lang)

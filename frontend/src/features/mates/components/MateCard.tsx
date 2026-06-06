@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { MapPin, Smile } from 'lucide-react'
-import { vibeTokens, vibeList, type Vibe } from '@/constants/vibeTokens'
+import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 import { getFlagEmoji } from '@/utils/flags'
 
 const withAlpha = (hex: string, alpha: number) => {
@@ -39,6 +39,7 @@ export type MateCardProps = {
 export function MateCard({
   name,
   vibe,
+  vibeLabel,
   sports,
   trying,
   location,
@@ -118,7 +119,7 @@ export function MateCard({
                   color: vibeColors.text,
                 }}
               >
-                {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
+                {vibeLabel ?? vibe}
               </span>
             )}
           </div>

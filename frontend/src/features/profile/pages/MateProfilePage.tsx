@@ -10,7 +10,7 @@ import type { PlayerEvent } from '@/types'
 
 import { api } from '@/api/client'
 import type { ApiResponse } from '@/api/types'
-import { useVibes, useSports, useCities } from '@/features/dictionaries/hooks'
+import { useVibeUtils, useSports, useCities } from '@/features/dictionaries/hooks'
 
 export function MateProfilePage() {
   const navigate = useNavigate()
@@ -18,7 +18,7 @@ export function MateProfilePage() {
   const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps> } }
   const mate = state?.mate
   const { items: sportsDict } = useSports('en')
-  const { items: vibesCatalog } = useVibes('en')
+  const { vibeKeyToUnion, labelForVibe } = useVibeUtils('en')
   const { items: citiesDict } = useCities(undefined, 'en')
 
   const asStringArray = (items?: any[]) =>
@@ -37,30 +37,6 @@ export function MateProfilePage() {
       return keyMap.get(lower) || labelMap.get(lower) || value
     }
   }, [sportsDict])
-
-  const vibeKeyToUnion = useMemo(() => {
-    const map = new Map<string, MateCardProps['vibe']>()
-    vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      map.set(v.key, union)
-      map.set(v.key.toLowerCase(), union)
-    })
-    return (key: string) => {
-      const hit = map.get(key) || map.get(key?.toLowerCase?.() || '')
-      if (hit) return hit
-      if (!key) return key as MateCardProps['vibe']
-      return (key.charAt(0) + key.slice(1).toLowerCase()) as MateCardProps['vibe']
-    }
-  }, [vibesCatalog])
-
-  const labelForVibe = useMemo(() => {
-    const map = new Map<string, string>()
-    vibesCatalog.forEach((v) => {
-      map.set(v.key, v.label)
-      map.set(v.key.toLowerCase(), v.label)
-    })
-    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
-  }, [vibesCatalog])
 
   const labelForCity = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -116,7 +92,7 @@ export function MateProfilePage() {
         setProfileData({
           name: user.display_name || user.username || mate?.name || username,
           username: user.username || mate?.name || username,
-          vibe: unionVibe || (mate?.vibe as MateCardProps['vibe']),
+          vibe: (unionVibe || mate?.vibe) as MateCardProps['vibe'],
           vibeLabel: labelForVibe(vibeKey) || labelForVibe(mate?.vibe as string) || '',
           sports: favorites.length ? favorites : asStringArray(mate?.sports) || [],
           trying: trying.length ? trying : asStringArray(mate?.trying) || [],

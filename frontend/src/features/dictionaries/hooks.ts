@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { dictionaryService } from './dict.service'
-import type { Country, City, Vibe, AgeRange, Sport } from '@/types/dictionary'
+import type { Country, City, VibeItem, AgeRange, Sport } from '@/types/dictionary'
 
 type Status<T> = {
   items: T[]
@@ -121,7 +121,45 @@ export function useCities(country?: string, lang: 'zh' | 'en' = 'en') {
 }
 
 export function useVibes(lang: 'zh' | 'en' = 'en') {
-  return useDictionary<Vibe>('vibes', lang, () => dictionaryService.listVibes(lang), [lang])
+  return useDictionary<VibeItem>('vibes', lang, () => dictionaryService.listVibes(lang), [lang])
+}
+
+export function useVibeUtils(lang: 'zh' | 'en' = 'en') {
+  const { items: vibesCatalog, isLoading, error } = useVibes(lang)
+
+  const vibeKeyToUnion = useMemo(() => {
+    const map = new Map<string, string>()
+    vibesCatalog.forEach((v) => {
+      const union = v.key.charAt(0).toUpperCase() + v.key.slice(1).toLowerCase()
+      map.set(v.key, union)
+      map.set(v.key.toLowerCase(), union)
+    })
+    return (key: string): string | null => {
+      if (!key) return null
+      return map.get(key) ?? map.get(key.toLowerCase()) ?? (key.charAt(0).toUpperCase() + key.slice(1).toLowerCase())
+    }
+  }, [vibesCatalog])
+
+  const labelForVibe = useMemo(() => {
+    const map = new Map<string, string>()
+    vibesCatalog.forEach((v) => {
+      map.set(v.key, v.label)
+      map.set(v.key.toLowerCase(), v.label)
+    })
+    return (key: string) => map.get(key) ?? map.get(key?.toLowerCase?.() ?? '') ?? key
+  }, [vibesCatalog])
+
+  const vibeUnionToKey = useMemo(() => {
+    const map = new Map<string, string>()
+    vibesCatalog.forEach((v) => {
+      const union = v.key.charAt(0).toUpperCase() + v.key.slice(1).toLowerCase()
+      map.set(union, v.key)
+      map.set(union.toLowerCase(), v.key)
+    })
+    return (union: string) => map.get(union) ?? map.get(union?.toLowerCase?.() ?? '') ?? ''
+  }, [vibesCatalog])
+
+  return { vibesCatalog, vibeKeyToUnion, labelForVibe, vibeUnionToKey, isLoading, error }
 }
 
 export function useAgeRanges(lang: 'zh' | 'en' = 'en') {
