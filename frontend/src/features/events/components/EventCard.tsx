@@ -232,7 +232,7 @@ export function EventCard({
               <span className="text-[11px]">
                 {attendeeCount} Joined · {remaining} Spots Left
                 <br />
-                Starts with {minPeople} players
+                Min. {minPeople} players
               </span>
               <div className="flex -space-x-1.5">
                 {event.participants.slice(0, 3).map((p, i) => (
@@ -263,7 +263,7 @@ export function EventCard({
               <span className="text-slate-900">
                 {event.isFree
                   ? 'Free'
-                  : `${event.priceRange || `$${event.pricePerPerson}`} /person`}
+                  : `${event.priceRange || `$${event.pricePerPerson}`} per person`}
               </span>
             </div>
           </div>
@@ -370,7 +370,7 @@ function formatTimeRange(start: Date | string, end: Date | string) {
 function formatSchedule(start: Date | string, end: Date | string) {
   const startDate = toDate(start)
   const endDate = toDate(end)
-  const dateStr = startDate.toLocaleDateString('en-US', {
+  const dateStr = startDate.toLocaleDateString('en-AU', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',

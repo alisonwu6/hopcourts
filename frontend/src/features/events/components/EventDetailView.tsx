@@ -171,7 +171,7 @@ export function EventDetailView({
   })();
 
   const feeNote = event.priceNote?.trim() || 'None';
-  const participantRule = `Starts with ${minPeople} players`;
+  const participantRule = `Min. ${minPeople} players`;
   const isOfficialVenueHost = Boolean(event.isOfficial && event.venueId);
   const locationLabel =
     event.location.name && event.location.name !== event.location.address
@@ -331,7 +331,7 @@ export function EventDetailView({
               {event.courtName && <InfoRow icon={LandPlot} label={`Court: ${event.courtName}`} />}
               <InfoRow icon={CircleDollarSign} label={feeLine2} />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <p className="text-xs font-semibold tracking-wide text-slate-500">Fee notes</p>
+                <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
                 <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
               </div>
             </div>
@@ -391,7 +391,7 @@ export function EventDetailView({
                   );
                 })
               ) : (
-                <p className="pl-14 text-xs text-slate-300">No one's joined yet.</p>
+                <p className="pl-14 text-xs text-slate-300">No one's joined yet — be the first!</p>
               )}
             </div>
 
@@ -403,7 +403,7 @@ export function EventDetailView({
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
                     <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                   </span>
-                  <span>About this game</span>
+                  <span>About this event</span>
                 </div>
               </div>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
@@ -495,7 +495,7 @@ function formatEventSchedule(start: Date | string, end: Date | string) {
   const startDate = new Date(start);
   const endDate = new Date(end);
 
-  const dateLabel = startDate.toLocaleDateString('en-US', {
+  const dateLabel = startDate.toLocaleDateString('en-AU', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -526,7 +526,7 @@ function formatEventSchedule(start: Date | string, end: Date | string) {
 }
 
 function formatDateTimeLabel(value: Date | string) {
-  return new Date(value).toLocaleString('en-US', {
+  return new Date(value).toLocaleString('en-AU', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -568,7 +568,7 @@ function JoinBar({
   const isCheckInOpen = now >= openTime && now <= closeTime;
 
   const formatTime = (value: Date) => {
-    const dateLabel = value.toLocaleDateString('en-US', {
+    const dateLabel = value.toLocaleDateString('en-AU', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
@@ -635,7 +635,7 @@ function JoinBar({
       );
       statusText = (
         <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          Check in before {formatTime(closeTime)} so the crew knows you're there.
+          Check in before {formatTime(closeTime)} so everyone knows you've made it.
         </p>
       );
     } else if (now > closeTime) {
@@ -684,7 +684,7 @@ function JoinBar({
       );
       statusText = (
         <p className="text-center text-xs font-medium text-slate-500">
-          Check-in opens {formatTime(openTime)} so others know you've arrived.
+          Check-in opens {formatTime(openTime)}.<br/>Let the host know you're there.
         </p>
       );
     }

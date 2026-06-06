@@ -249,7 +249,7 @@ export function CreateEventPageView({
                 <FloatingField
                   label="Venue Name (Optional)"
                   name="placeName"
-                  placeholder="If you know the venue name, enter it here."
+                  placeholder="Add the venue name if known."
                   value={form.placeName}
                   onChange={handleInputChange}
                 />
@@ -341,8 +341,8 @@ export function CreateEventPageView({
                       </div>
                       <span className="text-xs text-slate-400">
                         {costMode === 'total'
-                          ? 'Per-person fee is estimated from total participants.'
-                          : 'Set per-person fee directly.'}
+                          ? 'Per-person cost is estimated from total capacity.'
+                          : 'Set the per-person fee directly.'}
                       </span>
                     </div>
 
@@ -513,7 +513,7 @@ export function CreateEventPageView({
         <SheetLayout
           onClose={() => setShowLocationSheet(false)}
           title="Select Location"
-          subtitle="Pin location based on your address"
+          subtitle="Drop a pin or enter your address"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
@@ -537,7 +537,7 @@ export function CreateEventPageView({
                   setSelectedAddress(e.target.value)
                   setAddressMode('manual')
                 }}
-                placeholder="Please enter an address"
+                placeholder="Enter address"
                 className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
               />
               {selectedAddress.trim() && (
@@ -923,7 +923,7 @@ function DateTimeField({
         {label}
       </label>
       <div className={clsx('min-h-[1.5rem] w-full text-base', !displayValue && 'text-slate-400')}>
-        {displayValue || 'Please select time'}
+        {displayValue || 'Select a time'}
       </div>
       <input
         ref={inputRef}
