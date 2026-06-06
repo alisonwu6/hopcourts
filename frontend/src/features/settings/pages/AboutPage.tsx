@@ -37,11 +37,11 @@ export function AboutPage() {
               Your home game.
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-              HopCourts connects people through real-world sports.
+              Finding people to play with shouldn’t be hard.
               <br />
               <br />
-              The best part of sport isn’t just the workout — it’s the moments shared with people
-              who love the game.
+              HopCourts makes it simple. Browse events near you, join a game, or start your own. No group chats, no
+              back-and-forth. Just show up and play.
               <br />
               <br />
               Right here in your city.
@@ -52,23 +52,37 @@ export function AboutPage() {
                 <IdCard className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">Your Sports Card</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Build your profile and track your sports journey.
+                  Tell people what you play, your level, and your vibe. Your card is how other players find you.
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <UsersRound className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">Players</h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">Sports Mates</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Meet players who share your interests and energy.
+                  Connect with locals who play what you play, at your level.
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">Find Events Easily</h3>
-                <p className="mt-2 text-sm text-slate-600">Start or join events near you.</p>
+                <p className="mt-2 text-sm text-slate-600">
+                  Browse games happening near you, or host your own in minutes.
+                </p>
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="mx-auto w-full max-w-5xl px-4 text-center">
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">Ready to find your next game?</h2>
+          <p className="mt-2 text-base text-slate-500">Join the HopCourts community.</p>
+          <button
+            type="button"
+            onClick={() => navigate('/events')}
+            className="mt-6 inline-flex items-center rounded-full bg-emerald-600 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98]"
+          >
+            Explore events
+          </button>
         </section>
       </main>
     </div>
