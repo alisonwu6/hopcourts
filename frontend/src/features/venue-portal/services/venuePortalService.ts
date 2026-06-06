@@ -45,12 +45,15 @@ export interface VenueCourt {
   supported_sports?: string[]
 }
 
-export type GroupedVenueEvents = Record<string, Array<{
-  event_id: string
-  sport: string
-  start_at: string
-  participant_count: number
-}>>
+export type GroupedVenueEvents = Record<
+  string,
+  Array<{
+    event_id: string
+    sport: string
+    start_at: string
+    participant_count: number
+  }>
+>
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const
 
@@ -190,7 +193,10 @@ const normalizeVenueProfile = (venueId: string, data: any) => {
 
   const courts = Array.isArray(data?.courts)
     ? data.courts
-    : spaces.map((space: any, idx: number) => ({ id: space?.id || `court-${idx + 1}`, name: space?.name || `Court ${idx + 1}` }))
+    : spaces.map((space: any, idx: number) => ({
+        id: space?.id || `court-${idx + 1}`,
+        name: space?.name || `Court ${idx + 1}`,
+      }))
 
   return {
     id: venueId,
@@ -285,11 +291,15 @@ export const venuePortalService = {
     try {
       const res = await httpGet<VenueCourt[]>(`/admin/venues/${venueId}/courts`)
       const rows = Array.isArray((res as any)?.data) ? (res as any).data : []
-      return wrapSuccess(rows.map((court: any, idx: number) => ({
-        id: String(court?.id || `court-${idx + 1}`),
-        name: String(court?.name || '').trim(),
-        supported_sports: Array.isArray(court?.supported_sports) ? court.supported_sports.filter(Boolean) : [],
-      })).filter((court: VenueCourt) => court.name))
+      return wrapSuccess(
+        rows
+          .map((court: any, idx: number) => ({
+            id: String(court?.id || `court-${idx + 1}`),
+            name: String(court?.name || '').trim(),
+            supported_sports: Array.isArray(court?.supported_sports) ? court.supported_sports.filter(Boolean) : [],
+          }))
+          .filter((court: VenueCourt) => court.name)
+      )
     } catch (err: any) {
       return {
         success: false,
@@ -300,7 +310,7 @@ export const venuePortalService = {
   },
 
   /**
-   * Update venue profile branding. 
+   * Update venue profile branding.
    */
   async updateVenueProfile(venueId: string, data: any): Promise<ApiResponse<any>> {
     try {
@@ -312,9 +322,7 @@ export const venuePortalService = {
         spaces: Array.isArray(data?.spaces)
           ? data.spaces.map((space: any) => ({
               name: String(space?.name || '').trim(),
-              supported_sports: Array.isArray(space?.supported_sports)
-                ? space.supported_sports.filter(Boolean)
-                : [],
+              supported_sports: Array.isArray(space?.supported_sports) ? space.supported_sports.filter(Boolean) : [],
             }))
           : [],
         ...buildAmenitiesPayload(data?.amenities),
@@ -323,7 +331,7 @@ export const venuePortalService = {
       const res = await httpPut<any>(`/admin/venues/${venueId}`, { body: payload })
       return wrapSuccess((res as any)?.data || (res as any))
     } catch (err: any) {
-       return {
+      return {
         success: false,
         error: { code: 'UPDATE_PROFILE_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
@@ -349,12 +357,17 @@ export const venuePortalService = {
 
   async createRecurringEvents(venueId: string, payload: any): Promise<ApiResponse<any>> {
     try {
-      const res = await httpPost<any>(`/admin/venues/${venueId}/recurring-events`, { body: payload })
+      const res = await httpPost<any>(`/admin/venues/${venueId}/recurring-events`, {
+        body: payload,
+      })
       return wrapSuccess((res as any)?.data || (res as any))
     } catch (err: any) {
       return {
         success: false,
-        error: { code: 'CREATE_RECURRING_EVENTS_FAILED', message: err?.details?.error || err.message },
+        error: {
+          code: 'CREATE_RECURRING_EVENTS_FAILED',
+          message: err?.details?.error || err.message,
+        },
         timestamp: new Date(),
       } as any
     }

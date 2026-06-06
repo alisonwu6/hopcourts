@@ -113,16 +113,11 @@ const useDictionary = <T>(
 }
 
 export function useCountries(lang: 'zh' | 'en' = 'en') {
-  return useDictionary<Country>('countries', lang, () => dictionaryService.listCountries(lang), [
-    lang,
-  ])
+  return useDictionary<Country>('countries', lang, () => dictionaryService.listCountries(lang), [lang])
 }
 
 export function useCities(country?: string, lang: 'zh' | 'en' = 'en') {
-  return useDictionary<City>('cities', lang, () => dictionaryService.listCities(country, lang), [
-    country,
-    lang,
-  ])
+  return useDictionary<City>('cities', lang, () => dictionaryService.listCities(country, lang), [country, lang])
 }
 
 export function useVibes(lang: 'zh' | 'en' = 'en') {
@@ -130,9 +125,7 @@ export function useVibes(lang: 'zh' | 'en' = 'en') {
 }
 
 export function useAgeRanges(lang: 'zh' | 'en' = 'en') {
-  return useDictionary<AgeRange>('age_ranges', lang, () => dictionaryService.listAgeRanges(lang), [
-    lang,
-  ])
+  return useDictionary<AgeRange>('age_ranges', lang, () => dictionaryService.listAgeRanges(lang), [lang])
 }
 
 export function useSports(lang: 'zh' | 'en' = 'en') {

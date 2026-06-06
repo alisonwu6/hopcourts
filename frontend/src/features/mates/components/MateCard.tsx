@@ -90,7 +90,10 @@ export function MateCard({
               <div className="flex items-center gap-2">
                 {name && <span className="text-base font-bold text-slate-900">{name}</span>}
                 {!!countryKey && (
-                  <span className="text-base leading-none" aria-label={`Country flag ${countryKey}`}>
+                  <span
+                    className="text-base leading-none"
+                    aria-label={`Country flag ${countryKey}`}
+                  >
                     {getFlagEmoji(countryKey)}
                   </span>
                 )}
@@ -134,9 +137,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{hostedCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                Hosted
-              </span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Hosted</span>
             </button>
 
             <button
@@ -150,9 +151,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{joinedCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                Joined
-              </span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Joined</span>
             </button>
 
             <div
@@ -165,9 +164,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                Met
-              </span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Met</span>
             </div>
           </div>
         </div>

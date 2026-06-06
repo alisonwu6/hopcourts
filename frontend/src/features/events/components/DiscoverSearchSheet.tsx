@@ -128,8 +128,7 @@ export function DiscoverEventsSearchSheet({
             <div className="flex flex-wrap gap-2">
               {sportsOptions.map((sport) => {
                 const active =
-                  pendingSports.includes(sport.key) ||
-                  (sport.key === 'all' && pendingSports.includes('all'))
+                  pendingSports.includes(sport.key) || (sport.key === 'all' && pendingSports.includes('all'))
                 return (
                   <button
                     key={sport.key}
@@ -169,13 +168,7 @@ type CalendarContentProps = {
   counts: Record<string, number>
 }
 
-function CalendarContent({
-  month,
-  onMonthChange,
-  range,
-  onSelectRange,
-  counts,
-}: CalendarContentProps) {
+function CalendarContent({ month, onMonthChange, range, onSelectRange, counts }: CalendarContentProps) {
   const monthStart = startOfMonth(month)
   const monthEnd = endOfMonth(month)
   const start = startOfWeek(monthStart, { weekStartsOn: 1 })
@@ -256,12 +249,8 @@ function CalendarContent({
               onClick={() => handleDayClick(day)}
               className={clsx(
                 'relative mx-auto flex h-10 w-10 items-center justify-center text-sm font-semibold transition',
-                isSelected
-                  ? 'z-10 rounded-full bg-blue-600 text-white shadow-md'
-                  : 'rounded-full text-slate-700',
-                inRange &&
-                  !isSelected &&
-                  'mx-0 w-full max-w-none rounded-none bg-blue-50 text-blue-900',
+                isSelected ? 'z-10 rounded-full bg-blue-600 text-white shadow-md' : 'rounded-full text-slate-700',
+                inRange && !isSelected && 'mx-0 w-full max-w-none rounded-none bg-blue-50 text-blue-900',
                 isToday && !isSelected && !inRange && 'bg-blue-50 text-blue-600'
               )}
             >

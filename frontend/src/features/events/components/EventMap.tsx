@@ -1,13 +1,6 @@
 import { useMemo, useEffect, useRef, useState } from 'react'
 import Map, { Marker, NavigationControl, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
-import {
-  Building2,
-  Calendar,
-  MapPin,
-  PersonStanding,
-  CircleDollarSign,
-  ChartColumnIncreasing,
-} from 'lucide-react'
+import { Building2, Calendar, MapPin, PersonStanding, CircleDollarSign, ChartColumnIncreasing } from 'lucide-react'
 import clsx from 'clsx'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { PlayerEvent } from '@/types'
@@ -64,22 +57,14 @@ export function EventMap({
   }, [])
 
   // Filter events with valid coordinates
-  const validEvents = useMemo(
-    () => events.filter((e) => e.location.lat && e.location.lng),
-    [events]
-  )
+  const validEvents = useMemo(() => events.filter((e) => e.location.lat && e.location.lng), [events])
   const selectedSportIcon = useMemo(() => {
     if (!selectedEvent) return '🎯'
-    return (
-      sports.find((s) => s.key.toUpperCase() === selectedEvent.sport.toUpperCase())?.icon || '🎯'
-    )
+    return sports.find((s) => s.key.toUpperCase() === selectedEvent.sport.toUpperCase())?.icon || '🎯'
   }, [selectedEvent, sports])
   const selectedSportLabel = useMemo(() => {
     if (!selectedEvent) return ''
-    return (
-      sports.find((s) => s.key.toUpperCase() === selectedEvent.sport.toUpperCase())?.label ||
-      selectedEvent.sport
-    )
+    return sports.find((s) => s.key.toUpperCase() === selectedEvent.sport.toUpperCase())?.label || selectedEvent.sport
   }, [selectedEvent, sports])
   const selectedSkillLabel = useMemo(() => {
     if (!selectedEvent) return ''
@@ -173,7 +158,10 @@ export function EventMap({
         onMove={(evt) => setMapZoom(evt.viewState.zoom)}
         onClick={() => onSelectEvent(null)} // Click map to close card
       >
-        <NavigationControl position="bottom-right" style={{ marginBottom: 100 }} />
+        <NavigationControl
+          position="bottom-right"
+          style={{ marginBottom: 100 }}
+        />
         <GeolocateControl
           position="bottom-right"
           trackUserLocation
@@ -184,8 +172,7 @@ export function EventMap({
 
         {validEvents.map((event) => {
           const isSelected = selectedEvent?.id === event.id
-          const sportIcon =
-            sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.icon || '🎯'
+          const sportIcon = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.icon || '🎯'
           const baseMarkerSize = Math.max(30, Math.min(46, Math.round(30 + (mapZoom - 10) * 3)))
           const markerSize = isSelected ? baseMarkerSize + 4 : baseMarkerSize
           const iconSize = Math.max(18, Math.round(markerSize * 0.52))
@@ -194,7 +181,10 @@ export function EventMap({
           const markerContent =
             mode === 'venues' ? (
               event.location.logo_url ? (
-                <img src={event.location.logo_url} className="h-full w-full object-cover" />
+                <img
+                  src={event.location.logo_url}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <Building2 className="h-6 w-6 text-slate-300" />
               )
@@ -243,7 +233,10 @@ export function EventMap({
           style={{ bottom: 'calc(68px + env(safe-area-inset-bottom, 0px) + 20px)' }}
         >
           {onClickDetail ? (
-            <button onClick={() => onClickDetail(selectedEvent)} className="block w-full text-left">
+            <button
+              onClick={() => onClickDetail(selectedEvent)}
+              className="block w-full text-left"
+            >
               <div className="flex items-center gap-5 rounded-[20px] bg-white p-6 shadow-[0_24px_60px_rgba(15,41,77,0.18)] ring-1 ring-black/5 transition-transform active:scale-95">
                 {mode === 'events' ? (
                   <>
@@ -254,7 +247,10 @@ export function EventMap({
                           {selectedSportLabel}
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
-                          <ChartColumnIncreasing className="h-3 w-3" strokeWidth={2.5} />
+                          <ChartColumnIncreasing
+                            className="h-3 w-3"
+                            strokeWidth={2.5}
+                          />
                           {selectedSkillLabel}
                         </span>
                         <span className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2 py-0.5 text-[11px] font-medium text-pink-700">
@@ -267,30 +263,40 @@ export function EventMap({
                       <div className="space-y-1">
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
-                            <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
+                            <Calendar
+                              className="h-4.5 w-4.5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           {selectedTimeLabel}
                         </p>
                         <div className="flex items-start gap-3 text-sm font-normal text-slate-700">
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-blue-600">
-                            <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
+                            <MapPin
+                              className="h-4.5 w-4.5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           <div className="min-w-0 leading-snug text-slate-700">
                             <p className="break-words">{selectedLocation.line1}</p>
-                            {selectedLocation.line2 ? (
-                              <p className="break-words">{selectedLocation.line2}</p>
-                            ) : null}
+                            {selectedLocation.line2 ? <p className="break-words">{selectedLocation.line2}</p> : null}
                           </div>
                         </div>
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
-                            <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
+                            <PersonStanding
+                              className="h-5 w-5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           {selectedAttendanceLabel}
                         </p>
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
-                            <CircleDollarSign className="h-4.5 w-4.5" strokeWidth={2.5} />
+                            <CircleDollarSign
+                              className="h-4.5 w-4.5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           {selectedPriceLabel}
                         </p>
@@ -343,7 +349,10 @@ export function EventMap({
                           {selectedSportLabel}
                         </span>
                         <span className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
-                          <ChartColumnIncreasing className="h-3 w-3" strokeWidth={2.5} />
+                          <ChartColumnIncreasing
+                            className="h-3 w-3"
+                            strokeWidth={2.5}
+                          />
                           {selectedSkillLabel}
                         </span>
                         <span className="inline-flex items-center rounded-full border border-pink-100 bg-pink-50 px-2 py-0.5 text-[11px] font-medium text-pink-700">
@@ -356,30 +365,40 @@ export function EventMap({
                       <div className="space-y-1">
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
-                            <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
+                            <Calendar
+                              className="h-4.5 w-4.5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           {selectedTimeLabel}
                         </p>
                         <div className="flex items-start gap-3 text-sm font-normal text-slate-700">
                           <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-blue-600">
-                            <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
+                            <MapPin
+                              className="h-4.5 w-4.5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           <div className="min-w-0 leading-snug text-slate-700">
                             <p className="break-words">{selectedLocation.line1}</p>
-                            {selectedLocation.line2 ? (
-                              <p className="break-words">{selectedLocation.line2}</p>
-                            ) : null}
+                            {selectedLocation.line2 ? <p className="break-words">{selectedLocation.line2}</p> : null}
                           </div>
                         </div>
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
-                            <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
+                            <PersonStanding
+                              className="h-5 w-5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           {selectedAttendanceLabel}
                         </p>
                         <p className="flex items-center gap-3 text-sm font-normal text-slate-700">
                           <span className="flex h-5 w-5 items-center justify-center text-blue-600">
-                            <CircleDollarSign className="h-4.5 w-4.5" strokeWidth={2.5} />
+                            <CircleDollarSign
+                              className="h-4.5 w-4.5"
+                              strokeWidth={2.5}
+                            />
                           </span>
                           {selectedPriceLabel}
                         </p>

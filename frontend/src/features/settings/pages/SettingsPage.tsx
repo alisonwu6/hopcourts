@@ -4,13 +4,11 @@ import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 
-const generalItems = [
-  { key: 'account', label: 'Account Settings', icon: UserRound },
-]
+const generalItems = [{ key: 'account', label: 'Account Settings', icon: UserRound }]
 
 const otherItems = [
   { key: 'about', label: 'About Us', icon: Info },
-  { key: 'foundersLetter', label: "Founder’s Letter", icon: PenLine },
+  { key: 'foundersLetter', label: 'Founder’s Letter', icon: PenLine },
   { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
   { key: 'contact', label: 'Contact Us', icon: Mail },
 ]
@@ -39,7 +37,12 @@ export function ProfileSettingsPage() {
         contentClassName="max-w-3xl px-4"
         showBack
         title={<span className="text-lg font-semibold text-slate-900">Settings</span>}
-        rightContent={<span className="h-10 w-10" aria-hidden="true" />}
+        rightContent={
+          <span
+            className="h-10 w-10"
+            aria-hidden="true"
+          />
+        }
         borderBottom
       />
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-6">
@@ -50,7 +53,7 @@ export function ProfileSettingsPage() {
               {generalItems.map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
-                  className="flex w-full items-center justify-between px-4 py-4 text-left "
+                  className="flex w-full items-center justify-between px-4 py-4 text-left"
                   onClick={() => {
                     if (key === 'account') navigate('/settings/account')
                   }}
@@ -71,7 +74,7 @@ export function ProfileSettingsPage() {
               {otherItems.map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
-                  className="flex w-full items-center justify-between px-4 py-4 text-left "
+                  className="flex w-full items-center justify-between px-4 py-4 text-left"
                   onClick={() => {
                     if (key === 'about') navigate('/about')
                     if (key === 'foundersLetter') navigate('/founders-letter')
@@ -90,7 +93,7 @@ export function ProfileSettingsPage() {
           </div>
           <div className="mt-3 rounded-2xl bg-slate-50 shadow-sm ring-1 ring-slate-200/60">
             <button
-              className="flex w-full items-center justify-between px-4 py-4 text-left text-slate-500 transition  disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center justify-between px-4 py-4 text-left text-slate-500 transition disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleLogout}
               disabled={isLoggingOut}
             >
@@ -102,12 +105,10 @@ export function ProfileSettingsPage() {
           </div>
         </div>
 
-        <div className="mt-auto flex flex-col items-center justify-end pt-8 pb-4">
+        <div className="mt-auto flex flex-col items-center justify-end pb-4 pt-8">
           <p className="text-xs text-slate-400">
             HopCourts v{__APP_VERSION__}
-            {import.meta.env.MODE !== 'production' && (
-              <span className="ml-1 opacity-75">({import.meta.env.MODE})</span>
-            )}
+            {import.meta.env.MODE !== 'production' && <span className="ml-1 opacity-75">({import.meta.env.MODE})</span>}
           </p>
           <p className="mt-1 text-xs text-slate-300">Built for real-world connections</p>
         </div>

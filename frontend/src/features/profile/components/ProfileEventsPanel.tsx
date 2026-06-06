@@ -19,9 +19,7 @@ function groupByDate(events: PlayerEvent[]) {
   })
   const map = new Map<string, PlayerEvent[]>()
   events.forEach((event) => {
-    const date = event.startTime
-      ? new Date(event.startTime)
-      : new Date(event.updatedAt || Date.now())
+    const date = event.startTime ? new Date(event.startTime) : new Date(event.updatedAt || Date.now())
     const label = formatter.format(date)
     map.set(label, [...(map.get(label) ?? []), event])
   })
@@ -60,26 +58,19 @@ function EventGroupList({
     <div className="space-y-8">
       {groups.map(([dateLabel, groupedEvents]) => (
         <div key={dateLabel}>
-          <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">
-            {dateLabel}
-          </h3>
+          <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
           <div className="relative ml-3 space-y-6 border-l border-slate-200 pb-2">
             {groupedEvents.map((event) => {
               const status = getEventStatus(event)
-              const sportItem = sportsCatalog.find(
-                (s) => s.key.toUpperCase() === event.sport.toUpperCase()
-              )
+              const sportItem = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
               const sportLabel = sportItem?.label || event.sport
               return (
-                <div key={event.id} className="relative pl-6">
+                <div
+                  key={event.id}
+                  className="relative pl-6"
+                >
                   <span
-                    className={`absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full border-2 border-white ring-1 ${
-                      status === 'check-in-open'
-                        ? 'scale-125 bg-emerald-500 ring-emerald-300'
-                        : status === 'ongoing'
-                          ? 'scale-125 bg-amber-500 ring-amber-300'
-                          : 'bg-slate-200 ring-slate-200'
-                    }`}
+                    className={`absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full border-2 border-white ring-1 ${status === 'check-in-open' ? 'scale-125 bg-emerald-500 ring-emerald-300' : status === 'ongoing' ? 'scale-125 bg-amber-500 ring-amber-300' : 'bg-slate-200 ring-slate-200'}`}
                   />
                   <EventCard
                     event={event}
@@ -103,15 +94,7 @@ function EventGroupList({
   )
 }
 
-function EmptyState({
-  icon,
-  title,
-  description,
-}: {
-  icon: string
-  title: string
-  description: string
-}) {
+function EmptyState({ icon, title, description }: { icon: string; title: string; description: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
       <div className="rounded-full bg-white p-2 text-4xl shadow-sm">{icon}</div>
@@ -121,13 +104,7 @@ function EmptyState({
   )
 }
 
-export function ProfileEventsPanel({
-  mode,
-  showTimeTabs = true,
-}: {
-  mode: PanelMode
-  showTimeTabs?: boolean
-}) {
+export function ProfileEventsPanel({ mode, showTimeTabs = true }: { mode: PanelMode; showTimeTabs?: boolean }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = (searchParams.get('tab') as TabKey) || 'upcoming'
   const [events, setEvents] = useState<PlayerEvent[]>([])
@@ -187,14 +164,8 @@ export function ProfileEventsPanel({
     }
   }, [isAuthenticated, mode, showTimeTabs, tab])
 
-  const upcomingEvents = useMemo(
-    () => events.filter((event) => new Date(event.endTime) >= new Date()),
-    [events]
-  )
-  const historyEvents = useMemo(
-    () => events.filter((event) => new Date(event.endTime) < new Date()),
-    [events]
-  )
+  const upcomingEvents = useMemo(() => events.filter((event) => new Date(event.endTime) >= new Date()), [events])
+  const historyEvents = useMemo(() => events.filter((event) => new Date(event.endTime) < new Date()), [events])
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
   const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents
@@ -205,15 +176,9 @@ export function ProfileEventsPanel({
       ? {
           icon: '📭',
           title:
-            mode === 'hosted'
-              ? 'No hosted events yet'
-              : mode === 'joined'
-                ? 'No joined events yet'
-                : 'No events yet',
+            mode === 'hosted' ? 'No hosted events yet' : mode === 'joined' ? 'No joined events yet' : 'No events yet',
           description:
-            mode === 'hosted'
-              ? 'Create an event and invite your mates!'
-              : 'Browse other events and join one.',
+            mode === 'hosted' ? 'Create an event and invite your mates!' : 'Browse other events and join one.',
         }
       : {
           icon: '📜',
@@ -233,18 +198,14 @@ export function ProfileEventsPanel({
           <button
             type="button"
             onClick={() => setTab('upcoming')}
-            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
-              tab === 'upcoming' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
-            }`}
+            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${tab === 'upcoming' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'}`}
           >
             {upcomingLabel}
           </button>
           <button
             type="button"
             onClick={() => setTab('history')}
-            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
-              tab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
-            }`}
+            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${tab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'}`}
           >
             {historyLabel}
           </button>
@@ -253,9 +214,7 @@ export function ProfileEventsPanel({
 
       <div className="min-h-[200px]">
         {error && (
-          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
+          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
         )}
         {isLoading ? (
           <div className="py-10 text-center text-slate-500">Loading your events...</div>
@@ -265,7 +224,11 @@ export function ProfileEventsPanel({
             mode={mode === 'all' ? 'hosted' : mode}
             sportsCatalog={sportsCatalog}
             emptyState={
-              <EmptyState icon={empty.icon} title={empty.title} description={empty.description} />
+              <EmptyState
+                icon={empty.icon}
+                title={empty.title}
+                description={empty.description}
+              />
             }
           />
         )}

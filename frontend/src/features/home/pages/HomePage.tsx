@@ -25,7 +25,11 @@ export function HomePage() {
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4">
         <div className="flex w-full justify-center">
-          <img src={logo} alt="HopCourts" className="h-50 w-auto" />
+          <img
+            src={logo}
+            alt="HopCourts"
+            className="h-50 w-auto"
+          />
         </div>
 
         <main className="flex flex-col">
@@ -49,7 +53,7 @@ export function HomePage() {
               No planning needed.
             </h2>
             <p className="mt-2 text-base font-bold text-emerald-600">
-              The all-in-one instant matchmaker <br/> for your physical life.
+              The all-in-one instant matchmaker <br /> for your physical life.
             </p>
           </header>
 
@@ -76,15 +80,11 @@ export function HomePage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-1">
                   <SquareX className="h-5 w-5 shrink-0" />
-                  <p className="text-base font-semibold text-slate-700">
-                    No more scattered group chats.
-                  </p>
+                  <p className="text-base font-semibold text-slate-700">No more scattered group chats.</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <SquareX className="h-5 w-5 shrink-0" />
-                  <p className="text-base font-semibold text-slate-700">
-                    No need to commit to rigid leagues.
-                  </p>
+                  <p className="text-base font-semibold text-slate-700">No need to commit to rigid leagues.</p>
                 </div>
               </div>
             </div>
@@ -102,7 +102,10 @@ export function HomePage() {
         </main>
       </div>
 
-      <LoginPromptSheet open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+      />
     </div>
   )
 }

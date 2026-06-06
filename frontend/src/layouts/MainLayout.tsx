@@ -32,18 +32,11 @@ export default function MainLayout({
   return (
     <div className={clsx('flex min-h-screen flex-col text-slate-900', backgroundClassName)}>
       <div className="flex min-h-screen flex-col">
-        <div
-          className={clsx(
-            'mx-auto flex w-full flex-col gap-6 px-4 sm:px-6',
-            widthClass[contentWidth]
-          )}
-        >
+        <div className={clsx('mx-auto flex w-full flex-col gap-6 px-4 sm:px-6', widthClass[contentWidth])}>
           {(title || description || actions) && (
             <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
-                {title && (
-                  <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>
-                )}
+                {title && <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{title}</h1>}
                 {description && <p className="text-sm text-slate-600">{description}</p>}
               </div>
               {actions && <div className="flex items-center gap-2">{actions}</div>}

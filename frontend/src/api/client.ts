@@ -1,15 +1,5 @@
 import { httpGet, httpPost, httpDelete, httpPut, httpPatch } from './http'
-import type {
-  ApiResponse,
-  Sport,
-  Country,
-  City,
-  Vibe,
-  AgeRange,
-  Session,
-  SessionMeta,
-  Page,
-} from './types'
+import type { ApiResponse, Sport, Country, City, Vibe, AgeRange, Session, SessionMeta, Page } from './types'
 
 export const api = {
   sports: {

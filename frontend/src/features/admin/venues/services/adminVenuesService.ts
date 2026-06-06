@@ -82,24 +82,24 @@ const mapBackendVenueToAdmin = (row: any): AdminVenue => {
   }
 }
 
-  const mapBackendClaimToAdmin = (row: any): AdminVenueClaim => {
-    return {
-      id: row.id,
-      venue_id: row.venue_id,
-      venue_name: row.venue_name || '',
-      venue_address: row.venue_address || '',
-      applicant_name: row.applicant_name || '',
-      applicant_email: row.applicant_email || '',
-      applicant_role: row.applicant_role || '',
-      applicant_phone: row.applicant_phone || '',
-      note: row.note,
-      status: row.status as ClaimStatus,
-      submitted_at: row.submitted_at,
-      reviewed_at: row.reviewed_at,
-      reviewed_by: row.reviewed_by,
-      rejection_reason: row.rejection_reason,
-    }
+const mapBackendClaimToAdmin = (row: any): AdminVenueClaim => {
+  return {
+    id: row.id,
+    venue_id: row.venue_id,
+    venue_name: row.venue_name || '',
+    venue_address: row.venue_address || '',
+    applicant_name: row.applicant_name || '',
+    applicant_email: row.applicant_email || '',
+    applicant_role: row.applicant_role || '',
+    applicant_phone: row.applicant_phone || '',
+    note: row.note,
+    status: row.status as ClaimStatus,
+    submitted_at: row.submitted_at,
+    reviewed_at: row.reviewed_at,
+    reviewed_by: row.reviewed_by,
+    rejection_reason: row.rejection_reason,
   }
+}
 export const adminVenuesService = {
   async getAdminVenues(params: { search?: string } = {}): Promise<ApiResponse<AdminVenue[]>> {
     try {
@@ -188,14 +188,14 @@ export const adminVenuesService = {
 
   async patchVenueDisplay(
     venueId: string,
-    data: { 
-      name_display?: string; 
-      address_display?: string;
-      operator_name?: string;
-      operator_email?: string;
-      operator_role?: string;
-      operator_phone?: string;
-    },
+    data: {
+      name_display?: string
+      address_display?: string
+      operator_name?: string
+      operator_email?: string
+      operator_role?: string
+      operator_phone?: string
+    }
   ): Promise<ApiResponse<AdminVenue>> {
     try {
       const payload = {

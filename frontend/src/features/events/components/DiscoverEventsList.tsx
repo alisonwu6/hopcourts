@@ -90,7 +90,7 @@ export function DiscoverEventsBody({
               : "Events from hosts you've joined before."}
           </p>
 
-          <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory overflow-x-auto p-4 scroll-smooth">
+          <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory overflow-x-auto scroll-smooth p-4">
             <div className="flex gap-4">
               {suggestedEvents.length > 0 ? (
                 suggestedEvents.map((event) => (
@@ -124,22 +124,21 @@ export function DiscoverEventsBody({
       </h2>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
+        <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
       )}
 
       {isLoading ? (
-        <PageLoading fullScreen={false} className="py-20" />
+        <PageLoading
+          fullScreen={false}
+          className="py-20"
+        />
       ) : filteredEvents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
             <span className="text-5xl">😮</span>
           </div>
           <h3 className="text-xl font-bold text-slate-900">No events yet.</h3>
-          <p className="mt-2 text-sm text-slate-500">
-            Be the one who starts it.
-          </p>
+          <p className="mt-2 text-sm text-slate-500">Be the one who starts it.</p>
           <button
             type="button"
             onClick={onCreateClick}

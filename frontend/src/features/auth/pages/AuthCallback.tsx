@@ -16,10 +16,7 @@ export function AuthCallback() {
   const [err, setErr] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const queryType = useMemo(
-    () => new URLSearchParams(location.search).get('type'),
-    [location.search]
-  )
+  const queryType = useMemo(() => new URLSearchParams(location.search).get('type'), [location.search])
 
   useEffect(() => {
     if (queryType === 'recovery') {
@@ -125,7 +122,7 @@ export function AuthCallback() {
           />
           <button
             type="submit"
-            className="mt-4 w-full rounded-xl bg-player-600 py-3 text-white transition  disabled:opacity-60"
+            className="mt-4 w-full rounded-xl bg-player-600 py-3 text-white transition disabled:opacity-60"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Updating...' : 'Update password'}

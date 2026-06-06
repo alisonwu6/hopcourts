@@ -38,7 +38,9 @@ export function AppProviders({ children }: PropsWithChildren) {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[Auth] State changed:', event)
       if (event === 'TOKEN_REFRESHED' && session) {
         const currentUser = useAuthStore.getState().user

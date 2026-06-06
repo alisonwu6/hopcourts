@@ -1,17 +1,17 @@
-import { Building2, MapPin, CheckCircle, AlertCircle, Clock, Sparkles, ShieldCheck } from 'lucide-react';
-import { ActionToolbar } from '@/components/navigation/ActionToolbar';
-import { EventCard } from '@/features/events/components/EventCard';
-import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton';
-import { ApiVenue } from '../services/venuesService';
+import { Building2, MapPin, CheckCircle, AlertCircle, Clock, Sparkles, ShieldCheck } from 'lucide-react'
+import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { EventCard } from '@/features/events/components/EventCard'
+import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton'
+import { ApiVenue } from '../services/venuesService'
 
 interface VenueDetailsViewProps {
-  venue: ApiVenue;
-  upcomingEvents: any[];
-  onBack: () => void;
-  onShare: () => void;
-  onClaim: () => void;
-  isClaiming: boolean;
-  onViewSessionDetails: (sessionId: string) => void;
+  venue: ApiVenue
+  upcomingEvents: any[]
+  onBack: () => void
+  onShare: () => void
+  onClaim: () => void
+  isClaiming: boolean
+  onViewSessionDetails: (sessionId: string) => void
 }
 
 export function VenueDetailsView({
@@ -33,29 +33,31 @@ export function VenueDetailsView({
       />
 
       {/* Hero / Basic Info */}
-      <div className="bg-white px-6 py-8 shadow-sm border-b border-slate-100">
+      <div className="border-b border-slate-100 bg-white px-6 py-8 shadow-sm">
         <div className="flex flex-col items-start gap-4">
-          <div className="h-24 w-24 overflow-hidden rounded-[2.5rem] border-4 border-slate-50 shadow-xl shrink-0 bg-slate-50 flex items-center justify-center text-4xl">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[2.5rem] border-4 border-slate-50 bg-slate-50 text-4xl shadow-xl">
             {venue.logo_url ? (
-              <img src={venue.logo_url} alt="Logo" className="h-full w-full object-cover" />
+              <img
+                src={venue.logo_url}
+                alt="Logo"
+                className="h-full w-full object-cover"
+              />
             ) : (
               <Building2 className="h-10 w-10 text-slate-300" />
             )}
           </div>
 
-          <div className="flex-1 min-w-0 mt-2">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
-              {venue.name_display}
-            </h1>
-            <div className="mt-3 flex items-start gap-2 text-sm text-slate-500 font-medium">
-              <MapPin className="h-4 w-4 text-slate-300 mt-0.5 shrink-0" />
+          <div className="mt-2 min-w-0 flex-1">
+            <h1 className="text-3xl font-black leading-tight tracking-tight text-slate-900">{venue.name_display}</h1>
+            <div className="mt-3 flex items-start gap-2 text-sm font-medium text-slate-500">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-300" />
               <span>{venue.address_display || 'Address not listed'}</span>
             </div>
 
             {/* Status Badge */}
             <div className="mt-4 flex gap-2">
               {venue.status === 'claimed' ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-700 border border-emerald-200/70">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/70 bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-700">
                   <ShieldCheck className="h-3 w-3 text-emerald-600" />
                   OFFICIAL
                 </span>
@@ -72,10 +74,8 @@ export function VenueDetailsView({
         {/* Public Bio */}
         {venue.description && (
           <div className="mt-8">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-              About
-            </h2>
-            <p className="text-sm text-slate-600 leading-relaxed font-medium bg-slate-50/50 p-4 rounded-2xl border border-slate-50 italic">
+            <h2 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">About</h2>
+            <p className="rounded-2xl border border-slate-50 bg-slate-50/50 p-4 text-sm font-medium italic leading-relaxed text-slate-600">
               "{venue.description}"
             </p>
           </div>
@@ -84,14 +84,12 @@ export function VenueDetailsView({
         {/* Amenities List */}
         {venue.amenities && venue.amenities.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
-              Amenities
-            </h2>
+            <h2 className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Amenities</h2>
             <div className="grid grid-cols-2 gap-3">
               {venue.amenities.map((item) => (
                 <div
                   key={item}
-                  className="flex items-center gap-2.5 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-100/50"
+                  className="flex items-center gap-2.5 rounded-xl border border-slate-100/50 bg-slate-50 px-4 py-2.5"
                 >
                   <CheckCircle className="h-3.5 w-3.5 text-indigo-500" />
                   <span className="text-xs font-bold text-slate-700">{item}</span>
@@ -104,25 +102,24 @@ export function VenueDetailsView({
         {/* Operating Hours */}
         {venue.operating_hours && venue.operating_hours.length > 0 && (
           <div className="mt-8">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                Hours
-              </h2>
+            <div className="mb-4 flex items-center gap-2">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hours</h2>
               <Clock className="h-3 w-3 text-slate-300" />
             </div>
-            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+            <div className="space-y-2 rounded-2xl border border-slate-100/50 bg-slate-50 p-4">
               {venue.operating_hours.map((hour) => (
-                <div key={hour.day} className="flex justify-between items-center text-xs">
-                  <span className="font-black text-slate-500 uppercase tracking-widest text-[9px] w-20">
+                <div
+                  key={hour.day}
+                  className="flex items-center justify-between text-xs"
+                >
+                  <span className="w-20 text-[9px] font-black uppercase tracking-widest text-slate-500">
                     {hour.day}
                   </span>
-                  <div className="h-px flex-1 bg-slate-200/50 mx-4" />
+                  <div className="mx-4 h-px flex-1 bg-slate-200/50" />
                   {hour.is_closed ? (
-                    <span className="font-bold text-red-400 uppercase tracking-widest text-[9px]">
-                      Closed
-                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">Closed</span>
                   ) : (
-                    <span className="font-black text-indigo-600 tabular-nums">
+                    <span className="font-black tabular-nums text-indigo-600">
                       {hour.open_time} — {hour.close_time}
                     </span>
                   )}
@@ -134,27 +131,26 @@ export function VenueDetailsView({
 
         {venue.spaces && venue.spaces.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
-              Courts & sports
-            </h2>
+            <h2 className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Courts & sports</h2>
             <div className="space-y-3">
               {venue.spaces.map((space, idx) => (
-                <div key={`${space.name}-${idx}`} className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
-                  <div className="font-black text-slate-700 uppercase tracking-tight mb-2">
-                    {space.name}
-                  </div>
+                <div
+                  key={`${space.name}-${idx}`}
+                  className="rounded-2xl border border-slate-100/50 bg-slate-50 p-4"
+                >
+                  <div className="mb-2 font-black uppercase tracking-tight text-slate-700">{space.name}</div>
                   <div className="flex flex-wrap gap-2">
                     {space.supported_sports.length > 0 ? (
                       space.supported_sports.map((sport) => (
                         <span
                           key={sport}
-                          className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm"
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-bold text-slate-600 shadow-sm"
                         >
                           {sport}
                         </span>
                       ))
                     ) : (
-                      <span className="text-slate-400 text-xs italic">None listed</span>
+                      <span className="text-xs italic text-slate-400">None listed</span>
                     )}
                   </div>
                 </div>
@@ -191,9 +187,9 @@ export function VenueDetailsView({
 
       {/* Events Sections */}
       <div className="px-6 py-8">
-        <div className="flex items-end justify-between mb-6">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Upcoming games</h2>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <div className="mb-6 flex items-end justify-between">
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">Upcoming games</h2>
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
             {upcomingEvents.length} games
           </span>
         </div>
@@ -210,19 +206,17 @@ export function VenueDetailsView({
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center p-12 rounded-[2.5rem] bg-white border border-dashed border-slate-200">
-            <div className="h-16 w-16 bg-slate-50 flex items-center justify-center rounded-3xl mb-4">
+          <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-slate-200 bg-white p-12">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-50">
               <span className="text-2xl">⚡</span>
             </div>
-            <p className="text-sm font-black text-slate-400 uppercase tracking-widest text-center">
+            <p className="text-center text-sm font-black uppercase tracking-widest text-slate-400">
               Nothing scheduled yet
             </p>
-            <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mt-2">
-              Check back soon
-            </p>
+            <p className="mt-2 text-xs font-bold uppercase tracking-widest text-slate-300">Check back soon</p>
           </div>
         )}
       </div>
     </div>
-  );
+  )
 }

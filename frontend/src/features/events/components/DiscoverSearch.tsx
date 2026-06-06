@@ -35,7 +35,10 @@ export function DiscoverEventsHeader({
           onClick={onOpenSearch}
           className="pointer-events-auto flex flex-1 items-center gap-1 rounded-full border border-slate-200 bg-white p-3 shadow-sm transition"
         >
-          <Search className="ml-2 h-5 w-5 text-slate-800" strokeWidth={2.5} />
+          <Search
+            className="ml-2 h-5 w-5 text-slate-800"
+            strokeWidth={2.5}
+          />
           <div className="flex flex-col items-start px-1">
             {!hasFilter ? (
               <>
@@ -75,11 +78,7 @@ export function DiscoverEventsHeader({
           onClick={onToggleMap}
           className="pointer-events-auto flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition"
         >
-          {showMap ? (
-            <ListIcon className="h-6 w-6 text-slate-700" />
-          ) : (
-            <MapIcon className="h-6 w-6 text-slate-700" />
-          )}
+          {showMap ? <ListIcon className="h-6 w-6 text-slate-700" /> : <MapIcon className="h-6 w-6 text-slate-700" />}
         </button>
       </div>
     </div>

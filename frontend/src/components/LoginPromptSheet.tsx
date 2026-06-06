@@ -30,7 +30,10 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
       return
     }
     const { data, error } = await signInWithGoogle()
-    if (error) { alert(error.message); return }
+    if (error) {
+      alert(error.message)
+      return
+    }
     if (data?.url) window.location.href = data.url
   }
 
@@ -49,8 +52,18 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
             className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
             aria-label="Close"
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -59,7 +72,7 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
             <h1 className="text-2xl font-bold text-slate-900">Welcome to HopCourts</h1>
             <p className="mt-2 text-sm text-slate-600">
               Find a event near you.
-              <br/>
+              <br />
               Meet people worth playing with.
             </p>
           </div>
@@ -85,8 +98,22 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
         onAction={() => {
           navigator.clipboard
             .writeText(window.location.href)
-            .then(() => setCopyFeedback({ open: true, title: '已複製連結', description: '請貼到 Safari 或 Chrome 開啟。', type: 'success' }))
-            .catch(() => setCopyFeedback({ open: true, title: '複製失敗', description: `請手動複製此連結：${window.location.href}`, type: 'warning' }))
+            .then(() =>
+              setCopyFeedback({
+                open: true,
+                title: '已複製連結',
+                description: '請貼到 Safari 或 Chrome 開啟。',
+                type: 'success',
+              })
+            )
+            .catch(() =>
+              setCopyFeedback({
+                open: true,
+                title: '複製失敗',
+                description: `請手動複製此連結：${window.location.href}`,
+                type: 'warning',
+              })
+            )
         }}
         cancelLabel="知道了"
       />

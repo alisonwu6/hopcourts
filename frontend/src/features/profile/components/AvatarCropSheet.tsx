@@ -6,8 +6,7 @@ import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { supabase } from '@/lib/supabase'
 
-const SAMPLE_AVATAR =
-  'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
+const SAMPLE_AVATAR = 'https://lh3.googleusercontent.com/a/ACg8ocIpaF9eUIgYqF2yYRiKxzfoEjDdH20a4pyh6QfJuxxz=s200'
 
 async function createImage(url: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -34,7 +33,7 @@ async function getCroppedImg(imageSrc: string, croppedAreaPixels: any, rotation 
   ctx.translate(MAX_SIZE / 2, MAX_SIZE / 2)
   ctx.rotate((rotation * Math.PI) / 180)
   ctx.translate(-MAX_SIZE / 2, -MAX_SIZE / 2)
-  
+
   // Draw the image into the 512x512 canvas
   // We draw the full source image onto the canvas, but transformed by crop coordinates
   // Actually, 'x, y, width, height' are the coordinates ON THE SOURCE IMAGE.
@@ -64,13 +63,7 @@ type Props = {
   onAvatarUpdated: (url: string) => void
 }
 
-export function AvatarCropSheet({
-  open,
-  onClose,
-  userId,
-  defaultAvatar = SAMPLE_AVATAR,
-  onAvatarUpdated,
-}: Props) {
+export function AvatarCropSheet({ open, onClose, userId, defaultAvatar = SAMPLE_AVATAR, onAvatarUpdated }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [imageSrc, setImageSrc] = useState<string>('')
   const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -90,7 +83,7 @@ export function AvatarCropSheet({
   useEffect(() => {
     if (open) {
       if (fileInputRef.current) fileInputRef.current.value = ''
-      
+
       const timer = setTimeout(() => {
         fileInputRef.current?.click()
 
@@ -142,13 +135,20 @@ export function AvatarCropSheet({
 
     setUploading(true)
     try {
-      const { data: { user: supabaseUser }, error: userError } = await supabase.auth.getUser()
-      
+      const {
+        data: { user: supabaseUser },
+        error: userError,
+      } = await supabase.auth.getUser()
+
       const targetUserId = supabaseUser?.id || userId
-      
+
       if (!targetUserId) {
-         console.error('[avatar] No user ID found via prop or supabase.auth', { supabaseUser, userId, userError })
-         throw new Error('Unable to verify user identity, please sign in again')
+        console.error('[avatar] No user ID found via prop or supabase.auth', {
+          supabaseUser,
+          userId,
+          userError,
+        })
+        throw new Error('Unable to verify user identity, please sign in again')
       }
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels, rotation)
       const file = new File([croppedBlob], 'avatar.webp', { type: 'image/webp' })
@@ -225,7 +225,7 @@ export function AvatarCropSheet({
                     disabled={uploading}
                     className={clsx(
                       'rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition',
-                      uploading && 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400'
+                      uploading && 'cursor-not-allowed bg-slate-100 text-slate-400 opacity-50'
                     )}
                   >
                     Choose Again
@@ -240,10 +240,7 @@ export function AvatarCropSheet({
                       value={zoom}
                       onChange={(e) => setZoom(Number(e.target.value))}
                       disabled={uploading}
-                      className={clsx(
-                        'w-full accent-blue-600',
-                        uploading && 'opacity-50 cursor-not-allowed'
-                      )}
+                      className={clsx('w-full accent-blue-600', uploading && 'cursor-not-allowed opacity-50')}
                     />
                   </div>
                 </div>
@@ -251,19 +248,19 @@ export function AvatarCropSheet({
 
               {/* Custom Sticky Button Area */}
               <div className="sticky bottom-0 -mx-5 -mb-4 mt-4 border-t border-slate-200 bg-white px-5 pb-5 pt-3">
-                 <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={uploading}
-                    className={clsx(
-                      'h-12 w-full rounded-2xl px-4 text-base font-semibold shadow-sm transition',
-                      uploading
-                        ? 'bg-slate-100 text-slate-400 border-transparent cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-500'
-                    )}
-                 >
-                    {uploading ? 'Uploading...' : 'Apply'}
-                 </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={uploading}
+                  className={clsx(
+                    'h-12 w-full rounded-2xl px-4 text-base font-semibold shadow-sm transition',
+                    uploading
+                      ? 'cursor-not-allowed border-transparent bg-slate-100 text-slate-400'
+                      : 'bg-blue-600 text-white hover:bg-blue-500'
+                  )}
+                >
+                  {uploading ? 'Uploading...' : 'Apply'}
+                </button>
               </div>
             </div>
           )}

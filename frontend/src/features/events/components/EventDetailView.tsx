@@ -1,5 +1,5 @@
-import React from 'react';
-import clsx from 'clsx';
+import React from 'react'
+import clsx from 'clsx'
 import {
   Calendar,
   CircleDollarSign,
@@ -13,59 +13,59 @@ import {
   Share,
   Smile,
   Frown,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-import type { PlayerEvent } from '@/types';
-import type { Sport } from '@/types/dictionary';
-import { Button, AlertDialog } from '@/components';
-import { LoginPromptSheet } from '@/components/LoginPromptSheet';
-import { ActionToolbar } from '@/components/navigation/ActionToolbar';
-import { PageLoading } from '@/components/PageLoading';
-import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet';
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import type { PlayerEvent } from '@/types'
+import type { Sport } from '@/types/dictionary'
+import { Button, AlertDialog } from '@/components'
+import { LoginPromptSheet } from '@/components/LoginPromptSheet'
+import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { PageLoading } from '@/components/PageLoading'
+import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
 type EventDetailAlertState = {
-  open: boolean;
-  title: string;
-  description: React.ReactNode;
-  type: 'success' | 'error' | 'info' | 'warning';
-};
+  open: boolean
+  title: string
+  description: React.ReactNode
+  type: 'success' | 'error' | 'info' | 'warning'
+}
 
 type EventDetailViewProps = {
-  id?: string;
-  event: PlayerEvent | null;
-  isLoading: boolean;
-  error: string | null;
-  sports: Sport[];
-  currentUserId?: string;
-  isFavorite: boolean;
-  showLoginPrompt: boolean;
-  showDeleteConfirm: boolean;
-  isDeleting: boolean;
-  isJoinSubmitting: boolean;
-  isCheckingIn: boolean;
-  showProfileRequired: boolean;
-  hasOtherParticipants: boolean;
-  isJoined: boolean;
-  spotsRemaining: number;
-  effectiveCheckedIn: boolean;
-  alertDialog: EventDetailAlertState;
-  onBack: () => void;
-  onShare: () => void;
-  onToggleFavorite: () => void;
-  onOpenDeleteConfirm: () => void;
-  onCloseDeleteConfirm: () => void;
-  onEdit: (eventId: string) => void;
-  onJoin: () => void;
-  onCheckIn: () => void;
-  onDelete: () => void;
-  onCloseLoginPrompt: () => void;
-  onSignup: () => void;
-  onCloseAlert: () => void;
-  onCloseProfileRequired: () => void;
-  onNavigateEvents: () => void;
-  onNavigateMate: (username: string) => void;
-  onNavigateVenue: (venueId: string) => void;
-};
+  id?: string
+  event: PlayerEvent | null
+  isLoading: boolean
+  error: string | null
+  sports: Sport[]
+  currentUserId?: string
+  isFavorite: boolean
+  showLoginPrompt: boolean
+  showDeleteConfirm: boolean
+  isDeleting: boolean
+  isJoinSubmitting: boolean
+  isCheckingIn: boolean
+  showProfileRequired: boolean
+  hasOtherParticipants: boolean
+  isJoined: boolean
+  spotsRemaining: number
+  effectiveCheckedIn: boolean
+  alertDialog: EventDetailAlertState
+  onBack: () => void
+  onShare: () => void
+  onToggleFavorite: () => void
+  onOpenDeleteConfirm: () => void
+  onCloseDeleteConfirm: () => void
+  onEdit: (eventId: string) => void
+  onJoin: () => void
+  onCheckIn: () => void
+  onDelete: () => void
+  onCloseLoginPrompt: () => void
+  onSignup: () => void
+  onCloseAlert: () => void
+  onCloseProfileRequired: () => void
+  onNavigateEvents: () => void
+  onNavigateMate: (username: string) => void
+  onNavigateVenue: (venueId: string) => void
+}
 
 export function EventDetailView({
   id,
@@ -104,18 +104,21 @@ export function EventDetailView({
   onNavigateVenue,
 }: EventDetailViewProps) {
   if (isLoading) {
-    return <PageLoading />;
+    return <PageLoading />
   }
 
   if (!event || (id && event.id !== id)) {
     const detailMessage =
       error === 'Request failed' || error === 'Session not found'
         ? 'This event may have been deleted or unpublished.'
-        : (error ?? 'This event may have been deleted or unpublished.');
+        : (error ?? 'This event may have been deleted or unpublished.')
 
     return (
       <div className="min-h-screen bg-white">
-        <ActionToolbar onBack={onBack} title="Event Details" />
+        <ActionToolbar
+          onBack={onBack}
+          title="Event Details"
+        />
         <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-[420px] flex-col items-center justify-center px-6 pb-16 text-center">
           <div className="mb-5 rounded-full bg-slate-100 p-6">
             <Frown className="h-12 w-12 text-slate-400" />
@@ -131,7 +134,7 @@ export function EventDetailView({
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   const skillLabel =
@@ -141,44 +144,42 @@ export function EventDetailView({
         ? 'Intermediate'
         : event.skillLevel === 'advanced'
           ? 'Advanced'
-          : 'All levels';
+          : 'All levels'
 
-  const genderLabel =
-    event.gender === 'female' ? 'Women only' : event.gender === 'male' ? 'Men only' : 'Mixed gender';
+  const genderLabel = event.gender === 'female' ? 'Women only' : event.gender === 'male' ? 'Men only' : 'Mixed gender'
 
-  const sportLabel =
-    sports.find((item) => item.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport;
+  const sportLabel = sports.find((item) => item.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
 
-  const minPeople = Math.max(1, event.minPeople ?? 1);
-  const maxPeople = Math.max(minPeople, event.maxAttendees ?? minPeople);
+  const minPeople = Math.max(1, event.minPeople ?? 1)
+  const maxPeople = Math.max(minPeople, event.maxAttendees ?? minPeople)
 
   const formatMoney = (value?: number | null) => {
-    if (value == null || Number.isNaN(Number(value))) return '';
-    return Math.round(Number(value)).toLocaleString('en-AU');
-  };
+    if (value == null || Number.isNaN(Number(value))) return ''
+    return Math.round(Number(value)).toLocaleString('en-AU')
+  }
 
   const feeLine2 = (() => {
-    if (event.isFree) return 'Free';
-    const total = event.priceTotal;
-    const perPerson = event.pricePerPerson;
+    if (event.isFree) return 'Free'
+    const total = event.priceTotal
+    const perPerson = event.pricePerPerson
     if (event.priceMode === 'person') {
-      if (perPerson) return `Per person $${formatMoney(perPerson)}`;
-      return 'Paid event (per person)';
+      if (perPerson) return `Per person $${formatMoney(perPerson)}`
+      return 'Paid event (per person)'
     }
-    if (total != null) return `Total cost $${formatMoney(total)}`;
-    if (perPerson) return `Total cost not provided (about $${formatMoney(perPerson)} per person)`;
-    return 'Paid event';
-  })();
+    if (total != null) return `Total cost $${formatMoney(total)}`
+    if (perPerson) return `Total cost not provided (about $${formatMoney(perPerson)} per person)`
+    return 'Paid event'
+  })()
 
-  const feeNote = event.priceNote?.trim() || 'None';
-  const participantRule = `Min. ${minPeople} players`;
-  const isOfficialVenueHost = Boolean(event.isOfficial && event.venueId);
+  const feeNote = event.priceNote?.trim() || 'None'
+  const participantRule = `Min. ${minPeople} players`
+  const isOfficialVenueHost = Boolean(event.isOfficial && event.venueId)
   const locationLabel =
     event.location.name && event.location.name !== event.location.address
       ? `${event.location.name} (${event.location.address})`
-      : event.location.address || event.location.name || 'Location TBD';
-  const scheduleLabel = formatEventSchedule(event.startTime, event.endTime);
-  const updatedAtLabel = event.updatedAt ? formatDateTimeLabel(event.updatedAt) : null;
+      : event.location.address || event.location.name || 'Location TBD'
+  const scheduleLabel = formatEventSchedule(event.startTime, event.endTime)
+  const updatedAtLabel = event.updatedAt ? formatDateTimeLabel(event.updatedAt) : null
 
   const handleOpenMap = () => {
     if (event.location.lat && event.location.lng) {
@@ -186,20 +187,20 @@ export function EventDetailView({
         `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
         '_blank',
         'noopener,noreferrer'
-      );
-      return;
+      )
+      return
     }
-    const query = event.location.address || event.location.name;
+    const query = event.location.address || event.location.name
     if (query) {
       window.open(
         `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
         '_blank',
         'noopener,noreferrer'
-      );
+      )
     }
-  };
+  }
 
-  const isHost = event.host.id === currentUserId;
+  const isHost = event.host.id === currentUserId
 
   return (
     <div className="min-h-screen pb-40">
@@ -239,7 +240,11 @@ export function EventDetailView({
               className="rounded-full bg-blue-50 p-2 text-blue-600 transition"
               aria-label="Share"
             >
-              <Share className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+              <Share
+                className="h-5 w-5"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </button>
           </>
         }
@@ -261,7 +266,7 @@ export function EventDetailView({
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
             <div
               className={clsx(
-                "flex items-center gap-3 transition",
+                'flex items-center gap-3 transition',
                 isOfficialVenueHost || event.host.username ? 'cursor-pointer' : undefined
               )}
               onClick={() => {
@@ -275,17 +280,15 @@ export function EventDetailView({
               }}
             >
               <div className="flex items-center gap-3">
-                <AvatarCircle 
-                   name={isOfficialVenueHost ? (event.venueNameDisplay || event.host.name) : event.host.name} 
-                   src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl} 
+                <AvatarCircle
+                  name={isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
+                  src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl}
                 />
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
-                    {isOfficialVenueHost ? (event.venueNameDisplay || event.host.name) : event.host.name}
+                    {isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
                   </p>
-                  <p className="text-xs text-slate-500">
-                    {isOfficialVenueHost ? 'Venue Host' : 'Event Host'}
-                  </p>
+                  <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
                 </div>
               </div>
             </div>
@@ -311,25 +314,42 @@ export function EventDetailView({
             </div>
 
             <div className="space-y-3">
-              <InfoRow icon={Calendar} label={scheduleLabel} />
+              <InfoRow
+                icon={Calendar}
+                label={scheduleLabel}
+              />
               <div
                 className={clsx(
                   'group flex items-start justify-between gap-2 transition',
                   event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
                 )}
               >
-                <InfoRow icon={MapPin} label={locationLabel} />
+                <InfoRow
+                  icon={MapPin}
+                  label={locationLabel}
+                />
                 <button
                   type="button"
                   aria-label="Open in map"
                   onClick={handleOpenMap}
                   className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.25} />
+                  <ExternalLink
+                    className="h-3.5 w-3.5"
+                    strokeWidth={2.25}
+                  />
                 </button>
               </div>
-              {event.courtName && <InfoRow icon={LandPlot} label={`Court: ${event.courtName}`} />}
-              <InfoRow icon={CircleDollarSign} label={feeLine2} />
+              {event.courtName && (
+                <InfoRow
+                  icon={LandPlot}
+                  label={`Court: ${event.courtName}`}
+                />
+              )}
+              <InfoRow
+                icon={CircleDollarSign}
+                label={feeLine2}
+              />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                 <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
                 <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
@@ -341,7 +361,11 @@ export function EventDetailView({
             <div className="space-y-3">
               <div className="flex items-start gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                  <PersonStanding className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                  <PersonStanding
+                    className="h-4 w-4"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
                 </span>
                 <span className="flex flex-col gap-1">
                   <span>
@@ -355,12 +379,12 @@ export function EventDetailView({
 
               {event.participants.length > 0 ? (
                 event.participants.map((participant) => {
-                  const isCheckedIn = !!participant.checkedInAt;
-                  const endTime = new Date(event.endTime);
-                  const closeMins = event.checkinCloseMinsAfter ?? 60;
-                  const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000);
-                  const now = new Date();
-                  const isAbsent = !isCheckedIn && now > closeTime;
+                  const isCheckedIn = !!participant.checkedInAt
+                  const endTime = new Date(event.endTime)
+                  const closeMins = event.checkinCloseMinsAfter ?? 60
+                  const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+                  const now = new Date()
+                  const isAbsent = !isCheckedIn && now > closeTime
 
                   return (
                     <div
@@ -368,12 +392,15 @@ export function EventDetailView({
                       className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition"
                       onClick={() => {
                         if (participant.username) {
-                          onNavigateMate(participant.username);
+                          onNavigateMate(participant.username)
                         }
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        <AvatarCircle name={participant.name} src={participant.avatarUrl} />
+                        <AvatarCircle
+                          name={participant.name}
+                          src={participant.avatarUrl}
+                        />
                         <div>
                           <p className="text-sm font-semibold text-slate-900">{participant.name}</p>
                         </div>
@@ -388,7 +415,7 @@ export function EventDetailView({
                         )}
                       </div>
                     </div>
-                  );
+                  )
                 })
               ) : (
                 <p className="pl-14 text-xs text-slate-300">No one's joined yet. Be the first!</p>
@@ -401,7 +428,11 @@ export function EventDetailView({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                    <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                    <MessageCircle
+                      className="h-4 w-4"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
                   </span>
                   <span>About this event</span>
                 </div>
@@ -427,14 +458,12 @@ export function EventDetailView({
       <AlertDialog
         open={showDeleteConfirm}
         onClose={() => {
-          if (isDeleting) return;
-          onCloseDeleteConfirm();
+          if (isDeleting) return
+          onCloseDeleteConfirm()
         }}
         title={hasOtherParticipants ? "Can't delete this event" : 'Delete this event?'}
         description={
-          hasOtherParticipants
-            ? 'People have already joined. Edit the event instead.'
-            : "This can't be undone."
+          hasOtherParticipants ? 'People have already joined. Edit the event instead.' : "This can't be undone."
         }
         type={hasOtherParticipants ? 'warning' : 'error'}
         actionLabel={hasOtherParticipants ? 'Close' : isDeleting ? 'Deleting...' : 'Delete event'}
@@ -443,7 +472,11 @@ export function EventDetailView({
         onAction={hasOtherParticipants ? undefined : onDelete}
       />
 
-      <LoginPromptSheet open={showLoginPrompt} onClose={onCloseLoginPrompt} onSignup={onSignup} />
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={onCloseLoginPrompt}
+        onSignup={onSignup}
+      />
 
       <AlertDialog
         open={alertDialog.open}
@@ -453,12 +486,15 @@ export function EventDetailView({
         type={alertDialog.type}
       />
 
-      <ProfileRequiredSheet open={showProfileRequired} onClose={onCloseProfileRequired} />
+      <ProfileRequiredSheet
+        open={showProfileRequired}
+        onClose={onCloseProfileRequired}
+      />
     </div>
-  );
+  )
 }
 
-function AvatarCircle({ name, src }: { name: string; src?: string; }) {
+function AvatarCircle({ name, src }: { name: string; src?: string }) {
   return (
     <div
       className={clsx(
@@ -468,61 +504,65 @@ function AvatarCircle({ name, src }: { name: string; src?: string; }) {
       style={
         src
           ? {
-            backgroundImage: `url(${src})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }
+              backgroundImage: `url(${src})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            }
           : undefined
       }
     >
       {!src && name.charAt(0).toUpperCase()}
     </div>
-  );
+  )
 }
 
-function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: React.ReactNode; }) {
+function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 text-sm font-medium text-slate-700">
       <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-        <Icon className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+        <Icon
+          className="h-4 w-4"
+          strokeWidth={2}
+          aria-hidden="true"
+        />
       </span>
       <span>{label}</span>
     </div>
-  );
+  )
 }
 
 function formatEventSchedule(start: Date | string, end: Date | string) {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
+  const startDate = new Date(start)
+  const endDate = new Date(end)
 
   const dateLabel = startDate.toLocaleDateString('en-AU', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-  });
+  })
 
   const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-  });
+  })
   const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-  });
+  })
 
-  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? '';
-  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? '';
-  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '');
-  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '');
+  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
+  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
 
   const timeLabel =
     startSuffix && startSuffix === endSuffix
       ? `${startCore}–${endCore} ${endSuffix}`
-      : `${startWithSuffix}–${endWithSuffix}`;
+      : `${startWithSuffix}–${endWithSuffix}`
 
-  return `${dateLabel} · ${timeLabel}`;
+  return `${dateLabel} · ${timeLabel}`
 }
 
 function formatDateTimeLabel(value: Date | string) {
@@ -533,56 +573,52 @@ function formatDateTimeLabel(value: Date | string) {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-  });
+  })
 }
 
 type JoinBarProps = {
-  isJoined: boolean;
-  event: PlayerEvent;
-  onJoin: () => void;
-  onCheckIn: () => void;
-  isCheckingIn: boolean;
-  isJoinSubmitting: boolean;
-  hasCheckedIn: boolean;
-};
+  isJoined: boolean
+  event: PlayerEvent
+  onJoin: () => void
+  onCheckIn: () => void
+  isCheckingIn: boolean
+  isJoinSubmitting: boolean
+  hasCheckedIn: boolean
+}
 
-function JoinBar({
-  isJoined,
-  event,
-  onJoin,
-  onCheckIn,
-  isCheckingIn,
-  isJoinSubmitting,
-  hasCheckedIn,
-}: JoinBarProps) {
-  const isFull = event.attendeeCount >= event.maxAttendees;
-  const now = new Date();
-  const startTime = new Date(event.startTime);
-  const endTime = new Date(event.endTime);
+function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmitting, hasCheckedIn }: JoinBarProps) {
+  const isFull = event.attendeeCount >= event.maxAttendees
+  const now = new Date()
+  const startTime = new Date(event.startTime)
+  const endTime = new Date(event.endTime)
 
-  const openMins = event.checkinOpenMinsBefore ?? 15;
-  const closeMins = event.checkinCloseMinsAfter ?? 5;
+  const openMins = event.checkinOpenMinsBefore ?? 15
+  const closeMins = event.checkinCloseMinsAfter ?? 5
 
-  const openTime = new Date(startTime.getTime() - openMins * 60 * 1000);
-  const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000);
-  const isCheckInOpen = now >= openTime && now <= closeTime;
+  const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
+  const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000)
+  const isCheckInOpen = now >= openTime && now <= closeTime
 
   const formatTime = (value: Date) => {
     const dateLabel = value.toLocaleDateString('en-AU', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-    });
+    })
     const timeLabel = value.toLocaleTimeString('en-AU', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-    });
-    return `${dateLabel} · ${timeLabel}`;
-  };
+    })
+    return `${dateLabel} · ${timeLabel}`
+  }
 
   let mainButton = (
-    <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white">
+    <Button
+      onClick={onJoin}
+      disabled={isJoinSubmitting}
+      className="bg-blue-600 text-white"
+    >
       {isJoinSubmitting ? (
         <span className="flex items-center justify-center gap-2">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
@@ -592,21 +628,28 @@ function JoinBar({
         'Hop in'
       )}
     </Button>
-  );
-  let secondaryButton: React.ReactElement | null = null;
+  )
+  let secondaryButton: React.ReactElement | null = null
 
-  let statusText: React.ReactNode = null;
+  let statusText: React.ReactNode = null
 
   if (hasCheckedIn) {
     mainButton = (
-      <Button disabled className="bg-emerald-600 text-white opacity-100">
+      <Button
+        disabled
+        className="bg-emerald-600 text-white opacity-100"
+      >
         Check-in completed ✓
       </Button>
-    );
+    )
   } else if (isJoined) {
     if (isCheckInOpen) {
       mainButton = (
-        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
@@ -616,7 +659,7 @@ function JoinBar({
             'Leave'
           )}
         </Button>
-      );
+      )
       secondaryButton = (
         <Button
           onClick={onCheckIn}
@@ -627,20 +670,27 @@ function JoinBar({
             'Locating...'
           ) : (
             <span className="flex items-center justify-center gap-2">
-              <LandPlot className="h-5 w-5" strokeWidth={2} />
+              <LandPlot
+                className="h-5 w-5"
+                strokeWidth={2}
+              />
               Tap to check in
             </span>
           )}
         </Button>
-      );
+      )
       statusText = (
         <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
           Check in before {formatTime(closeTime)} so everyone knows you've made it.
         </p>
-      );
+      )
     } else if (now > closeTime) {
       mainButton = (
-        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
@@ -650,7 +700,7 @@ function JoinBar({
             'Leave'
           )}
         </Button>
-      );
+      )
       secondaryButton = (
         <Button
           disabled
@@ -658,10 +708,14 @@ function JoinBar({
         >
           Absent
         </Button>
-      );
+      )
     } else {
       mainButton = (
-        <Button onClick={onJoin} disabled={isJoinSubmitting} className="bg-blue-600 text-white opacity-100">
+        <Button
+          onClick={onJoin}
+          disabled={isJoinSubmitting}
+          className="bg-blue-600 text-white opacity-100"
+        >
           {isJoinSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
@@ -671,7 +725,7 @@ function JoinBar({
             'Leave'
           )}
         </Button>
-      );
+      )
       secondaryButton = (
         <Button
           disabled
@@ -681,19 +735,23 @@ function JoinBar({
             <span className="text-sm font-semibold">Tap to check in</span>
           </span>
         </Button>
-      );
+      )
       statusText = (
         <p className="text-center text-xs font-medium text-slate-500">
-          Check-in opens {formatTime(openTime)}.<br/>Let the host know you're there.
+          Check-in opens {formatTime(openTime)}.<br />
+          Let the host know you're there.
         </p>
-      );
+      )
     }
   } else if (isFull) {
     mainButton = (
-      <Button disabled className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80">
+      <Button
+        disabled
+        className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80"
+      >
         Fully booked
       </Button>
-    );
+    )
   }
 
   return (
@@ -702,61 +760,61 @@ function JoinBar({
         {statusText}
         {secondaryButton ? (
           <div className="grid grid-cols-2 gap-3">
-            {React.cloneElement(mainButton as React.ReactElement<{ className?: string; }>, {
+            {React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
               className: clsx(
                 'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-                (mainButton as React.ReactElement<{ className?: string; }>).props.className
+                (mainButton as React.ReactElement<{ className?: string }>).props.className
               ),
             })}
-            {React.cloneElement(secondaryButton as React.ReactElement<{ className?: string; }>, {
+            {React.cloneElement(secondaryButton as React.ReactElement<{ className?: string }>, {
               className: clsx(
                 'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-                (secondaryButton as React.ReactElement<{ className?: string; }>).props.className
+                (secondaryButton as React.ReactElement<{ className?: string }>).props.className
               ),
             })}
           </div>
         ) : (
-          React.cloneElement(mainButton as React.ReactElement<{ className?: string; }>, {
+          React.cloneElement(mainButton as React.ReactElement<{ className?: string }>, {
             className: clsx(
               'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-              (mainButton as React.ReactElement<{ className?: string; }>).props.className
+              (mainButton as React.ReactElement<{ className?: string }>).props.className
             ),
           })
         )}
       </div>
     </div>
-  );
+  )
 }
 
-function ImageCarousel({ images }: { images: string[]; }) {
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+function ImageCarousel({ images }: { images: string[] }) {
+  const [currentIndex, setCurrentIndex] = React.useState(0)
+  const containerRef = React.useRef<HTMLDivElement>(null)
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    const scrollLeft = event.currentTarget.scrollLeft;
-    const width = event.currentTarget.clientWidth;
+    const scrollLeft = event.currentTarget.scrollLeft
+    const width = event.currentTarget.clientWidth
     if (width > 0) {
-      const newIndex = Math.round(scrollLeft / width);
-      setCurrentIndex(newIndex);
+      const newIndex = Math.round(scrollLeft / width)
+      setCurrentIndex(newIndex)
     }
-  };
+  }
 
   React.useEffect(() => {
-    if (images.length <= 1) return;
+    if (images.length <= 1) return
 
     const timer = setInterval(() => {
       if (containerRef.current) {
-        const nextIndex = (currentIndex + 1) % images.length;
-        const width = containerRef.current.clientWidth;
+        const nextIndex = (currentIndex + 1) % images.length
+        const width = containerRef.current.clientWidth
         containerRef.current.scrollTo({
           left: nextIndex * width,
           behavior: 'smooth',
-        });
+        })
       }
-    }, 5000);
+    }, 5000)
 
-    return () => clearInterval(timer);
-  }, [currentIndex, images.length]);
+    return () => clearInterval(timer)
+  }, [currentIndex, images.length])
 
   if (images.length === 0) {
     return (
@@ -766,7 +824,7 @@ function ImageCarousel({ images }: { images: string[]; }) {
           backgroundImage: 'linear-gradient(135deg, #DBEAFE, #2563EB)',
         }}
       />
-    );
+    )
   }
 
   return (
@@ -777,8 +835,15 @@ function ImageCarousel({ images }: { images: string[]; }) {
         onScroll={handleScroll}
       >
         {images.map((source, index) => (
-          <div key={index} className="relative h-full min-w-full snap-center overflow-hidden bg-slate-100">
-            <img src={source} alt={`Event photo ${index + 1}`} className="h-full w-full object-cover object-center" />
+          <div
+            key={index}
+            className="relative h-full min-w-full snap-center overflow-hidden bg-slate-100"
+          >
+            <img
+              src={source}
+              alt={`Event photo ${index + 1}`}
+              className="h-full w-full object-cover object-center"
+            />
           </div>
         ))}
       </div>
@@ -789,5 +854,5 @@ function ImageCarousel({ images }: { images: string[]; }) {
         </div>
       )}
     </div>
-  );
+  )
 }

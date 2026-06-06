@@ -12,12 +12,7 @@ type Props = {
   showActions?: boolean
 }
 
-export default function Header({
-  sticky = true,
-  showBorder = true,
-  className,
-  showActions = true,
-}: Props) {
+export default function Header({ sticky = true, showBorder = true, className, showActions = true }: Props) {
   const location = useLocation()
   const [messagesActive, setMessagesActive] = useState(false)
   const notificationsActive = location.pathname.startsWith('/notifications')
@@ -33,7 +28,10 @@ export default function Header({
     <header className={headerClass}>
       <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2">
+          <Link
+            to="/"
+            className="flex items-center gap-2"
+          >
             <img
               className="h-10 w-auto flex-shrink-0"
               src={logoUrl}
@@ -46,10 +44,16 @@ export default function Header({
           </Link>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1 text-sm font-medium text-[#051333]">
-              <MapPin className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <MapPin
+                className="h-4 w-4 text-blue-600"
+                aria-hidden="true"
+              />
               Brisbane
             </div>
-            <div className="text-xs text-slate-500" style={{ whiteSpace: 'pre-line' }}>
+            <div
+              className="text-xs text-slate-500"
+              style={{ whiteSpace: 'pre-line' }}
+            >
               {'Play together.\nFind your mates.'}
             </div>
           </div>
@@ -68,7 +72,10 @@ export default function Header({
             >
               <MessageCircle className="h-5 w-5" />
             </button>
-            <Link to="/notifications" className="relative">
+            <Link
+              to="/notifications"
+              className="relative"
+            >
               <span className="sr-only">Notifications</span>
               <div
                 className={clsx(

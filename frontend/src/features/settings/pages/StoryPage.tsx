@@ -32,16 +32,14 @@ export function StoryPage() {
               </div>
               <div className="pt-2 text-slate-600">
                 <p>
-                  In busy city life, it's hard to find people with matching time, location, and skill
-                  level. We built HopCourts to remove that friction and help everyone find their
-                  own sports circle.
+                  In busy city life, it's hard to find people with matching time, location, and skill level. We built
+                  HopCourts to remove that friction and help everyone find their own sports circle.
                 </p>
               </div>
               <div className="pt-2 text-slate-600">
                 <p>
-                  We believe sports are not only about fitness, but also one of the purest ways to
-                  build real human connection. Every high-five and every interaction creates momentum
-                  and confidence.
+                  We believe sports are not only about fitness, but also one of the purest ways to build real human
+                  connection. Every high-five and every interaction creates momentum and confidence.
                 </p>
               </div>
               <div className="pt-2 text-slate-600">

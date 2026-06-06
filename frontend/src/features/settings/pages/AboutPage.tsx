@@ -14,7 +14,12 @@ export function AboutPage() {
         contentClassName="max-w-5xl px-4"
         showBack
         title={<span className="text-lg font-semibold text-slate-900">About Us</span>}
-        rightContent={<span className="h-10 w-10" aria-hidden="true" />}
+        rightContent={
+          <span
+            className="h-10 w-10"
+            aria-hidden="true"
+          />
+        }
         borderBottom
       />
 
@@ -35,8 +40,7 @@ export function AboutPage() {
               HopCourts connects people through real-world sports.
               <br />
               <br />
-              The best part of sport isn’t just the workout — it’s the moments shared with people
-              who love the game.
+              The best part of sport isn’t just the workout — it’s the moments shared with people who love the game.
               <br />
               <br />
               Right here in your city.
@@ -46,16 +50,12 @@ export function AboutPage() {
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <IdCard className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">Your Sports Card</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Build your profile and track your sports journey.
-                </p>
+                <p className="mt-2 text-sm text-slate-600">Build your profile and track your sports journey.</p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <UsersRound className="h-5 w-5 text-emerald-600" />
                 <h3 className="mt-3 text-base font-semibold text-slate-900">Players</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Meet players who share your interests and energy.
-                </p>
+                <p className="mt-2 text-sm text-slate-600">Meet players who share your interests and energy.</p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />

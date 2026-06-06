@@ -21,11 +21,8 @@ export function MateProfilePage() {
   const { items: vibesCatalog } = useVibes('en')
   const { items: citiesDict } = useCities(undefined, 'en')
 
-
   const asStringArray = (items?: any[]) =>
-    Array.isArray(items)
-      ? items.map((i) => (typeof i === 'string' ? i : String(i?.label || i?.key || i)))
-      : []
+    Array.isArray(items) ? items.map((i) => (typeof i === 'string' ? i : String(i?.label || i?.key || i))) : []
 
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -110,9 +107,9 @@ export function MateProfilePage() {
         const res = (await api.profiles.getByUsername(username)) as ApiResponse<any>
         const data = res?.data ?? {}
         const user = data.user || data // Handle both nested and flat structures
-        const sportsResp = Array.isArray(data.sports) ? data.sports : (Array.isArray(user.sports) ? user.sports : [])
+        const sportsResp = Array.isArray(data.sports) ? data.sports : Array.isArray(user.sports) ? user.sports : []
         const { favorites, trying } = normalizeSports(sportsResp)
-        
+
         const vibeKey = user.vibe_key || user.vibe || data.vibe || mate?.vibe
         const unionVibe = vibeKeyToUnion(vibeKey)
 
@@ -129,12 +126,7 @@ export function MateProfilePage() {
           friendCount: user.teammate_count || user.friend_count || 0,
           joinedCount: user.joined_count || 0,
           hostedCount: user.hosted_count || 0,
-          avatar:
-            user.avatar_url ||
-            user.avatar ||
-            data.avatar ||
-            mate?.avatar ||
-            '',
+          avatar: user.avatar_url || user.avatar || data.avatar || mate?.avatar || '',
         })
       } catch (err: any) {
         console.error('load mate failed', err)
@@ -142,7 +134,7 @@ export function MateProfilePage() {
         if (status === 404) {
           setError(`No one goes by that username.`)
         } else {
-          setError('Couldn\'t load this profile. Try again.')
+          setError("Couldn't load this profile. Try again.")
         }
         if (mate) {
           setProfileData({
@@ -155,9 +147,7 @@ export function MateProfilePage() {
             location: mate.location || '',
             countryKey: (mate as any).countryKey || '',
             blurb: mate.blurb || '',
-            avatar:
-              mate.avatar ||
-              '',
+            avatar: mate.avatar || '',
           })
         }
       } finally {
@@ -170,7 +160,8 @@ export function MateProfilePage() {
 
   const profile: MateCardProps | null = useMemo(() => {
     if (!profileData && !mate) return null
-    const base: MateCardProps = (profileData ??
+    const base: MateCardProps =
+      profileData ??
       ({
         name: mate?.name ?? username ?? 'New mate',
         username: mate?.name ?? username ?? 'New mate',
@@ -184,7 +175,7 @@ export function MateProfilePage() {
         joinedCount: 0,
         hostedCount: 0,
         avatar: mate?.avatar ?? '',
-      } as MateCardProps))
+      } as MateCardProps)
 
     const vibeUnion = vibeKeyToUnion(base.vibe as unknown as string) as MateCardProps['vibe']
 
@@ -219,7 +210,7 @@ export function MateProfilePage() {
           limit: 10,
           offset: 0,
         })
-        const filtered = response.success ? response.data?.data ?? [] : []
+        const filtered = response.success ? (response.data?.data ?? []) : []
         if (!cancelled) {
           setHostedUpcomingEvents(filtered)
         }
@@ -249,7 +240,7 @@ export function MateProfilePage() {
               type="button"
               aria-label="Go back"
               onClick={() => navigate(-1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 "
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -257,11 +248,17 @@ export function MateProfilePage() {
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-[68%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
             <span className="block truncate text-2xl font-bold text-slate-900">{headerName}</span>
           </div>
-          <div className="w-10" aria-hidden="true" />
+          <div
+            className="w-10"
+            aria-hidden="true"
+          />
         </div>
 
         {!error && loading && !profileData ? (
-          <PageLoading fullScreen={false} className="py-20" />
+          <PageLoading
+            fullScreen={false}
+            className="py-20"
+          />
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="mb-4 rounded-full bg-slate-100 p-4">
@@ -273,7 +270,11 @@ export function MateProfilePage() {
         ) : (
           profile && (
             <>
-              <HeroCard profile={profile} showShare={false} actionDisabled={loading} />
+              <HeroCard
+                profile={profile}
+                showShare={false}
+                actionDisabled={loading}
+              />
               <div className="mt-4 space-y-3 px-3">
                 <h3 className="px-1 text-lg font-semibold text-slate-700">Hosting soon</h3>
                 {isHostedEventsLoading ? (
@@ -300,8 +301,6 @@ export function MateProfilePage() {
             </>
           )
         )}
-
-
       </div>
     </div>
   )

@@ -100,9 +100,7 @@ export function useCreateEventForm() {
   const [costMode, setCostMode] = useState<'total' | 'person'>('total')
   const [isDraftLoading, setIsDraftLoading] = useState(false)
   const [editingEventStatus, setEditingEventStatus] = useState<'draft' | 'published' | null>(null)
-  const [editingEventVisibility, setEditingEventVisibility] = useState<'public' | 'private' | null>(
-    null
-  )
+  const [editingEventVisibility, setEditingEventVisibility] = useState<'public' | 'private' | null>(null)
   const [highlightField, setHighlightField] = useState<RequiredFieldKey | null>(null)
   const [fieldHint, setFieldHint] = useState<{
     field: RequiredFieldKey
@@ -181,17 +179,11 @@ export function useCreateEventForm() {
             capacity: String(draft.maxAttendees || 3),
             minPeople: String(draft.minPeople || 3),
             isFree: draft.isFree ?? true,
-            price: (
-              draft.priceMode === 'person'
-                ? draft.pricePerPerson
-                : (draft.priceTotal ?? draft.pricePerPerson)
-            )
+            price: (draft.priceMode === 'person' ? draft.pricePerPerson : (draft.priceTotal ?? draft.pricePerPerson))
               ? draft.priceMode === 'person'
                 ? normalizeTwdIntegerString(draft.pricePerPerson)
                 : draft.maxAttendees
-                  ? normalizeTwdIntegerString(
-                      draft.priceTotal ?? (draft.pricePerPerson ?? 0) * draft.maxAttendees
-                    )
+                  ? normalizeTwdIntegerString(draft.priceTotal ?? (draft.pricePerPerson ?? 0) * draft.maxAttendees)
                   : normalizeTwdIntegerString(draft.priceTotal ?? draft.pricePerPerson)
               : '',
             priceNote: (draft as any).priceNote || '',
@@ -264,9 +256,7 @@ export function useCreateEventForm() {
 
   const forwardGeocode = async (address: string) => {
     if (!MAPBOX_TOKEN || !address.trim()) return null
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-      address.trim()
-    )}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address.trim())}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
     try {
       const res = await fetch(url)
       const data = await res.json()
@@ -305,18 +295,16 @@ export function useCreateEventForm() {
   const canSubmit = useMemo(() => {
     return Boolean(
       form.title.trim() &&
-        form.sportKey.trim() &&
-        form.startTime &&
-        form.endTime &&
-        Number(form.capacity) > 0 &&
-        form.location.trim() &&
-        !minPeopleImmediateError
+      form.sportKey.trim() &&
+      form.startTime &&
+      form.endTime &&
+      Number(form.capacity) > 0 &&
+      form.location.trim() &&
+      !minPeopleImmediateError
     )
   }, [form, minPeopleImmediateError])
 
-  const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = event.target
     if (name === 'skillLevel') {
       setForm((prev) => ({ ...prev, skillLevel: value as SkillLevelKey }))
@@ -385,9 +373,7 @@ export function useCreateEventForm() {
     const filesToProcess = rawFiles.slice(0, remaining)
 
     try {
-      const processedFiles = await Promise.all(
-        filesToProcess.map((file: File) => convertFileToWebP(file))
-      )
+      const processedFiles = await Promise.all(filesToProcess.map((file: File) => convertFileToWebP(file)))
       const newPreviews = processedFiles.map((file) => URL.createObjectURL(file))
       setHeroPreviews((prev) => [...prev, ...newPreviews])
       setSelectedFiles((prev) => [...prev, ...processedFiles])
@@ -414,10 +400,7 @@ export function useCreateEventForm() {
     navigate('/signup')
   }
 
-  const handleSubmit = async (
-    event?: FormEvent<HTMLFormElement>,
-    status: 'draft' | 'published' = 'published'
-  ) => {
+  const handleSubmit = async (event?: FormEvent<HTMLFormElement>, status: 'draft' | 'published' = 'published') => {
     event?.preventDefault?.()
     if (isSubmitting) return
     setError(null)
@@ -544,9 +527,7 @@ export function useCreateEventForm() {
     try {
       let uploadedPhotoUrls: string[] = []
 
-      const newPhotoUrls = await Promise.all(
-        selectedFiles.map((file) => uploadService.uploadSessionPhoto(file))
-      )
+      const newPhotoUrls = await Promise.all(selectedFiles.map((file) => uploadService.uploadSessionPhoto(file)))
 
       const existingPhotoUrls = heroPreviews.filter((url) => url.startsWith('http'))
 
