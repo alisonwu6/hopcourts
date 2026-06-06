@@ -127,7 +127,7 @@ export function EventDetailView({
             onClick={onNavigateEvents}
             className="mt-8 inline-flex h-12 items-center justify-center rounded-full bg-blue-600 px-7 text-base font-semibold text-white shadow-sm transition hover:bg-blue-500"
           >
-            Back to Events
+            Back to events
           </button>
         </div>
       </div>
@@ -331,7 +331,7 @@ export function EventDetailView({
               {event.courtName && <InfoRow icon={LandPlot} label={`Court: ${event.courtName}`} />}
               <InfoRow icon={CircleDollarSign} label={feeLine2} />
               <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
+                <p className="text-xs font-semibold tracking-wide text-slate-500">Fee notes</p>
                 <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
               </div>
             </div>
@@ -391,7 +391,7 @@ export function EventDetailView({
                   );
                 })
               ) : (
-                <p className="pl-14 text-xs text-slate-300">No one has registered yet</p>
+                <p className="pl-14 text-xs text-slate-300">No one's joined yet.</p>
               )}
             </div>
 
@@ -403,7 +403,7 @@ export function EventDetailView({
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
                     <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
                   </span>
-                  <span>Event Description</span>
+                  <span>About this game</span>
                 </div>
               </div>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
@@ -430,14 +430,14 @@ export function EventDetailView({
           if (isDeleting) return;
           onCloseDeleteConfirm();
         }}
-        title={hasOtherParticipants ? 'Cannot Delete Event' : 'Delete this event?'}
+        title={hasOtherParticipants ? "Can't delete this event" : 'Delete this event?'}
         description={
           hasOtherParticipants
-            ? 'Participants have already joined, so this event cannot be deleted. Please edit the event instead.'
-            : 'Once deleted, event information cannot be recovered.'
+            ? 'People have already joined. Edit the event instead.'
+            : "This can't be undone."
         }
         type={hasOtherParticipants ? 'warning' : 'error'}
-        actionLabel={hasOtherParticipants ? 'Close' : isDeleting ? 'Deleting...' : 'Confirm Delete'}
+        actionLabel={hasOtherParticipants ? 'Close' : isDeleting ? 'Deleting...' : 'Delete event'}
         cancelLabel={hasOtherParticipants ? undefined : 'Cancel'}
         actionLeft={!hasOtherParticipants}
         onAction={hasOtherParticipants ? undefined : onDelete}
@@ -589,7 +589,7 @@ function JoinBar({
           Processing...
         </span>
       ) : (
-        'Join Event'
+        'Hop in'
       )}
     </Button>
   );
@@ -613,7 +613,7 @@ function JoinBar({
               Processing...
             </span>
           ) : (
-            'Leave Event'
+            'Leave'
           )}
         </Button>
       );
@@ -628,14 +628,14 @@ function JoinBar({
           ) : (
             <span className="flex items-center justify-center gap-2">
               <LandPlot className="h-5 w-5" strokeWidth={2} />
-              Tap to Check In
+              Tap to check in
             </span>
           )}
         </Button>
       );
       statusText = (
         <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          Please check in before {formatTime(closeTime)} so others know you have arrived.
+          Check in before {formatTime(closeTime)} so the crew knows you're there.
         </p>
       );
     } else if (now > closeTime) {
@@ -647,7 +647,7 @@ function JoinBar({
               Processing...
             </span>
           ) : (
-            'Leave Event'
+            'Leave'
           )}
         </Button>
       );
@@ -668,7 +668,7 @@ function JoinBar({
               Processing...
             </span>
           ) : (
-            'Leave Event'
+            'Leave'
           )}
         </Button>
       );
@@ -678,7 +678,7 @@ function JoinBar({
           className="!hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 cursor-not-allowed !bg-emerald-500 !text-white opacity-100 disabled:opacity-100"
         >
           <span className="flex flex-col items-center leading-tight">
-            <span className="text-sm font-semibold">Tap to Check In</span>
+            <span className="text-sm font-semibold">Tap to check in</span>
           </span>
         </Button>
       );

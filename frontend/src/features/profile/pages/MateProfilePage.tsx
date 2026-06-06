@@ -140,9 +140,9 @@ export function MateProfilePage() {
         console.error('load mate failed', err)
         const status = err?.status || err?.response?.status
         if (status === 404) {
-          setError(`Could not find teammate "${username}". Please check the username.`)
+          setError(`No one goes by that username.`)
         } else {
-          setError('Unable to load sports card.')
+          setError('Couldn\'t load this profile. Try again.')
         }
         if (mate) {
           setProfileData({
@@ -275,14 +275,14 @@ export function MateProfilePage() {
             <>
               <HeroCard profile={profile} showShare={false} actionDisabled={loading} />
               <div className="mt-4 space-y-3 px-3">
-                <h3 className="px-1 text-lg font-semibold text-slate-700">Upcoming Hosted Events</h3>
+                <h3 className="px-1 text-lg font-semibold text-slate-700">Hosting soon</h3>
                 {isHostedEventsLoading ? (
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                    Loading events...
+                    Loading...
                   </div>
                 ) : hostedUpcomingEvents.length === 0 ? (
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                    This user has no upcoming hosted events.
+                    Nothing coming up.
                   </div>
                 ) : (
                   <div className="space-y-4">

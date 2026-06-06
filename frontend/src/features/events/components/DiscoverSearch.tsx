@@ -39,7 +39,7 @@ export function DiscoverEventsHeader({
           <div className="flex flex-col items-start px-1">
             {!hasFilter ? (
               <>
-                <span className="text-sm font-bold text-slate-900">Start searching</span>
+                <span className="text-sm font-bold text-slate-900">Find a game</span>
                 <span className="text-xs font-medium text-slate-500">
                   {dateLabel} • {sportLabel}
                 </span>

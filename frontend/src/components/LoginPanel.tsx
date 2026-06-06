@@ -60,9 +60,9 @@ export function LoginPanel({ className, variant = 'card' }: Props) {
       <div className="text-center">
         <h1 className="text-2xl font-bold text-slate-900">Welcome to HopCourts</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Explore local sports events, meet new friends,
+          Find a game near you.
           <br />
-          and start your active lifestyle with ease.
+          Meet people worth playing with.
         </p>
       </div>
 

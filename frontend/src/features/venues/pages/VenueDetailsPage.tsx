@@ -101,7 +101,7 @@ export function VenueDetailsPage() {
     };
 
     if (!payload.contact_person || !payload.contact_title || !payload.contact_phone || !payload.contact_email) {
-      setClaimError('Please complete all required fields before submitting.');
+      setClaimError('Fill in all required fields to continue.');
       return;
     }
 
@@ -121,7 +121,7 @@ export function VenueDetailsPage() {
       open: true,
       type: 'success',
       title: 'Application submitted',
-      description: 'Your venue claim is now pending review. The admin team will verify the details you provided.',
+      description: "We've got your claim. The team will review it shortly.",
     });
   };
 
@@ -179,7 +179,7 @@ export function VenueDetailsPage() {
         open={isClaimSheetOpen}
         onClose={closeClaimSheet}
         title="Claim this venue"
-        description="Submit the same operator details the admin team will review when approving this venue."
+        description="Tell us who you are and we'll verify your connection to this venue."
         maxWidthClassName="max-w-xl"
         sheetClassName="max-h-[86vh]"
         footer={
@@ -207,7 +207,7 @@ export function VenueDetailsPage() {
         <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
           <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Venue</p>
           <p className="mt-2 text-base font-semibold text-slate-900">{venue.name_display}</p>
-          <p className="mt-1 text-sm text-slate-500">{venue.address_display || 'No address listed yet'}</p>
+          <p className="mt-1 text-sm text-slate-500">{venue.address_display || 'Address not listed'}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -218,7 +218,7 @@ export function VenueDetailsPage() {
               value={claimForm.contact_person}
               onChange={(event) => updateClaimField('contact_person', event.target.value)}
               className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              placeholder="Primary contact for verification"
+              placeholder="Your name"
               autoComplete="organization-title"
             />
           </label>
@@ -242,7 +242,7 @@ export function VenueDetailsPage() {
               value={claimForm.contact_phone}
               onChange={(event) => updateClaimField('contact_phone', event.target.value)}
               className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              placeholder="Best number for verification"
+              placeholder="Your phone number"
               autoComplete="tel"
             />
           </label>
@@ -255,19 +255,19 @@ export function VenueDetailsPage() {
             value={claimForm.contact_email}
             onChange={(event) => updateClaimField('contact_email', event.target.value)}
             className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-            placeholder={user?.email ? `Default: ${user.email}` : 'Email used for admin approval'}
+            placeholder="Email used for admin approval"
             autoComplete="email"
           />
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Supporting note</span>
+          <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Notes</span>
           <textarea
             value={claimForm.note || ''}
             onChange={(event) => updateClaimField('note', event.target.value)}
             rows={4}
             className="w-full resize-none rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-            placeholder="Explain your relationship to this venue or what the admin should verify."
+            placeholder="Anything that helps us verify your claim."
           />
         </label>
 

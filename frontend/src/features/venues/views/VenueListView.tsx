@@ -55,7 +55,7 @@ export function VenueListView({
             </div>
             <input
               type="text"
-              placeholder="Search by name or address..."
+              placeholder="Search venues by name or address"
               className="w-full h-[58px] rounded-full border border-slate-200 bg-white pl-12 pr-12 text-sm font-bold text-slate-900 shadow-sm outline-none focus:border-slate-300 focus:bg-slate-50/50 transition-all placeholder:text-slate-400 font-medium"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}

@@ -86,7 +86,7 @@ export function DiscoverEventsBody({
           </div>
           <p className="mt-1 text-[12px] text-slate-500">
             {suggestionType === 'interests'
-              ? 'Events you might like according to your preferred sports.'
+              ? 'Based on the sports you play.'
               : "Events from hosts you've joined before."}
           </p>
 
@@ -107,7 +107,7 @@ export function DiscoverEventsBody({
                 <div className="w-full rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
                   <p className="text-sm">
                     {suggestionType === 'interests'
-                      ? 'No events matching your interests found. Try adding more sports to your profile!'
+                      ? 'Nothing here yet. Add more sports to your profile.'
                       : "No events from hosts you've joined before yet."}
                   </p>
                 </div>
@@ -120,7 +120,7 @@ export function DiscoverEventsBody({
       )}
 
       <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">
-        {hasFilter ? 'Search Results' : 'Explore All Events'}
+        {hasFilter ? 'Search results' : "What's on"}
       </h2>
 
       {error && (
@@ -136,16 +136,16 @@ export function DiscoverEventsBody({
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
             <span className="text-5xl">😮</span>
           </div>
-          <h3 className="text-xl font-bold text-slate-900">Oops! No events?</h3>
+          <h3 className="text-xl font-bold text-slate-900">No games yet.</h3>
           <p className="mt-2 text-sm text-slate-500">
-            Create an event now, and let people with the same sports interests find you!
+            Be the one who starts it.
           </p>
           <button
             type="button"
             onClick={onCreateClick}
             className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-200 transition"
           >
-            Create Event
+            Create event
           </button>
         </div>
       ) : (

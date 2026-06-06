@@ -49,7 +49,7 @@ export function VenueDetailsView({
             </h1>
             <div className="mt-3 flex items-start gap-2 text-sm text-slate-500 font-medium">
               <MapPin className="h-4 w-4 text-slate-300 mt-0.5 shrink-0" />
-              <span>{venue.address_display || 'No address information'}</span>
+              <span>{venue.address_display || 'Address not listed'}</span>
             </div>
 
             {/* Status Badge */}
@@ -85,7 +85,7 @@ export function VenueDetailsView({
         {venue.amenities && venue.amenities.length > 0 && (
           <div className="mt-8">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
-              Amenities & Services
+              Amenities
             </h2>
             <div className="grid grid-cols-2 gap-3">
               {venue.amenities.map((item) => (
@@ -106,7 +106,7 @@ export function VenueDetailsView({
           <div className="mt-8">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                Operating Hours
+                Hours
               </h2>
               <Clock className="h-3 w-3 text-slate-300" />
             </div>
@@ -135,7 +135,7 @@ export function VenueDetailsView({
         {venue.spaces && venue.spaces.length > 0 && (
           <div className="mt-8">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">
-              Courts & Supported Sports
+              Courts & sports
             </h2>
             <div className="space-y-3">
               {venue.spaces.map((space, idx) => (
@@ -154,7 +154,7 @@ export function VenueDetailsView({
                         </span>
                       ))
                     ) : (
-                      <span className="text-slate-400 text-xs italic">No sports configured</span>
+                      <span className="text-slate-400 text-xs italic">None listed</span>
                     )}
                   </div>
                 </div>
@@ -174,7 +174,7 @@ export function VenueDetailsView({
             <div className="min-w-0 flex-1">
               <h3 className="text-base font-black tracking-tight text-slate-900">Own this venue?</h3>
               <p className="mt-1 text-sm leading-6 text-slate-500">
-                Verified venues get official checkmarks and portal access.
+                Claim it to get an official badge and manage your sessions.
               </p>
             </div>
           </div>
@@ -192,9 +192,9 @@ export function VenueDetailsView({
       {/* Events Sections */}
       <div className="px-6 py-8">
         <div className="flex items-end justify-between mb-6">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Sessions</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Upcoming games</h2>
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            {upcomingEvents.length} Sessions
+            {upcomingEvents.length} games
           </span>
         </div>
 
@@ -215,7 +215,7 @@ export function VenueDetailsView({
               <span className="text-2xl">⚡</span>
             </div>
             <p className="text-sm font-black text-slate-400 uppercase tracking-widest text-center">
-              No sessions found
+              Nothing scheduled yet
             </p>
             <p className="text-xs font-bold text-slate-300 uppercase tracking-widest mt-2">
               Check back soon
