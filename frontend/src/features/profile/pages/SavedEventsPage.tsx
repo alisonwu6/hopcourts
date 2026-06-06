@@ -23,7 +23,10 @@ export function SavedEventsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <ActionToolbar title="Saved Events" showBack={true} />
+      <ActionToolbar
+        title="Saved Events"
+        showBack={true}
+      />
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">

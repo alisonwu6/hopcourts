@@ -1,43 +1,43 @@
-import React from 'react';
-import { LayoutDashboard, Calendar, Building2 } from 'lucide-react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import clsx from 'clsx';
+import React from 'react'
+import { LayoutDashboard, Calendar, Building2 } from 'lucide-react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import clsx from 'clsx'
 
 interface VenueBottomNavProps {
-  venueId?: string | null;
+  venueId?: string | null
 }
 
 export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const params = useParams<{ venueId: string }>();
-  
+  const navigate = useNavigate()
+  const location = useLocation()
+  const params = useParams<{ venueId: string }>()
+
   // Use passed venueId (from Dashboard) or the one from URL params
-  const activeVenueId = propVenueId || params.venueId;
+  const activeVenueId = propVenueId || params.venueId
 
   const matchesPath = (segment: string) => {
-    const path = location.pathname.replace(/\/$/, ''); // Remove trailing slash for comparison
-    const target = segment.replace(/\/$/, '');
-    
+    const path = location.pathname.replace(/\/$/, '') // Remove trailing slash for comparison
+    const target = segment.replace(/\/$/, '')
+
     // Dashboard should only be active on the exact venue dashboard page
     if (target === '/admin') {
       // Matches /admin/{venueId} but NOT /admin/{venueId}/schedule
-      const dashboardPattern = /^\/admin\/[^\/]+$/;
-      return dashboardPattern.test(path) || path === '/admin';
+      const dashboardPattern = /^\/admin\/[^\/]+$/
+      return dashboardPattern.test(path) || path === '/admin'
     }
-    
+
     // Other pages (/schedule, /profile)
-    return path.endsWith(target);
-  };
+    return path.endsWith(target)
+  }
 
   const handleNav = (path: string, requiresVenue: boolean = false) => {
     if (requiresVenue) {
-        if (!activeVenueId) return; // Cannot navigate without venue context
-      navigate(`/admin/${activeVenueId}${path}`);
+      if (!activeVenueId) return // Cannot navigate without venue context
+      navigate(`/admin/${activeVenueId}${path}`)
     } else {
-        navigate(path);
+      navigate(path)
     }
-  };
+  }
 
   const navItems = [
     {
@@ -61,7 +61,7 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
       requiresVenue: true,
       matchSegments: ['/profile'],
     },
-  ];
+  ]
 
   return (
     <nav
@@ -70,8 +70,8 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
     >
       <div className="mx-auto flex items-center justify-center gap-16 px-4 py-3">
         {navItems.map(({ label, icon: Icon, path, requiresVenue, matchSegments }) => {
-          const isActive = matchSegments.some(m => matchesPath(m));
-          const isDisabled = requiresVenue && !activeVenueId;
+          const isActive = matchSegments.some((m) => matchesPath(m))
+          const isDisabled = requiresVenue && !activeVenueId
 
           return (
             <button
@@ -81,7 +81,7 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
               className={clsx(
                 'flex flex-col items-center gap-1 rounded-md px-2 text-[10px] font-medium transition-colors',
                 isActive ? 'text-[oklch(0.511_0.262_276.966)]' : 'text-slate-500',
-                isDisabled && 'opacity-50 cursor-not-allowed'
+                isDisabled && 'cursor-not-allowed opacity-50'
               )}
               aria-current={isActive ? 'page' : undefined}
             >
@@ -92,5 +92,5 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
         })}
       </div>
     </nav>
-  );
+  )
 }

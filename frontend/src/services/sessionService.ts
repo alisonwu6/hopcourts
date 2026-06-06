@@ -57,9 +57,9 @@ export const sessionService = {
       // We explicitly pass the token since it might not be in storage yet
       const response = await http<ApiResponse<any>>('GET', '/me/profile', {
         headers: { Authorization: `Bearer ${token}` },
-        tokenOverride: token
+        tokenOverride: token,
       })
-      
+
       const backendUser = response.data.user
       const userSports = response.data.sports || []
 
@@ -82,21 +82,21 @@ export const sessionService = {
         gender: backendUser.gender,
         onboarding_completed_at: backendUser.onboarding_completed_at || null,
         createdAt: new Date(backendUser.created_at),
-        updatedAt: new Date(backendUser.updated_at)
+        updatedAt: new Date(backendUser.updated_at),
       }
 
       return {
         token,
-        user
+        user,
       }
     } catch (error) {
       console.error('Bootstrap failed, falling back to basic auth:', error)
       const supabaseUser = await fetchSupabaseUser(token)
       if (!supabaseUser) throw new Error('Authentication failed')
-      
+
       return {
         token,
-        user: buildUser(supabaseUser)
+        user: buildUser(supabaseUser),
       }
     }
   },

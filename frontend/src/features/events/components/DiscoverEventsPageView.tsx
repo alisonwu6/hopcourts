@@ -124,9 +124,16 @@ export function DiscoverEventsPageView({
         onApply={onApplyFilters}
       />
 
-      <ProfileRequiredSheet open={showProfileRequiredSheet} onClose={onCloseProfileRequired} />
+      <ProfileRequiredSheet
+        open={showProfileRequiredSheet}
+        onClose={onCloseProfileRequired}
+      />
 
-      <LoginPromptSheet open={showLoginPrompt} onClose={onCloseLoginPrompt} onSignup={onSignup} />
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={onCloseLoginPrompt}
+        onSignup={onSignup}
+      />
     </div>
   )
 }

@@ -10,7 +10,7 @@ import type { PlayerEvent } from '@/types'
 
 import { api } from '@/api/client'
 import type { ApiResponse } from '@/api/types'
-import { useVibes, useSports, useCities } from '@/features/dictionaries/hooks'
+import { useVibeUtils, useSports, useCities } from '@/features/dictionaries/hooks'
 
 export function MateProfilePage() {
   const navigate = useNavigate()
@@ -18,14 +18,11 @@ export function MateProfilePage() {
   const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps> } }
   const mate = state?.mate
   const { items: sportsDict } = useSports('en')
-  const { items: vibesCatalog } = useVibes('en')
+  const { vibeKeyToUnion, labelForVibe } = useVibeUtils('en')
   const { items: citiesDict } = useCities(undefined, 'en')
 
-
   const asStringArray = (items?: any[]) =>
-    Array.isArray(items)
-      ? items.map((i) => (typeof i === 'string' ? i : String(i?.label || i?.key || i)))
-      : []
+    Array.isArray(items) ? items.map((i) => (typeof i === 'string' ? i : String(i?.label || i?.key || i))) : []
 
   const labelForSport = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -40,30 +37,6 @@ export function MateProfilePage() {
       return keyMap.get(lower) || labelMap.get(lower) || value
     }
   }, [sportsDict])
-
-  const vibeKeyToUnion = useMemo(() => {
-    const map = new Map<string, MateCardProps['vibe']>()
-    vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      map.set(v.key, union)
-      map.set(v.key.toLowerCase(), union)
-    })
-    return (key: string) => {
-      const hit = map.get(key) || map.get(key?.toLowerCase?.() || '')
-      if (hit) return hit
-      if (!key) return key as MateCardProps['vibe']
-      return (key.charAt(0) + key.slice(1).toLowerCase()) as MateCardProps['vibe']
-    }
-  }, [vibesCatalog])
-
-  const labelForVibe = useMemo(() => {
-    const map = new Map<string, string>()
-    vibesCatalog.forEach((v) => {
-      map.set(v.key, v.label)
-      map.set(v.key.toLowerCase(), v.label)
-    })
-    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
-  }, [vibesCatalog])
 
   const labelForCity = useMemo(() => {
     const keyMap = new Map<string, string>()
@@ -110,16 +83,16 @@ export function MateProfilePage() {
         const res = (await api.profiles.getByUsername(username)) as ApiResponse<any>
         const data = res?.data ?? {}
         const user = data.user || data // Handle both nested and flat structures
-        const sportsResp = Array.isArray(data.sports) ? data.sports : (Array.isArray(user.sports) ? user.sports : [])
+        const sportsResp = Array.isArray(data.sports) ? data.sports : Array.isArray(user.sports) ? user.sports : []
         const { favorites, trying } = normalizeSports(sportsResp)
-        
+
         const vibeKey = user.vibe_key || user.vibe || data.vibe || mate?.vibe
         const unionVibe = vibeKeyToUnion(vibeKey)
 
         setProfileData({
           name: user.display_name || user.username || mate?.name || username,
           username: user.username || mate?.name || username,
-          vibe: unionVibe || (mate?.vibe as MateCardProps['vibe']),
+          vibe: (unionVibe || mate?.vibe) as MateCardProps['vibe'],
           vibeLabel: labelForVibe(vibeKey) || labelForVibe(mate?.vibe as string) || '',
           sports: favorites.length ? favorites : asStringArray(mate?.sports) || [],
           trying: trying.length ? trying : asStringArray(mate?.trying) || [],
@@ -129,20 +102,15 @@ export function MateProfilePage() {
           friendCount: user.teammate_count || user.friend_count || 0,
           joinedCount: user.joined_count || 0,
           hostedCount: user.hosted_count || 0,
-          avatar:
-            user.avatar_url ||
-            user.avatar ||
-            data.avatar ||
-            mate?.avatar ||
-            '',
+          avatar: user.avatar_url || user.avatar || data.avatar || mate?.avatar || '',
         })
       } catch (err: any) {
         console.error('load mate failed', err)
         const status = err?.status || err?.response?.status
         if (status === 404) {
-          setError(`Could not find teammate "${username}". Please check the username.`)
+          setError(`No one goes by that username.`)
         } else {
-          setError('Unable to load sports card.')
+          setError("Couldn't load this profile. Try again.")
         }
         if (mate) {
           setProfileData({
@@ -155,9 +123,7 @@ export function MateProfilePage() {
             location: mate.location || '',
             countryKey: (mate as any).countryKey || '',
             blurb: mate.blurb || '',
-            avatar:
-              mate.avatar ||
-              '',
+            avatar: mate.avatar || '',
           })
         }
       } finally {
@@ -170,7 +136,8 @@ export function MateProfilePage() {
 
   const profile: MateCardProps | null = useMemo(() => {
     if (!profileData && !mate) return null
-    const base: MateCardProps = (profileData ??
+    const base: MateCardProps =
+      profileData ??
       ({
         name: mate?.name ?? username ?? 'New mate',
         username: mate?.name ?? username ?? 'New mate',
@@ -184,7 +151,7 @@ export function MateProfilePage() {
         joinedCount: 0,
         hostedCount: 0,
         avatar: mate?.avatar ?? '',
-      } as MateCardProps))
+      } as MateCardProps)
 
     const vibeUnion = vibeKeyToUnion(base.vibe as unknown as string) as MateCardProps['vibe']
 
@@ -219,7 +186,7 @@ export function MateProfilePage() {
           limit: 10,
           offset: 0,
         })
-        const filtered = response.success ? response.data?.data ?? [] : []
+        const filtered = response.success ? (response.data?.data ?? []) : []
         if (!cancelled) {
           setHostedUpcomingEvents(filtered)
         }
@@ -249,7 +216,7 @@ export function MateProfilePage() {
               type="button"
               aria-label="Go back"
               onClick={() => navigate(-1)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700 "
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -257,32 +224,42 @@ export function MateProfilePage() {
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-[68%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
             <span className="block truncate text-2xl font-bold text-slate-900">{headerName}</span>
           </div>
-          <div className="w-10" aria-hidden="true" />
+          <div
+            className="w-10"
+            aria-hidden="true"
+          />
         </div>
 
         {!error && loading && !profileData ? (
-          <PageLoading fullScreen={false} className="py-20" />
+          <PageLoading
+            fullScreen={false}
+            className="py-20"
+          />
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="mb-4 rounded-full bg-slate-100 p-4">
               <Frown className="h-8 w-8 text-slate-400" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold text-slate-900">Teammate not found</h3>
+            <h3 className="mb-2 text-lg font-semibold text-slate-900">Mate not found</h3>
             <p className="max-w-xs text-sm text-slate-500">{error}</p>
           </div>
         ) : (
           profile && (
             <>
-              <HeroCard profile={profile} showShare={false} actionDisabled={loading} />
+              <HeroCard
+                profile={profile}
+                showShare={false}
+                actionDisabled={loading}
+              />
               <div className="mt-4 space-y-3 px-3">
-                <h3 className="px-1 text-lg font-semibold text-slate-700">Upcoming Hosted Events</h3>
+                <h3 className="px-1 text-lg font-semibold text-slate-700">Hosting soon</h3>
                 {isHostedEventsLoading ? (
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                    Loading events...
+                    Loading...
                   </div>
                 ) : hostedUpcomingEvents.length === 0 ? (
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                    This user has no upcoming hosted events.
+                    Nothing coming up.
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -300,8 +277,6 @@ export function MateProfilePage() {
             </>
           )
         )}
-
-
       </div>
     </div>
   )

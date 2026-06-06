@@ -74,10 +74,7 @@ export function useDiscoverEventsData({
 
     const loadFeed = async () => {
       try {
-        const response = await eventsService.getEvents(
-          { feedType },
-          { force: true, ttlMs: 10_000 }
-        )
+        const response = await eventsService.getEvents({ feedType }, { force: true, ttlMs: 10_000 })
         if (!active || requestSeq !== feedRequestSeq.current) return
 
         if (response.success && response.data?.data) {
@@ -173,9 +170,7 @@ export function useDiscoverEventsData({
 
     if (selectedSports.includes('all')) return filtered
 
-    return filtered.filter((event) =>
-      selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase())
-    )
+    return filtered.filter((event) => selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase()))
   }, [events, selectedSports, dateRange, today])
 
   const suggestedEvents = useMemo(() => {
@@ -186,19 +181,14 @@ export function useDiscoverEventsData({
     if (suggestionType === 'interests') {
       const userSports = (user.sports || []).map((sport) => sport.toLowerCase())
       localMatched = events.filter(
-        (event) =>
-          userSports.includes(event.sport.toLowerCase()) && new Date(event.startTime) >= today
+        (event) => userSports.includes(event.sport.toLowerCase()) && new Date(event.startTime) >= today
       )
     } else {
       const following = user.following || []
-      localMatched = events.filter(
-        (event) => following.includes(event.host.id) && new Date(event.startTime) >= today
-      )
+      localMatched = events.filter((event) => following.includes(event.host.id) && new Date(event.startTime) >= today)
     }
 
-    const backendMatched = feedByType[feedType].items.filter(
-      (event) => new Date(event.startTime) >= today
-    )
+    const backendMatched = feedByType[feedType].items.filter((event) => new Date(event.startTime) >= today)
     return (backendMatched.length > 0 ? backendMatched : localMatched).slice(0, 6)
   }, [events, feedByType, isAuthenticated, suggestionType, today, user])
 

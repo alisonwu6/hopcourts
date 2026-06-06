@@ -44,12 +44,7 @@ export function ActionToolbar({
         className
       )}
     >
-      <div
-        className={clsx(
-          'mx-auto flex h-14 w-full items-center justify-between px-3',
-          contentClassName
-        )}
-      >
+      <div className={clsx('mx-auto flex h-14 w-full items-center justify-between px-3', contentClassName)}>
         {leftContent ? (
           <div className="flex min-w-0 items-center gap-2">{leftContent}</div>
         ) : showBack ? (
@@ -59,10 +54,17 @@ export function ActionToolbar({
             className="flex h-10 w-10 items-center justify-center text-slate-600 transition hover:text-slate-900"
             aria-label="Go back"
           >
-            <ArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+            <ArrowLeft
+              className="h-5 w-5"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
           </button>
         ) : (
-          <span className="h-10 w-10" aria-hidden="true" />
+          <span
+            className="h-10 w-10"
+            aria-hidden="true"
+          />
         )}
 
         <div className="flex min-w-0 flex-1 items-center justify-center px-2">
@@ -78,7 +80,11 @@ export function ActionToolbar({
               className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50/50 text-blue-600 transition hover:bg-blue-100/80 active:scale-90"
               aria-label="Share"
             >
-              <Share className="h-5 w-5" strokeWidth={2.5} aria-hidden="true" />
+              <Share
+                className="h-5 w-5"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              />
             </button>
           )}
           {showFavorite && onToggleFavorite && (
@@ -98,7 +104,10 @@ export function ActionToolbar({
           )}
           {/* Auto-balance: if back button exists (w-10) but no right content, add spacer */}
           {!rightContent && !showShare && !showFavorite && showBack && (
-            <span className="h-10 w-10" aria-hidden="true" />
+            <span
+              className="h-10 w-10"
+              aria-hidden="true"
+            />
           )}
         </div>
       </div>

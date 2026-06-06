@@ -65,11 +65,7 @@ export function useEventDetailLogic() {
     }
   }, [id, fetchEventById])
 
-  const showAlert = (
-    title: string,
-    description: string,
-    type: 'success' | 'error' | 'info' | 'warning' = 'info'
-  ) => {
+  const showAlert = (title: string, description: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     setAlertDialog({ open: true, title, description, type })
   }
 
@@ -105,8 +101,7 @@ export function useEventDetailLogic() {
 
   const isHost = event?.host?.id === currentUserId
   const isParticipant = event?.participants.some((p) => p.id === currentUserId)
-  const nonHostParticipantsCount =
-    event?.participants?.filter((p) => p.id !== event?.host?.id).length ?? 0
+  const nonHostParticipantsCount = event?.participants?.filter((p) => p.id !== event?.host?.id).length ?? 0
   const hasOtherParticipants = nonHostParticipantsCount > 0
 
   const isJoined = isAuthenticated ? ((event?.joined || isParticipant) ?? false) : false
@@ -220,11 +215,7 @@ export function useEventDetailLogic() {
               'warning'
             )
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
-            showAlert(
-              'Outside check-in window',
-              'You are currently outside the check-in time window.',
-              'warning'
-            )
+            showAlert('Outside check-in window', 'You are currently outside the check-in time window.', 'warning')
           } else {
             showAlert(
               'Check-in failed',

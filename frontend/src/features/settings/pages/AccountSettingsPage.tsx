@@ -40,10 +40,16 @@ export function AccountSettingsPage() {
           title="Account Information"
           icon={<UserRound className="h-5 w-5 text-slate-500" />}
         >
-          <Row label="Email" value={email} />
+          <Row
+            label="Email"
+            value={email}
+          />
         </Section>
 
-        <Section title="Danger Zone" icon={<Shield className="h-5 w-5 text-rose-400" />}>
+        <Section
+          title="Danger Zone"
+          icon={<Shield className="h-5 w-5 text-rose-400" />}
+        >
           <button
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
@@ -77,15 +83,7 @@ export function AccountSettingsPage() {
   )
 }
 
-function Section({
-  title,
-  children,
-  icon,
-}: {
-  title: string
-  children: React.ReactNode
-  icon?: React.ReactNode
-}) {
+function Section({ title, children, icon }: { title: string; children: React.ReactNode; icon?: React.ReactNode }) {
   return (
     <section className="space-y-3 rounded-2xl bg-white px-4 py-4 shadow-sm ring-1 ring-slate-200/70">
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">

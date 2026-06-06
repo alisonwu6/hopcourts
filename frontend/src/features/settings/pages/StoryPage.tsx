@@ -28,27 +28,25 @@ export function StoryPage() {
 
             <div className="mt-8 space-y-4 text-base sm:text-lg">
               <div className="pt-2 text-slate-700">
-                <p>Hi, we're SportsMatch, a platform that makes it easy to organize sports sessions.</p>
+                <p>Hi, we're HopCourts, a platform that makes it easy to organize sports events.</p>
               </div>
               <div className="pt-2 text-slate-600">
                 <p>
-                  In busy city life, it's hard to find people with matching time, location, and skill
-                  level. We built SportsMatch to remove that friction and help everyone find their
-                  own sports circle.
+                  In busy city life, it's hard to find people with matching time, location, and skill level. We built
+                  HopCourts to remove that friction and help everyone find their own sports circle.
                 </p>
               </div>
               <div className="pt-2 text-slate-600">
                 <p>
-                  We believe sports are not only about fitness, but also one of the purest ways to
-                  build real human connection. Every high-five and every interaction creates momentum
-                  and confidence.
+                  We believe sports are not only about fitness, but also one of the purest ways to build real human
+                  connection. Every high-five and every interaction creates momentum and confidence.
                 </p>
               </div>
               <div className="pt-2 text-slate-600">
-                <p>Thanks for being part of this journey. We're continuing to improve SportsMatch with your feedback.</p>
+                <p>Thanks for being part of this journey. We're continuing to improve HopCourts with your feedback.</p>
               </div>
             </div>
-            <p className="mt-8 text-right text-sm font-bold text-slate-500">SportsMatch Team 💛</p>
+            <p className="mt-8 text-right text-sm font-bold text-slate-500">HopCourts Team 💛</p>
           </div>
         </section>
       </main>

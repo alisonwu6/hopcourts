@@ -1,10 +1,5 @@
 import clsx from 'clsx'
-import type {
-  ChangeEvent,
-  InputHTMLAttributes,
-  ReactNode,
-  TextareaHTMLAttributes,
-} from 'react'
+import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
 import { useMemo, useId, useRef } from 'react'
 import { MapPin, ChevronRight, ImagePlus, X } from 'lucide-react'
 import { Button } from '@/components'
@@ -97,10 +92,18 @@ export function CreateEventPageView({
               className="flex h-10 w-10 items-center justify-center text-slate-500"
               aria-label="Close"
             >
-              <X className="h-5 w-5" strokeWidth={2} />
+              <X
+                className="h-5 w-5"
+                strokeWidth={2}
+              />
             </button>
           }
-          rightContent={<span className="h-10 w-10" aria-hidden="true" />}
+          rightContent={
+            <span
+              className="h-10 w-10"
+              aria-hidden="true"
+            />
+          }
         />
         {isDraftLoading && <PageLoading />}
         <form
@@ -115,7 +118,10 @@ export function CreateEventPageView({
           )}
 
           <div className="space-y-8">
-            <FieldSection title="Event Basics" description="">
+            <FieldSection
+              title="Event Basics"
+              description=""
+            >
               <div ref={setFieldRef('title')}>
                 <FloatingField
                   label="Event Title"
@@ -159,7 +165,10 @@ export function CreateEventPageView({
                 )}
               </div>
               <div className="flex gap-4">
-                <div className="flex-1" ref={setFieldRef('capacity')}>
+                <div
+                  className="flex-1"
+                  ref={setFieldRef('capacity')}
+                >
                   <FloatingField
                     label="Max Participants"
                     name="capacity"
@@ -181,7 +190,10 @@ export function CreateEventPageView({
                     </p>
                   )}
                 </div>
-                <div className="flex-1" ref={setFieldRef('minPeople')}>
+                <div
+                  className="flex-1"
+                  ref={setFieldRef('minPeople')}
+                >
                   <FloatingField
                     label="Min Participants"
                     name="minPeople"
@@ -206,11 +218,20 @@ export function CreateEventPageView({
                   ) : null}
                 </div>
               </div>
-              <SkillSelector selected={form.skillLevel} onSelect={handleSkillSelect} />
-              <GenderSelector selected={form.gender} onSelect={handleGenderSelect} />
+              <SkillSelector
+                selected={form.skillLevel}
+                onSelect={handleSkillSelect}
+              />
+              <GenderSelector
+                selected={form.gender}
+                onSelect={handleGenderSelect}
+              />
             </FieldSection>
 
-            <FieldSection title="Location and Time" description="">
+            <FieldSection
+              title="Location and Time"
+              description=""
+            >
               <div className="space-y-4">
                 <div ref={setFieldRef('location')}>
                   <button
@@ -249,7 +270,7 @@ export function CreateEventPageView({
                 <FloatingField
                   label="Venue Name (Optional)"
                   name="placeName"
-                  placeholder="If you know the venue name, enter it here."
+                  placeholder="Add the venue name if known."
                   value={form.placeName}
                   onChange={handleInputChange}
                 />
@@ -301,7 +322,10 @@ export function CreateEventPageView({
               </div>
             </FieldSection>
 
-            <FieldSection title="Pricing" description="Set event pricing details.">
+            <FieldSection
+              title="Pricing"
+              description="Set event pricing details."
+            >
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
                   <input
@@ -311,7 +335,10 @@ export function CreateEventPageView({
                     onChange={(e) => setForm((prev) => ({ ...prev, isFree: e.target.checked }))}
                     className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <label htmlFor="is-free-checkbox" className="flex flex-1 flex-col">
+                  <label
+                    htmlFor="is-free-checkbox"
+                    className="flex flex-1 flex-col"
+                  >
                     <span className="text-sm font-semibold text-slate-800">Free</span>
                   </label>
                 </div>
@@ -341,8 +368,8 @@ export function CreateEventPageView({
                       </div>
                       <span className="text-xs text-slate-400">
                         {costMode === 'total'
-                          ? 'Per-person fee is estimated from total participants.'
-                          : 'Set per-person fee directly.'}
+                          ? 'Per-person cost is estimated from total capacity.'
+                          : 'Set the per-person fee directly.'}
                       </span>
                     </div>
 
@@ -405,14 +432,15 @@ export function CreateEventPageView({
             <div className="py-1">
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 border-t border-dashed border-slate-300" />
-                <span className="text-xs font-semibold tracking-wide text-slate-400">
-                  Optional below
-                </span>
+                <span className="text-xs font-semibold tracking-wide text-slate-400">Optional below</span>
                 <div className="h-px flex-1 border-t border-dashed border-slate-300" />
               </div>
             </div>
 
-            <FieldSection title="Event Photos" description="Up to 3 photos">
+            <FieldSection
+              title="Event Photos"
+              description="Up to 3 photos"
+            >
               <CoverUploader
                 previews={heroPreviews}
                 onChange={handleImageChange}
@@ -442,9 +470,7 @@ export function CreateEventPageView({
           onDraft={() => handleSubmit(undefined, 'draft')}
           onPublish={() => handleSubmit(undefined, 'published')}
           showDraftButton={!editId || editingEventStatus === 'draft'}
-          isPublicPublishedEdit={
-            !!editId && editingEventStatus === 'published' && editingEventVisibility === 'public'
-          }
+          isPublicPublishedEdit={!!editId && editingEventStatus === 'published' && editingEventVisibility === 'public'}
         />
       </div>
       <LoginPromptSheet
@@ -490,9 +516,7 @@ export function CreateEventPageView({
                     onClick={() => handleSportSelect(sport.key, sport.label)}
                     className={clsx(
                       'w-full rounded-2xl border px-4 py-3 text-left text-base font-semibold shadow-sm transition',
-                      isActive
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-800'
+                      isActive ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-800'
                     )}
                   >
                     {sport.icon && <span className="mr-2 text-xl">{sport.icon}</span>}
@@ -513,7 +537,7 @@ export function CreateEventPageView({
         <SheetLayout
           onClose={() => setShowLocationSheet(false)}
           title="Select Location"
-          subtitle="Pin location based on your address"
+          subtitle="Drop a pin or enter your address"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
@@ -537,7 +561,7 @@ export function CreateEventPageView({
                   setSelectedAddress(e.target.value)
                   setAddressMode('manual')
                 }}
-                placeholder="Please enter an address"
+                placeholder="Enter address"
                 className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
               />
               {selectedAddress.trim() && (
@@ -607,11 +631,7 @@ function ActionBar({
           type="button"
           onClick={onPublish}
           disabled={isSubmitting}
-          className={clsx(
-            showDraftButton ? 'flex-1' : 'w-full',
-            'rounded-full px-6',
-            !canSubmit && 'opacity-50'
-          )}
+          className={clsx(showDraftButton ? 'flex-1' : 'w-full', 'rounded-full px-6', !canSubmit && 'opacity-50')}
         >
           {submittingStatus === 'published'
             ? isPublicPublishedEdit
@@ -626,15 +646,7 @@ function ActionBar({
   )
 }
 
-function FieldSection({
-  title,
-  description,
-  children,
-}: {
-  title: string
-  description: string
-  children: ReactNode
-}) {
+function FieldSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
     <div className="space-y-4 py-2">
       <div className="space-y-1">
@@ -646,13 +658,7 @@ function FieldSection({
   )
 }
 
-function SkillSelector({
-  selected,
-  onSelect,
-}: {
-  selected: SkillLevelKey
-  onSelect: (level: SkillLevelKey) => void
-}) {
+function SkillSelector({ selected, onSelect }: { selected: SkillLevelKey; onSelect: (level: SkillLevelKey) => void }) {
   return (
     <div className="space-y-2">
       <p className="text-xs font-semibold tracking-wide text-slate-500">Skill Level</p>
@@ -740,7 +746,11 @@ function CoverUploader({
             key={src + idx}
             className="relative aspect-square w-full overflow-hidden rounded-xl border border-slate-100 shadow-sm"
           >
-            <img src={src} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+            <img
+              src={src}
+              alt={`Preview ${idx + 1}`}
+              className="h-full w-full object-cover"
+            />
             {onRemove && (
               <button
                 type="button"
@@ -763,7 +773,13 @@ function CoverUploader({
               <ImagePlus className="h-4 w-4" />
             </div>
             <p className="group- text-[10px] font-semibold text-slate-500">Upload Photo</p>
-            <input type="file" accept="image/*" multiple className="hidden" onChange={onChange} />
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={onChange}
+            />
           </label>
         )}
       </div>
@@ -808,20 +824,14 @@ function FloatingField(props: FloatingFieldProps) {
     'peer block w-full appearance-none min-h-[3.5rem] rounded-[14px] border-2 bg-white px-4 pt-7 pb-3 text-base text-slate-900 transition focus:shadow-[0_0_0_1px_rgba(0,0,0,0.2)] focus:outline-none disabled:opacity-60',
     hasError ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-slate-900'
   )
-  const labelClasses =
-    'pointer-events-none absolute left-4 top-2 text-sm font-semibold text-slate-600 bg-white px-1'
+  const labelClasses = 'pointer-events-none absolute left-4 top-2 text-sm font-semibold text-slate-600 bg-white px-1'
   const infoText =
     typeof value === 'string' && characterLimit
       ? `${Math.max(characterLimit - value.length, 0)} characters available`
       : supportingText
 
   if (as === 'textarea') {
-    const {
-      as: _as,
-      className,
-      rows = 4,
-      ...rest
-    } = domProps as Extract<FloatingFieldProps, { as: 'textarea' }>
+    const { as: _as, className, rows = 4, ...rest } = domProps as Extract<FloatingFieldProps, { as: 'textarea' }>
     return (
       <div className="space-y-1">
         <div className="relative">
@@ -833,7 +843,10 @@ function FloatingField(props: FloatingFieldProps) {
             data-filled={hasValue}
             className={clsx(baseClasses, 'resize-none', className)}
           />
-          <label htmlFor={id} className={labelClasses}>
+          <label
+            htmlFor={id}
+            className={labelClasses}
+          >
             {label}
           </label>
         </div>
@@ -842,12 +855,7 @@ function FloatingField(props: FloatingFieldProps) {
     )
   }
 
-  const {
-    as: _as,
-    className,
-    type = 'text',
-    ...rest
-  } = domProps as Extract<FloatingFieldProps, { as?: 'input' }>
+  const { as: _as, className, type = 'text', ...rest } = domProps as Extract<FloatingFieldProps, { as?: 'input' }>
   return (
     <div className="space-y-1">
       <div className="relative">
@@ -859,7 +867,10 @@ function FloatingField(props: FloatingFieldProps) {
           data-filled={hasValue}
           className={clsx(baseClasses, className)}
         />
-        <label htmlFor={id} className={labelClasses}>
+        <label
+          htmlFor={id}
+          className={labelClasses}
+        >
           {label}
         </label>
       </div>
@@ -914,16 +925,14 @@ function DateTimeField({
       onClick={handleClick}
       className={clsx(
         'relative w-full rounded-[14px] border-2 bg-white px-4 pb-3 pt-7 transition focus-within:shadow-[0_0_0_1px_rgba(0,0,0,0.2)]',
-        hasError
-          ? 'border-red-500 focus-within:border-red-500'
-          : 'border-slate-300 focus-within:border-slate-900'
+        hasError ? 'border-red-500 focus-within:border-red-500' : 'border-slate-300 focus-within:border-slate-900'
       )}
     >
       <label className="pointer-events-none absolute left-4 top-2 bg-white px-1 text-sm font-semibold text-slate-600">
         {label}
       </label>
       <div className={clsx('min-h-[1.5rem] w-full text-base', !displayValue && 'text-slate-400')}>
-        {displayValue || 'Please select time'}
+        {displayValue || 'Select a time'}
       </div>
       <input
         ref={inputRef}

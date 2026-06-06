@@ -64,7 +64,14 @@ export function AdminVenueManagementPage() {
   const [reviewingClaim, setReviewingClaim] = useState<AdminVenueClaim | null>(null)
   const [rejectReason, setRejectReason] = useState('')
   const [editingVenue, setEditingVenue] = useState<AdminVenue | null>(null)
-  const [patchData, setPatchData] = useState({ name_display: '', address_display: '', operator_name: '', operator_email: '', operator_role: '', operator_phone: '' })
+  const [patchData, setPatchData] = useState({
+    name_display: '',
+    address_display: '',
+    operator_name: '',
+    operator_email: '',
+    operator_role: '',
+    operator_phone: '',
+  })
   const [suspendingVenue, setSuspendingVenue] = useState<AdminVenue | null>(null)
   const [suspendReason, setSuspendReason] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
@@ -118,7 +125,7 @@ export function AdminVenueManagementPage() {
   const handleReject = async () => {
     if (!reviewingClaim) return
     if (!rejectReason.trim()) {
-      alert('Please enter a rejection reason before proceeding.')
+      alert('Enter a rejection reason to proceed.')
       return
     }
 
@@ -156,7 +163,7 @@ export function AdminVenueManagementPage() {
   const handleSuspend = async () => {
     if (!suspendingVenue) return
     if (!suspendReason.trim()) {
-      alert('Please enter a suspension reason.')
+      alert('Enter a suspension reason to proceed.')
       return
     }
 
@@ -188,9 +195,7 @@ export function AdminVenueManagementPage() {
 
   const pendingCount = allClaims.filter((claim) => claim.status === 'pending').length
   const displayedClaims =
-    claimFilter === 'pending'
-      ? allClaims.filter((claim) => claim.status === 'pending')
-      : allClaims
+    claimFilter === 'pending' ? allClaims.filter((claim) => claim.status === 'pending') : allClaims
 
   const claimedCount = venues.filter((v) => v.status === 'claimed').length
   const suspendedCount = venues.filter((v) => v.status === 'suspended').length
@@ -211,7 +216,7 @@ export function AdminVenueManagementPage() {
                 <h1 className="text-xl font-bold text-slate-900">Venue Management</h1>
               </div>
               <p className="mt-0.5 text-xs text-slate-400">
-                Manage venue listings and verify operator claims on SportsMatch
+                Manage venue listings and verify operator claims on HopCourts
               </p>
             </div>
           </div>
@@ -219,18 +224,12 @@ export function AdminVenueManagementPage() {
           <div className="mt-5 flex gap-1">
             <button
               onClick={() => setTab('claims')}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                tab === 'claims'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-              }`}
+              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${tab === 'claims' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               Applications
               {pendingCount > 0 && (
                 <span
-                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                    tab === 'claims' ? 'bg-amber-400 text-slate-900' : 'bg-amber-100 text-amber-700'
-                  }`}
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${tab === 'claims' ? 'bg-amber-400 text-slate-900' : 'bg-amber-100 text-amber-700'}`}
                 >
                   {pendingCount}
                 </span>
@@ -239,11 +238,7 @@ export function AdminVenueManagementPage() {
 
             <button
               onClick={() => setTab('venues')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                tab === 'venues'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${tab === 'venues' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}`}
             >
               Venues
             </button>
@@ -257,9 +252,7 @@ export function AdminVenueManagementPage() {
             <div className="mb-5 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-sm font-semibold text-slate-700">Manager Applications</h2>
-                <p className="mt-0.5 text-xs text-slate-400">
-                  Review and approve venue operator applications
-                </p>
+                <p className="mt-0.5 text-xs text-slate-400">Review and approve venue operator applications</p>
               </div>
 
               <div className="flex gap-1 rounded-xl border border-slate-200 bg-white p-1">
@@ -267,11 +260,7 @@ export function AdminVenueManagementPage() {
                   <button
                     key={filter}
                     onClick={() => setClaimFilter(filter)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      claimFilter === filter
-                        ? 'bg-slate-900 text-white'
-                        : 'text-slate-500 hover:text-slate-900'
-                    }`}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${claimFilter === filter ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'}`}
                   >
                     {filter === 'pending' ? `Pending (${pendingCount})` : 'All History'}
                   </button>
@@ -290,7 +279,7 @@ export function AdminVenueManagementPage() {
             ) : (
               <div>
                 {/* Desktop Table */}
-                <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:block">
                   <table className="w-full text-left text-sm">
                     <thead>
                       <tr className="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
@@ -342,9 +331,7 @@ export function AdminVenueManagementPage() {
                                 </div>
                               )}
                             </td>
-                            <td className="px-5 py-4 text-xs text-slate-500">
-                              {fmtDateTime(claim.submitted_at)}
-                            </td>
+                            <td className="px-5 py-4 text-xs text-slate-500">{fmtDateTime(claim.submitted_at)}</td>
                             <td className="px-5 py-4 text-right">
                               {isPending ? (
                                 <button
@@ -374,9 +361,7 @@ export function AdminVenueManagementPage() {
                     return (
                       <div
                         key={claim.id}
-                        className={`rounded-2xl border bg-white shadow-sm ${
-                          isPending ? 'border-slate-200' : 'border-slate-100 opacity-75'
-                        }`}
+                        className={`rounded-2xl border bg-white shadow-sm ${isPending ? 'border-slate-200' : 'border-slate-100 opacity-75'}`}
                       >
                         <div className="flex items-start gap-5 p-5">
                           <div className="min-w-0 flex-1">
@@ -392,11 +377,15 @@ export function AdminVenueManagementPage() {
                             <p className="text-xs text-slate-500">{claim.venue_address}</p>
 
                             <div className="mt-3 space-y-1 text-xs text-slate-600">
-                              <div><span className="font-semibold text-slate-700">{claim.applicant_name}</span></div>
+                              <div>
+                                <span className="font-semibold text-slate-700">{claim.applicant_name}</span>
+                              </div>
                               <div className="text-slate-500">{claim.applicant_role}</div>
                               <div className="text-slate-500">{claim.applicant_email}</div>
                               <div className="text-slate-500">{claim.applicant_phone}</div>
-                              <div className="pt-1 text-[10px] text-slate-400">Submitted {fmtDateTime(claim.submitted_at)}</div>
+                              <div className="pt-1 text-[10px] text-slate-400">
+                                Submitted {fmtDateTime(claim.submitted_at)}
+                              </div>
                             </div>
 
                             {claim.note ? (
@@ -409,20 +398,12 @@ export function AdminVenueManagementPage() {
 
                             {!isPending && claim.reviewed_at && (
                               <div
-                                className={`mt-3 rounded-lg px-3 py-2 text-xs ${
-                                  claim.status === 'approved'
-                                    ? 'bg-emerald-50 text-emerald-700'
-                                    : claim.status === 'rejected'
-                                      ? 'bg-red-50 text-red-600'
-                                      : 'bg-slate-50 text-slate-500'
-                                }`}
+                                className={`mt-3 rounded-lg px-3 py-2 text-xs ${claim.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : claim.status === 'rejected' ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-500'}`}
                               >
                                 <span className="font-semibold">{CLAIM_STATUS_LABEL[claim.status]}</span>
                                 <span className="ml-2">{fmtDateTime(claim.reviewed_at)}</span>
                                 {claim.reviewed_by && <span className="ml-2 opacity-70">by {claim.reviewed_by}</span>}
-                                {claim.rejection_reason && (
-                                  <p className="mt-1 italic">"{claim.rejection_reason}"</p>
-                                )}
+                                {claim.rejection_reason && <p className="mt-1 italic">"{claim.rejection_reason}"</p>}
                               </div>
                             )}
 
@@ -456,27 +437,21 @@ export function AdminVenueManagementPage() {
           <div>
             <div className="mb-5 flex items-center justify-between gap-4">
               <div className="flex gap-1 rounded-xl border border-slate-200 bg-white p-1">
-                {([
-                  { key: 'claimed' as VenueTab, label: 'Claimed', count: claimedCount },
-                  { key: 'suspended' as VenueTab, label: 'Suspended', count: suspendedCount },
-                ] as { key: VenueTab; label: string; count: number }[]).map(({ key, label, count }) => (
+                {(
+                  [
+                    { key: 'claimed' as VenueTab, label: 'Claimed', count: claimedCount },
+                    { key: 'suspended' as VenueTab, label: 'Suspended', count: suspendedCount },
+                  ] as { key: VenueTab; label: string; count: number }[]
+                ).map(({ key, label, count }) => (
                   <button
                     key={key}
                     onClick={() => setVenueTab(key)}
-                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      venueTab === key
-                        ? 'bg-slate-900 text-white'
-                        : 'text-slate-500 hover:text-slate-900'
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${venueTab === key ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'}`}
                   >
                     {label}
                     {count > 0 && (
                       <span
-                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                          venueTab === key
-                            ? key === 'suspended' ? 'bg-red-400 text-white' : 'bg-emerald-400 text-slate-900'
-                            : key === 'suspended' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'
-                        }`}
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${venueTab === key ? (key === 'suspended' ? 'bg-red-400 text-white' : 'bg-emerald-400 text-slate-900') : key === 'suspended' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-700'}`}
                       >
                         {count}
                       </span>
@@ -486,7 +461,10 @@ export function AdminVenueManagementPage() {
               </div>
             </div>
 
-            <form onSubmit={handleSearch} className="mb-5 flex gap-2">
+            <form
+              onSubmit={handleSearch}
+              className="mb-5 flex gap-2"
+            >
               <input
                 type="text"
                 placeholder="Search by venue name or ID…"
@@ -549,10 +527,18 @@ export function AdminVenueManagementPage() {
                           <td className="px-5 py-4">
                             {venue.operator_name || venue.operator_email ? (
                               <>
-                                {venue.operator_name && <div className="font-medium text-slate-900">{venue.operator_name}</div>}
-                                {venue.operator_role && <div className="mt-0.5 text-xs text-slate-500">{venue.operator_role}</div>}
-                                {venue.operator_email && <div className="mt-1 text-[11px] text-slate-500">{venue.operator_email}</div>}
-                                {venue.operator_phone && <div className="text-[11px] text-slate-400">{venue.operator_phone}</div>}
+                                {venue.operator_name && (
+                                  <div className="font-medium text-slate-900">{venue.operator_name}</div>
+                                )}
+                                {venue.operator_role && (
+                                  <div className="mt-0.5 text-xs text-slate-500">{venue.operator_role}</div>
+                                )}
+                                {venue.operator_email && (
+                                  <div className="mt-1 text-[11px] text-slate-500">{venue.operator_email}</div>
+                                )}
+                                {venue.operator_phone && (
+                                  <div className="text-[11px] text-slate-400">{venue.operator_phone}</div>
+                                )}
                               </>
                             ) : (
                               <span className="text-xs text-slate-300">—</span>
@@ -607,14 +593,14 @@ export function AdminVenueManagementPage() {
                 </div>
 
                 {/* Mobile cards */}
-                <div className="grid gap-3 md:hidden px-4 py-3">
+                <div className="grid gap-3 px-4 py-3 md:hidden">
                   {displayedVenues.map((venue) => (
                     <div
                       key={venue.id}
                       className={`rounded-xl border border-slate-200 p-4 ${venue.status === 'suspended' ? 'bg-red-50/30' : 'bg-white'}`}
                     >
                       {/* Venue info */}
-                      <div className="mb-3 pb-3 border-b border-slate-100">
+                      <div className="mb-3 border-b border-slate-100 pb-3">
                         <div className="font-semibold text-slate-900">{venue.name_display}</div>
                         <div className="mt-0.5 font-mono text-[10px] text-slate-300">{venue.id}</div>
                         <div className="mt-0.5 text-xs text-slate-500">{venue.address_display}</div>
@@ -643,10 +629,18 @@ export function AdminVenueManagementPage() {
                           <div className="mt-1">
                             {venue.operator_name || venue.operator_email ? (
                               <>
-                                {venue.operator_name && <div className="font-medium text-slate-900 text-xs">{venue.operator_name}</div>}
-                                {venue.operator_role && <div className="text-[11px] text-slate-500">{venue.operator_role}</div>}
-                                {venue.operator_email && <div className="mt-0.5 text-[10px] text-slate-500">{venue.operator_email}</div>}
-                                {venue.operator_phone && <div className="text-[10px] text-slate-400">{venue.operator_phone}</div>}
+                                {venue.operator_name && (
+                                  <div className="text-xs font-medium text-slate-900">{venue.operator_name}</div>
+                                )}
+                                {venue.operator_role && (
+                                  <div className="text-[11px] text-slate-500">{venue.operator_role}</div>
+                                )}
+                                {venue.operator_email && (
+                                  <div className="mt-0.5 text-[10px] text-slate-500">{venue.operator_email}</div>
+                                )}
+                                {venue.operator_phone && (
+                                  <div className="text-[10px] text-slate-400">{venue.operator_phone}</div>
+                                )}
                               </>
                             ) : (
                               <span className="text-xs text-slate-300">—</span>
@@ -656,7 +650,7 @@ export function AdminVenueManagementPage() {
                       </div>
 
                       {/* Last activity */}
-                      <div className="mb-3 pb-3 border-b border-slate-100">
+                      <div className="mb-3 border-b border-slate-100 pb-3">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Last Activity</p>
                         <p className="mt-1 text-xs text-slate-500">
                           {venue.last_activity_at ? fmtDateTime(venue.last_activity_at) : '—'}
@@ -754,9 +748,7 @@ export function AdminVenueManagementPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-400">Submitted</span>
-                    <span className="font-medium text-slate-800">
-                      {fmtDateTime(reviewClaim.submitted_at)}
-                    </span>
+                    <span className="font-medium text-slate-800">{fmtDateTime(reviewClaim.submitted_at)}</span>
                   </div>
                 </div>
               </div>
@@ -766,9 +758,7 @@ export function AdminVenueManagementPage() {
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Applicant Note / Proof
                   </p>
-                  <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm italic text-slate-600">
-                    "{reviewClaim.note}"
-                  </p>
+                  <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm italic text-slate-600">"{reviewClaim.note}"</p>
                 </div>
               ) : (
                 <div className="rounded-xl border border-dashed border-slate-200 px-4 py-3 text-xs text-slate-400">
@@ -821,7 +811,10 @@ export function AdminVenueManagementPage() {
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 pb-4 pt-6">
               <h2 className="text-lg font-bold text-slate-900">Edit Venue Info</h2>
-              <button onClick={() => setEditingVenue(null)} className="text-slate-400 hover:text-slate-600">
+              <button
+                onClick={() => setEditingVenue(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
                 ✕
               </button>
             </div>
@@ -850,11 +843,13 @@ export function AdminVenueManagementPage() {
                 />
               </div>
 
-              <div className="pt-2 border-t border-slate-100">
+              <div className="border-t border-slate-100 pt-2">
                 <p className="mb-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Operator Details</p>
                 <div className="space-y-3">
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Name</label>
+                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Name
+                    </label>
                     <input
                       type="text"
                       value={patchData.operator_name}
@@ -863,7 +858,9 @@ export function AdminVenueManagementPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Role</label>
+                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Role
+                    </label>
                     <input
                       type="text"
                       value={patchData.operator_role}
@@ -872,7 +869,9 @@ export function AdminVenueManagementPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Email</label>
+                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Email
+                    </label>
                     <input
                       type="email"
                       value={patchData.operator_email}
@@ -881,7 +880,9 @@ export function AdminVenueManagementPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Phone</label>
+                    <label className="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Phone
+                    </label>
                     <input
                       type="text"
                       value={patchData.operator_phone}
@@ -920,7 +921,10 @@ export function AdminVenueManagementPage() {
                 <h2 className="text-lg font-bold text-slate-900">Suspend Venue</h2>
                 <p className="mt-0.5 text-xs text-slate-400">{venueToSuspend.name_display}</p>
               </div>
-              <button onClick={() => setSuspendingVenue(null)} className="text-slate-400 hover:text-slate-600">
+              <button
+                onClick={() => setSuspendingVenue(null)}
+                className="text-slate-400 hover:text-slate-600"
+              >
                 ✕
               </button>
             </div>

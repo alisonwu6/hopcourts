@@ -15,17 +15,17 @@ export function VenueDashboardPage() {
   }, [])
 
   useEffect(() => {
-     if (venueId && venues.length > 0) {
+    if (venueId && venues.length > 0) {
       fetchVenueStats(venueId)
-     }
-    }, [venueId, venues])
+    }
+  }, [venueId, venues])
 
   const fetchMyVenues = async () => {
     setLoading(true)
     const res = await venuePortalService.getMyVenues()
     if (res.success && res.data && res.data.length > 0) {
       setVenues(res.data)
-      
+
       // If NO venueId in URL, redirect to the first one
       if (!venueId) {
         navigate(`/admin/${res.data[0].id}`, { replace: true })
@@ -51,13 +51,14 @@ export function VenueDashboardPage() {
 
     if (!statsRes.success || !statsRes.data) return
 
-    const targetVenue = venues.find((v) => v.id === id) || venues[0] || {
-      id,
-      name_display: 'My Venue',
-      address_display: '',
-      status: 'claimed',
-      claim_status: 'approved',
-    }
+    const targetVenue = venues.find((v) => v.id === id) ||
+      venues[0] || {
+        id,
+        name_display: 'My Venue',
+        address_display: '',
+        status: 'claimed',
+        claim_status: 'approved',
+      }
 
     const groupedEvents = eventsRes.success && eventsRes.data ? eventsRes.data : {}
     const eventDateTimes = Object.entries(groupedEvents).flatMap(([dateKey, events]) => {
@@ -89,11 +90,11 @@ export function VenueDashboardPage() {
   }
 
   const handleSetVenueId = (id: string) => {
-      navigate(`/admin/${id}`)
+    navigate(`/admin/${id}`)
   }
 
   return (
-    <VenueDashboardView 
+    <VenueDashboardView
       loading={loading}
       venues={venues}
       selectedVenueId={venueId || null}

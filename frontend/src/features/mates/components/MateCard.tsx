@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { MapPin, Smile } from 'lucide-react'
-import { vibeTokens, vibeList, type Vibe } from '@/constants/vibeTokens'
+import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 import { getFlagEmoji } from '@/utils/flags'
 
 const withAlpha = (hex: string, alpha: number) => {
@@ -39,6 +39,7 @@ export type MateCardProps = {
 export function MateCard({
   name,
   vibe,
+  vibeLabel,
   sports,
   trying,
   location,
@@ -90,7 +91,10 @@ export function MateCard({
               <div className="flex items-center gap-2">
                 {name && <span className="text-base font-bold text-slate-900">{name}</span>}
                 {!!countryKey && (
-                  <span className="text-base leading-none" aria-label={`Country flag ${countryKey}`}>
+                  <span
+                    className="text-base leading-none"
+                    aria-label={`Country flag ${countryKey}`}
+                  >
                     {getFlagEmoji(countryKey)}
                   </span>
                 )}
@@ -115,7 +119,7 @@ export function MateCard({
                   color: vibeColors.text,
                 }}
               >
-                {vibeList.find((item) => item.id === vibe)?.title ?? vibe}
+                {vibeLabel ?? vibe}
               </span>
             )}
           </div>
@@ -134,9 +138,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{hostedCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                Hosted
-              </span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Hosted</span>
             </button>
 
             <button
@@ -150,9 +152,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{joinedCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                Joined
-              </span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Joined</span>
             </button>
 
             <div
@@ -165,9 +165,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">
-                Met
-              </span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Met</span>
             </div>
           </div>
         </div>
@@ -175,7 +173,7 @@ export function MateCard({
 
       <div className="-mt-2 flex flex-col gap-2 text-[12px] font-medium text-slate-700">
         <div>
-          <span className="uppercase tracking-wide text-slate-500">Favorites:</span>
+          <span className="uppercase tracking-wide text-slate-500">Favourites:</span>
           <div className="mt-1 flex flex-wrap gap-2">
             {sports.length > 0 ? (
               sports.map((sport) => (

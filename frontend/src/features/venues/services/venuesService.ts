@@ -13,7 +13,7 @@ export interface ApiVenue {
   id: string
   name_display: string
   address_display: string
-  lat: string | number 
+  lat: string | number
   lng: string | number
   status: 'unclaimed' | 'claimed' | 'suspended'
   logo_url?: string
@@ -180,5 +180,5 @@ export const venuesService = {
         timestamp: new Date(),
       } as any
     }
-  }
+  },
 }

@@ -1,100 +1,138 @@
-import { type ReactNode, useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { BottomNav } from '@/components';
-import Header from '@/components/navigation/Header';
-import { useAuthStore } from '@/hooks';
-import { LoginPage } from '@/features/auth/pages/LoginPage';
-import { SignupPage } from '@/features/auth/pages/SignupPage';
-import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
-import { AuthCallback } from '@/features/auth/pages/AuthCallback';
-import { ResetPasswordPage } from '@/features/auth/pages/ResetPassword';
-import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage';
-import { EventDetailPage } from '@/features/events/pages/EventDetailPage';
-import { VenueListPage } from '@/features/venues/pages/VenueListPage';
-import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage';
-import { ProfilePage } from '@/features/profile/pages/ProfilePage';
-import { SavedEventsPage } from '@/features/profile/pages/SavedEventsPage';
-import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage';
-import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage';
-import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage';
-import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPage';
-import { AboutPage } from '@/features/settings/pages/AboutPage';
-import { StoryPage } from '@/features/settings/pages/StoryPage';
-import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage';
-import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage';
-import { ContactUsPage } from '@/features/settings/pages/ContactUsPage';
-import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage';
-import CreateEventPage from '@/features/events/pages/CreateEventPage';
-import { HomePage } from '@/features/home/pages/HomePage';
-import { MateProfilePage } from '@/features/profile/pages/MateProfilePage';
-import { TeammatesPage } from '@/features/profile/pages/TeammatesPage';
-import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage';
-import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage';
-import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage';
-import { VenueSessionCreatePage } from '@/features/venue-portal/pages/VenueSessionCreatePage';
-import { VenueSchedulePage } from '@/features/venue-portal/pages/VenueSchedulePage';
-import { PageLoading } from '@/components/PageLoading';
+import { type ReactNode, useEffect } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BottomNav } from '@/components'
+import Header from '@/components/navigation/Header'
+import { useAuthStore } from '@/hooks'
+import { AuthCallback } from '@/features/auth/pages/AuthCallback'
+import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage'
+import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
+import { VenueListPage } from '@/features/venues/pages/VenueListPage'
+import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
+import { ProfilePage } from '@/features/profile/pages/ProfilePage'
+import { SavedEventsPage } from '@/features/profile/pages/SavedEventsPage'
+import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage'
+import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage'
+import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage'
+import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPage'
+import { AboutPage } from '@/features/settings/pages/AboutPage'
+import { StoryPage } from '@/features/settings/pages/StoryPage'
+import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
+import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage'
+import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
+import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
+import CreateEventPage from '@/features/events/pages/CreateEventPage'
+import { HomePage } from '@/features/home/pages/HomePage'
+import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
+import { TeammatesPage } from '@/features/profile/pages/TeammatesPage'
+import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
+import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
+import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
+import { VenueSessionCreatePage } from '@/features/venue-portal/pages/VenueSessionCreatePage'
+import { VenueSchedulePage } from '@/features/venue-portal/pages/VenueSchedulePage'
+import { PageLoading } from '@/components/PageLoading'
 
-const RequireAuth = ({ children }: { children: ReactNode; }) => {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  if (isLoading) return null;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return children;
-};
+const RequireAuth = ({ children }: { children: ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuthStore()
+  if (isLoading) return null
+  if (!isAuthenticated)
+    return (
+      <Navigate
+        to="/"
+        replace
+      />
+    )
+  return children
+}
 
 export default function App() {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore()
 
   if (isLoading) {
-    return <PageLoading />;
+    return <PageLoading />
   }
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      {/*
-      <Route path="/signup" element={<SignupPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      */}
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      {/*
-      <Route path="/auth/reset" element={<ResetPasswordPage />} />
-      */}
-
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/story" element={<StoryPage />} />
-      <Route path="/founders-letter" element={<FoundersLetterPage />} />
-      <Route path="/guidelines" element={<UsageRulesPage />} />
-      <Route path="/rules" element={<Navigate to="/guidelines" replace />} />
-
-      {/* Admin (sportsmatch) */}
       <Route
-        path="/admin/venues"
-        element={<AdminVenueManagementPage />}
+        path="/auth/callback"
+        element={<AuthCallback />}
       />
 
-      {/* Admin for venues management */}
       <Route
-        path="/admin/:venueId?"
-        element={<VenueDashboardPage />}
+        path="/about"
+        element={<AboutPage />}
+      />
+      <Route
+        path="/story"
+        element={<StoryPage />}
+      />
+      <Route
+        path="/founders-letter"
+        element={<FoundersLetterPage />}
+      />
+      <Route
+        path="/guidelines"
+        element={<UsageRulesPage />}
+      />
+      <Route
+        path="/rules"
+        element={
+          <Navigate
+            to="/guidelines"
+            replace
+          />
+        }
+      />
+
+      {/* Admin (HopCourts) */}
+      <Route
+        path="/admin/venues"
+        element={
+          <RequireAuth>
+            <AdminVenueManagementPage />
+          </RequireAuth>
+        }
       />
       <Route
         path="/admin/:venueId/schedule"
-        element={<VenueSchedulePage />}
+        element={
+          <RequireAuth>
+            <VenueSchedulePage />
+          </RequireAuth>
+        }
       />
       <Route
         path="/admin/:venueId/profile"
-        element={<VenueProfilePage />}
+        element={
+          <RequireAuth>
+            <VenueProfilePage />
+          </RequireAuth>
+        }
       />
       <Route
         path="/admin/:venueId/sessions/create"
-        element={<VenueSessionCreatePage />}
+        element={
+          <RequireAuth>
+            <VenueSessionCreatePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/:venueId?"
+        element={
+          <RequireAuth>
+            <VenueDashboardPage />
+          </RequireAuth>
+        }
       />
 
       {/* Main App Routes */}
-      <Route path="/*" element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />} />
+      <Route
+        path="/*"
+        element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />}
+      />
     </Routes>
-  );
+  )
 }
 
 function AppChrome({
@@ -103,21 +141,21 @@ function AppChrome({
   showHeader = true,
   showNav = true,
 }: {
-  children: ReactNode;
-  showActions?: boolean;
-  showHeader?: boolean;
-  showNav?: boolean;
+  children: ReactNode
+  showActions?: boolean
+  showHeader?: boolean
+  showNav?: boolean
 }) {
-  const { pathname } = useLocation();
+  const { pathname } = useLocation()
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    window.scrollTo(0, 0)
+  }, [pathname])
 
-  const noHeaderPaths = ['/events', '/event/', '/create-event'];
-  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment));
-  const headerVisible = showHeader && !hideHeader;
-  const navVisible = showNav && !pathname.startsWith('/event/');
+  const noHeaderPaths = ['/events', '/event/', '/create-event']
+  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
+  const headerVisible = showHeader && !hideHeader
+  const navVisible = showNav && !pathname.startsWith('/event/')
 
   return (
     <div
@@ -130,15 +168,10 @@ function AppChrome({
       {children}
       {navVisible && <BottomNav />}
     </div>
-  );
+  )
 }
 
 function AuthenticatedApp() {
-  const { user } = useAuthStore();
-  const location = useLocation();
-
-  // No global onboarding guard - handled within ProfilePage flow
-
   return (
     <Routes>
       <Route
@@ -168,12 +201,23 @@ function AuthenticatedApp() {
       <Route
         path="/venues/:venueId"
         element={
-          <AppChrome showNav={false} showHeader={false}>
+          <AppChrome
+            showNav={false}
+            showHeader={false}
+          >
             <VenueDetailsPage />
           </AppChrome>
         }
       />
-      <Route path="/home" element={<Navigate to="/" replace />} />
+      <Route
+        path="/home"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
       <Route
         path="/event/:id"
         element={
@@ -202,106 +246,125 @@ function AuthenticatedApp() {
       <Route
         path="/create-event"
         element={
-          <RequireAuth>
-            <AppChrome showNav={false}>
-              <CreateEventPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome showNav={false}>
+            <CreateEventPage />
+          </AppChrome>
         }
       />
-
       <Route
         path="/profile"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false}>
-              <ProfilePage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome showHeader={false}>
+            <ProfilePage />
+          </AppChrome>
         }
       />
       <Route
         path="/circle"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <TeammatesPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <TeammatesPage />
+          </AppChrome>
         }
       />
       <Route
         path="/profile/hosted-events"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <HostedEventsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <HostedEventsPage />
+          </AppChrome>
         }
       />
       <Route
         path="/profile/joined-events"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <JoinedEventsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <JoinedEventsPage />
+          </AppChrome>
         }
       />
       <Route
         path="/profile/saved-events"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <SavedEventsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <SavedEventsPage />
+          </AppChrome>
         }
       />
       <Route
         path="/settings"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <ProfileSettingsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <ProfileSettingsPage />
+          </AppChrome>
         }
       />
       <Route
         path="/settings/account"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <AccountSettingsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <AccountSettingsPage />
+          </AppChrome>
         }
       />
       <Route
         path="/settings/contact"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <ContactUsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <ContactUsPage />
+          </AppChrome>
         }
       />
       <Route
         path="/notifications"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false} showNav={false}>
-              <NotificationsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <NotificationsPage />
+          </AppChrome>
         }
       />
-      <Route path="/mates" element={<Navigate to="/" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/mates"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
     </Routes>
   )
 }
@@ -312,7 +375,10 @@ function GuestApp() {
       <Route
         path="/"
         element={
-          <AppChrome showActions={false} showHeader={false}>
+          <AppChrome
+            showActions={false}
+            showHeader={false}
+          >
             <HomePage />
           </AppChrome>
         }
@@ -320,7 +386,10 @@ function GuestApp() {
       <Route
         path="/events"
         element={
-          <AppChrome showActions={false} showHeader={false}>
+          <AppChrome
+            showActions={false}
+            showHeader={false}
+          >
             <DiscoverEventsPage />
           </AppChrome>
         }
@@ -328,7 +397,10 @@ function GuestApp() {
       <Route
         path="/venues"
         element={
-          <AppChrome showActions={false} showHeader={false}>
+          <AppChrome
+            showActions={false}
+            showHeader={false}
+          >
             <VenueListPage />
           </AppChrome>
         }
@@ -336,16 +408,31 @@ function GuestApp() {
       <Route
         path="/venues/:venueId"
         element={
-          <AppChrome showActions={false} showNav={false} showHeader={false}>
+          <AppChrome
+            showActions={false}
+            showNav={false}
+            showHeader={false}
+          >
             <VenueDetailsPage />
           </AppChrome>
         }
       />
-      <Route path="/home" element={<Navigate to="/" replace />} />
+      <Route
+        path="/home"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
       <Route
         path="/event/:id"
         element={
-          <AppChrome showActions={false} showHeader={false}>
+          <AppChrome
+            showActions={false}
+            showHeader={false}
+          >
             <EventDetailPage />
           </AppChrome>
         }
@@ -353,7 +440,10 @@ function GuestApp() {
       <Route
         path="/mate/:username"
         element={
-          <AppChrome showActions={false} showHeader={false}>
+          <AppChrome
+            showActions={false}
+            showHeader={false}
+          >
             <MateProfilePage />
           </AppChrome>
         }
@@ -361,7 +451,10 @@ function GuestApp() {
       <Route
         path="/mates/:username"
         element={
-          <AppChrome showActions={false} showHeader={false}>
+          <AppChrome
+            showActions={false}
+            showHeader={false}
+          >
             <MateProfilePage />
           </AppChrome>
         }
@@ -369,16 +462,111 @@ function GuestApp() {
       <Route
         path="/create-event"
         element={
-          <AppChrome showActions={false} showHeader={false} showNav={false}>
-            <CreateEventPage />
-          </AppChrome>
+          <Navigate
+            to="/"
+            replace
+          />
         }
       />
-      <Route path="/mates" element={<Navigate to="/" replace />} />
-      <Route path="/profile" element={<Navigate to="/events" replace />} />
-      <Route path="/settings" element={<Navigate to="/events" replace />} />
-      <Route path="/settings/account" element={<Navigate to="/events" replace />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/profile"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/profile/hosted-events"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/profile/joined-events"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/profile/saved-events"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/circle"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/settings/account"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/settings/contact"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="/mates"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
     </Routes>
-  );
+  )
 }

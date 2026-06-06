@@ -86,11 +86,11 @@ export function DiscoverEventsBody({
           </div>
           <p className="mt-1 text-[12px] text-slate-500">
             {suggestionType === 'interests'
-              ? 'Events you might like according to your preferred sports.'
+              ? 'Based on the sports you play.'
               : "Events from hosts you've joined before."}
           </p>
 
-          <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory overflow-x-auto p-4 scroll-smooth">
+          <div className="scrollbar-hide -mx-4 flex snap-x snap-mandatory overflow-x-auto scroll-smooth p-4">
             <div className="flex gap-4">
               {suggestedEvents.length > 0 ? (
                 suggestedEvents.map((event) => (
@@ -107,8 +107,8 @@ export function DiscoverEventsBody({
                 <div className="w-full rounded-2xl border border-dashed border-slate-200 p-8 text-center text-slate-400">
                   <p className="text-sm">
                     {suggestionType === 'interests'
-                      ? 'No events matching your interests found. Try adding more sports to your profile!'
-                      : "No events from hosts you've joined before yet."}
+                      ? 'Nothing here yet. Add sports to your profile to see suggestions.'
+                      : "No events from hosts you've played with yet."}
                   </p>
                 </div>
               )}
@@ -120,32 +120,31 @@ export function DiscoverEventsBody({
       )}
 
       <h2 className="mb-6 text-xl font-bold tracking-tight text-slate-900">
-        {hasFilter ? 'Search Results' : 'Explore All Events'}
+        {hasFilter ? 'Search results' : "What's on"}
       </h2>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
+        <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
       )}
 
       {isLoading ? (
-        <PageLoading fullScreen={false} className="py-20" />
+        <PageLoading
+          fullScreen={false}
+          className="py-20"
+        />
       ) : filteredEvents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
             <span className="text-5xl">😮</span>
           </div>
-          <h3 className="text-xl font-bold text-slate-900">Oops! No events?</h3>
-          <p className="mt-2 text-sm text-slate-500">
-            Create an event now, and let people with the same sports interests find you!
-          </p>
+          <h3 className="text-xl font-bold text-slate-900">No events yet.</h3>
+          <p className="mt-2 text-sm text-slate-500">Be the one who starts it.</p>
           <button
             type="button"
             onClick={onCreateClick}
             className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-200 transition"
           >
-            Create Event
+            Create event
           </button>
         </div>
       ) : (

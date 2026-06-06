@@ -51,121 +51,6 @@ const wrapError = (code: string, message: string): ApiResponse<never> =>
 const wait = (ms = 280) => new Promise((resolve) => setTimeout(resolve, ms))
 const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString()
 
-// ─── Mock data (in-memory, resets on page refresh) ────────────────────────────
-
-let mockVenues: AdminVenue[] = [
-  {
-    id: 'v-brisbane-001',
-    name_display: '33 Brodie St Court',
-    address_display: '33 Brodie Street, Brisbane QLD 4000',
-    status: 'claimed',
-    operator_name: 'Dave Okafor',
-    operator_email: 'owner@brodiestcourt.com',
-    operator_role: 'Owner',
-    operator_phone: '+61 7 3215 6789',
-    last_activity_at: daysAgo(1),
-  },
-  {
-    id: 'v-brisbane-002',
-    name_display: 'Southside Sports Hall',
-    address_display: '12 River Rd, South Brisbane QLD 4101',
-    status: 'claim_pending',
-    last_activity_at: daysAgo(2),
-  },
-  {
-    id: 'v-brisbane-003',
-    name_display: 'Northside Tennis Centre',
-    address_display: '88 Eagle St, Fortitude Valley QLD 4006',
-    status: 'unclaimed',
-    last_activity_at: daysAgo(10),
-  },
-  {
-    id: 'v-brisbane-004',
-    name_display: 'Valley Badminton Club',
-    address_display: '22 Brunswick St, Fortitude Valley QLD 4006',
-    status: 'suspended',
-    operator_name: 'Admin Team',
-    operator_email: 'admin@valleybadminton.com',
-    operator_role: 'Operations',
-    operator_phone: '+61 7 4444 4444',
-    last_activity_at: daysAgo(5),
-    suspended_reason: 'Multiple user complaints about misleading event descriptions. Under investigation.',
-  },
-]
-
-let mockClaims: AdminVenueClaim[] = [
-  {
-    id: 'claim-pending-001',
-    venue_id: 'v-brisbane-002',
-    venue_name: 'Southside Sports Hall',
-    venue_address: '12 River Rd, South Brisbane QLD 4101',
-    applicant_name: 'Sam Chen',
-    applicant_email: 'sam@southsidehall.com',
-    applicant_role: 'Venue Manager',
-    applicant_phone: '+61 7 3123 4567',
-    note: 'I have been managing this hall for the past 3 years as the facility director. Happy to provide ID and council lease agreement.',
-    status: 'pending',
-    submitted_at: daysAgo(2),
-  },
-  {
-    id: 'claim-pending-002',
-    venue_id: 'v-brisbane-003',
-    venue_name: 'Northside Tennis Centre',
-    venue_address: '88 Eagle St, Fortitude Valley QLD 4006',
-    applicant_name: 'Lisa Park',
-    applicant_email: 'lisa.park@ntc.com.au',
-    applicant_role: 'Operations Director',
-    applicant_phone: '+61 7 3890 2341',
-    note: '',
-    status: 'pending',
-    submitted_at: daysAgo(1),
-  },
-  {
-    id: 'claim-approved-001',
-    venue_id: 'v-brisbane-001',
-    venue_name: '33 Brodie St Court',
-    venue_address: '33 Brodie Street, Brisbane QLD 4000',
-    applicant_name: 'Dave Okafor',
-    applicant_email: 'owner@brodiestcourt.com',
-    applicant_role: 'Owner',
-    applicant_phone: '+61 7 3215 6789',
-    note: 'I am the registered owner. Lease docs attached.',
-    status: 'approved',
-    submitted_at: daysAgo(30),
-    reviewed_at: daysAgo(28),
-    reviewed_by: 'admin@sportsmatch.com',
-  },
-  {
-    id: 'claim-rejected-001',
-    venue_id: 'v-brisbane-003',
-    venue_name: 'Northside Tennis Centre',
-    venue_address: '88 Eagle St, Fortitude Valley QLD 4006',
-    applicant_name: 'Fake Operator',
-    applicant_email: 'fake@scam.io',
-    applicant_role: 'Staff',
-    applicant_phone: '+61 9999 9999',
-    note: 'I want to manage this venue.',
-    status: 'rejected',
-    submitted_at: daysAgo(15),
-    reviewed_at: daysAgo(14),
-    reviewed_by: 'admin@sportsmatch.com',
-    rejection_reason: 'Unable to verify identity or any connection to this venue.',
-  },
-  {
-    id: 'claim-cancelled-001',
-    venue_id: 'v-brisbane-002',
-    venue_name: 'Southside Sports Hall',
-    venue_address: '12 River Rd, South Brisbane QLD 4101',
-    applicant_name: 'Marcus Brown',
-    applicant_email: 'marcus@outlook.com',
-    applicant_role: 'Consultant',
-    applicant_phone: '+61 7 3567 1234',
-    note: '',
-    status: 'cancelled',
-    submitted_at: daysAgo(20),
-  },
-]
-
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 const mapBackendVenueToAdmin = (row: any): AdminVenue => {
@@ -197,24 +82,24 @@ const mapBackendVenueToAdmin = (row: any): AdminVenue => {
   }
 }
 
-  const mapBackendClaimToAdmin = (row: any): AdminVenueClaim => {
-    return {
-      id: row.id,
-      venue_id: row.venue_id,
-      venue_name: row.venue_name || '',
-      venue_address: row.venue_address || '',
-      applicant_name: row.applicant_name || '',
-      applicant_email: row.applicant_email || '',
-      applicant_role: row.applicant_role || '',
-      applicant_phone: row.applicant_phone || '',
-      note: row.note,
-      status: row.status as ClaimStatus,
-      submitted_at: row.submitted_at,
-      reviewed_at: row.reviewed_at,
-      reviewed_by: row.reviewed_by,
-      rejection_reason: row.rejection_reason,
-    }
+const mapBackendClaimToAdmin = (row: any): AdminVenueClaim => {
+  return {
+    id: row.id,
+    venue_id: row.venue_id,
+    venue_name: row.venue_name || '',
+    venue_address: row.venue_address || '',
+    applicant_name: row.applicant_name || '',
+    applicant_email: row.applicant_email || '',
+    applicant_role: row.applicant_role || '',
+    applicant_phone: row.applicant_phone || '',
+    note: row.note,
+    status: row.status as ClaimStatus,
+    submitted_at: row.submitted_at,
+    reviewed_at: row.reviewed_at,
+    reviewed_by: row.reviewed_by,
+    rejection_reason: row.rejection_reason,
   }
+}
 export const adminVenuesService = {
   async getAdminVenues(params: { search?: string } = {}): Promise<ApiResponse<AdminVenue[]>> {
     try {
@@ -303,14 +188,14 @@ export const adminVenuesService = {
 
   async patchVenueDisplay(
     venueId: string,
-    data: { 
-      name_display?: string; 
-      address_display?: string;
-      operator_name?: string;
-      operator_email?: string;
-      operator_role?: string;
-      operator_phone?: string;
-    },
+    data: {
+      name_display?: string
+      address_display?: string
+      operator_name?: string
+      operator_email?: string
+      operator_role?: string
+      operator_phone?: string
+    }
   ): Promise<ApiResponse<AdminVenue>> {
     try {
       const payload = {

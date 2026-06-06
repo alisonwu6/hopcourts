@@ -14,10 +14,7 @@ const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3
 
 const getStoredToken = () => {
   if (typeof window === 'undefined') return null
-  return (
-    window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
-    window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
-  )
+  return window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ?? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
 }
 
 const buildUrl = (path: string, params?: RequestOptions['params']) => {
@@ -35,11 +32,7 @@ const buildUrl = (path: string, params?: RequestOptions['params']) => {
   return url.toString()
 }
 
-export async function apiRequest<T>(
-  method: HttpMethod,
-  path: string,
-  options: RequestOptions = {}
-): Promise<T> {
+export async function apiRequest<T>(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<T> {
   const { body, params, auth = true, headers = {}, authTokenOverride } = options
 
   const requestHeaders: HeadersInit = {

@@ -21,14 +21,12 @@ export function MapPicker({ value, onChange, variant = 'streets' }: Props) {
     mapRef.current?.flyTo({
       center: [value.lng, value.lat],
       zoom: 16, // Zoom in a bit when a pin is selected
-      duration: 1200
+      duration: 1200,
     })
   }, [value])
 
   const mapStyle =
-    variant === 'satellite'
-      ? 'mapbox://styles/mapbox/satellite-streets-v12'
-      : 'mapbox://styles/mapbox/streets-v12'
+    variant === 'satellite' ? 'mapbox://styles/mapbox/satellite-streets-v12' : 'mapbox://styles/mapbox/streets-v12'
 
   return (
     <Map
@@ -47,9 +45,16 @@ export function MapPicker({ value, onChange, variant = 'streets' }: Props) {
       }}
     >
       <GeolocateControl position="top-right" />
-      <NavigationControl position="top-right" showCompass={false} />
+      <NavigationControl
+        position="top-right"
+        showCompass={false}
+      />
       {value && (
-        <Marker latitude={value.lat} longitude={value.lng} anchor="bottom">
+        <Marker
+          latitude={value.lat}
+          longitude={value.lng}
+          anchor="bottom"
+        >
           <div className="h-5 w-5 -translate-y-1 rounded-full bg-blue-600 shadow-lg ring-2 ring-white" />
         </Marker>
       )}

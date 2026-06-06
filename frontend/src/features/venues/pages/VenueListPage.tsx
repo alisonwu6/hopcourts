@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useSports } from '@/features/dictionaries/hooks';
-import { PageLoading } from '@/components/PageLoading';
-import { venuesService, ApiVenue } from '@/features/venues/services/venuesService';
-import { VenueListView } from '../views/VenueListView';
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSports } from '@/features/dictionaries/hooks'
+import { PageLoading } from '@/components/PageLoading'
+import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
+import { VenueListView } from '../views/VenueListView'
 
 // Adapter to make ApiVenue compatible with EventMap logic
 const mapVenueToEventStub = (venue: ApiVenue): any => ({
@@ -23,60 +23,56 @@ const mapVenueToEventStub = (venue: ApiVenue): any => ({
   },
   status: venue.status,
   activeSessionsCount: venue.active_sessions_count,
-});
+})
 
 export function VenueListPage() {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [venues, setVenues] = useState<ApiVenue[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
-  const { items: sportsCatalog } = useSports('en');
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [venues, setVenues] = useState<ApiVenue[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null)
+  const { items: sportsCatalog } = useSports('en')
 
   // Dynamic filtering based on search query
   const filteredVenues = useMemo(() => {
-    if (!searchQuery.trim()) return venues;
-    const q = searchQuery.toLowerCase();
-    return venues.filter(
-      (v) =>
-        v.name_display.toLowerCase().includes(q) ||
-        v.address_display.toLowerCase().includes(q)
-    );
-  }, [venues, searchQuery]);
+    if (!searchQuery.trim()) return venues
+    const q = searchQuery.toLowerCase()
+    return venues.filter((v) => v.name_display.toLowerCase().includes(q) || v.address_display.toLowerCase().includes(q))
+  }, [venues, searchQuery])
 
   // Adapting venues for the map
   const venueMarkers = useMemo(() => {
-    return filteredVenues.map(mapVenueToEventStub);
-  }, [filteredVenues]);
+    return filteredVenues.map(mapVenueToEventStub)
+  }, [filteredVenues])
 
   // Toggle handlers
-  const isMapView = searchParams.get('view') === 'map';
+  const isMapView = searchParams.get('view') === 'map'
   const handleToggleView = () => {
     setSearchParams(
       (prev) => {
-        if (isMapView) prev.delete('view');
-        else prev.set('view', 'map');
-        return prev;
+        if (isMapView) prev.delete('view')
+        else prev.set('view', 'map')
+        return prev
       },
       { replace: true }
-    );
-  };
+    )
+  }
 
   useEffect(() => {
     const fetchVenues = async () => {
-      setIsLoading(true);
-      const res = await venuesService.listVenues({ limit: 100 });
+      setIsLoading(true)
+      const res = await venuesService.listVenues({ limit: 100 })
       if (res.success && res.data) {
-        setVenues(res.data.data);
+        setVenues(res.data.data)
       }
-      setIsLoading(false);
-    };
-    fetchVenues();
-  }, []);
+      setIsLoading(false)
+    }
+    fetchVenues()
+  }, [])
 
   if (isLoading && venues.length === 0) {
-    return <PageLoading />;
+    return <PageLoading />
   }
 
   return (
@@ -93,5 +89,5 @@ export function VenueListPage() {
       selectedVenueId={selectedVenueId}
       onSelectMarker={setSelectedVenueId}
     />
-  );
+  )
 }

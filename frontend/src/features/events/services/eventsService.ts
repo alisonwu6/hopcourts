@@ -1,10 +1,4 @@
-import type {
-  ApiResponse,
-  PaginatedResponse,
-  CreateEventInput,
-  EventFilter,
-  PlayerEvent,
-} from '@/types'
+import type { ApiResponse, PaginatedResponse, CreateEventInput, EventFilter, PlayerEvent } from '@/types'
 import { httpPost, httpGet, httpPut, httpDelete } from '@/api/http'
 
 type QueryOptions = {
@@ -30,7 +24,7 @@ const wrapEmptyEvents = (): ApiResponse<PaginatedResponse<PlayerEvent>> =>
 const formatTwdNoDecimal = (value: unknown): string => {
   const n = Number(value)
   if (!Number.isFinite(n)) return '0'
-  return Math.round(n).toLocaleString('en-US')
+  return Math.round(n).toLocaleString('en-AU')
 }
 
 const deriveCourtName = (session: any): string | undefined => {
@@ -57,9 +51,10 @@ const DEFAULT_MY_EVENTS_TTL_MS = 15_000
 let eventsListCacheKey: string | null = null
 let eventsListCacheAt = 0
 let eventsListCache: ApiResponse<PaginatedResponse<PlayerEvent>> | null = null
-let eventsListInFlight:
-  | { key: string; promise: Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> }
-  | null = null
+let eventsListInFlight: {
+  key: string
+  promise: Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>
+} | null = null
 
 const eventDetailCache = new Map<string, { at: number; data: ApiResponse<PlayerEvent> }>()
 const eventDetailInFlight = new Map<string, Promise<ApiResponse<PlayerEvent>>>()
@@ -67,18 +62,14 @@ const myEventsCache = new Map<
   'upcoming' | 'history' | 'all' | 'hosted' | 'joined',
   { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
 >()
-const myEventsInFlight = new Map<'upcoming' | 'history' | 'all' | 'hosted' | 'joined', Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
-const myEventsScopedCache = new Map<
-  string,
-  { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
->()
-const myEventsScopedInFlight = new Map<
-  string,
+const myEventsInFlight = new Map<
+  'upcoming' | 'history' | 'all' | 'hosted' | 'joined',
   Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>
 >()
+const myEventsScopedCache = new Map<string, { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }>()
+const myEventsScopedInFlight = new Map<string, Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
 
-const cloneValue = <T>(value: T): T =>
-  typeof structuredClone === 'function' ? structuredClone(value) : value
+const cloneValue = <T>(value: T): T => (typeof structuredClone === 'function' ? structuredClone(value) : value)
 
 const stableFilterKey = (filters?: EventFilter) => {
   if (!filters) return ''
@@ -116,7 +107,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
   const end = new Date(now.getTime() + 60 * 60 * 1000)
   return {
     id,
-    title: 'SportsMatch Event',
+    title: 'HopCourts Event',
     sport: 'running',
     vibeIcon: '🏃',
     skillLevel: 'mixed',
@@ -129,7 +120,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
     },
     host: {
       id: 'host',
-      name: 'SportsMatch',
+      name: 'HopCourts',
     },
     highFives: 0,
     joined: false,
@@ -225,12 +216,11 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     pricePerPerson: session.price_per_person ?? undefined,
     priceMode: session.price_mode ?? 'total',
     priceNote: session.price_note,
-    priceRange:
-      session.is_free
-        ? 'Free to join'
-        : session.price_per_person
-          ? `$${formatTwdNoDecimal(session.price_per_person)}`
-          : 'Paid event',
+    priceRange: session.is_free
+      ? 'Free to join'
+      : session.price_per_person
+        ? `$${formatTwdNoDecimal(session.price_per_person)}`
+        : 'Paid event',
     description: session.description ?? '',
     participants: [],
     status: session.status as any,
@@ -268,46 +258,46 @@ export const eventsService = {
     }
 
     const request = (async () => {
-    try {
-      // Map filters to backend params if needed
-      const queryParams: Record<string, any> = {}
-      if (filters?.feedType && filters.feedType !== 'upcoming') queryParams.type = filters.feedType
-      if (filters?.sport) queryParams.sport_key = filters.sport
-      if (filters?.venueId) queryParams.venue_id = filters.venueId
+      try {
+        // Map filters to backend params if needed
+        const queryParams: Record<string, any> = {}
+        if (filters?.feedType && filters.feedType !== 'upcoming') queryParams.type = filters.feedType
+        if (filters?.sport) queryParams.sport_key = filters.sport
+        if (filters?.venueId) queryParams.venue_id = filters.venueId
 
-      const response = await httpGet<any>('/sessions', { params: queryParams })
-      // Backend returns { success: true, data: { data: [...], ... } } or just { success: true, data: [...] } ?
-      // Based on typical pattern: response.data should have the list.
-      // Wait, look closely: httpGet returns `T`. If wrapper is { ok: true, data: ... }
-      // Then `response` is { ok: true, data: ... }.
+        const response = await httpGet<any>('/sessions', { params: queryParams })
+        // Backend returns { success: true, data: { data: [...], ... } } or just { success: true, data: [...] } ?
+        // Based on typical pattern: response.data should have the list.
+        // Wait, look closely: httpGet returns `T`. If wrapper is { ok: true, data: ... }
+        // Then `response` is { ok: true, data: ... }.
 
-      const sessions = Array.isArray(response)
-        ? response
-        : response.data && Array.isArray(response.data)
-          ? response.data
-          : response.data?.items && Array.isArray(response.data.items)
-            ? response.data.items
-            : []
+        const sessions = Array.isArray(response)
+          ? response
+          : response.data && Array.isArray(response.data)
+            ? response.data
+            : response.data?.items && Array.isArray(response.data.items)
+              ? response.data.items
+              : []
 
-      const events = sessions.map(mapSessionToEvent)
+        const events = sessions.map(mapSessionToEvent)
 
-      const result = wrapSuccess({
-        data: events,
-        total: events.length,
-        page: 1,
-        pageSize: 50,
-        hasMore: false,
-      })
+        const result = wrapSuccess({
+          data: events,
+          total: events.length,
+          page: 1,
+          pageSize: 50,
+          hasMore: false,
+        })
 
-      eventsListCacheKey = cacheKey
-      eventsListCacheAt = Date.now()
-      eventsListCache = result
+        eventsListCacheKey = cacheKey
+        eventsListCacheAt = Date.now()
+        eventsListCache = result
 
-      return cloneValue(result)
-    } catch (err: any) {
-      console.error('getEvents error', err)
-      return wrapEmptyEvents()
-    }
+        return cloneValue(result)
+      } catch (err: any) {
+        console.error('getEvents error', err)
+        return wrapEmptyEvents()
+      }
     })()
 
     eventsListInFlight = { key: cacheKey, promise: request }
@@ -329,57 +319,57 @@ export const eventsService = {
     }
 
     const request = (async () => {
-    try {
-      const response = await httpGet<any>(`/sessions/${id}`)
-      // Response structure: { ok: true, data: { session: {...}, meta: {...} } }
-      const responseData = response.data || response
-      const sessionData = responseData.session || responseData
-      const metaData = responseData.meta || {}
+      try {
+        const response = await httpGet<any>(`/sessions/${id}`)
+        // Response structure: { ok: true, data: { session: {...}, meta: {...} } }
+        const responseData = response.data || response
+        const sessionData = responseData.session || responseData
+        const metaData = responseData.meta || {}
 
-      if (!sessionData) throw new Error('Session not found')
+        if (!sessionData) throw new Error('Session not found')
 
-      const event = mapSessionToEvent(sessionData)
+        const event = mapSessionToEvent(sessionData)
 
-      // Merge meta info
-      if (metaData) {
-        event.joined = metaData.is_joined ?? false
-        event.attendeeCount = metaData.participant_count ?? event.attendeeCount
-      }
-
-      if (responseData.host) {
-        event.host = {
-          id: responseData.host.id,
-          name: responseData.host.display_name || 'User',
-          avatarUrl: responseData.host.avatar_url || undefined,
-          username: responseData.host.username || undefined,
-          cityKey: responseData.host.city_key || undefined,
-          cityName: responseData.host.city_name || undefined,
-          countryKey: responseData.host.country_key || undefined,
-          // rating: responseData.host.rating
+        // Merge meta info
+        if (metaData) {
+          event.joined = metaData.is_joined ?? false
+          event.attendeeCount = metaData.participant_count ?? event.attendeeCount
         }
-      }
 
-      if (Array.isArray(responseData.participants)) {
-        event.participants = responseData.participants.map((p: any) => ({
-          id: p.id,
-          name: p.display_name || 'Participant',
-          avatarUrl: p.avatar_url || undefined,
-          username: p.username || undefined,
-          checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
-        }))
-      }
+        if (responseData.host) {
+          event.host = {
+            id: responseData.host.id,
+            name: responseData.host.display_name || 'User',
+            avatarUrl: responseData.host.avatar_url || undefined,
+            username: responseData.host.username || undefined,
+            cityKey: responseData.host.city_key || undefined,
+            cityName: responseData.host.city_name || undefined,
+            countryKey: responseData.host.country_key || undefined,
+            // rating: responseData.host.rating
+          }
+        }
 
-      const result = wrapSuccess(event)
-      eventDetailCache.set(id, { at: Date.now(), data: result })
-      return cloneValue(result)
-    } catch (err: any) {
-      return {
-        success: false,
-        error: { code: 'FETCH_FAILED', message: err.message ?? 'Failed to load event' },
-        timestamp: new Date(),
-        data: undefined,
-      } as any
-    }
+        if (Array.isArray(responseData.participants)) {
+          event.participants = responseData.participants.map((p: any) => ({
+            id: p.id,
+            name: p.display_name || 'Participant',
+            avatarUrl: p.avatar_url || undefined,
+            username: p.username || undefined,
+            checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
+          }))
+        }
+
+        const result = wrapSuccess(event)
+        eventDetailCache.set(id, { at: Date.now(), data: result })
+        return cloneValue(result)
+      } catch (err: any) {
+        return {
+          success: false,
+          error: { code: 'FETCH_FAILED', message: err.message ?? 'Failed to load event' },
+          timestamp: new Date(),
+          data: undefined,
+        } as any
+      }
     })()
 
     eventDetailInFlight.set(id, request)
@@ -403,40 +393,40 @@ export const eventsService = {
     }
 
     const request = (async () => {
-    try {
-      let allItems: any[] = []
-      if (type === 'all') {
-        const [upcomingRes, historyRes] = await Promise.all([
-          httpGet<any>('/sessions/my?type=upcoming'),
-          httpGet<any>('/sessions/my?type=history'),
-        ])
-        const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
-        const historyItems = historyRes.data?.items ?? historyRes.items ?? []
-        allItems = [...upcomingItems, ...historyItems]
-      } else {
-        const res = await httpGet<any>(`/sessions/my?type=${type}`)
-        allItems = res.data?.items ?? res.items ?? []
+      try {
+        let allItems: any[] = []
+        if (type === 'all') {
+          const [upcomingRes, historyRes] = await Promise.all([
+            httpGet<any>('/sessions/my?type=upcoming'),
+            httpGet<any>('/sessions/my?type=history'),
+          ])
+          const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
+          const historyItems = historyRes.data?.items ?? historyRes.items ?? []
+          allItems = [...upcomingItems, ...historyItems]
+        } else {
+          const res = await httpGet<any>(`/sessions/my?type=${type}`)
+          allItems = res.data?.items ?? res.items ?? []
+        }
+
+        // Deduplicate by ID just in case
+        const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
+
+        const events = uniqueItems.map(mapSessionToEvent)
+
+        const result = wrapSuccess({
+          data: events,
+          total: events.length,
+          page: 1,
+          pageSize: events.length,
+          hasMore: false,
+        })
+
+        myEventsCache.set(type, { at: Date.now(), data: result })
+        return cloneValue(result)
+      } catch (err: any) {
+        console.error('getMyEvents error', err)
+        return wrapEmptyEvents()
       }
-
-      // Deduplicate by ID just in case
-      const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
-
-      const events = uniqueItems.map(mapSessionToEvent)
-
-      const result = wrapSuccess({
-        data: events,
-        total: events.length,
-        page: 1,
-        pageSize: events.length,
-        hasMore: false,
-      })
-
-      myEventsCache.set(type, { at: Date.now(), data: result })
-      return cloneValue(result)
-    } catch (err: any) {
-      console.error('getMyEvents error', err)
-      return wrapEmptyEvents()
-    }
     })()
 
     myEventsInFlight.set(type, request)
@@ -521,9 +511,7 @@ export const eventsService = {
     }
   },
 
-  async createEvent(
-    input: CreateEventInput & { status?: string }
-  ): Promise<ApiResponse<PlayerEvent>> {
+  async createEvent(input: CreateEventInput & { status?: string }): Promise<ApiResponse<PlayerEvent>> {
     try {
       const payload = {
         title: input.title,
@@ -542,18 +530,16 @@ export const eventsService = {
         skill_level: (input.skillLevel as any) ?? 'any',
         gender: input.gender ?? 'mixed',
         isFree: input.isFree ?? true,
-        price_total:
-          input.isFree
+        price_total: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'person'
             ? null
-            : (input.priceMode ?? 'total') === 'person'
-              ? null
-              : (input.priceTotal ?? null),
-        price_per_person:
-          input.isFree
+            : (input.priceTotal ?? null),
+        price_per_person: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'total'
             ? null
-            : (input.priceMode ?? 'total') === 'total'
-              ? null
-              : (input.pricePerPerson ?? null),
+            : (input.pricePerPerson ?? null),
         price_mode: input.priceMode ?? 'total',
         priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
@@ -602,18 +588,16 @@ export const eventsService = {
         skill_level: input.skillLevel,
         gender: input.gender,
         is_free: input.isFree,
-        price_total:
-          input.isFree
+        price_total: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'person'
             ? null
-            : (input.priceMode ?? 'total') === 'person'
-              ? null
-              : (input.priceTotal ?? null),
-        price_per_person:
-          input.isFree
+            : (input.priceTotal ?? null),
+        price_per_person: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'total'
             ? null
-            : (input.priceMode ?? 'total') === 'total'
-              ? null
-              : (input.pricePerPerson ?? null),
+            : (input.pricePerPerson ?? null),
         price_mode: input.priceMode,
         priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,

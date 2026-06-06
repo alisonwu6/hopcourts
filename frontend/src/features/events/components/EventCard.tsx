@@ -2,13 +2,7 @@ import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
-import {
-  Calendar,
-  MapPin,
-  PersonStanding,
-  CircleDollarSign,
-  ShieldCheck,
-} from 'lucide-react'
+import { Calendar, MapPin, PersonStanding, CircleDollarSign, ShieldCheck } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { BookmarkButton } from './BookmarkButton'
 
@@ -31,9 +25,7 @@ type EventCardProps = {
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
-  return countryCode
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
+  return countryCode.toUpperCase().replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
 }
 
 export function EventCard({
@@ -79,8 +71,7 @@ export function EventCard({
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)
   const minPeople = Math.max(1, event.minPeople ?? 1)
   const isClickable = Boolean(onViewDetails)
-  const heroImage =
-    (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
+  const heroImage = (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
   const heroStyle = heroImage
     ? {
         backgroundImage: `url(${heroImage})`,
@@ -114,8 +105,7 @@ export function EventCard({
       {...interactionHandlers}
       className={clsx(
         'relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)] transition-all active:scale-[0.98]',
-        isClickable &&
-          'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500',
+        isClickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500',
         className ?? 'mb-5'
       )}
     >
@@ -140,7 +130,11 @@ export function EventCard({
           tabIndex={canNavigateToVenue ? 0 : undefined}
           aria-label={canNavigateToVenue ? `View venue ${displayHost.name}` : undefined}
         >
-          <AvatarCircle name={displayHost.name} src={displayHost.avatarUrl} size="sm" />
+          <AvatarCircle
+            name={displayHost.name}
+            src={displayHost.avatarUrl}
+            size="sm"
+          />
           <div>
             <p className="flex items-center gap-1.5 text-sm font-medium text-slate-900">
               {displayHost.name}
@@ -163,7 +157,10 @@ export function EventCard({
           {showStatus && event.status && <StatusBadge status={event.status} />}
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
-              <ShieldCheck size={10} className="text-emerald-600" />
+              <ShieldCheck
+                size={10}
+                className="text-emerald-600"
+              />
               OFFICIAL
             </span>
           )}
@@ -172,11 +169,12 @@ export function EventCard({
 
       {/* 2. Full-width Hero Image */}
       {false && (
-        <div className="relative h-56 w-full" style={heroStyle}>
+        <div
+          className="relative h-56 w-full"
+          style={heroStyle}
+        >
           {!heroImage && (
-            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">
-              {sportLabel}
-            </div>
+            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">{sportLabel}</div>
           )}
         </div>
       )}
@@ -200,22 +198,26 @@ export function EventCard({
             </div>
           </div>
 
-          <h3 className="text-[13px] font-bold leading-tight tracking-tight text-slate-900">
-            {event.title}
-          </h3>
+          <h3 className="text-[13px] font-bold leading-tight tracking-tight text-slate-900">{event.title}</h3>
         </div>
 
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
+              <Calendar
+                className="h-4.5 w-4.5"
+                strokeWidth={2.5}
+              />
             </div>
             <span className="text-[11px]">{scheduleLabel}</span>
           </div>
 
           <div className="flex items-start gap-3">
             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
+              <MapPin
+                className="h-4.5 w-4.5"
+                strokeWidth={2.5}
+              />
             </div>
             <div className="min-w-0 text-[11px] leading-snug">
               <p className="break-words">{locationLine1}</p>
@@ -226,13 +228,16 @@ export function EventCard({
           {/* Attendance Area */}
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-5 w-5 items-center justify-center text-blue-600">
-              <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
+              <PersonStanding
+                className="h-5 w-5"
+                strokeWidth={2.5}
+              />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[11px]">
                 {attendeeCount} Joined · {remaining} Spots Left
                 <br />
-                Starts with {minPeople} players
+                Min. {minPeople} players
               </span>
               <div className="flex -space-x-1.5">
                 {event.participants.slice(0, 3).map((p, i) => (
@@ -241,10 +246,7 @@ export function EventCard({
                     className="h-5 w-5 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-sm"
                   >
                     <img
-                      src={
-                        p.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${p.name}&background=random`
-                      }
+                      src={p.avatarUrl || `https://ui-avatars.com/api/?name=${p.name}&background=random`}
                       alt=""
                       className="h-full w-full object-cover"
                     />
@@ -257,13 +259,14 @@ export function EventCard({
           {/* Price Area - Now aligned with other icons */}
           <div className="flex items-center gap-3">
             <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <CircleDollarSign className="w-4.5 h-4.5" strokeWidth={2.5} />
+              <CircleDollarSign
+                className="w-4.5 h-4.5"
+                strokeWidth={2.5}
+              />
             </div>
             <div className="text-[11px]">
               <span className="text-slate-900">
-                {event.isFree
-                  ? 'Free'
-                  : `${event.priceRange || `$${event.pricePerPerson}`} /person`}
+                {event.isFree ? 'Free' : `${event.priceRange || `$${event.pricePerPerson}`} per person`}
               </span>
             </div>
           </div>
@@ -273,12 +276,9 @@ export function EventCard({
   )
 }
 
-const STATUS_STYLES: Record<
-  NonNullable<PlayerEvent['status']>,
-  { label: string; className: string }
-> = {
-  draft:     { label: 'Draft',     className: 'bg-amber-50 border-amber-200 text-amber-700' },
-  published: { label: 'Live',      className: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+const STATUS_STYLES: Record<NonNullable<PlayerEvent['status']>, { label: string; className: string }> = {
+  draft: { label: 'Draft', className: 'bg-amber-50 border-amber-200 text-amber-700' },
+  published: { label: 'Live', className: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
   cancelled: { label: 'Cancelled', className: 'bg-red-50 border-red-200 text-red-600' },
   completed: { label: 'Completed', className: 'bg-slate-100 border-slate-200 text-slate-600' },
 }
@@ -336,7 +336,10 @@ function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-        <Icon className="h-5 w-5" strokeWidth={2} />
+        <Icon
+          className="h-5 w-5"
+          strokeWidth={2}
+        />
       </div>
       <div className="text-sm text-slate-600">{label}</div>
     </div>
@@ -370,18 +373,18 @@ function formatTimeRange(start: Date | string, end: Date | string) {
 function formatSchedule(start: Date | string, end: Date | string) {
   const startDate = toDate(start)
   const endDate = toDate(end)
-  const dateStr = startDate.toLocaleDateString('en-US', {
+  const dateStr = startDate.toLocaleDateString('en-AU', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   })
 
-  const startWithSuffix = startDate.toLocaleTimeString('en-US', {
+  const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   })
-  const endWithSuffix = endDate.toLocaleTimeString('en-US', {
+  const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,

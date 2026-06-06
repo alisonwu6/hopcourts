@@ -90,7 +90,10 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     }
   },
 
-  fetchMyEvents: async (type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'upcoming', options?: FetchOptions) => {
+  fetchMyEvents: async (
+    type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'upcoming',
+    options?: FetchOptions
+  ) => {
     set({ isLoading: true, error: null })
     try {
       const response = await eventsService.getMyEvents(type, options)

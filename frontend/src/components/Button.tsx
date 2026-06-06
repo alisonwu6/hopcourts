@@ -44,13 +44,7 @@ export function Button({
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className={clsx(
-        baseClass,
-        sizeClasses[size],
-        variantClasses[variant],
-        textClassName,
-        className
-      )}
+      className={clsx(baseClass, sizeClasses[size], variantClasses[variant], textClassName, className)}
     >
       {children}
     </button>

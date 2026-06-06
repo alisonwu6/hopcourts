@@ -14,7 +14,12 @@ export function AboutPage() {
         contentClassName="max-w-5xl px-4"
         showBack
         title={<span className="text-lg font-semibold text-slate-900">About Us</span>}
-        rightContent={<span className="h-10 w-10" aria-hidden="true" />}
+        rightContent={
+          <span
+            className="h-10 w-10"
+            aria-hidden="true"
+          />
+        }
         borderBottom
       />
 
@@ -32,7 +37,7 @@ export function AboutPage() {
               Your home game.
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-              SportsMatch connects people through real-world sports.
+              HopCourts connects people through real-world sports.
               <br />
               <br />
               The best part of sport isn’t just the workout — it’s the moments shared with people
@@ -59,8 +64,8 @@ export function AboutPage() {
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">Find Games Easily</h3>
-                <p className="mt-2 text-sm text-slate-600">Start or join sessions near you.</p>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">Find Events Easily</h3>
+                <p className="mt-2 text-sm text-slate-600">Start or join events near you.</p>
               </div>
             </div>
           </div>

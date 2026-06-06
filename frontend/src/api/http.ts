@@ -29,9 +29,9 @@ const buildUrl = (path: string, params?: RequestOptions['params']) => {
   const base = getBaseUrl()
   // If base is empty (relative path), use current origin to satisfy URL constructor
   const urlBase = base || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
-  
+
   const url = new URL(`${API_PREFIX.replace(/\/$/, '')}/${cleanedPath}`, urlBase)
-  
+
   if (params) {
     const searchParams = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
@@ -42,18 +42,15 @@ const buildUrl = (path: string, params?: RequestOptions['params']) => {
     if (qs) url.search = qs
   }
 
-  // If we used a fallback origin but the config was meant to be relative, 
-  // we could return url.pathname + url.search. 
+  // If we used a fallback origin but the config was meant to be relative,
+  // we could return url.pathname + url.search.
   // But returning the full URL with current origin is also fine for fetch().
   return url.toString()
 }
 
 const getStoredToken = () => {
   if (typeof window === 'undefined') return null
-  return (
-    window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ??
-    window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
-  )
+  return window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY) ?? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
 }
 
 const getStoredUserId = () => {
@@ -61,11 +58,7 @@ const getStoredUserId = () => {
   return window.sessionStorage.getItem('x-user-id') ?? window.localStorage.getItem('x-user-id')
 }
 
-export async function http<T>(
-  method: HttpMethod,
-  path: string,
-  options: RequestOptions = {}
-): Promise<T> {
+export async function http<T>(method: HttpMethod, path: string, options: RequestOptions = {}): Promise<T> {
   const { body, params, auth = true, userIdOverride, tokenOverride, headers = {} } = options
 
   const reqHeaders: HeadersInit = {

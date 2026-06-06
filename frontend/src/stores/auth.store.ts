@@ -1,10 +1,6 @@
 import { create } from 'zustand'
 import { User } from '@/types'
-import {
-  signInWithEmail,
-  signUpWithEmail,
-  signOut as supabaseSignOut,
-} from '@/services/authService'
+import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/services/authService'
 import { sessionService } from '@/services/sessionService'
 
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
@@ -23,11 +19,7 @@ interface AuthState {
   logout: () => Promise<void>
   clearAuthState: () => void
   hydrate: (silent?: boolean) => Promise<void>
-  setAuthData: (
-    user: User | null,
-    token: string | null,
-    options?: { remember?: boolean }
-  ) => void
+  setAuthData: (user: User | null, token: string | null, options?: { remember?: boolean }) => void
   setProfileCache: (profile: any | null) => void
   clearError: () => void
 }
@@ -184,16 +176,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   hydrate: async (silent = false) => {
-    const hasToken = typeof window !== 'undefined' && 
-      (window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || 
-       window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY))
-    
+    const hasToken =
+      typeof window !== 'undefined' &&
+      (window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY))
+
     if (!hasToken) {
-      set({ 
-        isLoading: false, 
-        isAuthenticated: false, 
-        user: null, 
-        token: null 
+      set({
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+        token: null,
       })
       return
     }

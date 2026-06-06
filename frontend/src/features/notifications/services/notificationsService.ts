@@ -44,5 +44,5 @@ export const notificationsService = {
 
   async markAllRead() {
     return httpPatch<{ ok: boolean }>('/notifications/read-all')
-  }
+  },
 }
