@@ -154,7 +154,7 @@ export function EventDetailView({
 
   const formatMoney = (value?: number | null) => {
     if (value == null || Number.isNaN(Number(value))) return '';
-    return Math.round(Number(value)).toLocaleString('en-US');
+    return Math.round(Number(value)).toLocaleString('en-AU');
   };
 
   const feeLine2 = (() => {
@@ -391,7 +391,7 @@ export function EventDetailView({
                   );
                 })
               ) : (
-                <p className="pl-14 text-xs text-slate-300">No one's joined yet — be the first!</p>
+                <p className="pl-14 text-xs text-slate-300">No one's joined yet. Be the first!</p>
               )}
             </div>
 
@@ -501,12 +501,12 @@ function formatEventSchedule(start: Date | string, end: Date | string) {
     day: 'numeric',
   });
 
-  const startWithSuffix = startDate.toLocaleTimeString('en-US', {
+  const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   });
-  const endWithSuffix = endDate.toLocaleTimeString('en-US', {
+  const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -573,7 +573,7 @@ function JoinBar({
       month: 'short',
       day: 'numeric',
     });
-    const timeLabel = value.toLocaleTimeString('en-US', {
+    const timeLabel = value.toLocaleTimeString('en-AU', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,

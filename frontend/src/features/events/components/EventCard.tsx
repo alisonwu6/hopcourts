@@ -376,12 +376,12 @@ function formatSchedule(start: Date | string, end: Date | string) {
     day: 'numeric',
   })
 
-  const startWithSuffix = startDate.toLocaleTimeString('en-US', {
+  const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   })
-  const endWithSuffix = endDate.toLocaleTimeString('en-US', {
+  const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,

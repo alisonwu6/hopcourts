@@ -120,17 +120,17 @@ export function EventMap({
     if (!selectedEvent) return ''
     const start = new Date(selectedEvent.startTime)
     const end = new Date(selectedEvent.endTime)
-    const dateLabel = start.toLocaleDateString('en-US', {
+    const dateLabel = start.toLocaleDateString('en-AU', {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
     })
-    const startWithSuffix = start.toLocaleTimeString('en-US', {
+    const startWithSuffix = start.toLocaleTimeString('en-AU', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     })
-    const endWithSuffix = end.toLocaleTimeString('en-US', {
+    const endWithSuffix = end.toLocaleTimeString('en-AU', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,

@@ -30,7 +30,7 @@ const wrapEmptyEvents = (): ApiResponse<PaginatedResponse<PlayerEvent>> =>
 const formatTwdNoDecimal = (value: unknown): string => {
   const n = Number(value)
   if (!Number.isFinite(n)) return '0'
-  return Math.round(n).toLocaleString('en-US')
+  return Math.round(n).toLocaleString('en-AU')
 }
 
 const deriveCourtName = (session: any): string | undefined => {
