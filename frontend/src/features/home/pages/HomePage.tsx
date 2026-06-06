@@ -91,13 +91,13 @@ export function HomePage() {
           </section>
 
           {/* Manifesto */}
-          <section className="mt-16 border-t border-slate-100 pb-4 pt-12 text-center">
+          <section className="mt-10 border-t border-slate-100 pb-4 pt-6 text-center">
             <blockquote className="text-lg font-semibold italic leading-relaxed text-slate-700">
               "Sport is the oldest social network.
               <br />
               We just forgot to build the app for it."
             </blockquote>
-            <p className="mt-4 text-xs font-semibold text-slate-400">— HopCourts</p>
+            <p className="mt-2 text-xs font-semibold text-slate-400">— HopCourts</p>
           </section>
         </main>
       </div>
