@@ -1,4 +1,12 @@
-import { Building2, MapPin, CheckCircle, AlertCircle, Clock, Sparkles, ShieldCheck } from 'lucide-react'
+import {
+  Building2,
+  MapPin,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Sparkles,
+  ShieldCheck,
+} from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EventCard } from '@/features/events/components/EventCard'
 import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton'
@@ -48,7 +56,9 @@ export function VenueDetailsView({
           </div>
 
           <div className="mt-2 min-w-0 flex-1">
-            <h1 className="text-3xl font-black leading-tight tracking-tight text-slate-900">{venue.name_display}</h1>
+            <h1 className="text-3xl font-black leading-tight tracking-tight text-slate-900">
+              {venue.name_display}
+            </h1>
             <div className="mt-3 flex items-start gap-2 text-sm font-medium text-slate-500">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-300" />
               <span>{venue.address_display || 'Address not listed'}</span>
@@ -74,7 +84,9 @@ export function VenueDetailsView({
         {/* Public Bio */}
         {venue.description && (
           <div className="mt-8">
-            <h2 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">About</h2>
+            <h2 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              About
+            </h2>
             <p className="rounded-2xl border border-slate-50 bg-slate-50/50 p-4 text-sm font-medium italic leading-relaxed text-slate-600">
               "{venue.description}"
             </p>
@@ -84,7 +96,9 @@ export function VenueDetailsView({
         {/* Amenities List */}
         {venue.amenities && venue.amenities.length > 0 && (
           <div className="mt-8">
-            <h2 className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Amenities</h2>
+            <h2 className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              Amenities
+            </h2>
             <div className="grid grid-cols-2 gap-3">
               {venue.amenities.map((item) => (
                 <div
@@ -103,7 +117,9 @@ export function VenueDetailsView({
         {venue.operating_hours && venue.operating_hours.length > 0 && (
           <div className="mt-8">
             <div className="mb-4 flex items-center gap-2">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hours</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                Hours
+              </h2>
               <Clock className="h-3 w-3 text-slate-300" />
             </div>
             <div className="space-y-2 rounded-2xl border border-slate-100/50 bg-slate-50 p-4">
@@ -117,7 +133,9 @@ export function VenueDetailsView({
                   </span>
                   <div className="mx-4 h-px flex-1 bg-slate-200/50" />
                   {hour.is_closed ? (
-                    <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">Closed</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">
+                      Closed
+                    </span>
                   ) : (
                     <span className="font-black tabular-nums text-indigo-600">
                       {hour.open_time} — {hour.close_time}
@@ -131,14 +149,18 @@ export function VenueDetailsView({
 
         {venue.spaces && venue.spaces.length > 0 && (
           <div className="mt-8">
-            <h2 className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Courts & sports</h2>
+            <h2 className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+              Courts & sports
+            </h2>
             <div className="space-y-3">
               {venue.spaces.map((space, idx) => (
                 <div
                   key={`${space.name}-${idx}`}
                   className="rounded-2xl border border-slate-100/50 bg-slate-50 p-4"
                 >
-                  <div className="mb-2 font-black uppercase tracking-tight text-slate-700">{space.name}</div>
+                  <div className="mb-2 font-black uppercase tracking-tight text-slate-700">
+                    {space.name}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {space.supported_sports.length > 0 ? (
                       space.supported_sports.map((sport) => (
@@ -168,7 +190,9 @@ export function VenueDetailsView({
               <Sparkles className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-base font-black tracking-tight text-slate-900">Own this venue?</h3>
+              <h3 className="text-base font-black tracking-tight text-slate-900">
+                Own this venue?
+              </h3>
               <p className="mt-1 text-sm leading-6 text-slate-500">
                 Claim it to get an official badge and manage your events.
               </p>
@@ -188,9 +212,9 @@ export function VenueDetailsView({
       {/* Events Sections */}
       <div className="px-6 py-8">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">Upcoming games</h2>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">Upcoming events</h2>
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            {upcomingEvents.length} games
+            {upcomingEvents.length} events
           </span>
         </div>
 
@@ -213,7 +237,9 @@ export function VenueDetailsView({
             <p className="text-center text-sm font-black uppercase tracking-widest text-slate-400">
               Nothing scheduled yet
             </p>
-            <p className="mt-2 text-xs font-bold uppercase tracking-widest text-slate-300">Check back soon</p>
+            <p className="mt-2 text-xs font-bold uppercase tracking-widest text-slate-300">
+              Check back soon
+            </p>
           </div>
         )}
       </div>
