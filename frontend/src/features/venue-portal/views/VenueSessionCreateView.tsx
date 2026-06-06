@@ -254,8 +254,8 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                                             </div>
                                             <span className="text-xs text-slate-400">
                                                 {formData.priceMode === 'total'
-                                                    ? 'Per-person fee is estimated from total participants.'
-                                                    : 'Set per-person fee directly.'}
+                                                    ? 'Per-person cost is estimated from total capacity.'
+                                                    : 'Set the per-person fee directly.'}
                                             </span>
                                         </div>
 
@@ -294,7 +294,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                             <div>
                                 <textarea 
                                     rows={4}
-                                    placeholder="Ex: Shuttlecocks provided, Intermediate players only..."
+                                    placeholder="e.g. Shuttlecocks provided, intermediate players only..."
                                     className="w-full px-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all shadow-inner resize-none"
                                     value={formData.description}
                                     onChange={e => setFormData({...formData, description: e.target.value})}

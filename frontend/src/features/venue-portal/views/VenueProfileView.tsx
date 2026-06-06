@@ -289,7 +289,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Logo URL (Profile Picture)</label>
+                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Logo URL</label>
                                 <input
                                     type="url"
                                     value={formData.logo_url}
@@ -449,7 +449,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                                         </div>
                                     ) : (
                                         <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] italic text-center sm:text-right pr-0 sm:pr-4">
-                                            No Business
+                                            Closed
                                         </div>
                                     )}
                                 </div>

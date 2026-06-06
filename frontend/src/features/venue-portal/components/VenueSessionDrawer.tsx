@@ -86,7 +86,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                                     <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Summary Status</div>
                                     <VenueBadge variant="emerald" size="xs">Live Inventory</VenueBadge>
                                 </div>
-                                <div className="text-2xl font-black">{session.participants_count} <span className="text-slate-500 text-lg">/ {session.max_participants} Joins</span></div>
+                                <div className="text-2xl font-black">{session.participants_count} <span className="text-slate-500 text-lg">/ {session.max_participants}</span></div>
                                 <div className="w-full bg-slate-800 h-1.5 rounded-full mt-4 overflow-hidden shadow-inner">
                                     <div 
                                         className="h-full bg-indigo-500 rounded-full transition-all duration-1000" 
@@ -141,11 +141,11 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-slate-50 border border-slate-100/50 rounded-2xl p-5 text-center shadow-inner group">
-                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">Goal Capacity</div>
+                                    <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-indigo-400 transition-colors">Max Capacity</div>
                                     <div className="text-2xl font-black text-slate-900 tabular-nums">{session.max_participants}</div>
                                 </div>
                                 <div className="bg-indigo-50/30 border border-indigo-100/50 rounded-2xl p-5 text-center shadow-inner group">
-                                    <div className="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-1 group-hover:text-amber-500 transition-colors">Player Joins</div>
+                                    <div className="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-1 group-hover:text-amber-500 transition-colors">Registered</div>
                                     <div className="text-2xl font-black text-indigo-600 tabular-nums">{session.participants_count}</div>
                                 </div>
                             </div>
@@ -161,7 +161,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                                 </div>
                                 <div className="flex items-center gap-4 group">
                                     <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 shrink-0 group-hover:bg-amber-50 transition-colors"><DollarSign className="w-4 h-4 text-amber-300 group-hover:text-amber-500" /></div>
-                                    <div className="text-xs font-black uppercase tracking-widest text-slate-400">Slot Fee <span className="text-indigo-600 ml-2">A${session.price} AUD</span></div>
+                                    <div className="text-xs font-black uppercase tracking-widest text-slate-400">Slot Fee <span className="text-indigo-600 ml-2">A${session.price}</span></div>
                                 </div>
                             </div>
 
@@ -184,7 +184,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                                             </VenueButton>
                                         ) : (
                                             <VenueButton variant="success" size="lg" className="w-full" onClick={() => onUpdate({ status: 'published' })}>
-                                                Re-instantiate Session
+                                                Reactivate Session
                                             </VenueButton>
                                         )}
                                     </>
@@ -232,7 +232,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                                 </div>
                             </div>
                             <div className="flex gap-3 pt-4">
-                                <VenueButton variant="ghost" size="lg" className="flex-1" onClick={() => setIsEditing(false)}>Disregard Changes</VenueButton>
+                                <VenueButton variant="ghost" size="lg" className="flex-1" onClick={() => setIsEditing(false)}>Discard Changes</VenueButton>
                                 <VenueButton variant="primary" size="lg" className="flex-1 shadow-lg shadow-indigo-100" onClick={() => onUpdate({})}>Commit Changes</VenueButton>
                             </div>
                         </div>

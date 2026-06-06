@@ -223,7 +223,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Fee (A$ AUD)</label>
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Fee (A$)</label>
                                             <input type="number" value={slot.price} onChange={e => handleUpdateSlot(slot.id, { price: parseFloat(e.target.value) })} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-black text-indigo-600 shadow-sm" />
                                         </div>
                                     </div>

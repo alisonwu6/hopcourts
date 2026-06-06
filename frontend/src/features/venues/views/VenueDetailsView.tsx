@@ -174,7 +174,7 @@ export function VenueDetailsView({
             <div className="min-w-0 flex-1">
               <h3 className="text-base font-black tracking-tight text-slate-900">Own this venue?</h3>
               <p className="mt-1 text-sm leading-6 text-slate-500">
-                Claim it to get an official badge and manage your sessions.
+                Claim it to get an official badge and manage your events.
               </p>
             </div>
           </div>

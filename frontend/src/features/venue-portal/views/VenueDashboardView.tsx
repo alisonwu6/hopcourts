@@ -37,19 +37,19 @@ export function VenueDashboardView({
 
   const leftAction = venues.length > 1 ? (
     <div className="relative">
-       <select 
+      <select 
           value={selectedVenueId || ''}
           onChange={(e) => setSelectedVenueId(e.target.value)}
           className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
           title="Switch Venue"
-       >
-          {venues.map(v => (
-             <option key={v.id} value={v.id}>{v.name_display}</option>
-          ))}
-       </select>
-       <button className="text-slate-900 border-[1.5px] border-slate-900 rounded-[6px] w-[26px] h-[26px] flex items-center justify-center pointer-events-none">
-          <Plus className="w-[18px] h-[18px] stroke-[2.5]" />
-       </button>
+      >
+        {venues.map(v => (
+          <option key={v.id} value={v.id}>{v.name_display}</option>
+        ))}
+      </select>
+      <button className="text-slate-900 border-[1.5px] border-slate-900 rounded-[6px] w-[26px] h-[26px] flex items-center justify-center pointer-events-none">
+        <Plus className="w-[18px] h-[18px] stroke-[2.5]" />
+      </button>
     </div>
   ) : null;
 
@@ -98,7 +98,7 @@ export function VenueDashboardView({
                 <div className="text-3xl font-black tracking-tighter text-slate-900 leading-none mb-1">
                   {dashboardData.stats.sessions_completed}
                 </div>
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sessions Completed</div>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Events Completed</div>
               </div>
 
               <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-start relative overflow-hidden group">
@@ -119,7 +119,7 @@ export function VenueDashboardView({
                 <div className="text-3xl font-black tracking-tighter text-emerald-600 leading-none mb-1">
                   {dashboardData.stats.active_events}
                 </div>
-                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sessions Active</div>
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Events Active</div>
               </div>
 
               <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-start relative overflow-hidden group">

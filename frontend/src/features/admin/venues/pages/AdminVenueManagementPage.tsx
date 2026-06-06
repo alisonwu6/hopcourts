@@ -118,7 +118,7 @@ export function AdminVenueManagementPage() {
   const handleReject = async () => {
     if (!reviewingClaim) return
     if (!rejectReason.trim()) {
-      alert('Please enter a rejection reason before proceeding.')
+      alert('Enter a rejection reason to proceed.')
       return
     }
 
@@ -156,7 +156,7 @@ export function AdminVenueManagementPage() {
   const handleSuspend = async () => {
     if (!suspendingVenue) return
     if (!suspendReason.trim()) {
-      alert('Please enter a suspension reason.')
+      alert('Enter a suspension reason to proceed.')
       return
     }
 
