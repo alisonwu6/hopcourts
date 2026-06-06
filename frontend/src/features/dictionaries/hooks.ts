@@ -136,7 +136,7 @@ export function useVibeUtils(lang: 'zh' | 'en' = 'en') {
     })
     return (key: string): string | null => {
       if (!key) return null
-      return map.get(key) ?? map.get(key.toLowerCase()) ?? (key.charAt(0).toUpperCase() + key.slice(1).toLowerCase())
+      return map.get(key) ?? map.get(key.toLowerCase()) ?? key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
     }
   }, [vibesCatalog])
 

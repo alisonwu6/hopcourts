@@ -137,7 +137,6 @@ export function ProfilePage() {
     return (label: string) => map.get(label) || map.get(label?.toLowerCase?.() || '') || label
   }, [sportsCatalog])
 
-
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
     return (key?: string) => (key ? map.get(key) || key : '')

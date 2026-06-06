@@ -1,11 +1,4 @@
-export type Vibe =
-  | 'Chill'
-  | 'Social'
-  | 'Competitive'
-  | 'Flow'
-  | 'Growth'
-  | 'Explorer'
-  | 'Supportive'
+export type Vibe = 'Chill' | 'Social' | 'Competitive' | 'Flow' | 'Growth' | 'Explorer' | 'Supportive'
 
 export const vibeTokens: Record<Vibe, { bg: string; text: string; ring: string; card: string }> = {
   Chill: {
@@ -51,4 +44,3 @@ export const vibeTokens: Record<Vibe, { bg: string; text: string; ring: string; 
     card: 'linear-gradient(145deg, rgba(255,179,71,0.16) 0%, rgba(255,179,71,0.07) 100%)',
   },
 }
-

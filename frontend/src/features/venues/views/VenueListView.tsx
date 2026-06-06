@@ -46,10 +46,7 @@ export function VenueListView({
           <div className="pointer-events-auto relative flex-1">
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
               <Search
-                className={clsx(
-                  'h-5 w-5 transition-colors',
-                  searchQuery ? 'text-indigo-600' : 'text-slate-400'
-                )}
+                className={clsx('h-5 w-5 transition-colors', searchQuery ? 'text-indigo-600' : 'text-slate-400')}
                 strokeWidth={2.5}
               />
             </div>
@@ -78,11 +75,7 @@ export function VenueListView({
             onClick={onToggleView}
             className="pointer-events-auto flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-95"
           >
-            {showMap ? (
-              <ListIcon className="h-6 w-6 text-slate-700" />
-            ) : (
-              <MapIcon className="h-6 w-6 text-slate-700" />
-            )}
+            {showMap ? <ListIcon className="h-6 w-6 text-slate-700" /> : <MapIcon className="h-6 w-6 text-slate-700" />}
           </button>
         </div>
       </div>
