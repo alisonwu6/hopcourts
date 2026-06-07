@@ -11,16 +11,23 @@ export function AccountSettingsPage() {
   const { user, setAuthData } = useAuthStore()
   const email = user?.email || 'Not set'
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showOngoingWarning, setShowOngoingWarning] = useState(false)
   const [showDeleteFailed, setShowDeleteFailed] = useState(false)
 
-  const confirmDeleteAccount = async () => {
+  const attemptDelete = async (force = false) => {
     try {
-      await profileService.deleteAccount()
+      await profileService.deleteAccount(force)
       setAuthData(null, null)
       navigate('/')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete account:', error)
-      setShowDeleteFailed(true)
+      const code = error?.details?.error?.code
+      if (code === 'ONGOING_EVENT') {
+        setShowDeleteConfirm(false)
+        setShowOngoingWarning(true)
+      } else {
+        setShowDeleteFailed(true)
+      }
     }
   }
 
@@ -60,16 +67,30 @@ export function AccountSettingsPage() {
         </Section>
       </div>
 
+      {/* Step 1 — Standard confirmation */}
       <AlertDialog
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Are you sure you want to delete your account?"
-        description="All data will be permanently deleted and cannot be recovered."
+        title="Delete your account?"
+        description="Your login access will be removed. Any upcoming events you're hosting will be cancelled."
         type="error"
-        actionLabel="Confirm"
+        actionLabel="Continue"
         cancelLabel="Cancel"
         actionLeft
-        onAction={confirmDeleteAccount}
+        onAction={() => attemptDelete(false)}
+      />
+
+      {/* Step 2 — Ongoing event warning */}
+      <AlertDialog
+        open={showOngoingWarning}
+        onClose={() => setShowOngoingWarning(false)}
+        title="You have an active event right now"
+        description="Your participants are expecting you. Are you sure you still want to delete your account?"
+        type="warning"
+        actionLabel="Yes, delete anyway"
+        cancelLabel="Cancel"
+        actionLeft
+        onAction={() => attemptDelete(true)}
       />
 
       <AlertDialog
