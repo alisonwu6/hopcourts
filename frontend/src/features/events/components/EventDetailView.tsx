@@ -9,6 +9,7 @@ import {
   PersonStanding,
   Trash2,
   LandPlot,
+  LockKeyhole,
   Pencil,
   Share,
   Smile,
@@ -671,7 +672,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
                 className="h-5 w-5"
                 strokeWidth={2}
               />
-              Tap to check in
+              Check in
             </span>
           )}
         </Button>
@@ -726,10 +727,11 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
       secondaryButton = (
         <Button
           disabled
-          className="!hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 cursor-not-allowed !bg-emerald-500 !text-white opacity-100 disabled:opacity-100"
+          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
         >
-          <span className="flex flex-col items-center leading-tight">
-            <span className="text-sm font-semibold">Tap to check in</span>
+          <span className="flex items-center justify-center gap-2">
+            <LockKeyhole className="h-4 w-4" />
+            <span className="text-sm font-semibold">Check in</span>
           </span>
         </Button>
       )
