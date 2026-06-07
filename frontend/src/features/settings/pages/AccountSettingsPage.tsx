@@ -13,12 +13,14 @@ export function AccountSettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showOngoingWarning, setShowOngoingWarning] = useState(false)
   const [showDeleteFailed, setShowDeleteFailed] = useState(false)
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
 
   const attemptDelete = async (force = false) => {
     try {
       await profileService.deleteAccount(force)
-      setAuthData(null, null)
-      navigate('/')
+      setShowDeleteConfirm(false)
+      setShowOngoingWarning(false)
+      setShowDeleteSuccess(true)
     } catch (error: any) {
       console.error('Failed to delete account:', error)
       const code = error?.details?.error?.code
@@ -97,8 +99,28 @@ export function AccountSettingsPage() {
         open={showDeleteFailed}
         onClose={() => setShowDeleteFailed(false)}
         title="Failed to delete account"
-        description="Please try again later."
+        description="Something went wrong. Please try again later."
         type="error"
+        actionLabel="OK"
+        onAction={() => setShowDeleteFailed(false)}
+      />
+
+      <AlertDialog
+        open={showDeleteSuccess}
+        onClose={() => {
+          setShowDeleteSuccess(false)
+          setAuthData(null, null)
+          navigate('/')
+        }}
+        title="Account deleted"
+        description="Your account has been successfully deleted. We're sorry to see you go."
+        type="success"
+        actionLabel="OK"
+        onAction={() => {
+          setShowDeleteSuccess(false)
+          setAuthData(null, null)
+          navigate('/')
+        }}
       />
     </div>
   )
