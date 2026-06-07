@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS sports (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE,
   username_updated_at TIMESTAMPTZ,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS follows (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS venues (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   name_display TEXT, -- Often used in models
   logo_url TEXT,     -- Using logo_url instead of cover_image in some models?
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS venue_profiles (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
   host_user_id UUID REFERENCES users(id),
   sport_key TEXT REFERENCES sports(key),
@@ -240,7 +240,7 @@ CREATE INDEX IF NOT EXISTS idx_session_participants_session_status
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS check_ins (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id),
   venue_id UUID REFERENCES venues(id),
@@ -254,7 +254,7 @@ CREATE TABLE IF NOT EXISTS check_ins (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS feedback (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id),
   type TEXT NOT NULL,
   message TEXT NOT NULL,
