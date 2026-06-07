@@ -94,21 +94,30 @@ function EventGroupList({
   )
 }
 
-function EmptyState({ icon, title, description }: { icon: string; title: string; description: string }) {
+function EmptyState({ icon, title, description, onExplore }: { icon: string; title: string; description: string; onExplore?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
       <div className="rounded-full bg-white p-2 text-4xl shadow-sm">{icon}</div>
       <h3 className="mt-4 text-lg font-bold text-slate-900">{title}</h3>
       <p className="mt-1 text-sm text-slate-500">{description}</p>
+      {onExplore && (
+        <button
+          type="button"
+          onClick={onExplore}
+          className="mt-5 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+        >
+          Explore Events
+        </button>
+      )}
     </div>
   )
 }
 
-export function ProfileEventsPanel({ mode, showTimeTabs = true }: { mode: PanelMode; showTimeTabs?: boolean }) {
+export function ProfileEventsPanel({ mode, showTimeTabs = true, onExplore }: { mode: PanelMode; showTimeTabs?: boolean; onExplore?: () => void }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = (searchParams.get('tab') as TabKey) || 'upcoming'
   const [events, setEvents] = useState<PlayerEvent[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const setTab = (newTab: TabKey) => {
@@ -228,6 +237,7 @@ export function ProfileEventsPanel({ mode, showTimeTabs = true }: { mode: PanelM
                 icon={empty.icon}
                 title={empty.title}
                 description={empty.description}
+                onExplore={onExplore}
               />
             }
           />

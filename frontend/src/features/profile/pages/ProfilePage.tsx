@@ -410,7 +410,6 @@ export function ProfilePage() {
   useEffect(() => {
     const isNowOnboarded = !!(user as any)?.onboarding_completed_at
     if (!prevOnboardedRef.current && isNowOnboarded) {
-      // Immediate trigger for overlap effect
       setShowEditSheet(false)
       setShowCompletionSheet(true)
       setShowProfileRequiredSheet(false)
@@ -880,6 +879,7 @@ export function ProfilePage() {
           <ProfileEventsPanel
             mode="all"
             showTimeTabs={false}
+            onExplore={() => navigate('/events')}
           />
         </div>
       </div>
@@ -1814,6 +1814,7 @@ export function ProfilePage() {
       <ProfileCompletionSheet
         open={showCompletionSheet}
         onClose={() => setShowCompletionSheet(false)}
+        onExplore={() => { setShowCompletionSheet(false); navigate('/events') }}
       />
     </div>
   )
