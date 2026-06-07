@@ -95,15 +95,17 @@ async function upsertProfile(userId, body = {}) {
 
   // Prepare user data
   let email = body.email || (body.auth_user && body.auth_user.email) || current.email
-  let avatarUrl = 
-      body.avatar_url ||
-      body.avatar ||
+  // Use 'in' checks so an explicit null/'' in the request intentionally clears the avatar
+  const avatarExplicitlySet = 'avatar_url' in body || 'avatar' in body
+  let avatarUrl =
+      'avatar_url' in body ? body.avatar_url :
+      'avatar' in body ? body.avatar :
       current.avatar_url ||
       (body.auth_user && body.auth_user.user_metadata && body.auth_user.user_metadata.picture) ||
       (body.auth_user && body.auth_user.avatar_url) ||
       null
-  
-  let nameFromAuth = 
+
+  let nameFromAuth =
       (body.auth_user && body.auth_user.user_metadata && (body.auth_user.user_metadata.full_name || body.auth_user.user_metadata.name)) ||
       null
 
@@ -113,12 +115,14 @@ async function upsertProfile(userId, body = {}) {
       const { data, error } = await supabase.auth.admin.getUserById(userId)
       if (data && data.user) {
         if (!email) email = data.user.email
-        
-        // Also sync avatar if still missing
-        if (!avatarUrl && data.user.user_metadata?.picture) {
+
+        // Sync avatar from auth metadata only for brand-new users (no existing DB record).
+        // For existing users, current.avatar_url is the source of truth — even if null.
+        const isNewUser = !current?.id
+        if (isNewUser && !avatarExplicitlySet && !avatarUrl && data.user.user_metadata?.picture) {
            avatarUrl = data.user.user_metadata.picture
         }
-         if (!avatarUrl && data.user.user_metadata?.avatar_url) {
+        if (isNewUser && !avatarExplicitlySet && !avatarUrl && data.user.user_metadata?.avatar_url) {
            avatarUrl = data.user.user_metadata.avatar_url
         }
 

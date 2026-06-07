@@ -243,13 +243,17 @@ export function EventCard({
                 {event.participants.slice(0, 3).map((p, i) => (
                   <div
                     key={i}
-                    className="h-5 w-5 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-sm"
+                    className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-slate-200 text-[8px] font-bold text-slate-600 shadow-sm"
                   >
-                    <img
-                      src={p.avatarUrl || `https://ui-avatars.com/api/?name=${p.name}&background=random`}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    {p.avatarUrl ? (
+                      <img
+                        src={p.avatarUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (p.name || '?').charAt(0).toUpperCase()
+                    )}
                   </div>
                 ))}
               </div>

@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, Bookmark } from 'lucide-react'
+import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, Bookmark, Smile, X } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
@@ -12,6 +12,7 @@ import { profileService } from '@/features/profile/services/profileService'
 import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { supabase } from '@/lib/supabase'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
 import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel'
@@ -499,6 +500,31 @@ export function ProfilePage() {
     setShowEditSheet(true)
   }
 
+  const handleRemoveAvatar = async () => {
+    if (!userId || !supabase) return
+    try {
+      // Storage delete is best-effort; file may not exist
+      await supabase.storage.from('avatars').remove([`${userId}/avatar.webp`])
+    } catch {
+      // continue — DB clear is what matters
+    }
+    try {
+      const res = await profileService.saveProfile({ avatar_url: null })
+      // Only clear UI after the DB confirms the change
+      setDraftProfile((prev) => ({ ...prev, avatar: '' }))
+      setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: '' } } : prev))
+      const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
+      if (authUser && token) setAuth({ ...authUser, avatar: null, avatar_url: null, avatarUrl: null } as any, token)
+      // Patch rawProfile so useEffect doesn't re-hydrate the old URL
+      const data = (res as any)?.data ?? res
+      if (data?.user) data.user.avatar_url = null
+      else if (data) data.avatar_url = null
+      setRawProfile(data)
+    } catch (err) {
+      console.error('Failed to clear avatar in DB', err)
+    }
+  }
+
   const hasProfileFieldError = (field: ProfileRequiredField) => invalidProfileFields.includes(field)
 
   const clearProfileFieldError = (field: ProfileRequiredField) => {
@@ -978,18 +1004,36 @@ export function ProfilePage() {
         >
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <img
-                src={draftProfile.avatar || userAvatar || ''}
-                alt="Avatar"
-                className="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-white"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAvatarCropper(true)}
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
-              >
-                Edit
-              </button>
+              <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-slate-200 shadow-lg ring-4 ring-white">
+                {draftProfile.avatar || userAvatar ? (
+                  <img
+                    src={draftProfile.avatar || userAvatar || ''}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Smile className="h-14 w-14 text-slate-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-3 left-1/2 flex -translate-x-1/2 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarCropper(true)}
+                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-400 shadow-md hover:text-slate-500"
+                >
+                  Edit
+                </button>
+                {(draftProfile.avatar || userAvatar) && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="flex items-center justify-center rounded-full bg-white p-2 text-slate-300 shadow-md hover:text-slate-500"
+                    aria-label="Remove avatar"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
