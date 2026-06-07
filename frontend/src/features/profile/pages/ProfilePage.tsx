@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, Bookmark, Smile, X } from 'lucide-react'
+import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
@@ -698,7 +698,7 @@ export function ProfilePage() {
         bio: draftProfile.blurb,
         vibe_key: (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined,
         city_key: FIRST_MARKET_CITY_KEY,
-        nationality_key: draftProfile.countryKey || undefined,
+        nationality_key: draftProfile.countryKey || null,
         gender: draftProfile.gender || undefined,
         age_range_key: draftProfile.ageRangeKey || undefined,
         favorite_sports: favoriteKeys,
@@ -1145,7 +1145,7 @@ export function ProfilePage() {
                     {hasProfileFieldError('gender') && <span className="ml-1 text-red-500">*</span>}
                   </p>
                   <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.gender === 'male' ? 'Male' : draftProfile.gender === 'female' ? 'Female' : 'Not set'}
+                    {draftProfile.gender === 'male' ? 'Male' : draftProfile.gender === 'female' ? 'Female' : draftProfile.gender === 'non_binary' ? 'Non-binary' : draftProfile.gender === 'prefer_not_to_say' ? 'Prefer not to say' : 'Not set'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1341,48 +1341,68 @@ export function ProfilePage() {
                   })}
                 </div>
               ) : activeField === 'nationality' ? (
-                <select
-                  value={fieldValue}
-                  onChange={(e) => setFieldValue(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">Please select a nationality</option>
-                  {availableCountries.map((c) => (
-                    <option
-                      key={c.key}
-                      value={c.key}
+                <div className="relative">
+                  <select
+                    value={fieldValue}
+                    onChange={(e) => setFieldValue(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-16 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="">Please select a nationality</option>
+                    {availableCountries.map((c) => (
+                      <option key={c.key} value={c.key}>{c.label}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                  </div>
+                  {fieldValue && (
+                    <button
+                      type="button"
+                      onClick={() => setFieldValue('')}
+                      className="absolute inset-y-0 right-8 flex items-center px-1 text-slate-400 hover:text-slate-600"
+                      aria-label="Clear"
                     >
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               ) : activeField === 'location' ? (
                 <div className="space-y-3">
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-slate-700">Country</label>
-                    <select
-                      value={locationSheetCountry}
-                      onChange={(e) => {
-                        const nextCountry = e.target.value
-                        setLocationSheetCountry(nextCountry)
-                        if (fieldValue && nextCountry !== FIRST_MARKET_COUNTRY_KEY) {
-                          setFieldValue('')
-                        }
-                      }}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    >
-                      <option value={FIRST_MARKET_COUNTRY_KEY}>{FIRST_MARKET_COUNTRY_LABEL}</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={locationSheetCountry}
+                        onChange={(e) => {
+                          const nextCountry = e.target.value
+                          setLocationSheetCountry(nextCountry)
+                          if (fieldValue && nextCountry !== FIRST_MARKET_COUNTRY_KEY) {
+                            setFieldValue('')
+                          }
+                        }}
+                        className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value={FIRST_MARKET_COUNTRY_KEY}>{FIRST_MARKET_COUNTRY_LABEL}</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-slate-700">City</label>
-                    <select
-                      value={fieldValue}
-                      onChange={(e) => setFieldValue(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    >
-                      <option value={FIRST_MARKET_CITY_KEY}>{FIRST_MARKET_CITY_LABEL}</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={fieldValue}
+                        onChange={(e) => setFieldValue(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value={FIRST_MARKET_CITY_KEY}>{FIRST_MARKET_CITY_LABEL}</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : activeField === 'bio' ? (
@@ -1404,6 +1424,8 @@ export function ProfilePage() {
                   {[
                     { key: 'male', label: 'Male' },
                     { key: 'female', label: 'Female' },
+                    { key: 'non_binary', label: 'Non-binary' },
+                    { key: 'prefer_not_to_say', label: 'Prefer not to say' },
                   ].map((g) => (
                     <button
                       key={g.key}
