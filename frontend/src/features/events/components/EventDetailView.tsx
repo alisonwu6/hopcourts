@@ -497,10 +497,7 @@ export function EventDetailView({
 function AvatarCircle({ name, src }: { name: string; src?: string }) {
   return (
     <div
-      className={clsx(
-        'flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-slate-700',
-        !src && 'bg-slate-100'
-      )}
+      className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100"
       style={
         src
           ? {
@@ -511,7 +508,7 @@ function AvatarCircle({ name, src }: { name: string; src?: string }) {
           : undefined
       }
     >
-      {!src && name.charAt(0).toUpperCase()}
+      {!src && <Smile className="h-6 w-6 text-slate-300" />}
     </div>
   )
 }
