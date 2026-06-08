@@ -410,7 +410,7 @@ export function EventDetailView({
                         {isCheckedIn ? (
                           <span className="text-xs font-bold text-emerald-600">Checked in</span>
                         ) : isAbsent ? (
-                          <span className="text-xs font-bold text-red-500">Absent</span>
+                          <span className="text-xs font-bold text-gray-400">Missed it</span>
                         ) : (
                           <span className="text-xs font-medium text-slate-400">Not checked in</span>
                         )}
