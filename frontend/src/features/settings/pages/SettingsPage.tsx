@@ -31,7 +31,7 @@ export function ProfileSettingsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-900">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/profile')}
         showShare={false}
         showFavorite={false}
         contentClassName="max-w-3xl px-4"

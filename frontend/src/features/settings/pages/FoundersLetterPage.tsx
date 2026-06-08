@@ -7,7 +7,7 @@ export function FoundersLetterPage() {
   return (
     <div className="min-h-screen bg-white pb-[120px] text-slate-900">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/settings')}
         showShare={false}
         showFavorite={false}
         title={<span className="text-lg font-semibold text-slate-900">Why HopCourts Exists</span>}

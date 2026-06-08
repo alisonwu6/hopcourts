@@ -8,7 +8,7 @@ export function AboutPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/settings')}
         showShare={false}
         showFavorite={false}
         contentClassName="max-w-5xl px-4"
