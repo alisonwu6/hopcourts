@@ -23,7 +23,7 @@ import { NotificationsPage } from '@/features/notifications/pages/NotificationsP
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
-import { TeammatesPage } from '@/features/profile/pages/TeammatesPage'
+import { MyMatesPage } from '@/features/profile/pages/MyMatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
 import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
 import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
@@ -260,13 +260,13 @@ function AuthenticatedApp() {
         }
       />
       <Route
-        path="/circle"
+        path="/my-mates"
         element={
           <AppChrome
             showHeader={false}
             showNav={false}
           >
-            <TeammatesPage />
+            <MyMatesPage />
           </AppChrome>
         }
       />
@@ -505,7 +505,7 @@ function GuestApp() {
         }
       />
       <Route
-        path="/circle"
+        path="/my-mates"
         element={
           <Navigate
             to="/"

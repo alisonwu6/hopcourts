@@ -5,7 +5,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { api } from '@/api/client'
 import { useCities } from '@/features/dictionaries/hooks'
 
-export function TeammatesPage() {
+export function MyMatesPage() {
   const navigate = useNavigate()
   const { items: citiesCatalog } = useCities()
   const [list, setList] = useState<any[]>([])
@@ -31,15 +31,15 @@ export function TeammatesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
-      <div className="relative sticky top-0 z-10 flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
+      <div className="sticky top-0 z-10 flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/profile')}
           className="absolute left-2 rounded-full p-2 text-slate-600 hover:bg-slate-100"
         >
           <ArrowLeft className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold text-slate-900">My Sports Circle</span>
+        <span className="text-lg font-bold text-slate-900">My Mates</span>
       </div>
 
       <div className="flex flex-col gap-3 p-4">

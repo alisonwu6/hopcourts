@@ -850,7 +850,7 @@ export function ProfilePage() {
           actionClassName=""
           onHostedClick={() => navigate('/profile/hosted-events')}
           onJoinedClick={() => navigate('/profile/joined-events')}
-          onTeammatesClick={() => navigate('/circle')}
+          onTeammatesClick={() => navigate('/my-mates')}
         />
         {hasVenueAccess && (
           <div className="mt-2 px-3">
