@@ -33,11 +33,14 @@ export function SavedEventsPage() {
             <p className="text-sm text-slate-400">Loading...</p>
           </div>
         ) : savedEvents.length === 0 ? (
-          // empty status
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Bookmark className="h-16 w-16 text-slate-300" />
-            <p className="text-lg font-bold text-slate-900">No saved events</p>
-            <p className="text-sm text-slate-500">Bookmark events to find them here</p>
+          <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+            <div className="p-2">
+              <Bookmark className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900">No saved events</h3>
+            <p className="mt-1 px-10 text-sm text-slate-500">
+              Save events you’re interested in to keep track of slots and timing.
+            </p>
           </div>
         ) : (
           // map out lists

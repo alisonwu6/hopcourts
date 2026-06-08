@@ -165,7 +165,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Met</span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Mates</span>
             </div>
           </div>
         </div>

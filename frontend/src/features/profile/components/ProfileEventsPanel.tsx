@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { PlayerEvent } from '@/types'
 import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
 import { eventsService } from '@/features/events/services/eventsService'
 import { EventCard } from '@/features/events/components/EventCard'
+import { Bike, BicepsFlexed } from 'lucide-react'
 
 type TabKey = 'upcoming' | 'history'
 type PanelMode = 'all' | 'hosted' | 'joined'
@@ -94,12 +95,22 @@ function EventGroupList({
   )
 }
 
-function EmptyState({ icon, title, description, onExplore }: { icon: string; title: string; description: string; onExplore?: () => void }) {
+function EmptyState({
+  icon,
+  title,
+  description,
+  onExplore,
+}: {
+  icon: ReactNode
+  title: string
+  description: string
+  onExplore?: () => void
+}) {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-      <div className="rounded-full bg-white p-2 text-4xl shadow-sm">{icon}</div>
-      <h3 className="mt-4 text-lg font-bold text-slate-900">{title}</h3>
-      <p className="mt-1 text-sm text-slate-500">{description}</p>
+      <div className="p-2 text-4xl">{icon}</div>
+      <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+      <p className="mt-1 px-10 text-sm text-slate-500">{description}</p>
       {onExplore && (
         <button
           type="button"
@@ -113,7 +124,15 @@ function EmptyState({ icon, title, description, onExplore }: { icon: string; tit
   )
 }
 
-export function ProfileEventsPanel({ mode, showTimeTabs = true, onExplore }: { mode: PanelMode; showTimeTabs?: boolean; onExplore?: () => void }) {
+export function ProfileEventsPanel({
+  mode,
+  showTimeTabs = true,
+  onExplore,
+}: {
+  mode: PanelMode
+  showTimeTabs?: boolean
+  onExplore?: () => void
+}) {
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = (searchParams.get('tab') as TabKey) || 'upcoming'
   const [events, setEvents] = useState<PlayerEvent[]>([])
@@ -183,14 +202,16 @@ export function ProfileEventsPanel({ mode, showTimeTabs = true, onExplore }: { m
   const empty =
     activeTab === 'upcoming'
       ? {
-          icon: '📭',
+          icon: <Bike className="h-8 w-8" />,
           title:
             mode === 'hosted' ? 'No hosted events yet' : mode === 'joined' ? 'No joined events yet' : 'No events yet',
           description:
-            mode === 'hosted' ? 'Create an event and invite your mates!' : 'Browse other events and join one.',
+            mode === 'hosted'
+              ? 'Create an event and invite your mates!'
+              : 'Browse games happening around you and join the action.',
         }
       : {
-          icon: '📜',
+          icon: <BicepsFlexed className="h-8 w-8" />,
           title:
             mode === 'hosted'
               ? 'No past hosted events'
