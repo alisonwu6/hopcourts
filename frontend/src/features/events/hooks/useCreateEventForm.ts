@@ -79,6 +79,7 @@ export function useCreateEventForm() {
   const editId = searchParams.get('id')
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const hostGender = useAuthStore((state) => state.user?.gender)
   const { items: sportsCatalog } = useSports('en')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
@@ -710,5 +711,6 @@ export function useCreateEventForm() {
     handleRemoveImage,
     setFieldRef,
     confirmLocation,
+    hostGender,
   }
 }

@@ -607,13 +607,13 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
   const startTime = new Date(event.startTime)
   const endTime = new Date(event.endTime)
 
-  const openMins = event.checkinOpenMinsBefore ?? 15
+  const openMins = event.checkinOpenMinsBefore ?? 10
   const closeMins = event.checkinCloseMinsAfter ?? 5
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000)
   const effectiveCloseTime = endTime
-  const isCheckInOpen = now <= endTime
+  const isCheckInOpen = now >= openTime && now <= endTime
 
   const formatTime = (value: Date) => {
     const dateLabel = value.toLocaleDateString('en-AU', {

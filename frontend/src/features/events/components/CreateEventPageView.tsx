@@ -72,6 +72,7 @@ export function CreateEventPageView({
   handleRemoveImage,
   setFieldRef,
   confirmLocation,
+  hostGender,
 }: CreateEventPageViewProps) {
   return (
     <>
@@ -225,6 +226,7 @@ export function CreateEventPageView({
               <GenderSelector
                 selected={form.gender}
                 onSelect={handleGenderSelect}
+                hostGender={hostGender}
               />
             </FieldSection>
 
@@ -690,14 +692,16 @@ function SkillSelector({ selected, onSelect }: { selected: SkillLevelKey; onSele
 function GenderSelector({
   selected,
   onSelect,
+  hostGender,
 }: {
   selected: 'mixed' | 'female' | 'male'
   onSelect: (value: 'mixed' | 'female' | 'male') => void
+  hostGender?: string | null
 }) {
-  const options: { id: 'mixed' | 'female' | 'male'; label: string }[] = [
-    { id: 'mixed', label: 'Mixed' },
-    { id: 'female', label: 'Women Only' },
-    { id: 'male', label: 'Men Only' },
+  const options: { id: 'mixed' | 'female' | 'male'; label: string; disabled: boolean }[] = [
+    { id: 'mixed', label: 'Mixed', disabled: false },
+    { id: 'female', label: 'Women Only', disabled: hostGender === 'male' },
+    { id: 'male', label: 'Men Only', disabled: hostGender === 'female' },
   ]
 
   return (
@@ -710,12 +714,15 @@ function GenderSelector({
             <button
               key={opt.id}
               type="button"
-              onClick={() => onSelect(opt.id)}
+              onClick={() => !opt.disabled && onSelect(opt.id)}
+              disabled={opt.disabled}
               className={clsx(
                 'rounded-full border px-4 py-1.5 text-sm font-medium transition',
-                isActive
-                  ? 'border-blue-500 bg-blue-600 text-white shadow-[0_6px_16px_rgba(30,64,175,0.25)]'
-                  : 'border-slate-200 bg-white text-slate-600'
+                opt.disabled
+                  ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300'
+                  : isActive
+                    ? 'border-blue-500 bg-blue-600 text-white shadow-[0_6px_16px_rgba(30,64,175,0.25)]'
+                    : 'border-slate-200 bg-white text-slate-600'
               )}
             >
               {opt.label}

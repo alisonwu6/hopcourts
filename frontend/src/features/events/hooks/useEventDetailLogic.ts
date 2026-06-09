@@ -153,12 +153,12 @@ export function useEventDetailLogic() {
       const userGender = currentUser?.gender
 
       if (event.gender === 'male' && userGender !== 'male') {
-        showAlert('', 'This event is for men only.', 'warning')
+        showAlert('Men’s Session', 'This event is reserved for male players.', 'info')
         return
       }
 
       if (event.gender === 'female' && userGender !== 'female') {
-        showAlert('', 'This event is for women only.', 'warning')
+        showAlert('Women’s Session', 'This event is reserved for female players.', 'info')
         return
       }
     }
