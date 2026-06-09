@@ -1,9 +1,7 @@
 -- Create venue_claims table for venue claim/ownership flow
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 CREATE TABLE IF NOT EXISTS public.venue_claims (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
   venue_id UUID NOT NULL REFERENCES public.venues(id) ON DELETE CASCADE,
   owner_id UUID REFERENCES public.users(id) ON DELETE SET NULL, -- The official user assigned by admin
@@ -31,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_venue_claims_contact_email ON public.venue_claims
 
 -- Optional: audit table for venue changes (optional but good for governance)
 CREATE TABLE IF NOT EXISTS public.venue_audit_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   admin_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
   action TEXT NOT NULL,
   target_type TEXT NOT NULL, -- 'venue', 'venue_claim'

@@ -9,10 +9,12 @@ import {
   PersonStanding,
   Trash2,
   LandPlot,
+  LockKeyhole,
   Pencil,
   Share,
   Smile,
   Frown,
+  Check,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { PlayerEvent } from '@/types'
@@ -28,6 +30,9 @@ type EventDetailAlertState = {
   title: string
   description: React.ReactNode
   type: 'success' | 'error' | 'info' | 'warning'
+  onAction?: () => void
+  actionLabel?: string
+  cancelLabel?: string
 }
 
 type EventDetailViewProps = {
@@ -43,6 +48,7 @@ type EventDetailViewProps = {
   isDeleting: boolean
   isJoinSubmitting: boolean
   isCheckingIn: boolean
+  hasSignaledOnTheWay: boolean
   showProfileRequired: boolean
   hasOtherParticipants: boolean
   isJoined: boolean
@@ -80,6 +86,7 @@ export function EventDetailView({
   isDeleting,
   isJoinSubmitting,
   isCheckingIn,
+  hasSignaledOnTheWay,
   showProfileRequired,
   hasOtherParticipants,
   isJoined,
@@ -380,6 +387,9 @@ export function EventDetailView({
               {event.participants.length > 0 ? (
                 event.participants.map((participant) => {
                   const isCheckedIn = !!participant.checkedInAt
+                  const isOnTheWay =
+                    !!participant.onTheWayAt ||
+                    (participant.id === currentUserId && hasSignaledOnTheWay)
                   const endTime = new Date(event.endTime)
                   const closeMins = event.checkinCloseMinsAfter ?? 60
                   const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
@@ -409,7 +419,9 @@ export function EventDetailView({
                         {isCheckedIn ? (
                           <span className="text-xs font-bold text-emerald-600">Checked in</span>
                         ) : isAbsent ? (
-                          <span className="text-xs font-bold text-red-500">Absent</span>
+                          <span className="text-xs font-bold text-gray-400">Missed it</span>
+                        ) : isOnTheWay ? (
+                          <span className="text-xs font-bold text-amber-500">On the way</span>
                         ) : (
                           <span className="text-xs font-medium text-slate-400">Not checked in</span>
                         )}
@@ -450,9 +462,11 @@ export function EventDetailView({
         event={event}
         onJoin={onJoin}
         onCheckIn={onCheckIn}
+
         isCheckingIn={isCheckingIn}
         isJoinSubmitting={isJoinSubmitting}
         hasCheckedIn={effectiveCheckedIn}
+        hasSignaledOnTheWay={hasSignaledOnTheWay}
       />
 
       <AlertDialog
@@ -484,6 +498,9 @@ export function EventDetailView({
         title={alertDialog.title}
         description={alertDialog.description}
         type={alertDialog.type}
+        onAction={alertDialog.onAction}
+        actionLabel={alertDialog.actionLabel}
+        cancelLabel={alertDialog.cancelLabel}
       />
 
       <ProfileRequiredSheet
@@ -497,10 +514,7 @@ export function EventDetailView({
 function AvatarCircle({ name, src }: { name: string; src?: string }) {
   return (
     <div
-      className={clsx(
-        'flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-slate-700',
-        !src && 'bg-slate-100'
-      )}
+      className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100"
       style={
         src
           ? {
@@ -511,7 +525,7 @@ function AvatarCircle({ name, src }: { name: string; src?: string }) {
           : undefined
       }
     >
-      {!src && name.charAt(0).toUpperCase()}
+      {!src && <Smile className="h-6 w-6 text-slate-300" />}
     </div>
   )
 }
@@ -584,9 +598,10 @@ type JoinBarProps = {
   isCheckingIn: boolean
   isJoinSubmitting: boolean
   hasCheckedIn: boolean
+  hasSignaledOnTheWay: boolean
 }
 
-function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmitting, hasCheckedIn }: JoinBarProps) {
+function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmitting, hasCheckedIn, hasSignaledOnTheWay }: JoinBarProps) {
   const isFull = event.attendeeCount >= event.maxAttendees
   const now = new Date()
   const startTime = new Date(event.startTime)
@@ -597,7 +612,8 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
   const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000)
-  const isCheckInOpen = now >= openTime && now <= closeTime
+  const effectiveCloseTime = endTime
+  const isCheckInOpen = now <= endTime
 
   const formatTime = (value: Date) => {
     const dateLabel = value.toLocaleDateString('en-AU', {
@@ -637,10 +653,19 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
     mainButton = (
       <Button
         disabled
-        className="bg-emerald-600 text-white opacity-100"
+        className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
       >
-        Check-in completed ✓
+        <span className="flex items-center justify-center gap-2">
+          <LockKeyhole className="h-4 w-4" />
+          Leave
+        </span>
       </Button>
+    )
+    secondaryButton = (
+      <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500 bg-transparent shadow-none text-emerald-600">
+        <Check className="h-5 w-5" strokeWidth={2.5} />
+        <span className="text-base font-semibold">Checked in</span>
+      </div>
     )
   } else if (isJoined) {
     if (isCheckInOpen) {
@@ -670,43 +695,40 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
             'Locating...'
           ) : (
             <span className="flex items-center justify-center gap-2">
-              <LandPlot
-                className="h-5 w-5"
-                strokeWidth={2}
-              />
-              Tap to check in
+              <LandPlot className="h-5 w-5" strokeWidth={2} />
+              Check in
             </span>
           )}
         </Button>
       )
       statusText = (
         <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          Check in before {formatTime(closeTime)} so everyone knows you've made it.
+          {hasSignaledOnTheWay
+            ? `Your mates know you're OTW. Remember to check in by ${formatTime(effectiveCloseTime)}.`
+            : `Check in before ${formatTime(effectiveCloseTime)} so everyone knows you've made it.`}
         </p>
       )
-    } else if (now > closeTime) {
+    } else if (now > effectiveCloseTime) {
       mainButton = (
         <Button
-          onClick={onJoin}
-          disabled={isJoinSubmitting}
-          className="bg-blue-600 text-white opacity-100"
+          disabled
+          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
         >
-          {isJoinSubmitting ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/80 border-t-transparent" />
-              Processing...
-            </span>
-          ) : (
-            'Leave'
-          )}
+          <span className="flex items-center justify-center gap-2">
+            <LockKeyhole className="h-4 w-4" />
+            Leave
+          </span>
         </Button>
       )
       secondaryButton = (
         <Button
           disabled
-          className="!hover:bg-emerald-300 !active:bg-emerald-300 !focus:bg-emerald-300 cursor-not-allowed !bg-emerald-300 !text-white opacity-90 disabled:opacity-90"
+          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
         >
-          Absent
+          <span className="flex items-center justify-center gap-2">
+            <LockKeyhole className="h-4 w-4" />
+            <span className="text-sm font-semibold">Check in</span>
+          </span>
         </Button>
       )
     } else {
@@ -729,10 +751,11 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
       secondaryButton = (
         <Button
           disabled
-          className="!hover:bg-emerald-500 !active:bg-emerald-500 !focus:bg-emerald-500 cursor-not-allowed !bg-emerald-500 !text-white opacity-100 disabled:opacity-100"
+          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
         >
-          <span className="flex flex-col items-center leading-tight">
-            <span className="text-sm font-semibold">Tap to check in</span>
+          <span className="flex items-center justify-center gap-2">
+            <LockKeyhole className="h-4 w-4" />
+            <span className="text-sm font-semibold">Check in</span>
           </span>
         </Button>
       )

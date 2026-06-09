@@ -10,7 +10,7 @@ export function JoinedEventsPage() {
       <div className="relative sticky top-0 z-10 flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/profile')}
           className="absolute left-2 rounded-full p-2 text-slate-600 hover:bg-slate-100"
         >
           <ArrowLeft className="h-6 w-6" />

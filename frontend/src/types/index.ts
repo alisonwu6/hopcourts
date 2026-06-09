@@ -296,6 +296,7 @@ export interface PlayerEvent {
     avatarUrl?: string
     username?: string
     checkedInAt?: string | Date
+    onTheWayAt?: string | Date
   }>
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date

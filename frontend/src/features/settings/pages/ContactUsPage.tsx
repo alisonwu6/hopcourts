@@ -64,7 +64,7 @@ export function ContactUsPage() {
       <div className="min-h-screen bg-white">
         <ActionToolbar
           title="Contact Us"
-          onBack={() => navigate(-1)}
+          onBack={() => navigate('/settings')}
           showBack
           borderBottom
         />
@@ -75,7 +75,7 @@ export function ContactUsPage() {
           <h2 className="mb-2 text-2xl font-bold text-slate-900">Thanks for your feedback!</h2>
           <p className="mb-8 text-slate-600">We've received your message and our team will review it shortly.</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/settings')}
             className="w-full max-w-xs rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
           >
             Back to Settings
@@ -89,7 +89,7 @@ export function ContactUsPage() {
     <div className="pb-safe min-h-screen bg-slate-50">
       <ActionToolbar
         title="Contact Us"
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/settings')}
         showBack
         borderBottom
         className="bg-white"

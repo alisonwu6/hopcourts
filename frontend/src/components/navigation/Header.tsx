@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Bell, MapPin, MessageCircle } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
+import { useAuthStore } from '@/hooks'
 
 const logoUrl = '/vite.svg'
 
@@ -9,10 +10,10 @@ type Props = {
   sticky?: boolean
   showBorder?: boolean
   className?: string
-  showActions?: boolean
 }
 
-export default function Header({ sticky = true, showBorder = true, className, showActions = true }: Props) {
+export default function Header({ sticky = true, showBorder = true, className }: Props) {
+  const { isAuthenticated } = useAuthStore()
   const location = useLocation()
   const [messagesActive, setMessagesActive] = useState(false)
   const notificationsActive = location.pathname.startsWith('/notifications')
@@ -59,7 +60,7 @@ export default function Header({ sticky = true, showBorder = true, className, sh
           </div>
         </div>
 
-        {showActions && (
+        {isAuthenticated && (
           <div className="flex items-center gap-2">
             <button
               type="button"

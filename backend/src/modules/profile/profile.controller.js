@@ -109,7 +109,8 @@ async function handleGetProfileSessionsByUsername(req, res, next) {
 async function handleDeleteAccount(req, res, next) {
   try {
     const userId = resolveUserId(req)
-    await deleteAccount(userId)
+    const force = req.body?.force === true
+    await deleteAccount(userId, { force })
     return ok(res, { success: true })
   } catch (err) {
     next(err)

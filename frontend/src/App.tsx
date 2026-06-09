@@ -23,7 +23,7 @@ import { NotificationsPage } from '@/features/notifications/pages/NotificationsP
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
-import { TeammatesPage } from '@/features/profile/pages/TeammatesPage'
+import { MyMatesPage } from '@/features/profile/pages/MyMatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
 import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
 import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
@@ -44,8 +44,42 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
   return children
 }
 
+function AppChrome({
+  children,
+  showHeader = true,
+  showNav = true,
+}: {
+  children: ReactNode
+  showHeader?: boolean
+  showNav?: boolean
+}) {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+  const noHeaderPaths = ['/events', '/event/', '/create-event']
+  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
+  const headerVisible = showHeader && !hideHeader
+  const navVisible = showNav && !pathname.startsWith('/event/')
+
+  return (
+    <div
+      className="mx-auto min-h-screen w-full max-w-md bg-white shadow-2xl"
+      style={{
+        paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0,
+      }}
+    >
+      {headerVisible && <Header />}
+      {children}
+      {navVisible && <BottomNav />}
+    </div>
+  )
+}
+
 export default function App() {
-  const { isAuthenticated, isLoading } = useAuthStore()
+  const { isLoading } = useAuthStore()
 
   if (isLoading) {
     return <PageLoading />
@@ -53,11 +87,13 @@ export default function App() {
 
   return (
     <Routes>
+      {/* Auth */}
       <Route
         path="/auth/callback"
         element={<AuthCallback />}
       />
 
+      {/* Public info pages */}
       <Route
         path="/about"
         element={<AboutPage />}
@@ -84,7 +120,7 @@ export default function App() {
         }
       />
 
-      {/* Admin (HopCourts) */}
+      {/* Admin */}
       <Route
         path="/admin/venues"
         element={
@@ -126,60 +162,22 @@ export default function App() {
         }
       />
 
-      {/* Main App Routes */}
-      <Route
-        path="/*"
-        element={isAuthenticated ? <AuthenticatedApp /> : <GuestApp />}
-      />
-    </Routes>
-  )
-}
-
-function AppChrome({
-  children,
-  showActions = true,
-  showHeader = true,
-  showNav = true,
-}: {
-  children: ReactNode
-  showActions?: boolean
-  showHeader?: boolean
-  showNav?: boolean
-}) {
-  const { pathname } = useLocation()
-
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
-
-  const noHeaderPaths = ['/events', '/event/', '/create-event']
-  const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
-  const headerVisible = showHeader && !hideHeader
-  const navVisible = showNav && !pathname.startsWith('/event/')
-
-  return (
-    <div
-      className="mx-auto min-h-screen w-full max-w-md bg-white shadow-2xl"
-      style={{
-        paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0,
-      }}
-    >
-      {headerVisible && <Header showActions={showActions} />}
-      {children}
-      {navVisible && <BottomNav />}
-    </div>
-  )
-}
-
-function AuthenticatedApp() {
-  return (
-    <Routes>
+      {/* Public app routes */}
       <Route
         path="/"
         element={
           <AppChrome showHeader={false}>
             <HomePage />
           </AppChrome>
+        }
+      />
+      <Route
+        path="/home"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
         }
       />
       <Route
@@ -207,15 +205,6 @@ function AuthenticatedApp() {
           >
             <VenueDetailsPage />
           </AppChrome>
-        }
-      />
-      <Route
-        path="/home"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
         }
       />
       <Route
@@ -243,312 +232,133 @@ function AuthenticatedApp() {
         }
       />
 
+      {/* Protected routes */}
       <Route
         path="/create-event"
         element={
-          <AppChrome showNav={false}>
-            <CreateEventPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showNav={false}>
+              <CreateEventPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/profile"
         element={
-          <AppChrome showHeader={false}>
-            <ProfilePage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome showHeader={false}>
+              <ProfilePage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
-        path="/circle"
+        path="/my-mates"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <TeammatesPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <MyMatesPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/profile/hosted-events"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <HostedEventsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <HostedEventsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/profile/joined-events"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <JoinedEventsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <JoinedEventsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/profile/saved-events"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <SavedEventsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <SavedEventsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <ProfileSettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <ProfileSettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings/account"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <AccountSettingsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <AccountSettingsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/settings/contact"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <ContactUsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <ContactUsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
       <Route
         path="/notifications"
         element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <NotificationsPage />
-          </AppChrome>
+          <RequireAuth>
+            <AppChrome
+              showHeader={false}
+              showNav={false}
+            >
+              <NotificationsPage />
+            </AppChrome>
+          </RequireAuth>
         }
       />
-      <Route
-        path="/mates"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="*"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-    </Routes>
-  )
-}
 
-function GuestApp() {
-  return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <AppChrome
-            showActions={false}
-            showHeader={false}
-          >
-            <HomePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/events"
-        element={
-          <AppChrome
-            showActions={false}
-            showHeader={false}
-          >
-            <DiscoverEventsPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/venues"
-        element={
-          <AppChrome
-            showActions={false}
-            showHeader={false}
-          >
-            <VenueListPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/venues/:venueId"
-        element={
-          <AppChrome
-            showActions={false}
-            showNav={false}
-            showHeader={false}
-          >
-            <VenueDetailsPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/home"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/event/:id"
-        element={
-          <AppChrome
-            showActions={false}
-            showHeader={false}
-          >
-            <EventDetailPage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/mate/:username"
-        element={
-          <AppChrome
-            showActions={false}
-            showHeader={false}
-          >
-            <MateProfilePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/mates/:username"
-        element={
-          <AppChrome
-            showActions={false}
-            showHeader={false}
-          >
-            <MateProfilePage />
-          </AppChrome>
-        }
-      />
-      <Route
-        path="/create-event"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/profile/hosted-events"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/profile/joined-events"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/profile/saved-events"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/circle"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/settings/account"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/settings/contact"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
-      <Route
-        path="/notifications"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
+      {/* Fallbacks */}
       <Route
         path="/mates"
         element={

@@ -1,8 +1,10 @@
+const { query } = require('../../lib/db')
 const usersModel = require('../../../models/users.model')
 const userSportsModel = require('../../../models/userSports.model')
 const userPreferencesModel = require('../../../models/userPreferences.model')
 const participantsModel = require('../../../models/participants.model')
 const sessionsModel = require('../../../models/sessions.model')
+const notificationsService = require('../notifications/notifications.service')
 const { Errors } = require('../../lib/errors')
 const supabase = require('../../utils/supabase')
 
@@ -93,15 +95,17 @@ async function upsertProfile(userId, body = {}) {
 
   // Prepare user data
   let email = body.email || (body.auth_user && body.auth_user.email) || current.email
-  let avatarUrl = 
-      body.avatar_url ||
-      body.avatar ||
+  // Use 'in' checks so an explicit null/'' in the request intentionally clears the avatar
+  const avatarExplicitlySet = 'avatar_url' in body || 'avatar' in body
+  let avatarUrl =
+      'avatar_url' in body ? body.avatar_url :
+      'avatar' in body ? body.avatar :
       current.avatar_url ||
       (body.auth_user && body.auth_user.user_metadata && body.auth_user.user_metadata.picture) ||
       (body.auth_user && body.auth_user.avatar_url) ||
       null
-  
-  let nameFromAuth = 
+
+  let nameFromAuth =
       (body.auth_user && body.auth_user.user_metadata && (body.auth_user.user_metadata.full_name || body.auth_user.user_metadata.name)) ||
       null
 
@@ -111,12 +115,14 @@ async function upsertProfile(userId, body = {}) {
       const { data, error } = await supabase.auth.admin.getUserById(userId)
       if (data && data.user) {
         if (!email) email = data.user.email
-        
-        // Also sync avatar if still missing
-        if (!avatarUrl && data.user.user_metadata?.picture) {
+
+        // Sync avatar from auth metadata only for brand-new users (no existing DB record).
+        // For existing users, current.avatar_url is the source of truth — even if null.
+        const isNewUser = !current?.id
+        if (isNewUser && !avatarExplicitlySet && !avatarUrl && data.user.user_metadata?.picture) {
            avatarUrl = data.user.user_metadata.picture
         }
-         if (!avatarUrl && data.user.user_metadata?.avatar_url) {
+        if (isNewUser && !avatarExplicitlySet && !avatarUrl && data.user.user_metadata?.avatar_url) {
            avatarUrl = data.user.user_metadata.avatar_url
         }
 
@@ -172,7 +178,7 @@ async function upsertProfile(userId, body = {}) {
       nameFromAuth ||
       '新夥伴',
     city_key: body.city_key ?? current.city_key ?? null,
-    nationality_key: body.nationality_key ?? current.nationality_key ?? null,
+    nationality_key: 'nationality_key' in body ? (body.nationality_key || null) : (current.nationality_key ?? null),
     age_range_key: body.age_range_key ?? current.age_range_key ?? null,
     gender: body.gender ?? current.gender ?? null,
     vibe_key: body.vibe_key ?? current.vibe_key ?? null,
@@ -257,26 +263,98 @@ async function getStats(userId) {
   }
 }
 
-async function deleteAccount(userId) {
+async function deleteAccount(userId, { force = false } = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
 
-  // Attempt to delete from Supabase Auth
+  // 1. Warn if any event is currently ongoing — user can override with force: true
+  if (!force) {
+    const { rows: ongoingEvents } = await query(
+      `SELECT id FROM public.sessions
+       WHERE host_user_id = $1
+         AND status NOT IN ('cancelled', 'completed')
+         AND starts_at <= NOW()
+         AND ends_at >= NOW()
+       LIMIT 1`,
+      [userId]
+    )
+
+    if (ongoingEvents.length > 0) {
+      const err = Errors.conflict('You are currently hosting an active event.')
+      err.code = 'ONGOING_EVENT'
+      throw err
+    }
+  }
+
+  // 2. Fetch upcoming hosted sessions before cancelling (need titles + IDs for notifications)
+  const { rows: upcomingSessions } = await query(
+    `SELECT id, title FROM public.sessions
+     WHERE host_user_id = $1
+       AND status NOT IN ('cancelled', 'completed')
+       AND starts_at > NOW()`,
+    [userId]
+  )
+
+  if (upcomingSessions.length > 0) {
+    const sessionIds = upcomingSessions.map((s) => s.id)
+
+    // Fetch all participants across those sessions
+    const { rows: participants } = await query(
+      `SELECT session_id, user_id FROM public.session_participants
+       WHERE session_id = ANY($1) AND user_id != $2`,
+      [sessionIds, userId]
+    )
+
+    // Cancel the sessions
+    await query(
+      `UPDATE public.sessions
+       SET status = 'cancelled'
+       WHERE id = ANY($1)`,
+      [sessionIds]
+    )
+
+    // Notify each participant
+    const sessionMap = new Map(upcomingSessions.map((s) => [s.id, s.title]))
+    participants.forEach((p) => {
+      notificationsService.createNotification({
+        recipient_user_id: p.user_id,
+        actor_user_id: null,
+        type: 'session_cancelled',
+        entity_type: 'session',
+        entity_id: p.session_id,
+        title: 'Event cancelled',
+        message: `"${sessionMap.get(p.session_id)}" was cancelled by the host.`,
+        metadata: {},
+      }).catch((err) => console.error('[deleteAccount] Notify cancel failed', err))
+    })
+  }
+
+  // 3. Soft delete — clear PII, keep row so event history stays intact
+  // GDPR: clear PII on deletion, preserve row for event history
+  await query(
+    `UPDATE public.users
+     SET deleted_at = NOW(),
+         email = NULL,
+         username = NULL,
+         updated_at = NOW()
+     WHERE id = $1`,
+    [userId]
+  )
+
+  // 4. Remove from Supabase Auth so they can no longer log in
   if (supabase) {
     try {
       const { error } = await supabase.auth.admin.deleteUser(userId)
       if (error) {
         console.warn(`[deleteAccount] Supabase Auth delete failed for ${userId}:`, error.message)
       } else {
-        console.log(`[deleteAccount] Deleted user ${userId} from Supabase Auth`)
+        console.log(`[deleteAccount] Soft deleted user ${userId} from Supabase Auth`)
       }
     } catch (err) {
       console.error('[deleteAccount] Supabase Auth error:', err)
     }
   }
 
-  // Delete from local DB (CASCADE should handle related tables)
-  const success = await usersModel.deleteUser(userId)
-  return { success }
+  return { success: true }
 }
 
 async function getTeammates(userId) {

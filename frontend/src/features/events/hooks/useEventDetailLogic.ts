@@ -21,6 +21,7 @@ export function useEventDetailLogic() {
   const [isJoinSubmitting, setIsJoinSubmitting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false)
+  const [hasSignaledOnTheWay, setHasSignaledOnTheWay] = useState(false)
   const [showProfileRequired, setShowProfileRequired] = useState(false)
 
   const { isAuthenticated, currentUserId, user } = useAuthStore(
@@ -57,6 +58,9 @@ export function useEventDetailLogic() {
     title: string
     description: ReactNode
     type: 'success' | 'error' | 'info' | 'warning'
+    onAction?: () => void
+    actionLabel?: string
+    cancelLabel?: string
   }>({ open: false, title: '', description: '', type: 'info' })
 
   useEffect(() => {
@@ -113,7 +117,14 @@ export function useEventDetailLogic() {
     return !!me?.checkedInAt
   }, [event, currentUserId])
 
+  const isOnTheWayFromServer = useMemo(() => {
+    if (!event || !currentUserId) return false
+    const me = event.participants.find((p) => p.id === currentUserId)
+    return !!me?.onTheWayAt
+  }, [event, currentUserId])
+
   const effectiveCheckedIn = isAuthenticated ? hasCheckedIn || isCheckedInFromServer : false
+  const effectiveOnTheWay = isAuthenticated ? hasSignaledOnTheWay || isOnTheWayFromServer : false
 
   const handleJoinClick = async () => {
     if (isJoinSubmitting) return
@@ -193,7 +204,7 @@ export function useEventDetailLogic() {
           setHasCheckedIn(true)
           void fetchEventById(id, { force: true })
 
-          showAlert('Check-in successful', 'Enjoy your workout!', 'success')
+          showAlert("You're all set!", 'Have a great game with your mates!', 'success')
         } catch (err: any) {
           console.error('Check-in error full object:', err)
 
@@ -209,11 +220,15 @@ export function useEventDetailLogic() {
             const distStr = dist >= 1000 ? `${(dist / 1000).toFixed(1)}km` : `${dist}m`
             const gapStr = gap >= 1000 ? `${(gap / 1000).toFixed(1)}km` : `${gap}m`
 
-            showAlert(
-              'Almost there!',
-              `You are about ${distStr} away. Move about ${gapStr} closer and enter within ${radius}m to check in.`,
-              'warning'
-            )
+            setAlertDialog({
+              open: true,
+              title: 'Not at the court yet?',
+              description: `You’re still ${distStr}km away. Tap "On the way" to let your mates know you’re coming, then check in once you arrive!`,
+              type: 'info',
+              cancelLabel: 'OK',
+              actionLabel: 'On the Way',
+              onAction: handleOnTheWay,
+            })
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
             showAlert('Outside check-in window', 'You are currently outside the check-in time window.', 'warning')
           } else {
@@ -257,6 +272,17 @@ export function useEventDetailLogic() {
       },
       { enableHighAccuracy: false, timeout: 25000, maximumAge: 30000 }
     )
+  }
+
+  const handleOnTheWay = async () => {
+    if (!id || hasSignaledOnTheWay) return
+    const res = await eventsService.signalOnTheWay(id)
+    if (res.success) {
+      setHasSignaledOnTheWay(true)
+      showAlert('On the way!', "We've let the host know you're heading over.", 'success')
+    } else {
+      showAlert('Could not update', res.error?.message ?? 'Please try again.', 'warning')
+    }
   }
 
   const handleDelete = async () => {
@@ -310,10 +336,12 @@ export function useEventDetailLogic() {
     isJoined,
     spotsRemaining,
     effectiveCheckedIn,
+    effectiveOnTheWay,
     handleBack,
     handleShare,
     handleJoinClick,
     handleCheckIn,
+    handleOnTheWay,
     handleDelete,
     clearPostLoginRedirect,
   }

@@ -7,10 +7,6 @@ function createError(code, message, status = 400, details = {}) {
   return new AppError({ code, message, status, details })
 }
 
-function addMinutes(date, mins) {
-  return new Date(date.getTime() + mins * 60 * 1000)
-}
-
 function ensureNumber(value, field) {
   const n = Number(value)
   if (!Number.isFinite(n)) throw createError('INVALID_BODY', `${field} must be a number`, 422)
@@ -33,16 +29,11 @@ async function checkInToSession({ sessionId, userId, lat, lng, now = new Date() 
     throw createError('INVALID_SESSION', 'Session start/end time is invalid', 400)
   }
 
-  const openMins = Number(session.checkin_open_mins_before ?? 15)
-  const closeMins = Number(session.checkin_close_mins_after ?? 5)
-  const opensAt = addMinutes(startsAt, -openMins)
-  const closesAt = addMinutes(startsAt, closeMins)
-
   const nowTs = now instanceof Date ? now : new Date(now)
-  if (nowTs < opensAt || nowTs > closesAt) {
-    throw createError('CHECKIN_OUTSIDE_TIME_WINDOW', 'Not within check-in time window', 403, {
-      opens_at: opensAt.toISOString(),
-      closes_at: closesAt.toISOString(),
+
+  if (!endsAt || nowTs > endsAt) {
+    throw createError('CHECKIN_OUTSIDE_TIME_WINDOW', 'Session has already ended', 403, {
+      ends_at: endsAt.toISOString(),
       now: nowTs.toISOString(),
     })
   }

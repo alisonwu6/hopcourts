@@ -2,7 +2,7 @@ import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
-import { Calendar, MapPin, PersonStanding, CircleDollarSign, ShieldCheck } from 'lucide-react'
+import { Calendar, MapPin, PersonStanding, CircleDollarSign, ShieldCheck, Smile } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { BookmarkButton } from './BookmarkButton'
 
@@ -243,13 +243,17 @@ export function EventCard({
                 {event.participants.slice(0, 3).map((p, i) => (
                   <div
                     key={i}
-                    className="h-5 w-5 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-sm"
+                    className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-slate-200 text-[8px] font-bold text-slate-600 shadow-sm"
                   >
-                    <img
-                      src={p.avatarUrl || `https://ui-avatars.com/api/?name=${p.name}&background=random`}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
+                    {p.avatarUrl ? (
+                      <img
+                        src={p.avatarUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (p.name || '?').charAt(0).toUpperCase()
+                    )}
                   </div>
                 ))}
               </div>
@@ -309,11 +313,12 @@ function AvatarCircle({
   size?: 'sm' | 'md'
   ring?: boolean
 }) {
-  const dimension = size === 'sm' ? 'h-8 w-8 text-xs' : 'h-10 w-10 text-sm'
+  const dimension = size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
+  const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
   return (
     <div
       className={clsx(
-        'flex items-center justify-center rounded-full bg-slate-200 text-slate-700',
+        'flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100',
         dimension,
         ring && 'border-2 border-white shadow ring-1 ring-slate-200'
       )}
@@ -327,7 +332,7 @@ function AvatarCircle({
           : undefined
       }
     >
-      {!src && name.charAt(0).toUpperCase()}
+      {!src && <Smile className={clsx(iconSize, 'text-slate-300')} />}
     </div>
   )
 }

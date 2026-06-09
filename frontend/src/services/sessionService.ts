@@ -21,7 +21,7 @@ const buildUser = (payload: SupabaseUser | null): User => {
     id: String(payload?.id ?? ''),
     email: payload?.email ?? '',
     name: metadata.full_name ?? metadata.name ?? '',
-    avatar: metadata.avatar_url ?? metadata.picture ?? undefined,
+    avatar: metadata.avatar_url ?? undefined,
     phone: metadata.phone ?? undefined,
     bio: metadata.bio ?? '',
     location: metadata.city ?? '',

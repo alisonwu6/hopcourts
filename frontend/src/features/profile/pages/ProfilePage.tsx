@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, Bookmark } from 'lucide-react'
+import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
@@ -12,6 +12,7 @@ import { profileService } from '@/features/profile/services/profileService'
 import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { supabase } from '@/lib/supabase'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
 import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel'
@@ -409,7 +410,6 @@ export function ProfilePage() {
   useEffect(() => {
     const isNowOnboarded = !!(user as any)?.onboarding_completed_at
     if (!prevOnboardedRef.current && isNowOnboarded) {
-      // Immediate trigger for overlap effect
       setShowEditSheet(false)
       setShowCompletionSheet(true)
       setShowProfileRequiredSheet(false)
@@ -497,6 +497,31 @@ export function ProfilePage() {
     setDraftProfile(resolvedProfile ?? emptyProfile)
     setDraftUsername(vm?.username || '')
     setShowEditSheet(true)
+  }
+
+  const handleRemoveAvatar = async () => {
+    if (!userId || !supabase) return
+    try {
+      // Storage delete is best-effort; file may not exist
+      await supabase.storage.from('avatars').remove([`${userId}/avatar.webp`])
+    } catch {
+      // continue — DB clear is what matters
+    }
+    try {
+      const res = await profileService.saveProfile({ avatar_url: null })
+      // Only clear UI after the DB confirms the change
+      setDraftProfile((prev) => ({ ...prev, avatar: '' }))
+      setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: '' } } : prev))
+      const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
+      if (authUser && token) setAuth({ ...authUser, avatar: null, avatar_url: null, avatarUrl: null } as any, token)
+      // Patch rawProfile so useEffect doesn't re-hydrate the old URL
+      const data = (res as any)?.data ?? res
+      if (data?.user) data.user.avatar_url = null
+      else if (data) data.avatar_url = null
+      setRawProfile(data)
+    } catch (err) {
+      console.error('Failed to clear avatar in DB', err)
+    }
   }
 
   const hasProfileFieldError = (field: ProfileRequiredField) => invalidProfileFields.includes(field)
@@ -672,7 +697,7 @@ export function ProfilePage() {
         bio: draftProfile.blurb,
         vibe_key: (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined,
         city_key: FIRST_MARKET_CITY_KEY,
-        nationality_key: draftProfile.countryKey || undefined,
+        nationality_key: draftProfile.countryKey || null,
         gender: draftProfile.gender || undefined,
         age_range_key: draftProfile.ageRangeKey || undefined,
         favorite_sports: favoriteKeys,
@@ -825,7 +850,7 @@ export function ProfilePage() {
           actionClassName=""
           onHostedClick={() => navigate('/profile/hosted-events')}
           onJoinedClick={() => navigate('/profile/joined-events')}
-          onTeammatesClick={() => navigate('/circle')}
+          onTeammatesClick={() => navigate('/my-mates')}
         />
         {hasVenueAccess && (
           <div className="mt-2 px-3">
@@ -854,6 +879,7 @@ export function ProfilePage() {
           <ProfileEventsPanel
             mode="all"
             showTimeTabs={false}
+            onExplore={() => navigate('/events')}
           />
         </div>
       </div>
@@ -978,18 +1004,36 @@ export function ProfilePage() {
         >
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <img
-                src={draftProfile.avatar || userAvatar || ''}
-                alt="Avatar"
-                className="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-white"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAvatarCropper(true)}
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
-              >
-                Edit
-              </button>
+              <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-slate-200 shadow-lg ring-4 ring-white">
+                {draftProfile.avatar || userAvatar ? (
+                  <img
+                    src={draftProfile.avatar || userAvatar || ''}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Smile className="h-14 w-14 text-slate-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-3 left-1/2 flex -translate-x-1/2 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarCropper(true)}
+                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-400 shadow-md hover:text-slate-500"
+                >
+                  Edit
+                </button>
+                {(draftProfile.avatar || userAvatar) && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="flex items-center justify-center rounded-full bg-white p-2 text-slate-300 shadow-md hover:text-slate-500"
+                    aria-label="Remove avatar"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -1101,7 +1145,7 @@ export function ProfilePage() {
                     {hasProfileFieldError('gender') && <span className="ml-1 text-red-500">*</span>}
                   </p>
                   <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.gender === 'male' ? 'Male' : draftProfile.gender === 'female' ? 'Female' : 'Not set'}
+                    {draftProfile.gender === 'male' ? 'Male' : draftProfile.gender === 'female' ? 'Female' : draftProfile.gender === 'non_binary' ? 'Non-binary' : draftProfile.gender === 'prefer_not_to_say' ? 'Prefer not to say' : 'Not set'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1297,48 +1341,68 @@ export function ProfilePage() {
                   })}
                 </div>
               ) : activeField === 'nationality' ? (
-                <select
-                  value={fieldValue}
-                  onChange={(e) => setFieldValue(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">Please select a nationality</option>
-                  {availableCountries.map((c) => (
-                    <option
-                      key={c.key}
-                      value={c.key}
+                <div className="relative">
+                  <select
+                    value={fieldValue}
+                    onChange={(e) => setFieldValue(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-16 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="">Please select a nationality</option>
+                    {availableCountries.map((c) => (
+                      <option key={c.key} value={c.key}>{c.label}</option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                  </div>
+                  {fieldValue && (
+                    <button
+                      type="button"
+                      onClick={() => setFieldValue('')}
+                      className="absolute inset-y-0 right-8 flex items-center px-1 text-slate-400 hover:text-slate-600"
+                      aria-label="Clear"
                     >
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               ) : activeField === 'location' ? (
                 <div className="space-y-3">
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-slate-700">Country</label>
-                    <select
-                      value={locationSheetCountry}
-                      onChange={(e) => {
-                        const nextCountry = e.target.value
-                        setLocationSheetCountry(nextCountry)
-                        if (fieldValue && nextCountry !== FIRST_MARKET_COUNTRY_KEY) {
-                          setFieldValue('')
-                        }
-                      }}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    >
-                      <option value={FIRST_MARKET_COUNTRY_KEY}>{FIRST_MARKET_COUNTRY_LABEL}</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={locationSheetCountry}
+                        onChange={(e) => {
+                          const nextCountry = e.target.value
+                          setLocationSheetCountry(nextCountry)
+                          if (fieldValue && nextCountry !== FIRST_MARKET_COUNTRY_KEY) {
+                            setFieldValue('')
+                          }
+                        }}
+                        className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value={FIRST_MARKET_COUNTRY_KEY}>{FIRST_MARKET_COUNTRY_LABEL}</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <label className="mb-1 block text-sm font-semibold text-slate-700">City</label>
-                    <select
-                      value={fieldValue}
-                      onChange={(e) => setFieldValue(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    >
-                      <option value={FIRST_MARKET_CITY_KEY}>{FIRST_MARKET_CITY_LABEL}</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={fieldValue}
+                        onChange={(e) => setFieldValue(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value={FIRST_MARKET_CITY_KEY}>{FIRST_MARKET_CITY_LABEL}</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : activeField === 'bio' ? (
@@ -1360,6 +1424,8 @@ export function ProfilePage() {
                   {[
                     { key: 'male', label: 'Male' },
                     { key: 'female', label: 'Female' },
+                    { key: 'non_binary', label: 'Non-binary' },
+                    { key: 'prefer_not_to_say', label: 'Prefer not to say' },
                   ].map((g) => (
                     <button
                       key={g.key}
@@ -1748,6 +1814,7 @@ export function ProfilePage() {
       <ProfileCompletionSheet
         open={showCompletionSheet}
         onClose={() => setShowCompletionSheet(false)}
+        onExplore={() => { setShowCompletionSheet(false); navigate('/events') }}
       />
     </div>
   )

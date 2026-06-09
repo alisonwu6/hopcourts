@@ -8,7 +8,7 @@ export function AboutPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/settings')}
         showShare={false}
         showFavorite={false}
         contentClassName="max-w-5xl px-4"
@@ -50,23 +50,25 @@ export function AboutPage() {
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <IdCard className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">Your Sports Card</h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">Your Sports Pass</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Tell people what you play, your level, and your vibe. Your card is how other players find you.
+                  Show off what you love to play and what you're keen to try next. This is your digital ticket to get
+                  spotted and connect with the local community.
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <UsersRound className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">Sports Mates</h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">My Sports Circle</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Connect with locals who play what you play, at your level.
+                  Build your network naturally. Every time you share a court or join the same event, players are added
+                  to your Sports Circle. No awkward friend requests needed.
                 </p>
               </div>
               <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
                 <CalendarCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">Find Events Easily</h3>
+                <h3 className="mt-3 text-base font-semibold text-slate-900">Hop-In & Play</h3>
                 <p className="mt-2 text-sm text-slate-600">
-                  Browse games happening near you, or host your own in minutes.
+                  See active events near you right now. Jump into an open slot or host your own session in seconds.
                 </p>
               </div>
             </div>

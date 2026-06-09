@@ -11,23 +11,32 @@ export function AccountSettingsPage() {
   const { user, setAuthData } = useAuthStore()
   const email = user?.email || 'Not set'
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showOngoingWarning, setShowOngoingWarning] = useState(false)
   const [showDeleteFailed, setShowDeleteFailed] = useState(false)
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
 
-  const confirmDeleteAccount = async () => {
+  const attemptDelete = async (force = false) => {
     try {
-      await profileService.deleteAccount()
-      setAuthData(null, null)
-      navigate('/')
-    } catch (error) {
+      await profileService.deleteAccount(force)
+      setShowDeleteConfirm(false)
+      setShowOngoingWarning(false)
+      setShowDeleteSuccess(true)
+    } catch (error: any) {
       console.error('Failed to delete account:', error)
-      setShowDeleteFailed(true)
+      const code = error?.details?.error?.code
+      if (code === 'ONGOING_EVENT') {
+        setShowDeleteConfirm(false)
+        setShowOngoingWarning(true)
+      } else {
+        setShowDeleteFailed(true)
+      }
     }
   }
 
   return (
     <div className="min-h-screen bg-white pb-[120px] text-slate-900">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/settings')}
         showShare={false}
         showFavorite={false}
         title={<span className="text-lg font-semibold text-slate-900">Account Settings</span>}
@@ -60,24 +69,58 @@ export function AccountSettingsPage() {
         </Section>
       </div>
 
+      {/* Step 1 — Standard confirmation */}
       <AlertDialog
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        title="Are you sure you want to delete your account?"
-        description="All data will be permanently deleted and cannot be recovered."
+        title="Delete your account?"
+        description="Your login access will be removed. Any upcoming events you're hosting will be cancelled."
         type="error"
-        actionLabel="Confirm"
+        actionLabel="Continue"
         cancelLabel="Cancel"
         actionLeft
-        onAction={confirmDeleteAccount}
+        onAction={() => attemptDelete(false)}
+      />
+
+      {/* Step 2 — Ongoing event warning */}
+      <AlertDialog
+        open={showOngoingWarning}
+        onClose={() => setShowOngoingWarning(false)}
+        title="You have an active event right now"
+        description="Your participants are expecting you. Are you sure you still want to delete your account?"
+        type="warning"
+        actionLabel="Yes, delete anyway"
+        cancelLabel="Cancel"
+        actionLeft
+        onAction={() => attemptDelete(true)}
       />
 
       <AlertDialog
         open={showDeleteFailed}
         onClose={() => setShowDeleteFailed(false)}
         title="Failed to delete account"
-        description="Please try again later."
+        description="Something went wrong. Please try again later."
         type="error"
+        actionLabel="OK"
+        onAction={() => setShowDeleteFailed(false)}
+      />
+
+      <AlertDialog
+        open={showDeleteSuccess}
+        onClose={() => {
+          setShowDeleteSuccess(false)
+          setAuthData(null, null)
+          navigate('/')
+        }}
+        title="Account deleted"
+        description="Your account has been successfully deleted. We're sorry to see you go."
+        type="success"
+        actionLabel="OK"
+        onAction={() => {
+          setShowDeleteSuccess(false)
+          setAuthData(null, null)
+          navigate('/')
+        }}
       />
     </div>
   )

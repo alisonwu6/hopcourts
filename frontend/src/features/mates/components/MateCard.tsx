@@ -71,7 +71,7 @@ export function MateCard({
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-full bg-white">
+        <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
           {avatar ? (
             <img
               src={avatar}
@@ -165,7 +165,7 @@ export function MateCard({
               <div className="flex items-baseline gap-1">
                 <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
               </div>
-              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Met</span>
+              <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Mates</span>
             </div>
           </div>
         </div>

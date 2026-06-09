@@ -70,9 +70,7 @@ export function HomePage() {
 
           {/* Why HopCourts */}
           <section className="mt-10 w-full">
-            <p className="mb-4 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-              Why HopCourts
-            </p>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-widest text-slate-400">Why HopCourts</p>
             <div className="space-y-3">
               <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
@@ -100,7 +98,9 @@ export function HomePage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Your sports circle, built naturally</p>
-                  <p className="mt-0.5 text-sm text-slate-500">Play together once. Stay connected. Your circle builds itself.</p>
+                  <p className="mt-0.5 text-sm text-slate-500">
+                    Play together once. Stay connected. Your circle builds itself.
+                  </p>
                 </div>
               </div>
             </div>
