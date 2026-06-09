@@ -54,7 +54,7 @@ export function MyMatesPage() {
           list.map((item) => (
             <div
               key={item.id}
-              onClick={() => navigate(`/mate/${item.username}`)}
+              onClick={() => navigate(`/mate/${item.username}`, { state: { from: 'app' } })}
               className="flex cursor-pointer items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition active:scale-[0.98]"
             >
               <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">

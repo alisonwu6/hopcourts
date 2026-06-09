@@ -15,7 +15,7 @@ import { useVibeUtils, useSports, useCities } from '@/features/dictionaries/hook
 export function MateProfilePage() {
   const navigate = useNavigate()
   const { username } = useParams<{ username: string }>()
-  const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps> } }
+  const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps>; from?: string } }
   const mate = state?.mate
   const { items: sportsDict } = useSports('en')
   const { vibeKeyToUnion, labelForVibe } = useVibeUtils('en')
@@ -215,10 +215,7 @@ export function MateProfilePage() {
             <button
               type="button"
               aria-label="Go back"
-              onClick={() => {
-                const isFromApp = document.referrer === '' || document.referrer.startsWith(window.location.origin)
-                isFromApp ? navigate(-1) : navigate('/explore')
-              }}
+              onClick={() => state?.from === 'app' ? navigate(-1) : navigate('/events')}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
             >
               <ArrowLeft className="h-5 w-5" />

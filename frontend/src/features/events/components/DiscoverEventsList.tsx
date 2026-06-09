@@ -135,7 +135,7 @@ export function DiscoverEventsBody({
       ) : filteredEvents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
-            <span className="text-5xl">😮</span>
+            <span className="text-5xl"></span>
           </div>
           <h3 className="text-xl font-bold text-slate-900">No events yet.</h3>
           <p className="mt-2 text-sm text-slate-500">Be the one who starts it.</p>

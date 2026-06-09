@@ -75,7 +75,7 @@ export function EventDetailPage() {
       onCloseAlert={() => setAlertDialog((previous) => ({ ...previous, open: false }))}
       onCloseProfileRequired={() => setShowProfileRequired(false)}
       onNavigateEvents={() => navigate('/events')}
-      onNavigateMate={(username) => navigate(`/mate/${username}`)}
+      onNavigateMate={(username) => navigate(`/mate/${username}`, { state: { from: 'app' } })}
       onNavigateVenue={(venueId) => navigate(`/venues/${venueId}`)}
     />
   )
