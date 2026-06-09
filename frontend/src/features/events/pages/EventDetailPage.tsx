@@ -27,10 +27,12 @@ export function EventDetailPage() {
     isJoined,
     spotsRemaining,
     effectiveCheckedIn,
+    effectiveOnTheWay,
     handleBack,
     handleShare,
     handleJoinClick,
     handleCheckIn,
+    handleOnTheWay,
     handleDelete,
     clearPostLoginRedirect,
   } = useEventDetailLogic()
@@ -49,6 +51,7 @@ export function EventDetailPage() {
       isDeleting={isDeleting}
       isJoinSubmitting={isJoinSubmitting}
       isCheckingIn={isCheckingIn}
+      hasSignaledOnTheWay={effectiveOnTheWay}
       showProfileRequired={showProfileRequired}
       hasOtherParticipants={hasOtherParticipants}
       isJoined={isJoined}

@@ -1,5 +1,6 @@
 const { ok } = require('../../lib/respond')
 const { checkInToSession } = require('./checkins.service')
+const { signalOnTheWay } = require('./ontheway.service')
 
 function resolveUserId(req) {
   return (
@@ -46,4 +47,15 @@ async function handleCheckIn(req, res, next) {
   }
 }
 
-module.exports = { handleCheckIn }
+async function handleOnTheWay(req, res, next) {
+  try {
+    const { sessionId } = req.params
+    const userId = resolveUserId(req)
+    const data = await signalOnTheWay({ sessionId, userId, now: new Date() })
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+}
+
+module.exports = { handleCheckIn, handleOnTheWay }

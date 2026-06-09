@@ -40,10 +40,11 @@ async function listParticipantsBySession(sessionId, { limit = 100, offset = 0 } 
 
 async function listParticipantsWithDetails(sessionId) {
   const { rows } = await query(
-    `select 
+    `select
         sp.user_id as id,
         sp.role,
         sp.joined_at,
+        sp.on_the_way_at,
         u.display_name,
         u.avatar_url,
         u.username,
@@ -56,6 +57,26 @@ async function listParticipantsWithDetails(sessionId) {
     [sessionId]
   )
   return rows
+}
+
+async function setOnTheWay({ sessionId, userId }) {
+  const { rows } = await query(
+    `update public.session_participants
+      set on_the_way_at = coalesce(on_the_way_at, now())
+      where session_id = $1 and user_id = $2
+      returning on_the_way_at`,
+    [sessionId, userId]
+  )
+  return rows[0] || null
+}
+
+async function getOnTheWay({ sessionId, userId }) {
+  const { rows } = await query(
+    `select on_the_way_at from public.session_participants
+      where session_id = $1 and user_id = $2`,
+    [sessionId, userId]
+  )
+  return rows[0]?.on_the_way_at || null
 }
 
 async function countParticipantsBySession(sessionId) {
@@ -102,6 +123,8 @@ module.exports = {
   listTeammates,
   listParticipantsWithDetails,
   countJoinedSessions,
+  setOnTheWay,
+  getOnTheWay,
 }
 
 async function listTeammates(userId, { limit = 50, offset = 0 } = {}) {

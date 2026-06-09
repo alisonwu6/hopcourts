@@ -356,6 +356,7 @@ export const eventsService = {
             avatarUrl: p.avatar_url || undefined,
             username: p.username || undefined,
             checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
+            onTheWayAt: p.on_the_way_at ? new Date(p.on_the_way_at) : undefined,
           }))
         }
 
@@ -677,6 +678,26 @@ export const eventsService = {
         error: {
           code: backendErr.code || 'CHECKIN_FAILED',
           message: backendErr.message || err?.message || 'Check-in failed',
+          details: backendErr.details,
+        } as any,
+        timestamp: new Date(),
+      }
+    }
+  },
+
+  async signalOnTheWay(eventId: string): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpPost<any>(`/sessions/${eventId}/on-the-way`)
+      return wrapSuccess(res.data ?? res)
+    } catch (err: any) {
+      const jsonResponse = err.details || {}
+      const backendErr = jsonResponse.error || jsonResponse
+      return {
+        success: false,
+        data: undefined as any,
+        error: {
+          code: backendErr.code || 'ON_THE_WAY_FAILED',
+          message: backendErr.message || err?.message || 'Failed to signal on the way',
           details: backendErr.details,
         } as any,
         timestamp: new Date(),
