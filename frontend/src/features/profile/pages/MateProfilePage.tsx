@@ -4,7 +4,7 @@ import { ArrowLeft, Frown } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
-import { EventCard } from '@/features/events/components/EventCard'
+import { EventsViewPanel } from '@/features/events/components/EventsViewPanel'
 import { eventsService } from '@/features/events/services/eventsService'
 import type { PlayerEvent } from '@/types'
 
@@ -257,21 +257,12 @@ export function MateProfilePage() {
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
                     Loading...
                   </div>
-                ) : hostedUpcomingEvents.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                    Nothing coming up.
-                  </div>
                 ) : (
-                  <div className="space-y-4">
-                    {hostedUpcomingEvents.map((event) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        sportLabel={labelForSport(event.sport)}
-                        onViewDetails={(id) => navigate(`/event/${id}`)}
-                      />
-                    ))}
-                  </div>
+                  <EventsViewPanel
+                    events={hostedUpcomingEvents}
+                    sportsCatalog={sportsDict}
+                    onViewDetails={(id) => navigate(`/event/${id}`)}
+                  />
                 )}
               </div>
             </>
