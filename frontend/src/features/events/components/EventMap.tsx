@@ -112,6 +112,10 @@ export function EventMap({
               sportIcon
             )
 
+          const spotsLeft = event.maxAttendees > 0 ? event.maxAttendees - event.attendeeCount : null
+          const isFull = spotsLeft !== null && spotsLeft <= 0
+          const showSpots = mode === 'events' && spotsLeft !== null
+
           return (
             <Marker
               key={event.id}
@@ -123,7 +127,7 @@ export function EventMap({
                 onSelectEvent(event)
               }}
             >
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center gap-1">
                 <div
                   className={clsx(
                     'flex cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 shadow-sm backdrop-blur-sm transition-all',
@@ -140,6 +144,18 @@ export function EventMap({
                     {markerContent}
                   </span>
                 </div>
+                {showSpots && (
+                  <span
+                    className={clsx(
+                      'whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-bold shadow-sm',
+                      isFull
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-[#aaee44] text-slate-900'
+                    )}
+                  >
+                    {isFull ? 'Full' : spotsLeft === 1 ? '1 spot' : `${spotsLeft} spots`}
+                  </span>
+                )}
               </div>
             </Marker>
           )

@@ -436,7 +436,7 @@ export function EventDetailView({
                   )
                 })
               ) : (
-                <p className="pl-14 text-xs text-slate-300">No one's joined yet. Be the first!</p>
+                <p className="pl-14 text-xs text-slate-300">Be the first to join and kick off the game!</p>
               )}
             </div>
 
