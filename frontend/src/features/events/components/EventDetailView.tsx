@@ -15,6 +15,8 @@ import {
   Smile,
   Frown,
   Check,
+  DoorOpen,
+  DoorClosed,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { PlayerEvent } from '@/types'
@@ -242,7 +244,10 @@ export function EventDetailView({
                 </button>
               </>
             )}
-            <BookmarkButton eventId={event.id} className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100" />
+            <BookmarkButton
+              eventId={event.id}
+              className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
+            />
             <button
               type="button"
               onClick={onShare}
@@ -390,8 +395,7 @@ export function EventDetailView({
                 event.participants.map((participant) => {
                   const isCheckedIn = !!participant.checkedInAt
                   const isOnTheWay =
-                    !!participant.onTheWayAt ||
-                    (participant.id === currentUserId && hasSignaledOnTheWay)
+                    !!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay)
                   const endTime = new Date(event.endTime)
                   const closeMins = event.checkinCloseMinsAfter ?? 60
                   const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
@@ -464,7 +468,6 @@ export function EventDetailView({
         event={event}
         onJoin={onJoin}
         onCheckIn={onCheckIn}
-
         isCheckingIn={isCheckingIn}
         isJoinSubmitting={isJoinSubmitting}
         hasCheckedIn={effectiveCheckedIn}
@@ -477,9 +480,11 @@ export function EventDetailView({
           if (isDeleting) return
           onCloseDeleteConfirm()
         }}
-        title={hasOtherParticipants ? "Can't delete this event" : 'Delete this event?'}
+        title={hasOtherParticipants ? 'Cannot be deleted' : 'Delete this event?'}
         description={
-          hasOtherParticipants ? 'People have already joined. Edit the event instead.' : "This can't be undone."
+          hasOtherParticipants
+            ? 'Players have already joined. Please update the event details instead.'
+            : 'This action is permanent and cannot be undone.'
         }
         type={hasOtherParticipants ? 'warning' : 'error'}
         actionLabel={hasOtherParticipants ? 'Close' : isDeleting ? 'Deleting...' : 'Delete event'}
@@ -658,7 +663,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
         className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
       >
         <span className="flex items-center justify-center gap-2">
-          <LockKeyhole className="h-4 w-4" />
+          <DoorClosed className="h-4 w-4" />
           Leave
         </span>
       </Button>
@@ -683,7 +688,10 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
               Processing...
             </span>
           ) : (
-            'Leave'
+            <span className="flex items-center justify-center gap-2">
+              <DoorOpen className="h-4 w-4" />
+              Leave
+            </span>
           )}
         </Button>
       )
@@ -717,7 +725,7 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
           className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
         >
           <span className="flex items-center justify-center gap-2">
-            <LockKeyhole className="h-4 w-4" />
+            <DoorClosed className="h-4 w-4" />
             Leave
           </span>
         </Button>
@@ -746,7 +754,10 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
               Processing...
             </span>
           ) : (
-            'Leave'
+            <span className="flex items-center justify-center gap-2">
+              <DoorOpen className="h-4 w-4" />
+              Leave
+            </span>
           )}
         </Button>
       )

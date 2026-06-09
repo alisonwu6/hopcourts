@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
-import { Sparkles, ArrowRight, MessageSquareOff, CalendarOff, Users } from 'lucide-react'
+import { Sparkles, ArrowRight, MessageSquareOff, CalendarOff, PartyPopper } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 
@@ -55,18 +55,16 @@ export function HomePage() {
           </header>
 
           {/* Call to Action */}
-          {!isAuthenticated && (
-            <section className="mt-6 flex justify-center">
-              <button
-                className="flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
-                type="button"
-                onClick={handleIdentityClick}
-              >
-                Hop in
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-            </section>
-          )}
+          <section className="mt-6 flex justify-center">
+            <button
+              className="flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
+              type="button"
+              onClick={isAuthenticated ? () => navigate('/events') : handleIdentityClick}
+            >
+              {isAuthenticated ? 'Explore Events' : 'Hop in'}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </button>
+          </section>
 
           {/* Why HopCourts */}
           <section className="mt-10 w-full">
@@ -94,7 +92,7 @@ export function HomePage() {
 
               <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-                  <Users className="h-5 w-5" />
+                  <PartyPopper className="h-5 w-5" />
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Your sports circle, built naturally</p>

@@ -140,7 +140,7 @@ export function useEventDetailLogic() {
     }
     if (!event || !id) return
     if (isHost && event.joined) {
-      showAlert('', 'The host must join the event', 'warning')
+      showAlert('Host Required', 'As the organizer, you must be a participant of this event.', 'warning')
       return
     }
     if (!event.joined && !user?.onboarding_completed_at) {
@@ -230,7 +230,11 @@ export function useEventDetailLogic() {
               onAction: handleOnTheWay,
             })
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
-            showAlert('Outside check-in window', 'You are currently outside the check-in time window.', 'warning')
+            showAlert(
+              'Too Early to Check In',
+              'The check-in window isn’t open yet. Please check the session time.',
+              'warning'
+            )
           } else {
             showAlert(
               'Check-in failed',
@@ -266,7 +270,7 @@ export function useEventDetailLogic() {
             'warning'
           )
         } else {
-          showAlert('Location failed', 'Please enable location services and try again later.', 'warning')
+          showAlert('Location Required', 'Enable location services in your settings to check in.', 'warning')
         }
         setIsCheckingIn(false)
       },
@@ -281,7 +285,7 @@ export function useEventDetailLogic() {
       setHasSignaledOnTheWay(true)
       showAlert('On the way!', "We've let the host know you're heading over.", 'success')
     } else {
-      showAlert('Could not update', res.error?.message ?? 'Please try again.', 'warning')
+      showAlert('Update Failed', res.error?.message ?? 'Something went wrong. Please try again.', 'warning')
     }
   }
 

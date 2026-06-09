@@ -115,7 +115,7 @@ function EmptyState({
         <button
           type="button"
           onClick={onExplore}
-          className="mt-5 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+          className="mt-5 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition"
         >
           Explore Events
         </button>
