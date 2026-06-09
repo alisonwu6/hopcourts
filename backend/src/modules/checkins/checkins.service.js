@@ -29,11 +29,15 @@ async function checkInToSession({ sessionId, userId, lat, lng, now = new Date() 
     throw createError('INVALID_SESSION', 'Session start/end time is invalid', 400)
   }
 
+  const openMins = Number(session.checkin_open_mins_before ?? 10)
+  const opensAt = new Date(startsAt.getTime() - openMins * 60 * 1000)
+
   const nowTs = now instanceof Date ? now : new Date(now)
 
-  if (!endsAt || nowTs > endsAt) {
-    throw createError('CHECKIN_OUTSIDE_TIME_WINDOW', 'Session has already ended', 403, {
-      ends_at: endsAt.toISOString(),
+  if (nowTs < opensAt || !endsAt || nowTs > endsAt) {
+    throw createError('CHECKIN_OUTSIDE_TIME_WINDOW', 'Outside check-in window', 403, {
+      opens_at: opensAt.toISOString(),
+      ends_at: endsAt?.toISOString(),
       now: nowTs.toISOString(),
     })
   }
