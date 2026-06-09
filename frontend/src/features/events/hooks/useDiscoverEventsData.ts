@@ -181,14 +181,22 @@ export function useDiscoverEventsData({
     if (suggestionType === 'interests') {
       const userSports = (user.sports || []).map((sport) => sport.toLowerCase())
       localMatched = events.filter(
-        (event) => userSports.includes(event.sport.toLowerCase()) && new Date(event.startTime) >= today
+        (event) =>
+          event.host.id !== user.id &&
+          userSports.includes(event.sport.toLowerCase()) &&
+          new Date(event.startTime) >= today
       )
     } else {
       const following = user.following || []
-      localMatched = events.filter((event) => following.includes(event.host.id) && new Date(event.startTime) >= today)
+      localMatched = events.filter(
+        (event) =>
+          event.host.id !== user.id && following.includes(event.host.id) && new Date(event.startTime) >= today
+      )
     }
 
-    const backendMatched = feedByType[feedType].items.filter((event) => new Date(event.startTime) >= today)
+    const backendMatched = feedByType[feedType].items.filter(
+      (event) => event.host.id !== user.id && new Date(event.startTime) >= today
+    )
     return (backendMatched.length > 0 ? backendMatched : localMatched).slice(0, 6)
   }, [events, feedByType, isAuthenticated, suggestionType, today, user])
 
