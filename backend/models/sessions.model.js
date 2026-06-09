@@ -324,6 +324,7 @@ async function updateSession(sessionId, patch = {}) {
     address: patch.address,
     lat: patch.lat,
     lng: patch.lng,
+    location_source: patch.locationSource,
     checkin_radius_m: patch.checkinRadiusM,
     checkin_open_mins_before: patch.checkinOpenMinsBefore,
     checkin_close_mins_after: patch.checkinCloseMinsAfter,

@@ -354,7 +354,7 @@ async function createSession(input) {
     checkinRadiusM: input.checkinRadiusM ?? 100,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 15,
     checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 5,
-    minPeople: input.minPeople ?? 3,
+    minPeople: input.minPeople,
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',
     visibility: input.visibility ?? 'public',
@@ -423,6 +423,21 @@ async function updateSession(sessionId, input) {
     throw Errors.validation('max_people must be >= min_people')
   }
 
+  let venueId = undefined
+  if (input.lat && input.lng && input.lat !== 0 && input.lng !== 0) {
+    try {
+      venueId = await resolveVenue({
+        lat: Number(input.lat),
+        lng: Number(input.lng),
+        name: input.placeName,
+        address: input.address,
+        source: input.locationSource,
+      })
+    } catch (err) {
+      console.error('Venue resolution failed on update', err)
+    }
+  }
+
   const patch = {
     sportKey: input.sportKey,
     title: input.title,
@@ -433,6 +448,8 @@ async function updateSession(sessionId, input) {
     address: input.address,
     lat: input.lat,
     lng: input.lng,
+    locationSource: input.locationSource,
+    venueId,
     checkinRadiusM: input.checkinRadiusM,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore,
     checkinCloseMinsAfter: input.checkinCloseMinsAfter,

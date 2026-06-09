@@ -614,26 +614,27 @@ function ActionBar({
 }) {
   const isSubmitting = submittingStatus !== null
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md bg-white/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(15,41,77,0.1)] backdrop-blur">
-      <div className="flex w-full items-center gap-3 px-4">
+    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+      <div className={clsx('flex w-full gap-3 px-4', showDraftButton ? 'grid grid-cols-2' : '')}>
         {showDraftButton && (
           <Button
             variant="secondary"
-            size="sm"
             type="button"
             onClick={onDraft}
-            className="flex-1 rounded-full border-slate-200 text-slate-600"
+            className="h-12 w-full rounded-full border-slate-200 text-base font-semibold text-slate-600 shadow-lg transition"
             disabled={!canSubmit || isSubmitting}
           >
             {submittingStatus === 'draft' ? 'Saving...' : 'Save Draft'}
           </Button>
         )}
         <Button
-          size="sm"
           type="button"
           onClick={onPublish}
           disabled={isSubmitting}
-          className={clsx(showDraftButton ? 'flex-1' : 'w-full', 'rounded-full px-6', !canSubmit && 'opacity-50')}
+          className={clsx(
+            'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+            !canSubmit && 'opacity-50'
+          )}
         >
           {submittingStatus === 'published'
             ? isPublicPublishedEdit
