@@ -21,6 +21,7 @@ type EventCardProps = {
   cityLabel?: string
   disableVenueHostNavigation?: boolean
   showStatus?: boolean
+  showBookmark?: boolean
 }
 
 function getFlagEmoji(countryCode: string) {
@@ -36,6 +37,7 @@ export function EventCard({
   cityLabel: cityLabelProp,
   disableVenueHostNavigation = false,
   showStatus = false,
+  showBookmark = false,
 }: EventCardProps) {
   const navigate = useNavigate()
 
@@ -153,7 +155,7 @@ export function EventCard({
         </div>
 
         <div className="flex flex-col items-end gap-1">
-          <BookmarkButton eventId={event.id} />
+          {showBookmark && <BookmarkButton eventId={event.id} />}
           {showStatus && event.status && <StatusBadge status={event.status} />}
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">

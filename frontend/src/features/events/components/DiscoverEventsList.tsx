@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import { useMemo } from 'react'
+import { Bike } from 'lucide-react'
 import { EventCard } from '@/features/events/components/EventCard'
 import { PageLoading } from '@/components/PageLoading'
 import type { PlayerEvent } from '@/types'
@@ -101,6 +102,7 @@ export function DiscoverEventsBody({
                     cityLabel={resolveCityLabel(event)}
                     className="w-[300px] flex-shrink-0 snap-start"
                     onViewDetails={() => onViewDetails(event.id)}
+                    showBookmark
                   />
                 ))
               ) : (
@@ -133,16 +135,16 @@ export function DiscoverEventsBody({
           className="py-20"
         />
       ) : filteredEvents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm">
-            <span className="text-5xl"></span>
+        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+          <div className="p-2">
+            <Bike className="h-8 w-8" />
           </div>
-          <h3 className="text-xl font-bold text-slate-900">No events yet.</h3>
-          <p className="mt-2 text-sm text-slate-500">Be the one who starts it.</p>
+          <h3 className="text-lg font-bold text-slate-900">No events yet</h3>
+          <p className="mt-1 px-10 text-sm text-slate-500">Browse games happening around you and join the action.</p>
           <button
             type="button"
             onClick={onCreateClick}
-            className="mt-8 rounded-full bg-blue-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-200 transition"
+            className="mt-5 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition"
           >
             Create event
           </button>
@@ -155,6 +157,7 @@ export function DiscoverEventsBody({
             sportLabel={resolveSportLabel(event)}
             cityLabel={resolveCityLabel(event)}
             onViewDetails={() => onViewDetails(event.id)}
+            showBookmark
           />
         ))
       )}

@@ -23,6 +23,7 @@ import { Button, AlertDialog } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { PageLoading } from '@/components/PageLoading'
+import { BookmarkButton } from './BookmarkButton'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 
 type EventDetailAlertState = {
@@ -226,7 +227,7 @@ export function EventDetailView({
                 <button
                   type="button"
                   onClick={onOpenDeleteConfirm}
-                  className="rounded-full bg-slate-100 p-2 text-slate-500 transition"
+                  className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
                   aria-label="Delete event"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -234,17 +235,18 @@ export function EventDetailView({
                 <button
                   type="button"
                   onClick={() => onEdit(event.id)}
-                  className="rounded-full bg-blue-50 p-2 text-blue-600 transition"
+                  className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
                   aria-label="Edit event"
                 >
                   <Pencil className="h-5 w-5" />
                 </button>
               </>
             )}
+            <BookmarkButton eventId={event.id} className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100" />
             <button
               type="button"
               onClick={onShare}
-              className="rounded-full bg-blue-50 p-2 text-blue-600 transition"
+              className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
               aria-label="Share"
             >
               <Share

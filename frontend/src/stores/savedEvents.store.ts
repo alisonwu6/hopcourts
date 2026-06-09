@@ -1,33 +1,56 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { eventsService } from '@/features/events/services/eventsService'
 
 interface SavedEventsStore {
-  savedIds: Array<string>
-  toggleSave: (eventId: string) => void
+  savedIds: string[]
+  isSaving: Record<string, boolean>
+  toggleSave: (eventId: string) => Promise<void>
   isSaved: (eventId: string) => boolean
+  fetchBookmarks: () => Promise<void>
   clearSavedEvents: () => void
 }
 
-export const useSavedEventsStore = create<SavedEventsStore>()(
-  persist(
-    (set, get) => ({
-      savedIds: [],
+export const useSavedEventsStore = create<SavedEventsStore>()((set, get) => ({
+  savedIds: [],
+  isSaving: {},
 
-      toggleSave: (eventId) =>
-        set((state) => {
-          const alreadySaved = state.savedIds.includes(eventId)
-          if (alreadySaved) {
-            return { savedIds: state.savedIds.filter((id) => id !== eventId) }
-          }
-          return { savedIds: [...state.savedIds, eventId] }
-        }),
+  toggleSave: async (eventId) => {
+    const { savedIds } = get()
+    const currentlySaved = savedIds.includes(eventId)
 
-      isSaved: (eventId) => {
-        return get().savedIds.includes(eventId)
-      },
+    // Optimistic update
+    set((state) => ({
+      isSaving: { ...state.isSaving, [eventId]: true },
+      savedIds: currentlySaved
+        ? state.savedIds.filter((id) => id !== eventId)
+        : [...state.savedIds, eventId],
+    }))
 
-      clearSavedEvents: () => set({ savedIds: [] }),
-    }),
-    { name: 'savedEvents-store' }
-  )
-)
+    const res = await eventsService.toggleBookmark(eventId, currentlySaved)
+
+    if (!res.success) {
+      // Rollback on failure
+      set((state) => ({
+        savedIds: currentlySaved
+          ? [...state.savedIds, eventId]
+          : state.savedIds.filter((id) => id !== eventId),
+      }))
+    }
+
+    set((state) => {
+      const { [eventId]: _, ...rest } = state.isSaving
+      return { isSaving: rest }
+    })
+  },
+
+  isSaved: (eventId) => get().savedIds.includes(eventId),
+
+  fetchBookmarks: async () => {
+    const res = await eventsService.fetchBookmarkIds()
+    if (res.success && res.data) {
+      set({ savedIds: res.data.ids })
+    }
+  },
+
+  clearSavedEvents: () => set({ savedIds: [], isSaving: {} }),
+}))

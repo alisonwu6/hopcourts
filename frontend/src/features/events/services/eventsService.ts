@@ -686,6 +686,37 @@ export const eventsService = {
     }
   },
 
+  async toggleBookmark(eventId: string, bookmarked: boolean): Promise<ApiResponse<{ bookmarked: boolean }>> {
+    try {
+      const fn = bookmarked ? httpDelete : httpPost
+      const res = await fn<{ bookmarked: boolean }>(`/sessions/${eventId}/bookmark`)
+      return wrapSuccess((res as any).data ?? res)
+    } catch (err: any) {
+      const backendErr = (err.details || {}).error || err.details || {}
+      return {
+        success: false,
+        data: undefined as any,
+        error: { code: backendErr.code || 'BOOKMARK_FAILED', message: backendErr.message || err?.message || 'Failed to update bookmark' } as any,
+        timestamp: new Date(),
+      }
+    }
+  },
+
+  async fetchBookmarkIds(): Promise<ApiResponse<{ ids: string[] }>> {
+    try {
+      const res = await httpGet<{ ids: string[] }>('/me/bookmarks')
+      return wrapSuccess((res as any).data ?? res)
+    } catch (err: any) {
+      const backendErr = (err.details || {}).error || err.details || {}
+      return {
+        success: false,
+        data: undefined as any,
+        error: { code: backendErr.code || 'FETCH_BOOKMARKS_FAILED', message: backendErr.message || err?.message || 'Failed to fetch bookmarks' } as any,
+        timestamp: new Date(),
+      }
+    }
+  },
+
   async signalOnTheWay(eventId: string): Promise<ApiResponse<any>> {
     try {
       const res = await httpPost<any>(`/sessions/${eventId}/on-the-way`)

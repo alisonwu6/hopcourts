@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EventCard } from '@/features/events/components/EventCard'
@@ -8,15 +8,21 @@ import { Bookmark } from 'lucide-react'
 
 export function SavedEventsPage() {
   const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(true)
+
   const savedIds = useSavedEventsStore((state) => state.savedIds)
+  const fetchBookmarks = useSavedEventsStore((state) => state.fetchBookmarks)
+
   const events = useEventsStore((state) => state.events)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
-  const isLoading = useEventsStore((state) => state.isLoading)
 
   useEffect(() => {
-    if (events.length === 0) {
-      fetchEvents()
+    const load = async () => {
+      setIsLoading(true)
+      await Promise.all([fetchBookmarks(), events.length === 0 ? fetchEvents() : Promise.resolve()])
+      setIsLoading(false)
     }
+    void load()
   }, [])
 
   const savedEvents = events.filter((event) => savedIds.includes(event.id))
@@ -39,16 +45,16 @@ export function SavedEventsPage() {
             </div>
             <h3 className="text-lg font-bold text-slate-900">No saved events</h3>
             <p className="mt-1 px-10 text-sm text-slate-500">
-              Save events you’re interested in to keep track of slots and timing.
+              Save events you're interested in to keep track of slots and timing.
             </p>
           </div>
         ) : (
-          // map out lists
           savedEvents.map((event) => (
             <EventCard
               key={event.id}
               event={event}
               onViewDetails={(id) => navigate(`/event/${id}`)}
+              showBookmark
             />
           ))
         )}
