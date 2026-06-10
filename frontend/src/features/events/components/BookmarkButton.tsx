@@ -1,4 +1,4 @@
-import { Bookmark } from 'lucide-react'
+import { Bookmark, BookmarkCheck } from 'lucide-react'
 import { useSavedEventsStore } from '@/stores/savedEvents.store'
 import { useAuthStore } from '@/hooks'
 
@@ -26,11 +26,11 @@ export function BookmarkButton({ eventId, className }: BookmarkButtonProps) {
       className={className ?? 'p-2 transition disabled:opacity-50'}
       aria-label={isSaved ? 'Remove bookmark' : 'Bookmark event'}
     >
-      <Bookmark
-        className="h-5 w-5"
-        fill={isSaved ? 'currentColor' : 'none'}
-        strokeWidth={2}
-      />
+      {isSaved ? (
+        <BookmarkCheck className="h-6 w-6" strokeWidth={2} />
+      ) : (
+        <Bookmark className="h-6 w-6" strokeWidth={2} />
+      )}
     </button>
   )
 }

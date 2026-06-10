@@ -113,7 +113,7 @@ export function EventCard({
     >
       {showBookmark && (
         <div className="absolute right-4 top-0 z-10">
-          <BookmarkButton eventId={event.id} className="px-2 pb-2 pt-0" />
+          <BookmarkButton eventId={event.id} className="px-2 pb-2 pt-0 text-blue-600" />
         </div>
       )}
 

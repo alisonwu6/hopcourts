@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EventCard } from '@/features/events/components/EventCard'
+import { EventsViewPanel } from '@/features/events/components/EventsViewPanel'
 import { useSavedEventsStore } from '@/stores/savedEvents.store'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
-import { Bookmark } from 'lucide-react'
+import { useSports } from '@/features/dictionaries/hooks'
+import { Bookmark, CalendarDays, List } from 'lucide-react'
 
 export function SavedEventsPage() {
   const navigate = useNavigate()
@@ -26,12 +28,34 @@ export function SavedEventsPage() {
   }, [])
 
   const savedEvents = events.filter((event) => savedIds.includes(event.id))
+  const { items: sportsCatalog } = useSports('en')
+  const [view, setView] = useState<'list' | 'calendar'>('list')
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <ActionToolbar
         title="Saved Events"
         showBack={true}
+        rightContent={
+          <div className="flex rounded-full bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => setView('list')}
+              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${view === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+              aria-label="List view"
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('calendar')}
+              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${view === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+              aria-label="Calendar view"
+            >
+              <CalendarDays className="h-4 w-4" />
+            </button>
+          </div>
+        }
       />
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {isLoading ? (
@@ -48,15 +72,27 @@ export function SavedEventsPage() {
               Save events you're interested in to keep track of slots and timing.
             </p>
           </div>
+        ) : view === 'calendar' ? (
+          <EventsViewPanel
+            events={savedEvents}
+            sportsCatalog={sportsCatalog}
+            onViewDetails={(id) => navigate(`/event/${id}`)}
+            onExplore={() => navigate('/events')}
+            showBookmark
+          />
         ) : (
-          savedEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              onViewDetails={(id) => navigate(`/event/${id}`)}
-              showBookmark
-            />
-          ))
+          savedEvents.map((event) => {
+            const sportLabel = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label ?? event.sport
+            return (
+              <EventCard
+                key={event.id}
+                event={event}
+                sportLabel={sportLabel}
+                onViewDetails={(id) => navigate(`/event/${id}`)}
+                showBookmark
+              />
+            )
+          })
         )}
       </div>
     </div>

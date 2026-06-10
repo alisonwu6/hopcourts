@@ -74,11 +74,13 @@ function CalendarPanel({
   sportsCatalog,
   onViewDetails,
   onExplore,
+  showBookmark,
 }: {
   events: PlayerEvent[]
   sportsCatalog: SportsItem[]
   onViewDetails: (id: string, event: PlayerEvent) => void
   onExplore?: () => void
+  showBookmark?: boolean
 }) {
   const today = useMemo(() => new Date(), [])
   const [span, setSpan] = useState<CalendarSpan>('week')
@@ -215,6 +217,7 @@ function CalendarPanel({
                 event={event}
                 sportLabel={sportLabel}
                 onViewDetails={(id) => onViewDetails(id, event)}
+                showBookmark={showBookmark}
               />
             )
           })
@@ -230,11 +233,13 @@ export function EventsViewPanel({
   sportsCatalog,
   onViewDetails,
   onExplore,
+  showBookmark,
 }: {
   events: PlayerEvent[]
   sportsCatalog: SportsItem[]
   onViewDetails: (id: string, event: PlayerEvent) => void
   onExplore?: () => void
+  showBookmark?: boolean
 }) {
   return (
     <CalendarPanel
@@ -242,6 +247,7 @@ export function EventsViewPanel({
       sportsCatalog={sportsCatalog}
       onViewDetails={onViewDetails}
       onExplore={onExplore}
+      showBookmark={showBookmark}
     />
   )
 }
