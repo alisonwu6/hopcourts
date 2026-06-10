@@ -68,11 +68,12 @@ async function getProfileSessionsByUsername(username, { role = 'hosted', time = 
       offset,
     })
   } else {
-    const upcomingItems = await sessionsModel.listMyUpcomingSessions({
+    items = await sessionsModel.listMyUpcomingSessions({
       userId: user.id,
       role,
+      limit,
+      offset,
     })
-    items = upcomingItems.slice(offset, offset + limit)
   }
 
   return {

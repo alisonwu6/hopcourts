@@ -46,7 +46,7 @@ export function useDiscoverEventsData({
   searchParams,
   setSearchParams,
 }: DiscoverEventsDataInput) {
-  const today = startOfDay(new Date())
+  const today = useMemo(() => startOfDay(new Date()), [])
   const [feedByType, setFeedByType] = useState<Record<FeedType, FeedState>>(EMPTY_FEED_STATE)
   const feedRequestSeq = useRef(0)
   const showMap = searchParams.get('view') === 'map'

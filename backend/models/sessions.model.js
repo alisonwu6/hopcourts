@@ -100,7 +100,7 @@ async function listUpcomingSessions({
   return rows
 }
 
-async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
+async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 50, offset = 0 } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
   
@@ -149,7 +149,9 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
     left join public.venue_profiles vp on v.id = vp.venue_id
     where ${conditions.join(' AND ')}
     order by s.starts_at asc
+    limit $${++idx} offset $${++idx}
   `
+  params.push(limit, offset)
   const { rows } = await query(sql, params)
   return rows
 }
