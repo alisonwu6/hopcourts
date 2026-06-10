@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
 import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
 import { VenueListView } from '../views/VenueListView'
+
+const PAGE_SIZE = 50
 
 // Adapter to make ApiVenue compatible with EventMap logic
 const mapVenueToEventStub = (venue: ApiVenue): any => ({
@@ -30,6 +32,9 @@ export function VenueListPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [venues, setVenues] = useState<ApiVenue[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [offset, setOffset] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null)
   const { items: sportsCatalog } = useSports('en')
@@ -62,14 +67,31 @@ export function VenueListPage() {
   useEffect(() => {
     const fetchVenues = async () => {
       setIsLoading(true)
-      const res = await venuesService.listVenues({ limit: 100 })
+      const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset: 0 })
       if (res.success && res.data) {
         setVenues(res.data.data)
+        setHasMore(res.data.hasMore)
+        setOffset(res.data.data.length)
       }
       setIsLoading(false)
     }
-    fetchVenues()
+    void fetchVenues()
   }, [])
+
+  const loadMoreVenues = useCallback(async () => {
+    if (loadingMore) return
+    setLoadingMore(true)
+    try {
+      const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset })
+      if (res.success && res.data) {
+        setVenues((prev) => [...prev, ...res.data!.data])
+        setHasMore(res.data.hasMore)
+        setOffset((prev) => prev + res.data!.data.length)
+      }
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [offset, loadingMore])
 
   if (isLoading && venues.length === 0) {
     return <PageLoading />
@@ -88,6 +110,9 @@ export function VenueListPage() {
       sportsCatalog={sportsCatalog}
       selectedVenueId={selectedVenueId}
       onSelectMarker={setSelectedVenueId}
+      hasMore={hasMore && !searchQuery}
+      loadingMore={loadingMore}
+      onLoadMore={loadMoreVenues}
     />
   )
 }

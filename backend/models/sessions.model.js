@@ -37,6 +37,7 @@ const BASE_FIELDS = [
 async function listUpcomingSessions({
   city,
   sportKey,
+  sportKeys,
   venueId,
   from,
   to,
@@ -64,10 +65,13 @@ async function listUpcomingSessions({
     params.push(to)
     conditions.push(`starts_at <= $${++idx}`)
   }
-  if (sportKey) {
-    params.push(sportKey)
-    conditions.push(`sport_key = $${++idx}`)
+
+  const resolvedSportKeys = sportKeys?.length ? sportKeys : sportKey ? [sportKey] : null
+  if (resolvedSportKeys) {
+    params.push(resolvedSportKeys)
+    conditions.push(`sport_key = ANY($${++idx})`)
   }
+
   if (city) {
     params.push(city)
     conditions.push(`address ILIKE $${++idx}`)
@@ -100,7 +104,7 @@ async function listUpcomingSessions({
   return rows
 }
 
-async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 50, offset = 0 } = {}) {
+async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 200, offset = 0 } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
   

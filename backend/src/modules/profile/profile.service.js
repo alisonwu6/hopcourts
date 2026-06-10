@@ -358,9 +358,10 @@ async function deleteAccount(userId, { force = false } = {}) {
   return { success: true }
 }
 
-async function getTeammates(userId) {
+async function getTeammates(userId, { limit = 30, offset = 0 } = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
-  return await participantsModel.listTeammates(userId)
+  const rows = await participantsModel.listTeammates(userId, { limit, offset })
+  return { items: rows, has_more: rows.length === limit }
 }
 
 module.exports = {

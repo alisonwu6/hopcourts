@@ -50,7 +50,7 @@ export function VenueDetailsPage() {
 
       const [venueRes, eventsRes] = await Promise.all([
         venuesService.getVenueById(venueId),
-        eventsService.getEvents({ venueId, limit: 10 }),
+        eventsService.getEvents({ venueId }, { limit: 10 }),
       ])
 
       if (venueRes.success && venueRes.data) {

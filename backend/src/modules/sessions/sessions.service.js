@@ -23,8 +23,13 @@ function buildListParams(query) {
   const limit = Math.min(Math.max(limitRaw, 1), 50)
   const offset = Math.max(parseNumber(query.offset, 0), 0)
 
+  const rawSportKeys = query.sport_keys || query.sport_key || query.sport
+  const sportKeys = rawSportKeys
+    ? String(rawSportKeys).split(',').map(s => s.trim().toUpperCase()).filter(Boolean)
+    : undefined
+
   return {
-    sportKey: query.sport_key || query.sport ? String(query.sport_key || query.sport) : undefined,
+    sportKeys: sportKeys?.length ? sportKeys : undefined,
     city: query.city ? String(query.city) : undefined,
     venueId: query.venue_id ? String(query.venue_id) : undefined,
     from: parseDate(query.from),

@@ -1,21 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, MapPin, Smile } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { api } from '@/api/client'
 import { useCities } from '@/features/dictionaries/hooks'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+
+const PAGE_SIZE = 30
 
 export function MyMatesPage() {
   const navigate = useNavigate()
   const { items: citiesCatalog } = useCities()
   const [list, setList] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [offset, setOffset] = useState(0)
 
   useEffect(() => {
     api.profiles
-      .getTeammates()
+      .getTeammates({ limit: PAGE_SIZE, offset: 0 })
       .then((res) => {
-        setList(res.data || [])
+        const items = res.data?.items ?? []
+        setList(items)
+        setHasMore(res.data?.has_more ?? false)
+        setOffset(items.length)
       })
       .catch((err) => {
         console.error(err)
@@ -24,6 +33,24 @@ export function MyMatesPage() {
         setLoading(false)
       })
   }, [])
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore) return
+    setLoadingMore(true)
+    try {
+      const res = await api.profiles.getTeammates({ limit: PAGE_SIZE, offset })
+      const items = res.data?.items ?? []
+      setList((prev) => [...prev, ...items])
+      setHasMore(res.data?.has_more ?? false)
+      setOffset((prev) => prev + items.length)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [offset, loadingMore])
+
+  const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loadingMore)
 
   const getCityLabel = (key: string) => {
     return citiesCatalog.find((c) => c.key === key)?.label || key
@@ -87,6 +114,12 @@ export function MyMatesPage() {
               </div>
             </div>
           ))
+        )}
+        <div ref={sentinelRef} className="h-4" />
+        {loadingMore && (
+          <div className="flex justify-center py-4">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+          </div>
         )}
       </div>
     </div>

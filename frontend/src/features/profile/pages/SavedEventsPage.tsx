@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EventCard } from '@/features/events/components/EventCard'
@@ -7,6 +7,9 @@ import { useSavedEventsStore } from '@/stores/savedEvents.store'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/dictionaries/hooks'
 import { Bookmark, CalendarDays, List } from 'lucide-react'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+
+const PAGE_SIZE = 20
 
 export function SavedEventsPage() {
   const navigate = useNavigate()
@@ -30,6 +33,14 @@ export function SavedEventsPage() {
   const savedEvents = events.filter((event) => savedIds.includes(event.id))
   const { items: sportsCatalog } = useSports('en')
   const [view, setView] = useState<'list' | 'calendar'>('list')
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
+
+  const visibleSaved = savedEvents.slice(0, displayCount)
+  const hasMoreSaved = displayCount < savedEvents.length
+  const sentinelRef = useInfiniteScroll(
+    useCallback(() => setDisplayCount((c) => c + PAGE_SIZE), []),
+    hasMoreSaved && view === 'list'
+  )
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -81,18 +92,21 @@ export function SavedEventsPage() {
             showBookmark
           />
         ) : (
-          savedEvents.map((event) => {
-            const sportLabel = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label ?? event.sport
-            return (
-              <EventCard
-                key={event.id}
-                event={event}
-                sportLabel={sportLabel}
-                onViewDetails={(id) => navigate(`/event/${id}`)}
-                showBookmark
-              />
-            )
-          })
+          <>
+            {visibleSaved.map((event) => {
+              const sportLabel = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label ?? event.sport
+              return (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  sportLabel={sportLabel}
+                  onViewDetails={(id) => navigate(`/event/${id}`)}
+                  showBookmark
+                />
+              )
+            })}
+            <div ref={sentinelRef} className="h-4" />
+          </>
         )}
       </div>
     </div>

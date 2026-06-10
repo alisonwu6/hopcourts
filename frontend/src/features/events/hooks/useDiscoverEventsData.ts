@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { SetURLSearchParams } from 'react-router-dom'
-import { format, isSameDay, startOfDay } from 'date-fns'
-import type { PlayerEvent, User } from '@/types'
+import { format, startOfDay } from 'date-fns'
+import type { EventFilter, PlayerEvent, User } from '@/types'
 import type { Sport } from '@/types/dictionary'
 import { eventsService } from '@/features/events/services/eventsService'
 
@@ -29,12 +29,6 @@ type FeedState = {
 const EMPTY_FEED_STATE: Record<FeedType, FeedState> = {
   interests: { items: [], isLoading: false },
   relations: { items: [], isLoading: false },
-}
-
-function dateTimeEndOfDay(date: Date) {
-  const value = new Date(date)
-  value.setHours(23, 59, 59, 999)
-  return value
 }
 
 export function useDiscoverEventsData({
@@ -152,26 +146,18 @@ export function useDiscoverEventsData({
     [events]
   )
 
-  const filteredEvents = useMemo(() => {
-    let filtered = events.filter((event) => new Date(event.startTime) >= today)
+  // Server handles sport + date filtering; events are already filtered
+  const filteredEvents = events
 
-    if (dateRange.start) {
-      if (dateRange.end) {
-        const start = startOfDay(dateRange.start)
-        const end = dateTimeEndOfDay(dateRange.end)
-        filtered = events.filter((event) => {
-          const time = new Date(event.startTime)
-          return time >= start && time <= end
-        })
-      } else {
-        filtered = events.filter((event) => isSameDay(new Date(event.startTime), dateRange.start!))
-      }
+  const activeFilter = useMemo<EventFilter>(() => {
+    const filter: EventFilter = {}
+    if (dateRange.start) filter.startDate = dateRange.start
+    if (dateRange.end) filter.endDate = dateRange.end
+    if (!selectedSports.includes('all') && selectedSports.length > 0) {
+      filter.sportKeys = selectedSports
     }
-
-    if (selectedSports.includes('all')) return filtered
-
-    return filtered.filter((event) => selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase()))
-  }, [events, selectedSports, dateRange, today])
+    return filter
+  }, [dateRange, selectedSports])
 
   const suggestedEvents = useMemo(() => {
     if (!isAuthenticated || !user) return []
@@ -296,6 +282,7 @@ export function useDiscoverEventsData({
     dateLabel,
     sportLabel,
     hasFilter,
+    activeFilter,
     toggleMap,
     clearFilters,
     selectMapEvent,

@@ -1,10 +1,13 @@
 import clsx from 'clsx'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { Bike } from 'lucide-react'
 import { EventCard } from '@/features/events/components/EventCard'
 import { PageLoading } from '@/components/PageLoading'
 import type { PlayerEvent } from '@/types'
 import { useCities, useSports } from '@/features/dictionaries/hooks'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+
+const PAGE_SIZE = 20
 
 type DiscoverEventsBodyProps = {
   isAuthenticated: boolean
@@ -13,10 +16,13 @@ type DiscoverEventsBodyProps = {
   hasFilter: boolean
   error: string | null
   isLoading: boolean
+  isLoadingMore: boolean
+  serverHasMore: boolean
   filteredEvents: PlayerEvent[]
   onChangeSuggestionType: (type: 'interests' | 'hosts') => void
   onCreateClick: () => void
   onViewDetails: (eventId: string) => void
+  onLoadMoreFromServer: () => void
 }
 
 export function DiscoverEventsBody({
@@ -26,13 +32,34 @@ export function DiscoverEventsBody({
   hasFilter,
   error,
   isLoading,
+  isLoadingMore,
+  serverHasMore,
   filteredEvents,
   onChangeSuggestionType,
   onCreateClick,
   onViewDetails,
+  onLoadMoreFromServer,
 }: DiscoverEventsBodyProps) {
   const { items: sports } = useSports('en')
   const { items: cities } = useCities(undefined, 'en')
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
+
+  // Reset when filteredEvents changes (new filter applied)
+  useEffect(() => setDisplayCount(PAGE_SIZE), [filteredEvents])
+
+  const visibleEvents = filteredEvents.slice(0, displayCount)
+  const clientHasMore = displayCount < filteredEvents.length
+  const hasMore = clientHasMore || serverHasMore
+
+  const onLoadMore = useCallback(() => {
+    if (clientHasMore) {
+      setDisplayCount((c) => c + PAGE_SIZE)
+    } else if (serverHasMore) {
+      onLoadMoreFromServer()
+    }
+  }, [clientHasMore, serverHasMore, onLoadMoreFromServer])
+
+  const sentinelRef = useInfiniteScroll(onLoadMore, hasMore && !isLoadingMore)
 
   const sportLabelByKey = useMemo(() => {
     return new Map(sports.map((item) => [item.key.toUpperCase(), item.label]))
@@ -150,16 +177,22 @@ export function DiscoverEventsBody({
           </button>
         </div>
       ) : (
-        filteredEvents.map((event) => (
-          <EventCard
-            key={event.id}
-            event={event}
-            sportLabel={resolveSportLabel(event)}
-            cityLabel={resolveCityLabel(event)}
-            onViewDetails={() => onViewDetails(event.id)}
-            showBookmark
-          />
-        ))
+        <>
+          {visibleEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              sportLabel={resolveSportLabel(event)}
+              cityLabel={resolveCityLabel(event)}
+              onViewDetails={() => onViewDetails(event.id)}
+              showBookmark
+            />
+          ))}
+          <div ref={sentinelRef} className="h-4" />
+          {isLoadingMore && (
+            <p className="py-4 text-center text-xs text-slate-400">Loading more…</p>
+          )}
+        </>
       )}
     </div>
   )

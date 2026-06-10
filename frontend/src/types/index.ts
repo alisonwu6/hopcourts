@@ -108,6 +108,7 @@ export interface PaginatedResponse<T> {
 export interface EventFilter {
   feedType?: 'upcoming' | 'interests' | 'relations'
   sport?: string
+  sportKeys?: string[]
   skillLevel?: 'beginner' | 'intermediate' | 'advanced'
   minPrice?: number
   maxPrice?: number

@@ -21,6 +21,9 @@ type DiscoverEventsPageViewProps = {
   suggestedEvents: PlayerEvent[]
   error: string | null
   isLoading: boolean
+  isLoadingMore: boolean
+  serverHasMore: boolean
+  onLoadMoreFromServer: () => void
   isSearchOpen: boolean
   dateRange: { start: Date | null; end: Date | null }
   selectedSports: string[]
@@ -55,6 +58,9 @@ export function DiscoverEventsPageView({
   suggestedEvents,
   error,
   isLoading,
+  isLoadingMore,
+  serverHasMore,
+  onLoadMoreFromServer,
   isSearchOpen,
   dateRange,
   selectedSports,
@@ -107,10 +113,13 @@ export function DiscoverEventsPageView({
           hasFilter={hasFilter}
           error={error}
           isLoading={isLoading}
+          isLoadingMore={isLoadingMore}
+          serverHasMore={serverHasMore}
           filteredEvents={filteredEvents}
           onChangeSuggestionType={onChangeSuggestionType}
           onCreateClick={onCreateClick}
           onViewDetails={onClickEventDetail}
+          onLoadMoreFromServer={onLoadMoreFromServer}
         />
       )}
 

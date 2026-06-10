@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import { EventMap } from '@/features/events/components/EventMap'
 import { ApiVenue } from '../services/venuesService'
 import { VenueCard } from '../components/VenueCard'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
 interface VenueListViewProps {
   venues: ApiVenue[]
@@ -17,6 +18,10 @@ interface VenueListViewProps {
   sportsCatalog: any[]
   selectedVenueId: string | null
   onSelectMarker: (id: string | null) => void
+  // Pagination
+  hasMore: boolean
+  loadingMore: boolean
+  onLoadMore: () => void
 }
 
 export function VenueListView({
@@ -31,7 +36,11 @@ export function VenueListView({
   sportsCatalog,
   selectedVenueId,
   onSelectMarker,
+  hasMore,
+  loadingMore,
+  onLoadMore,
 }: VenueListViewProps) {
+  const sentinelRef = useInfiniteScroll(onLoadMore, hasMore && !loadingMore)
   return (
     <div className="relative min-h-screen bg-slate-50">
       {/* Top Search Bar & Toggle (Floating) */}
@@ -102,6 +111,12 @@ export function VenueListView({
                 onClick={onVenueClick}
               />
             ))}
+            <div ref={sentinelRef} className="h-4" />
+            {loadingMore && (
+              <div className="flex justify-center py-4">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+              </div>
+            )}
           </div>
         </div>
       )}

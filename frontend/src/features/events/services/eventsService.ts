@@ -244,32 +244,33 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
 export const eventsService = {
   async getEvents(
     filters?: EventFilter,
-    options: QueryOptions = {}
+    options: QueryOptions & { offset?: number; limit?: number } = {}
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    const offset = options.offset ?? 0
+    const limit = options.limit ?? 50
     const cacheKey = stableFilterKey(filters)
     const ttlMs = options.ttlMs ?? DEFAULT_LIST_TTL_MS
 
-    if (!options.force && eventsListCache && eventsListCacheKey === cacheKey && isFresh(eventsListCacheAt, ttlMs)) {
+    // Only cache the first page
+    if (offset === 0 && !options.force && eventsListCache && eventsListCacheKey === cacheKey && isFresh(eventsListCacheAt, ttlMs)) {
       return cloneValue(eventsListCache)
     }
 
-    if (!options.force && eventsListInFlight?.key === cacheKey) {
+    if (offset === 0 && !options.force && eventsListInFlight?.key === cacheKey) {
       return eventsListInFlight.promise.then(cloneValue)
     }
 
     const request = (async () => {
       try {
-        // Map filters to backend params if needed
-        const queryParams: Record<string, any> = {}
+        const queryParams: Record<string, any> = { limit, offset }
         if (filters?.feedType && filters.feedType !== 'upcoming') queryParams.type = filters.feedType
-        if (filters?.sport) queryParams.sport_key = filters.sport
+        if (filters?.sportKeys?.length) queryParams.sport_keys = filters.sportKeys.join(',')
+        else if (filters?.sport) queryParams.sport_key = filters.sport
         if (filters?.venueId) queryParams.venue_id = filters.venueId
+        if (filters?.startDate) queryParams.from = filters.startDate.toISOString()
+        if (filters?.endDate) queryParams.to = filters.endDate.toISOString()
 
         const response = await httpGet<any>('/sessions', { params: queryParams })
-        // Backend returns { success: true, data: { data: [...], ... } } or just { success: true, data: [...] } ?
-        // Based on typical pattern: response.data should have the list.
-        // Wait, look closely: httpGet returns `T`. If wrapper is { ok: true, data: ... }
-        // Then `response` is { ok: true, data: ... }.
 
         const sessions = Array.isArray(response)
           ? response
@@ -279,19 +280,23 @@ export const eventsService = {
               ? response.data.items
               : []
 
+        const hasMore = response.data?.page?.has_more ?? sessions.length === limit
+
         const events = sessions.map(mapSessionToEvent)
 
         const result = wrapSuccess({
           data: events,
           total: events.length,
-          page: 1,
-          pageSize: 50,
-          hasMore: false,
+          page: Math.floor(offset / limit) + 1,
+          pageSize: limit,
+          hasMore,
         })
 
-        eventsListCacheKey = cacheKey
-        eventsListCacheAt = Date.now()
-        eventsListCache = result
+        if (offset === 0) {
+          eventsListCacheKey = cacheKey
+          eventsListCacheAt = Date.now()
+          eventsListCache = result
+        }
 
         return cloneValue(result)
       } catch (err: any) {
@@ -300,10 +305,14 @@ export const eventsService = {
       }
     })()
 
-    eventsListInFlight = { key: cacheKey, promise: request }
-    return request.finally(() => {
-      if (eventsListInFlight?.key === cacheKey) eventsListInFlight = null
-    })
+    if (offset === 0) {
+      eventsListInFlight = { key: cacheKey, promise: request }
+      return request.finally(() => {
+        if (eventsListInFlight?.key === cacheKey) eventsListInFlight = null
+      })
+    }
+
+    return request
   },
 
   async getEventById(id: string, options: QueryOptions = {}): Promise<ApiResponse<PlayerEvent>> {
@@ -437,12 +446,14 @@ export const eventsService = {
   },
 
   async getMyEventsScoped(
-    params: { role?: 'all' | 'hosted' | 'joined'; time?: 'upcoming' | 'history' },
+    params: { role?: 'all' | 'hosted' | 'joined'; time?: 'upcoming' | 'history'; limit?: number; offset?: number },
     options?: QueryOptions
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
     const role = params.role ?? 'all'
     const time = params.time ?? 'upcoming'
-    const cacheKey = `${role}:${time}`
+    const limit = params.limit ?? 20
+    const offset = params.offset ?? 0
+    const cacheKey = `${role}:${time}:${limit}:${offset}`
     const force = options?.force ?? false
     const ttlMs = options?.ttlMs ?? DEFAULT_MY_EVENTS_TTL_MS
 
@@ -456,16 +467,17 @@ export const eventsService = {
 
     const request = (async () => {
       try {
-        const res = await httpGet<any>('/sessions/my', { params: { role, time } })
+        const res = await httpGet<any>('/sessions/my', { params: { role, time, limit, offset } })
         const items = res.data?.items ?? res.items ?? []
         const uniqueItems = Array.from(new Map(items.map((item: any) => [item.id, item])).values())
         const events = uniqueItems.map(mapSessionToEvent)
+        const hasMore = res.data?.page?.has_more ?? res.page?.has_more ?? events.length === limit
         const result = wrapSuccess({
           data: events,
           total: events.length,
-          page: 1,
-          pageSize: events.length,
-          hasMore: false,
+          page: Math.floor(offset / limit) + 1,
+          pageSize: limit,
+          hasMore,
         })
         myEventsScopedCache.set(cacheKey, { at: Date.now(), data: result })
         return cloneValue(result)

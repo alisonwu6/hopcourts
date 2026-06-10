@@ -120,7 +120,9 @@ async function handleDeleteAccount(req, res, next) {
 async function handleGetTeammates(req, res, next) {
   try {
     const userId = resolveUserId(req)
-    const data = await getTeammates(userId)
+    const limit = Math.min(Math.max(parseNumber(req.query.limit, 30), 1), 100)
+    const offset = Math.max(parseNumber(req.query.offset, 0), 0)
+    const data = await getTeammates(userId, { limit, offset })
     return ok(res, data)
   } catch (err) {
     next(err)
