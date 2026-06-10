@@ -1,4 +1,4 @@
-import { Search, Map as MapIcon, List as ListIcon, X } from 'lucide-react'
+import { Search, Map as MapIcon, List as ListIcon, X, Building2 } from 'lucide-react'
 import clsx from 'clsx'
 import { EventMap } from '@/features/events/components/EventMap'
 import { ApiVenue } from '../services/venuesService'
@@ -102,22 +102,37 @@ export function VenueListView({
         </div>
       ) : (
         <div className="mx-auto max-w-md px-4 pb-[100px] pt-24">
-          {/* Simple list view for venues */}
-          <div className="space-y-4">
-            {venues.map((v) => (
-              <VenueCard
-                key={v.id}
-                venue={v}
-                onClick={onVenueClick}
-              />
-            ))}
-            <div ref={sentinelRef} className="h-4" />
-            {loadingMore && (
-              <div className="flex justify-center py-4">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+          {venues.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+              <div className="p-2">
+                <Building2 className="h-8 w-8 text-slate-400" />
               </div>
-            )}
-          </div>
+              <h3 className="text-lg font-bold text-slate-900">
+                {searchQuery ? 'No venues found' : 'No venues yet'}
+              </h3>
+              <p className="mt-1 px-10 text-sm text-slate-500">
+                {searchQuery
+                  ? 'Try a different name or address.'
+                  : 'Venues in your area will appear here.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {venues.map((v) => (
+                <VenueCard
+                  key={v.id}
+                  venue={v}
+                  onClick={onVenueClick}
+                />
+              ))}
+              <div ref={sentinelRef} className="h-4" />
+              {loadingMore && (
+                <div className="flex justify-center py-4">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
