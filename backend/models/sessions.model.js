@@ -37,6 +37,7 @@ const BASE_FIELDS = [
 async function listUpcomingSessions({
   city,
   sportKey,
+  sportKeys,
   venueId,
   from,
   to,
@@ -64,10 +65,13 @@ async function listUpcomingSessions({
     params.push(to)
     conditions.push(`starts_at <= $${++idx}`)
   }
-  if (sportKey) {
-    params.push(sportKey)
-    conditions.push(`sport_key = $${++idx}`)
+
+  const resolvedSportKeys = sportKeys?.length ? sportKeys : sportKey ? [sportKey] : null
+  if (resolvedSportKeys) {
+    params.push(resolvedSportKeys)
+    conditions.push(`sport_key = ANY($${++idx})`)
   }
+
   if (city) {
     params.push(city)
     conditions.push(`address ILIKE $${++idx}`)
@@ -100,7 +104,7 @@ async function listUpcomingSessions({
   return rows
 }
 
-async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
+async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 200, offset = 0 } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
   
@@ -116,7 +120,9 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
   const conditions = [
     roleCondition,
     '(s.ends_at IS NULL OR s.ends_at >= $2)',
-    role === 'hosted' ? "(s.status = 'published' OR s.status = 'draft')" : "s.status = 'published'",
+    role === 'hosted'
+      ? "(s.status = 'published' OR s.status = 'draft' OR s.status = 'cancelled')"
+      : "(s.status = 'published' OR s.status = 'cancelled')",
   ]
 
   if (role === 'hosted') {
@@ -147,7 +153,9 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
     left join public.venue_profiles vp on v.id = vp.venue_id
     where ${conditions.join(' AND ')}
     order by s.starts_at asc
+    limit $${++idx} offset $${++idx}
   `
+  params.push(limit, offset)
   const { rows } = await query(sql, params)
   return rows
 }
@@ -324,6 +332,7 @@ async function updateSession(sessionId, patch = {}) {
     address: patch.address,
     lat: patch.lat,
     lng: patch.lng,
+    location_source: patch.locationSource,
     checkin_radius_m: patch.checkinRadiusM,
     checkin_open_mins_before: patch.checkinOpenMinsBefore,
     checkin_close_mins_after: patch.checkinCloseMinsAfter,

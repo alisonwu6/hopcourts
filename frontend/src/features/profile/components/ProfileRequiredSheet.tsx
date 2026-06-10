@@ -48,11 +48,9 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
           <Lock className="h-7 w-7" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900">Set up your profile first</h3>
+        <h3 className="text-xl font-bold text-slate-900">Set Up Your Profile</h3>
         <p className="mt-2 text-sm text-slate-500">
-          Before hosting or joining an event,
-          <br />
-          please complete your profile.
+          You'll need a completed profile to host or join sessions.
         </p>
         <button
           type="button"

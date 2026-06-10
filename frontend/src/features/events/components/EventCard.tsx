@@ -21,6 +21,7 @@ type EventCardProps = {
   cityLabel?: string
   disableVenueHostNavigation?: boolean
   showStatus?: boolean
+  showBookmark?: boolean
 }
 
 function getFlagEmoji(countryCode: string) {
@@ -36,6 +37,7 @@ export function EventCard({
   cityLabel: cityLabelProp,
   disableVenueHostNavigation = false,
   showStatus = false,
+  showBookmark = false,
 }: EventCardProps) {
   const navigate = useNavigate()
 
@@ -104,13 +106,19 @@ export function EventCard({
     <article
       {...interactionHandlers}
       className={clsx(
-        'relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)] transition-all active:scale-[0.98]',
+        'relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)]',
         isClickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500',
         className ?? 'mb-5'
       )}
     >
+      {showBookmark && (
+        <div className="absolute right-4 top-0 z-10">
+          <BookmarkButton eventId={event.id} className="px-2 pb-2 pt-0 text-blue-600" />
+        </div>
+      )}
+
       {/* 1. Host Header at top */}
-      <header className="flex items-center justify-between border-b border-slate-50 px-5 py-3.5">
+      <header className="flex items-stretch justify-between border-b border-slate-50 px-5 py-3.5">
         <div
           className={clsx('flex items-center gap-2.5', canNavigateToVenue && 'cursor-pointer')}
           onClick={(e) => {
@@ -152,9 +160,13 @@ export function EventCard({
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1">
-          <BookmarkButton eventId={event.id} />
+        <div className="flex flex-col items-end justify-end gap-1">
           {showStatus && event.status && <StatusBadge status={event.status} />}
+          {event.maxAttendees > 0 && remaining === 0 && event.status !== 'cancelled' && (
+            <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-orange-600">
+              Full
+            </span>
+          )}
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
               <ShieldCheck
@@ -280,24 +292,11 @@ export function EventCard({
   )
 }
 
-const STATUS_STYLES: Record<NonNullable<PlayerEvent['status']>, { label: string; className: string }> = {
-  draft: { label: 'Draft', className: 'bg-amber-50 border-amber-200 text-amber-700' },
-  published: { label: 'Live', className: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
-  cancelled: { label: 'Cancelled', className: 'bg-red-50 border-red-200 text-red-600' },
-  completed: { label: 'Completed', className: 'bg-slate-100 border-slate-200 text-slate-600' },
-}
-
 function StatusBadge({ status }: { status: NonNullable<PlayerEvent['status']> }) {
-  const style = STATUS_STYLES[status]
-  if (!style) return null
+  if (status !== 'cancelled') return null
   return (
-    <span
-      className={clsx(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest',
-        style.className
-      )}
-    >
-      {style.label}
+    <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-600">
+      Cancelled
     </span>
   )
 }

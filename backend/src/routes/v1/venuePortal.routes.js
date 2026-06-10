@@ -208,8 +208,7 @@ router.post('/venues/:id/sessions', async (req, res, next) => {
     res.json({ success: true, data: session })
 
   } catch (err) {
-    console.error('Create Session Error:', err)
-    res.status(500).json({ success: false, error: err.message, stack: err.stack, details: err })
+    next(err)
   }
 })
 

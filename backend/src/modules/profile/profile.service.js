@@ -9,13 +9,7 @@ const { Errors } = require('../../lib/errors')
 const supabase = require('../../utils/supabase')
 
 function resolveUserId(req) {
-  return (
-    req.userId ||
-    req.authUser?.id ||
-    req.user?.id ||
-    req.headers['x-user-id'] ||
-    req.headers['x-userid']
-  )
+  return req.userId || req.authUser?.id || req.user?.id
 }
 
 async function getProfile(userId) {
@@ -68,11 +62,12 @@ async function getProfileSessionsByUsername(username, { role = 'hosted', time = 
       offset,
     })
   } else {
-    const upcomingItems = await sessionsModel.listMyUpcomingSessions({
+    items = await sessionsModel.listMyUpcomingSessions({
       userId: user.id,
       role,
+      limit,
+      offset,
     })
-    items = upcomingItems.slice(offset, offset + limit)
   }
 
   return {
@@ -357,9 +352,10 @@ async function deleteAccount(userId, { force = false } = {}) {
   return { success: true }
 }
 
-async function getTeammates(userId) {
+async function getTeammates(userId, { limit = 30, offset = 0 } = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
-  return await participantsModel.listTeammates(userId)
+  const rows = await participantsModel.listTeammates(userId, { limit, offset })
+  return { items: rows, has_more: rows.length === limit }
 }
 
 module.exports = {

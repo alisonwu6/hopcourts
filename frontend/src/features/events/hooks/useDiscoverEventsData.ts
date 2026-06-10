@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { SetURLSearchParams } from 'react-router-dom'
-import { format, isSameDay, startOfDay } from 'date-fns'
-import type { PlayerEvent, User } from '@/types'
+import { format, startOfDay } from 'date-fns'
+import type { EventFilter, PlayerEvent, User } from '@/types'
 import type { Sport } from '@/types/dictionary'
 import { eventsService } from '@/features/events/services/eventsService'
 
@@ -31,12 +31,6 @@ const EMPTY_FEED_STATE: Record<FeedType, FeedState> = {
   relations: { items: [], isLoading: false },
 }
 
-function dateTimeEndOfDay(date: Date) {
-  const value = new Date(date)
-  value.setHours(23, 59, 59, 999)
-  return value
-}
-
 export function useDiscoverEventsData({
   events,
   sportsCatalog,
@@ -46,7 +40,7 @@ export function useDiscoverEventsData({
   searchParams,
   setSearchParams,
 }: DiscoverEventsDataInput) {
-  const today = startOfDay(new Date())
+  const today = useMemo(() => startOfDay(new Date()), [])
   const [feedByType, setFeedByType] = useState<Record<FeedType, FeedState>>(EMPTY_FEED_STATE)
   const feedRequestSeq = useRef(0)
   const showMap = searchParams.get('view') === 'map'
@@ -152,26 +146,18 @@ export function useDiscoverEventsData({
     [events]
   )
 
-  const filteredEvents = useMemo(() => {
-    let filtered = events.filter((event) => new Date(event.startTime) >= today)
+  // Server handles sport + date filtering; events are already filtered
+  const filteredEvents = events
 
-    if (dateRange.start) {
-      if (dateRange.end) {
-        const start = startOfDay(dateRange.start)
-        const end = dateTimeEndOfDay(dateRange.end)
-        filtered = events.filter((event) => {
-          const time = new Date(event.startTime)
-          return time >= start && time <= end
-        })
-      } else {
-        filtered = events.filter((event) => isSameDay(new Date(event.startTime), dateRange.start!))
-      }
+  const activeFilter = useMemo<EventFilter>(() => {
+    const filter: EventFilter = {}
+    if (dateRange.start) filter.startDate = dateRange.start
+    if (dateRange.end) filter.endDate = dateRange.end
+    if (!selectedSports.includes('all') && selectedSports.length > 0) {
+      filter.sportKeys = selectedSports
     }
-
-    if (selectedSports.includes('all')) return filtered
-
-    return filtered.filter((event) => selectedSports.some((sport) => event.sport.toLowerCase() === sport.toLowerCase()))
-  }, [events, selectedSports, dateRange, today])
+    return filter
+  }, [dateRange, selectedSports])
 
   const suggestedEvents = useMemo(() => {
     if (!isAuthenticated || !user) return []
@@ -181,14 +167,22 @@ export function useDiscoverEventsData({
     if (suggestionType === 'interests') {
       const userSports = (user.sports || []).map((sport) => sport.toLowerCase())
       localMatched = events.filter(
-        (event) => userSports.includes(event.sport.toLowerCase()) && new Date(event.startTime) >= today
+        (event) =>
+          event.host.id !== user.id &&
+          userSports.includes(event.sport.toLowerCase()) &&
+          new Date(event.startTime) >= today
       )
     } else {
       const following = user.following || []
-      localMatched = events.filter((event) => following.includes(event.host.id) && new Date(event.startTime) >= today)
+      localMatched = events.filter(
+        (event) =>
+          event.host.id !== user.id && following.includes(event.host.id) && new Date(event.startTime) >= today
+      )
     }
 
-    const backendMatched = feedByType[feedType].items.filter((event) => new Date(event.startTime) >= today)
+    const backendMatched = feedByType[feedType].items.filter(
+      (event) => event.host.id !== user.id && new Date(event.startTime) >= today
+    )
     return (backendMatched.length > 0 ? backendMatched : localMatched).slice(0, 6)
   }, [events, feedByType, isAuthenticated, suggestionType, today, user])
 
@@ -288,6 +282,7 @@ export function useDiscoverEventsData({
     dateLabel,
     sportLabel,
     hasFilter,
+    activeFilter,
     toggleMap,
     clearFilters,
     selectMapEvent,

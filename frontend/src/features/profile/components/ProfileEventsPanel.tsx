@@ -1,11 +1,26 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  addMonths,
+  addWeeks,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  getDay,
+  isSameDay,
+  isSameMonth,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+  subWeeks,
+} from 'date-fns'
 import type { PlayerEvent } from '@/types'
 import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
 import { eventsService } from '@/features/events/services/eventsService'
 import { EventCard } from '@/features/events/components/EventCard'
-import { Bike, BicepsFlexed } from 'lucide-react'
+import { Bike, BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
 
 type TabKey = 'upcoming' | 'history'
 type PanelMode = 'all' | 'hosted' | 'joined'
@@ -76,7 +91,7 @@ function EventGroupList({
                   <EventCard
                     event={event}
                     sportLabel={sportLabel}
-                    showStatus={mode === 'hosted'}
+                    showStatus={mode === 'hosted' || event.status === 'cancelled'}
                     onViewDetails={(id) => {
                       if (mode === 'hosted' && event.status === 'draft') {
                         navigate(`/create-event?id=${id}`)
@@ -115,11 +130,218 @@ function EmptyState({
         <button
           type="button"
           onClick={onExplore}
-          className="mt-5 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all active:scale-95"
+          className="mt-5 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition"
         >
           Explore Events
         </button>
       )}
+    </div>
+  )
+}
+
+const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
+type CalendarSpan = 'week' | 'month'
+
+function CalendarView({
+  events,
+  sportsCatalog,
+  mode,
+  onExplore,
+}: {
+  events: PlayerEvent[]
+  sportsCatalog: SportsItem[]
+  mode: PanelMode
+  onExplore?: () => void
+}) {
+  const navigate = useNavigate()
+  const today = useMemo(() => new Date(), [])
+  const [span, setSpan] = useState<CalendarSpan>('week')
+  const [cursor, setCursor] = useState<Date>(() => today)
+  const [selected, setSelected] = useState<Date>(() => today)
+
+  // Derived grid days based on span
+  const { days, prefixBlanks, navLabel } = useMemo(() => {
+    if (span === 'week') {
+      const weekStart = startOfWeek(cursor)
+      const weekEnd = endOfWeek(cursor)
+      const weekLabel =
+        isSameMonth(weekStart, weekEnd)
+          ? `${format(weekStart, 'd')} – ${format(weekEnd, 'd MMM yyyy')}`
+          : `${format(weekStart, 'd MMM')} – ${format(weekEnd, 'd MMM yyyy')}`
+      return { days: eachDayOfInterval({ start: weekStart, end: weekEnd }), prefixBlanks: 0, navLabel: weekLabel }
+    }
+    const monthStart = startOfMonth(cursor)
+    const monthEnd = endOfMonth(cursor)
+    return {
+      days: eachDayOfInterval({ start: monthStart, end: monthEnd }),
+      prefixBlanks: getDay(monthStart),
+      navLabel: format(cursor, 'MMMM yyyy'),
+    }
+  }, [span, cursor])
+
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, PlayerEvent[]>()
+    events.forEach((e) => {
+      const key = format(new Date(e.startTime), 'yyyy-MM-dd')
+      map.set(key, [...(map.get(key) ?? []), e])
+    })
+    return map
+  }, [events])
+
+  const selectedDayEvents = useMemo(
+    () => eventsByDay.get(format(selected, 'yyyy-MM-dd')) ?? [],
+    [selected, eventsByDay]
+  )
+  const selectedIsToday = isSameDay(selected, today)
+
+  function goBack() {
+    setCursor((c) => span === 'week' ? subWeeks(c, 1) : subMonths(c, 1))
+  }
+  function goForward() {
+    setCursor((c) => span === 'week' ? addWeeks(c, 1) : addMonths(c, 1))
+  }
+  function switchSpan(next: CalendarSpan) {
+    setSpan(next)
+    setCursor(selected)
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Navigation bar */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={goBack}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 active:bg-slate-100"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <span className="flex-1 text-center text-sm font-bold text-slate-800">{navLabel}</span>
+        <button
+          type="button"
+          onClick={goForward}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 active:bg-slate-100"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+
+        {/* Week / Month pill */}
+        <div className="flex shrink-0 rounded-full bg-slate-100 p-0.5 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => switchSpan('week')}
+            className={`rounded-full px-3 py-1 transition ${span === 'week' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+          >
+            W
+          </button>
+          <button
+            type="button"
+            onClick={() => switchSpan('month')}
+            className={`rounded-full px-3 py-1 transition ${span === 'month' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+          >
+            M
+          </button>
+        </div>
+      </div>
+
+      {/* Day-of-week header */}
+      <div className="grid grid-cols-7 text-center">
+        {DAY_LABELS.map((d) => (
+          <span key={d} className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{d}</span>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-y-1 text-center">
+        {Array.from({ length: prefixBlanks }).map((_, i) => (
+          <span key={`blank-${i}`} />
+        ))}
+        {days.map((day) => {
+          const key = format(day, 'yyyy-MM-dd')
+          const dayEvents = eventsByDay.get(key) ?? []
+          const hasEvents = dayEvents.length > 0
+          const isSelected = isSameDay(day, selected)
+          const isToday = isSameDay(day, today)
+
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSelected(day)}
+              className="flex flex-col items-center gap-0.5 py-1"
+            >
+              <span
+                className={[
+                  'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors',
+                  isSelected
+                    ? 'bg-slate-900 text-white'
+                    : isToday
+                      ? 'bg-slate-100 text-slate-900'
+                      : isSameMonth(day, cursor)
+                        ? 'text-slate-700'
+                        : 'text-slate-300',
+                ].join(' ')}
+              >
+                {format(day, 'd')}
+              </span>
+              {hasEvents && (
+                <span className="flex gap-0.5">
+                  {dayEvents.slice(0, 3).map((e) => (
+                    <span
+                      key={e.id}
+                      className={`h-1 w-1 rounded-full ${isSelected ? 'bg-slate-900' : 'bg-indigo-400'}`}
+                    />
+                  ))}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Selected day events — always shown */}
+      <div className="space-y-3 pt-1">
+        <p className="pl-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+          {selectedIsToday ? 'Today · ' : ''}{format(selected, 'EEE, d MMM')}
+        </p>
+        {selectedDayEvents.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p className="text-sm font-medium text-slate-500">
+              {selectedIsToday ? 'No events for today' : 'No events this day'}
+            </p>
+            {selectedIsToday && onExplore && (
+              <button
+                type="button"
+                onClick={onExplore}
+                className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
+              >
+                Explore events
+              </button>
+            )}
+          </div>
+        ) : (
+          selectedDayEvents.map((event) => {
+            const sportLabel =
+              sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label ?? event.sport
+            return (
+              <EventCard
+                key={event.id}
+                event={event}
+                sportLabel={sportLabel}
+                showStatus={mode === 'hosted' || event.status === 'cancelled'}
+                onViewDetails={(id) => {
+                  if (mode === 'hosted' && event.status === 'draft') {
+                    navigate(`/create-event?id=${id}`)
+                  } else {
+                    navigate(`/event/${id}`)
+                  }
+                }}
+              />
+            )
+          })
+        )}
+      </div>
     </div>
   )
 }
@@ -192,8 +414,22 @@ export function ProfileEventsPanel({
     }
   }, [isAuthenticated, mode, showTimeTabs, tab])
 
-  const upcomingEvents = useMemo(() => events.filter((event) => new Date(event.endTime) >= new Date()), [events])
-  const historyEvents = useMemo(() => events.filter((event) => new Date(event.endTime) < new Date()), [events])
+  const upcomingEvents = useMemo(
+    () =>
+      events.filter((event) => {
+        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+        return end >= new Date()
+      }),
+    [events]
+  )
+  const historyEvents = useMemo(
+    () =>
+      events.filter((event) => {
+        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+        return end < new Date()
+      }),
+    [events]
+  )
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
   const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents
@@ -249,18 +485,11 @@ export function ProfileEventsPanel({
         {isLoading ? (
           <div className="py-10 text-center text-slate-500">Loading your events...</div>
         ) : (
-          <EventGroupList
-            groups={groupByDate(activeEvents)}
-            mode={mode === 'all' ? 'hosted' : mode}
+          <CalendarView
+            events={activeEvents}
             sportsCatalog={sportsCatalog}
-            emptyState={
-              <EmptyState
-                icon={empty.icon}
-                title={empty.title}
-                description={empty.description}
-                onExplore={onExplore}
-              />
-            }
+            mode={mode === 'all' ? 'hosted' : mode}
+            onExplore={onExplore}
           />
         )}
       </div>

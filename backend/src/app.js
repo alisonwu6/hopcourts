@@ -1,6 +1,8 @@
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
+const helmet = require('helmet')
+const rateLimit = require('express-rate-limit')
 const swaggerUi = require('swagger-ui-express')
 const fs = require('fs')
 const path = require('path')
@@ -11,8 +13,32 @@ const { env } = require('./config/env')
 const { v1Router } = require('./routes/v1')
 const { errorHandler } = require('./middleware/errorHandler')
 
+const isProduction = process.env.NODE_ENV === 'production'
+
+if (isProduction && (!env.corsOrigin || env.corsOrigin === '*')) {
+  throw new Error('CORS_ORIGIN must be set to a specific origin in production')
+}
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests, please try again later.' } },
+})
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests, please try again later.' } },
+})
+
 function createApp() {
   const app = express()
+
+  app.use(helmet())
 
   // Add version header
   app.use((req, res, next) => {
@@ -20,9 +46,14 @@ function createApp() {
     next()
   })
 
-  app.use(cors({ origin: env.corsOrigin === '*' ? true : env.corsOrigin }))
+  const corsOrigin = env.corsOrigin === '*' ? (isProduction ? false : true) : env.corsOrigin
+  app.use(cors({ origin: corsOrigin }))
   app.use(express.json({ limit: '1mb' }))
-  app.use(morgan('dev'))
+  app.use(isProduction ? morgan('combined') : morgan('dev'))
+
+  app.use(env.apiBasePath, apiLimiter)
+  app.use(`${env.apiBasePath}/sessions/:id/join`, authLimiter)
+  app.use(`${env.apiBasePath}/sessions/:id/leave`, authLimiter)
 
   const openapiPath = path.join(process.cwd(), 'docs/openapi.yaml')
   if (fs.existsSync(openapiPath)) {

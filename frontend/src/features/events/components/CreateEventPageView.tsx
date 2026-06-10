@@ -1,8 +1,8 @@
 import clsx from 'clsx'
 import type { ChangeEvent, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
 import { useMemo, useId, useRef } from 'react'
-import { MapPin, ChevronRight, ImagePlus, X } from 'lucide-react'
-import { Button } from '@/components'
+import { MapPin, ChevronRight, ImagePlus, X, Ban, Trash2 } from 'lucide-react'
+import { Button, AlertDialog } from '@/components'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { BottomSheet } from '@/components/BottomSheet'
@@ -72,6 +72,18 @@ export function CreateEventPageView({
   handleRemoveImage,
   setFieldRef,
   confirmLocation,
+  hostGender,
+  hasOtherParticipants,
+  showDeleteConfirm,
+  setShowDeleteConfirm,
+  showCancelConfirm,
+  setShowCancelConfirm,
+  isDeletingEvent,
+  isCancellingEvent,
+  handleDeleteEvent,
+  handleCancelEvent,
+  confirmDeleteEvent,
+  confirmCancelEvent,
 }: CreateEventPageViewProps) {
   return (
     <>
@@ -99,10 +111,36 @@ export function CreateEventPageView({
             </button>
           }
           rightContent={
-            <span
-              className="h-10 w-10"
-              aria-hidden="true"
-            />
+            editId ? (
+              <div className="flex items-center gap-1">
+                {hasOtherParticipants ? (
+                  <button
+                    type="button"
+                    onClick={handleCancelEvent}
+                    disabled={isCancellingEvent}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500 transition active:bg-red-100 disabled:opacity-50"
+                    aria-label="Cancel event"
+                  >
+                    <Ban className="h-5 w-5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDeleteEvent}
+                    disabled={isDeletingEvent}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition active:bg-slate-200 disabled:opacity-50"
+                    aria-label="Delete event"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            ) : (
+              <span
+                className="h-10 w-10"
+                aria-hidden="true"
+              />
+            )
           }
         />
         {isDraftLoading && <PageLoading />}
@@ -225,6 +263,7 @@ export function CreateEventPageView({
               <GenderSelector
                 selected={form.gender}
                 onSelect={handleGenderSelect}
+                hostGender={hostGender}
               />
             </FieldSection>
 
@@ -473,6 +512,33 @@ export function CreateEventPageView({
           isPublicPublishedEdit={!!editId && editingEventStatus === 'published' && editingEventVisibility === 'public'}
         />
       </div>
+      <AlertDialog
+        open={showDeleteConfirm}
+        onClose={() => {
+          if (!isDeletingEvent) setShowDeleteConfirm(false)
+        }}
+        title="Delete this event?"
+        description="This action is permanent and cannot be undone."
+        type="error"
+        actionLabel={isDeletingEvent ? 'Deleting...' : 'Delete event'}
+        cancelLabel="Cancel"
+        actionLeft
+        onAction={confirmDeleteEvent}
+      />
+
+      <AlertDialog
+        open={showCancelConfirm}
+        onClose={() => {
+          if (!isCancellingEvent) setShowCancelConfirm(false)
+        }}
+        title="Cancel this event?"
+        description="All participants will be notified. The event will remain visible as cancelled."
+        type="warning"
+        actionLabel={isCancellingEvent ? 'Cancelling...' : 'Cancel event'}
+        cancelLabel="Keep event"
+        onAction={confirmCancelEvent}
+      />
+
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
@@ -612,35 +678,36 @@ function ActionBar({
 }) {
   const isSubmitting = submittingStatus !== null
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md bg-white/95 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-4 shadow-[0_-10px_30px_rgba(15,41,77,0.1)] backdrop-blur">
-      <div className="flex w-full items-center gap-3 px-4">
-        {showDraftButton && (
+    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+      <div className={clsx('flex w-full gap-3 px-4', showDraftButton ? 'grid grid-cols-2' : '')}>
+          {showDraftButton && (
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={onDraft}
+              className="h-12 w-full rounded-full border-slate-200 text-base font-semibold text-slate-600 shadow-lg transition"
+              disabled={!canSubmit || isSubmitting}
+            >
+              {submittingStatus === 'draft' ? 'Saving...' : 'Save Draft'}
+            </Button>
+          )}
           <Button
-            variant="secondary"
-            size="sm"
             type="button"
-            onClick={onDraft}
-            className="flex-1 rounded-full border-slate-200 text-slate-600"
-            disabled={!canSubmit || isSubmitting}
+            onClick={onPublish}
+            disabled={isSubmitting}
+            className={clsx(
+              'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+              !canSubmit && 'opacity-50'
+            )}
           >
-            {submittingStatus === 'draft' ? 'Saving...' : 'Save Draft'}
+            {submittingStatus === 'published'
+              ? isPublicPublishedEdit
+                ? 'Updating...'
+                : 'Publishing...'
+              : isPublicPublishedEdit
+                ? 'Update & Publish'
+                : 'Publish'}
           </Button>
-        )}
-        <Button
-          size="sm"
-          type="button"
-          onClick={onPublish}
-          disabled={isSubmitting}
-          className={clsx(showDraftButton ? 'flex-1' : 'w-full', 'rounded-full px-6', !canSubmit && 'opacity-50')}
-        >
-          {submittingStatus === 'published'
-            ? isPublicPublishedEdit
-              ? 'Updating...'
-              : 'Publishing...'
-            : isPublicPublishedEdit
-              ? 'Update & Publish'
-              : 'Publish'}
-        </Button>
       </div>
     </div>
   )
@@ -690,14 +757,16 @@ function SkillSelector({ selected, onSelect }: { selected: SkillLevelKey; onSele
 function GenderSelector({
   selected,
   onSelect,
+  hostGender,
 }: {
   selected: 'mixed' | 'female' | 'male'
   onSelect: (value: 'mixed' | 'female' | 'male') => void
+  hostGender?: string | null
 }) {
-  const options: { id: 'mixed' | 'female' | 'male'; label: string }[] = [
-    { id: 'mixed', label: 'Mixed' },
-    { id: 'female', label: 'Women Only' },
-    { id: 'male', label: 'Men Only' },
+  const options: { id: 'mixed' | 'female' | 'male'; label: string; disabled: boolean }[] = [
+    { id: 'mixed', label: 'Mixed', disabled: false },
+    { id: 'female', label: 'Women Only', disabled: hostGender === 'male' },
+    { id: 'male', label: 'Men Only', disabled: hostGender === 'female' },
   ]
 
   return (
@@ -710,12 +779,15 @@ function GenderSelector({
             <button
               key={opt.id}
               type="button"
-              onClick={() => onSelect(opt.id)}
+              onClick={() => !opt.disabled && onSelect(opt.id)}
+              disabled={opt.disabled}
               className={clsx(
                 'rounded-full border px-4 py-1.5 text-sm font-medium transition',
-                isActive
-                  ? 'border-blue-500 bg-blue-600 text-white shadow-[0_6px_16px_rgba(30,64,175,0.25)]'
-                  : 'border-slate-200 bg-white text-slate-600'
+                opt.disabled
+                  ? 'cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300'
+                  : isActive
+                    ? 'border-blue-500 bg-blue-600 text-white shadow-[0_6px_16px_rgba(30,64,175,0.25)]'
+                    : 'border-slate-200 bg-white text-slate-600'
               )}
             >
               {opt.label}

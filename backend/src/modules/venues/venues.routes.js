@@ -15,7 +15,7 @@ router.get('/', async (req, res, next) => {
       radiusKm: req.query.radiusKm ? parseFloat(req.query.radiusKm) : undefined,
     }
     const venues = await venuesService.listVenues(filters)
-    res.json({ success: true, data: venues })
+    res.json({ success: true, data: venues, has_more: venues.length === filters.limit })
   } catch (err) {
     next(err)
   }

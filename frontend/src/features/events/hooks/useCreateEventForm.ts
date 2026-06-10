@@ -79,6 +79,7 @@ export function useCreateEventForm() {
   const editId = searchParams.get('id')
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const hostGender = useAuthStore((state) => state.user?.gender)
   const { items: sportsCatalog } = useSports('en')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
@@ -100,6 +101,11 @@ export function useCreateEventForm() {
   const [costMode, setCostMode] = useState<'total' | 'person'>('total')
   const [isDraftLoading, setIsDraftLoading] = useState(false)
   const [editingEventStatus, setEditingEventStatus] = useState<'draft' | 'published' | null>(null)
+  const [hasOtherParticipants, setHasOtherParticipants] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [isDeletingEvent, setIsDeletingEvent] = useState(false)
+  const [isCancellingEvent, setIsCancellingEvent] = useState(false)
   const [editingEventVisibility, setEditingEventVisibility] = useState<'public' | 'private' | null>(null)
   const [highlightField, setHighlightField] = useState<RequiredFieldKey | null>(null)
   const [fieldHint, setFieldHint] = useState<{
@@ -154,6 +160,8 @@ export function useCreateEventForm() {
           const draft = res.data
           setEditingEventStatus((draft.status as 'draft' | 'published' | undefined) ?? null)
           setEditingEventVisibility((draft.visibility as 'public' | 'private' | undefined) ?? null)
+          const nonHostCount = (draft.participants ?? []).filter((p) => p.id !== draft.host?.id).length
+          setHasOtherParticipants(nonHostCount > 0)
           const toLocalISO = (d: Date | string) => {
             if (!d) return ''
             const dateObj = typeof d === 'string' ? new Date(d) : d
@@ -659,6 +667,38 @@ export function useCreateEventForm() {
       fieldRefs.current[field] = element
     }
 
+  const handleDeleteEvent = () => setShowDeleteConfirm(true)
+
+  const confirmDeleteEvent = async () => {
+    if (!editId) return
+    setIsDeletingEvent(true)
+    try {
+      const res = await eventsService.deleteEvent(editId)
+      if (res.success) navigate('/profile', { replace: true })
+    } catch (err) {
+      console.error('Delete failed', err)
+    } finally {
+      setIsDeletingEvent(false)
+      setShowDeleteConfirm(false)
+    }
+  }
+
+  const handleCancelEvent = () => setShowCancelConfirm(true)
+
+  const confirmCancelEvent = async () => {
+    if (!editId) return
+    setIsCancellingEvent(true)
+    try {
+      const res = await eventsService.updateEvent(editId, { status: 'cancelled' } as any)
+      if (res.success) navigate(`/event/${editId}`, { replace: true })
+    } catch (err) {
+      console.error('Cancel failed', err)
+    } finally {
+      setIsCancellingEvent(false)
+      setShowCancelConfirm(false)
+    }
+  }
+
   return {
     form,
     setForm,
@@ -687,6 +727,17 @@ export function useCreateEventForm() {
     locationConfirming,
     isDraftLoading,
     editingEventStatus,
+    hasOtherParticipants,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    showCancelConfirm,
+    setShowCancelConfirm,
+    isDeletingEvent,
+    isCancellingEvent,
+    handleDeleteEvent,
+    handleCancelEvent,
+    confirmDeleteEvent,
+    confirmCancelEvent,
     editingEventVisibility,
     highlightField,
     fieldHint,
@@ -710,5 +761,6 @@ export function useCreateEventForm() {
     handleRemoveImage,
     setFieldRef,
     confirmLocation,
+    hostGender,
   }
 }

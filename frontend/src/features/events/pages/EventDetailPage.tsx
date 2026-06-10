@@ -14,9 +14,6 @@ export function EventDetailPage() {
     setIsFavorite,
     showLoginPrompt,
     setShowLoginPrompt,
-    showDeleteConfirm,
-    setShowDeleteConfirm,
-    isDeleting,
     isJoinSubmitting,
     isCheckingIn,
     showProfileRequired,
@@ -33,7 +30,6 @@ export function EventDetailPage() {
     handleJoinClick,
     handleCheckIn,
     handleOnTheWay,
-    handleDelete,
     clearPostLoginRedirect,
   } = useEventDetailLogic()
 
@@ -47,8 +43,6 @@ export function EventDetailPage() {
       currentUserId={currentUserId}
       isFavorite={isFavorite}
       showLoginPrompt={showLoginPrompt}
-      showDeleteConfirm={showDeleteConfirm}
-      isDeleting={isDeleting}
       isJoinSubmitting={isJoinSubmitting}
       isCheckingIn={isCheckingIn}
       hasSignaledOnTheWay={effectiveOnTheWay}
@@ -61,12 +55,9 @@ export function EventDetailPage() {
       onBack={handleBack}
       onShare={handleShare}
       onToggleFavorite={() => setIsFavorite((previous) => !previous)}
-      onOpenDeleteConfirm={() => setShowDeleteConfirm(true)}
-      onCloseDeleteConfirm={() => setShowDeleteConfirm(false)}
       onEdit={(eventId) => navigate(`/create-event?id=${eventId}`)}
       onJoin={handleJoinClick}
       onCheckIn={handleCheckIn}
-      onDelete={handleDelete}
       onCloseLoginPrompt={() => {
         setShowLoginPrompt(false)
         clearPostLoginRedirect()
@@ -75,7 +66,7 @@ export function EventDetailPage() {
       onCloseAlert={() => setAlertDialog((previous) => ({ ...previous, open: false }))}
       onCloseProfileRequired={() => setShowProfileRequired(false)}
       onNavigateEvents={() => navigate('/events')}
-      onNavigateMate={(username) => navigate(`/mate/${username}`)}
+      onNavigateMate={(username) => navigate(`/mate/${username}`, { state: { from: 'app' } })}
       onNavigateVenue={(venueId) => navigate(`/venues/${venueId}`)}
     />
   )

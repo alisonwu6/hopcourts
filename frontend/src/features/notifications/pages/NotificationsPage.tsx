@@ -1,29 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { Clock, CheckCircle2, UserPlus, UserMinus, AlertCircle, Bell, MessageCircle } from 'lucide-react'
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { notificationsService, NotificationItem } from '../services/notificationsService'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+
+const PAGE_SIZE = 20
 
 export function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+  const [offset, setOffset] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetchNotifications()
-    // Mark all as read when opening page? Or provide button?
-    // User spec says: "markAllRead(id)" on click item. "markAllRead" separate action.
-    // For v1, let's just fetch.
+    void fetchNotifications()
   }, [])
 
   const fetchNotifications = async () => {
     try {
       setLoading(true)
-      const res = await notificationsService.listNotifications({ limit: 50 })
+      const res = await notificationsService.listNotifications({ limit: PAGE_SIZE, offset: 0 })
       if (res.ok) {
         setNotifications(res.data.items)
+        setHasMore(res.data.items.length === PAGE_SIZE)
+        setOffset(res.data.items.length)
       }
     } catch (err) {
       console.error(err)
@@ -31,6 +36,25 @@ export function NotificationsPage() {
       setLoading(false)
     }
   }
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore) return
+    setLoadingMore(true)
+    try {
+      const res = await notificationsService.listNotifications({ limit: PAGE_SIZE, offset })
+      if (res.ok) {
+        setNotifications((prev) => [...prev, ...res.data.items])
+        setHasMore(res.data.items.length === PAGE_SIZE)
+        setOffset((prev) => prev + res.data.items.length)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [offset, loadingMore])
+
+  const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loadingMore)
 
   const handleClick = (n: NotificationItem) => {
     if (!n.is_read) {
@@ -137,9 +161,16 @@ export function NotificationsPage() {
               </button>
             ))}
 
-            <div className="px-4 py-8 text-center">
-              <p className="text-xs text-slate-400">Only notifications from the last 30 days are shown</p>
-            </div>
+            <div ref={sentinelRef} className="h-4" />
+            {loadingMore ? (
+              <div className="flex justify-center py-4">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+              </div>
+            ) : !hasMore ? (
+              <div className="px-4 py-8 text-center">
+                <p className="text-xs text-slate-400">Only notifications from the last 30 days are shown</p>
+              </div>
+            ) : null}
           </>
         )}
       </div>

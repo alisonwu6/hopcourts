@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { User } from '@/types'
 import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/services/authService'
 import { sessionService } from '@/services/sessionService'
+import { useSavedEventsStore } from './savedEvents.store'
+
+const hydrateBookmarks = () => void useSavedEventsStore.getState().fetchBookmarks()
 
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
 import { supabase } from '@/lib/supabase'
@@ -78,6 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         isLoading: false,
       })
+      hydrateBookmarks()
     } catch (error: any) {
       set({
         error: error?.message ?? 'Login failed',
@@ -112,6 +116,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         isLoading: false,
       })
+      hydrateBookmarks()
     } catch (error: any) {
       set({
         error: error?.message ?? 'Signup failed',
@@ -132,6 +137,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (!hadSession) {
       persistToken(null)
       persistUserId(null)
+      useSavedEventsStore.getState().clearSavedEvents()
       set({
         user: null,
         token: null,
@@ -151,6 +157,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } finally {
       persistToken(null)
       persistUserId(null)
+      useSavedEventsStore.getState().clearSavedEvents()
       set({
         user: null,
         token: null,
@@ -218,6 +225,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         isAuthenticated: true,
         isLoading: false,
       })
+      hydrateBookmarks()
     } catch (err: any) {
       set({
         error: err?.message ?? 'Unable to load login status',

@@ -136,13 +136,15 @@ export const venuesService = {
 
       const rows: any[] = Array.isArray(response?.data) ? response.data : []
       const items: ApiVenue[] = rows.map(normalizeVenue)
+      const limit = filter.limit ?? 50
+      const hasMore = response?.has_more ?? items.length === limit
 
       return wrapSuccess({
         data: items,
         total: items.length,
-        page: filter.offset ? Math.floor(filter.offset / (filter.limit || 50)) + 1 : 1,
-        pageSize: filter.limit || items.length,
-        hasMore: false,
+        page: filter.offset ? Math.floor(filter.offset / limit) + 1 : 1,
+        pageSize: limit,
+        hasMore,
       })
     } catch (err: any) {
       return {

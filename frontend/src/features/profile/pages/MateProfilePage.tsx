@@ -4,7 +4,7 @@ import { ArrowLeft, Frown } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
-import { EventCard } from '@/features/events/components/EventCard'
+import { EventsViewPanel } from '@/features/events/components/EventsViewPanel'
 import { eventsService } from '@/features/events/services/eventsService'
 import type { PlayerEvent } from '@/types'
 
@@ -15,7 +15,7 @@ import { useVibeUtils, useSports, useCities } from '@/features/dictionaries/hook
 export function MateProfilePage() {
   const navigate = useNavigate()
   const { username } = useParams<{ username: string }>()
-  const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps> } }
+  const { state } = useLocation() as { state?: { mate?: Partial<MateCardProps>; from?: string } }
   const mate = state?.mate
   const { items: sportsDict } = useSports('en')
   const { vibeKeyToUnion, labelForVibe } = useVibeUtils('en')
@@ -215,10 +215,7 @@ export function MateProfilePage() {
             <button
               type="button"
               aria-label="Go back"
-              onClick={() => {
-                const isFromApp = document.referrer === '' || document.referrer.startsWith(window.location.origin)
-                isFromApp ? navigate(-1) : navigate('/explore')
-              }}
+              onClick={() => state?.from === 'app' ? navigate(-1) : navigate('/events')}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -260,21 +257,12 @@ export function MateProfilePage() {
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
                     Loading...
                   </div>
-                ) : hostedUpcomingEvents.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
-                    Nothing coming up.
-                  </div>
                 ) : (
-                  <div className="space-y-4">
-                    {hostedUpcomingEvents.map((event) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        sportLabel={labelForSport(event.sport)}
-                        onViewDetails={(id) => navigate(`/event/${id}`)}
-                      />
-                    ))}
-                  </div>
+                  <EventsViewPanel
+                    events={hostedUpcomingEvents}
+                    sportsCatalog={sportsDict}
+                    onViewDetails={(id) => navigate(`/event/${id}`)}
+                  />
                 )}
               </div>
             </>

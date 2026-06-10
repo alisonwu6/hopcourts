@@ -90,6 +90,7 @@ export const api = {
         auth: false,
         params,
       }),
-    getTeammates: () => httpGet<ApiResponse<any[]>>('/me/teammates'),
+    getTeammates: (params?: { limit?: number; offset?: number }) =>
+      httpGet<{ ok: boolean; data: { items: any[]; has_more: boolean } }>('/me/teammates', { params }),
   },
 }

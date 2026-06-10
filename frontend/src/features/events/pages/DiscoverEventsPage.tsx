@@ -14,9 +14,12 @@ export function DiscoverEventsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const events = useEventsStore((state) => state.events)
+  const eventsHasMore = useEventsStore((state) => state.eventsHasMore)
   const isLoading = useEventsStore((state) => state.isLoading)
+  const isLoadingMore = useEventsStore((state) => state.isLoadingMore)
   const error = useEventsStore((state) => state.error)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
+  const fetchMoreEvents = useEventsStore((state) => state.fetchMoreEvents)
   const { items: sportsCatalog } = useSports('en')
   const { isAuthenticated, user } = useAuthStore(
     useShallow((state) => ({
@@ -40,6 +43,7 @@ export function DiscoverEventsPage() {
     dateLabel,
     sportLabel,
     hasFilter,
+    activeFilter,
     toggleMap,
     clearFilters,
     selectMapEvent,
@@ -54,10 +58,10 @@ export function DiscoverEventsPage() {
     setSearchParams,
   })
 
-  // Fetch events once on mount.
+  // Re-fetch whenever filter changes (initial mount + every filter update)
   useEffect(() => {
-    void fetchEvents()
-  }, [fetchEvents])
+    void fetchEvents(activeFilter, { force: hasFilter })
+  }, [activeFilter])
 
   const handleCreateClick = async () => {
     if (!isAuthenticated) {
@@ -86,6 +90,9 @@ export function DiscoverEventsPage() {
       suggestedEvents={suggestedEvents}
       error={error}
       isLoading={isLoading}
+      isLoadingMore={isLoadingMore}
+      serverHasMore={eventsHasMore}
+      onLoadMoreFromServer={() => void fetchMoreEvents(activeFilter)}
       isSearchOpen={isSearchOpen}
       dateRange={dateRange}
       selectedSports={selectedSports}
