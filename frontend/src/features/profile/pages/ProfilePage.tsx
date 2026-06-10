@@ -157,7 +157,7 @@ export function ProfilePage() {
     const cityLabel = labelForCity(FIRST_MARKET_CITY_KEY) || draftProfile.location || FIRST_MARKET_CITY_LABEL
     const countryLabel = labelForCountry(FIRST_MARKET_COUNTRY_KEY) || FIRST_MARKET_COUNTRY_LABEL
     if (cityLabel && countryLabel) return `${cityLabel}, ${countryLabel}`
-    return cityLabel || countryLabel || 'Not set'
+    return cityLabel || countryLabel || ''
   }, [draftProfile.location, labelForCity, labelForCountry])
 
   // Memo: derive resolvedProfile (display-ready, labels filled, union vibe)
@@ -1053,7 +1053,7 @@ export function ProfilePage() {
                     Name
                     {hasProfileFieldError('name') && <span className="ml-1 text-red-500">*</span>}
                   </p>
-                  <p className="text-base font-semibold text-slate-900">{draftProfile.name || 'Not set'}</p>
+                  <p className={`text-base font-semibold ${draftProfile.name ? 'text-slate-900' : 'text-slate-400'}`}>{draftProfile.name || 'Your name'}</p>
                 </div>
                 <span className="text-slate-400">›</span>
               </button>
@@ -1070,7 +1070,7 @@ export function ProfilePage() {
                       Username
                       {hasProfileFieldError('username') && <span className="ml-1 text-red-500">*</span>}
                     </p>
-                    <p className="text-base font-semibold text-slate-900">{draftUsername || 'Not set'}</p>
+                    <p className={`text-base font-semibold ${draftUsername ? 'text-slate-900' : 'text-slate-400'}`}>{draftUsername || 'Your username'}</p>
                   </div>
                 </div>
               ) : (
@@ -1087,7 +1087,7 @@ export function ProfilePage() {
                       Username
                       {hasProfileFieldError('username') && <span className="ml-1 text-red-500">*</span>}
                     </p>
-                    <p className="text-base font-semibold text-slate-900">{draftUsername || 'Not set'}</p>
+                    <p className={`text-base font-semibold ${draftUsername ? 'text-slate-900' : 'text-slate-400'}`}>{draftUsername || 'Your username'}</p>
                   </div>
                   <span className="text-slate-400">›</span>
                 </button>
@@ -1106,8 +1106,8 @@ export function ProfilePage() {
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">Nationality (Optional)</p>
-                  <p className="text-base font-semibold text-slate-900">
-                    {labelForCountry(draftProfile.countryKey) || 'Not set'}
+                  <p className={`text-base font-semibold ${draftProfile.countryKey ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {labelForCountry(draftProfile.countryKey) || 'Your home country'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1144,8 +1144,16 @@ export function ProfilePage() {
                     Gender
                     {hasProfileFieldError('gender') && <span className="ml-1 text-red-500">*</span>}
                   </p>
-                  <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.gender === 'male' ? 'Male' : draftProfile.gender === 'female' ? 'Female' : draftProfile.gender === 'non_binary' ? 'Non-binary' : draftProfile.gender === 'prefer_not_to_say' ? 'Prefer not to say' : 'Not set'}
+                  <p className={`text-base font-semibold ${draftProfile.gender ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.gender === 'male'
+                      ? 'Male'
+                      : draftProfile.gender === 'female'
+                        ? 'Female'
+                        : draftProfile.gender === 'non_binary'
+                          ? 'Non-binary'
+                          : draftProfile.gender === 'prefer_not_to_say'
+                            ? 'Prefer not to say'
+                            : 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1175,12 +1183,12 @@ export function ProfilePage() {
                     Workout Vibe
                     {hasProfileFieldError('vibe') && <span className="ml-1 text-red-500">*</span>}
                   </p>
-                  <p className="text-base font-semibold text-slate-900">
+                  <p className={`text-base font-semibold ${(draftProfile as any).vibeKey || draftProfile.vibe ? 'text-slate-900' : 'text-slate-400'}`}>
                     {labelForVibe(
                       (draftProfile as any).vibeKey ||
                         vibeUnionToKey(draftProfile.vibe as string) ||
                         (draftProfile.vibe as string)
-                    ) || 'Not set'}
+                    ) || 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1198,8 +1206,8 @@ export function ProfilePage() {
                     My Favourites
                     {hasProfileFieldError('sports') && <span className="ml-1 text-red-500">*</span>}
                   </p>
-                  <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.sports.length ? draftProfile.sports.join(', ') : 'Not set'}
+                  <p className={`text-base font-semibold ${draftProfile.sports.length ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.sports.length ? draftProfile.sports.join(', ') : 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1217,8 +1225,8 @@ export function ProfilePage() {
                     Want to Try
                     {hasProfileFieldError('trying') && <span className="ml-1 text-red-500">*</span>}
                   </p>
-                  <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.trying.length ? draftProfile.trying.join(', ') : 'Not set'}
+                  <p className={`text-base font-semibold ${draftProfile.trying.length ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.trying.length ? draftProfile.trying.join(', ') : 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1241,8 +1249,8 @@ export function ProfilePage() {
                   <p className="text-sm font-semibold text-slate-700">
                     Bio{hasProfileFieldError('bio') && <span className="ml-1 text-red-500">*</span>}
                   </p>
-                  <p className="line-clamp-1 text-base font-semibold text-slate-900">
-                    {draftProfile.blurb || 'Not set'}
+                  <p className={`line-clamp-1 text-base font-semibold ${draftProfile.blurb ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.blurb || 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1268,13 +1276,13 @@ export function ProfilePage() {
             gender: 'Gender',
           }
           const subtitleMap: Record<string, string> = {
-            name: 'Enter the name shown on your card.',
-            username: 'Your handle that others can use to find you.',
-            location: 'Select the city where you currently live.',
-            nationality: 'Select your nationality.',
-            vibe: 'Choose the activity vibe that best matches your current rhythm.',
+            name: 'Enter your full name.',
+            username: 'A unique handle for mates to find you.',
+            location: 'Select your home city.',
+            nationality: 'Show where you’re from on your profile and connect with mates globally!',
+            vibe: 'Choose the activity vibe that fits you best.',
             bio: 'Share your activity updates and goals.',
-            gender: 'Select your gender for gender-specific events.',
+            gender: 'Help us find the right sessions for you.',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -1349,7 +1357,12 @@ export function ProfilePage() {
                   >
                     <option value="">Please select a nationality</option>
                     {availableCountries.map((c) => (
-                      <option key={c.key} value={c.key}>{c.label}</option>
+                      <option
+                        key={c.key}
+                        value={c.key}
+                      >
+                        {c.label}
+                      </option>
                     ))}
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
@@ -1814,7 +1827,10 @@ export function ProfilePage() {
       <ProfileCompletionSheet
         open={showCompletionSheet}
         onClose={() => setShowCompletionSheet(false)}
-        onExplore={() => { setShowCompletionSheet(false); navigate('/events') }}
+        onExplore={() => {
+          setShowCompletionSheet(false)
+          navigate('/events')
+        }}
       />
     </div>
   )
