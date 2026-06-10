@@ -13,13 +13,7 @@ const {
 } = require('./sessions.service')
 
 function resolveUserId(req) {
-  return (
-    req.userId ||
-    req.authUser?.id ||
-    req.user?.id ||
-    req.headers['x-user-id'] ||
-    req.headers['x-userid']
-  )
+  return req.userId || req.authUser?.id || req.user?.id
 }
 
 async function handleListSessions(req, res, next) {

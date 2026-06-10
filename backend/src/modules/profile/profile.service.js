@@ -9,13 +9,7 @@ const { Errors } = require('../../lib/errors')
 const supabase = require('../../utils/supabase')
 
 function resolveUserId(req) {
-  return (
-    req.userId ||
-    req.authUser?.id ||
-    req.user?.id ||
-    req.headers['x-user-id'] ||
-    req.headers['x-userid']
-  )
+  return req.userId || req.authUser?.id || req.user?.id
 }
 
 async function getProfile(userId) {
