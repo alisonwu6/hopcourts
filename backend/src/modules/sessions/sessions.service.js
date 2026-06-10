@@ -479,6 +479,7 @@ async function updateSession(sessionId, input) {
     const actor = await usersModel.getUserById(input.userId).catch(() => null)
     const actorName = actor?.display_name || actor?.name || 'Event host'
     const sessionTitle = updatedSession.title || existing.title || 'Event'
+    const isCancellation = patch.status === 'cancelled'
 
     participants.forEach((participant) => {
       const recipientId = participant.user_id
@@ -488,11 +489,13 @@ async function updateSession(sessionId, input) {
         .createNotification({
           recipient_user_id: recipientId,
           actor_user_id: input.userId,
-          type: 'session_updated',
+          type: isCancellation ? 'session_cancelled' : 'session_updated',
           entity_type: 'session',
           entity_id: sessionId,
-          title: 'Event details updated',
-          message: `${actorName} updated "${sessionTitle}"`,
+          title: isCancellation ? 'Event cancelled' : 'Event details updated',
+          message: isCancellation
+            ? `"${sessionTitle}" has been cancelled`
+            : `${actorName} updated "${sessionTitle}"`,
           metadata: { deep_link: `/event/${sessionId}` },
         })
         .catch((err) => console.error('Notify update failed', err))

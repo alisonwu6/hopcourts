@@ -16,8 +16,6 @@ export function useEventDetailLogic() {
 
   const [isFavorite, setIsFavorite] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [isJoinSubmitting, setIsJoinSubmitting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false)
@@ -289,21 +287,6 @@ export function useEventDetailLogic() {
     }
   }
 
-  const handleDelete = async () => {
-    if (!id) return
-    setIsDeleting(true)
-    try {
-      const res = await eventsService.deleteEvent(id)
-      if (res.success) {
-        navigate(-1)
-      }
-    } catch (err) {
-      console.error('Delete failed', err)
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   const clearPostLoginRedirect = () => {
     try {
       sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
@@ -326,9 +309,6 @@ export function useEventDetailLogic() {
     setIsFavorite,
     showLoginPrompt,
     setShowLoginPrompt,
-    showDeleteConfirm,
-    setShowDeleteConfirm,
-    isDeleting,
     isJoinSubmitting,
     isCheckingIn,
     showProfileRequired,
@@ -346,7 +326,6 @@ export function useEventDetailLogic() {
     handleJoinClick,
     handleCheckIn,
     handleOnTheWay,
-    handleDelete,
     clearPostLoginRedirect,
   }
 }

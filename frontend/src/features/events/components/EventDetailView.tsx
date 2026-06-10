@@ -47,8 +47,8 @@ type EventDetailViewProps = {
   currentUserId?: string
   isFavorite: boolean
   showLoginPrompt: boolean
-  showDeleteConfirm: boolean
-  isDeleting: boolean
+
+
   isJoinSubmitting: boolean
   isCheckingIn: boolean
   hasSignaledOnTheWay: boolean
@@ -61,12 +61,11 @@ type EventDetailViewProps = {
   onBack: () => void
   onShare: () => void
   onToggleFavorite: () => void
-  onOpenDeleteConfirm: () => void
-  onCloseDeleteConfirm: () => void
+
   onEdit: (eventId: string) => void
   onJoin: () => void
   onCheckIn: () => void
-  onDelete: () => void
+
   onCloseLoginPrompt: () => void
   onSignup: () => void
   onCloseAlert: () => void
@@ -85,8 +84,6 @@ export function EventDetailView({
   currentUserId,
   isFavorite,
   showLoginPrompt,
-  showDeleteConfirm,
-  isDeleting,
   isJoinSubmitting,
   isCheckingIn,
   hasSignaledOnTheWay,
@@ -99,12 +96,9 @@ export function EventDetailView({
   onBack,
   onShare,
   onToggleFavorite,
-  onOpenDeleteConfirm,
-  onCloseDeleteConfirm,
   onEdit,
   onJoin,
   onCheckIn,
-  onDelete,
   onCloseLoginPrompt,
   onSignup,
   onCloseAlert,
@@ -228,14 +222,6 @@ export function EventDetailView({
               <>
                 <button
                   type="button"
-                  onClick={onOpenDeleteConfirm}
-                  className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200"
-                  aria-label="Delete event"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
                   onClick={() => onEdit(event.id)}
                   className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
                   aria-label="Edit event"
@@ -278,22 +264,22 @@ export function EventDetailView({
 
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
-            <div
-              className={clsx(
-                'flex items-center gap-3 transition',
-                isOfficialVenueHost || event.host.username ? 'cursor-pointer' : undefined
-              )}
-              onClick={() => {
-                if (isOfficialVenueHost && event.venueId) {
-                  onNavigateVenue(event.venueId)
-                  return
-                }
-                if (event.host.username) {
-                  onNavigateMate(event.host.username)
-                }
-              }}
-            >
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between">
+              <div
+                className={clsx(
+                  'flex items-center gap-3 transition',
+                  isOfficialVenueHost || event.host.username ? 'cursor-pointer' : undefined
+                )}
+                onClick={() => {
+                  if (isOfficialVenueHost && event.venueId) {
+                    onNavigateVenue(event.venueId)
+                    return
+                  }
+                  if (event.host.username) {
+                    onNavigateMate(event.host.username)
+                  }
+                }}
+              >
                 <AvatarCircle
                   name={isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
                   src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl}
@@ -305,6 +291,15 @@ export function EventDetailView({
                   <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
                 </div>
               </div>
+              {event.status === 'cancelled' ? (
+                <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-600">
+                  Cancelled
+                </span>
+              ) : event.maxAttendees > 0 && spotsRemaining === 0 ? (
+                <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-orange-600">
+                  Full
+                </span>
+              ) : null}
             </div>
 
             <hr className="my-3 border-slate-200" />
@@ -463,35 +458,18 @@ export function EventDetailView({
         </div>
       </div>
 
-      <JoinBar
-        isJoined={isJoined}
-        event={event}
-        onJoin={onJoin}
-        onCheckIn={onCheckIn}
-        isCheckingIn={isCheckingIn}
-        isJoinSubmitting={isJoinSubmitting}
-        hasCheckedIn={effectiveCheckedIn}
-        hasSignaledOnTheWay={hasSignaledOnTheWay}
-      />
-
-      <AlertDialog
-        open={showDeleteConfirm}
-        onClose={() => {
-          if (isDeleting) return
-          onCloseDeleteConfirm()
-        }}
-        title={hasOtherParticipants ? 'Cannot be deleted' : 'Delete this event?'}
-        description={
-          hasOtherParticipants
-            ? 'Players have already joined. Please update the event details instead.'
-            : 'This action is permanent and cannot be undone.'
-        }
-        type={hasOtherParticipants ? 'warning' : 'error'}
-        actionLabel={hasOtherParticipants ? 'Close' : isDeleting ? 'Deleting...' : 'Delete event'}
-        cancelLabel={hasOtherParticipants ? undefined : 'Cancel'}
-        actionLeft={!hasOtherParticipants}
-        onAction={hasOtherParticipants ? undefined : onDelete}
-      />
+      {event.status !== 'cancelled' && (
+        <JoinBar
+          isJoined={isJoined}
+          event={event}
+          onJoin={onJoin}
+          onCheckIn={onCheckIn}
+          isCheckingIn={isCheckingIn}
+          isJoinSubmitting={isJoinSubmitting}
+          hasCheckedIn={effectiveCheckedIn}
+          hasSignaledOnTheWay={hasSignaledOnTheWay}
+        />
+      )}
 
       <LoginPromptSheet
         open={showLoginPrompt}

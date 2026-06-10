@@ -91,7 +91,7 @@ function EventGroupList({
                   <EventCard
                     event={event}
                     sportLabel={sportLabel}
-                    showStatus={mode === 'hosted'}
+                    showStatus={mode === 'hosted' || event.status === 'cancelled'}
                     onViewDetails={(id) => {
                       if (mode === 'hosted' && event.status === 'draft') {
                         navigate(`/create-event?id=${id}`)
@@ -290,7 +290,7 @@ function CalendarView({
                   {dayEvents.slice(0, 3).map((e) => (
                     <span
                       key={e.id}
-                      className={`h-1 w-1 rounded-full ${isSelected ? 'bg-white/60' : 'bg-indigo-400'}`}
+                      className={`h-1 w-1 rounded-full ${isSelected ? 'bg-slate-900' : 'bg-indigo-400'}`}
                     />
                   ))}
                 </span>
@@ -329,7 +329,7 @@ function CalendarView({
                 key={event.id}
                 event={event}
                 sportLabel={sportLabel}
-                showStatus={mode === 'hosted'}
+                showStatus={mode === 'hosted' || event.status === 'cancelled'}
                 onViewDetails={(id) => {
                   if (mode === 'hosted' && event.status === 'draft') {
                     navigate(`/create-event?id=${id}`)
@@ -414,8 +414,22 @@ export function ProfileEventsPanel({
     }
   }, [isAuthenticated, mode, showTimeTabs, tab])
 
-  const upcomingEvents = useMemo(() => events.filter((event) => new Date(event.endTime) >= new Date()), [events])
-  const historyEvents = useMemo(() => events.filter((event) => new Date(event.endTime) < new Date()), [events])
+  const upcomingEvents = useMemo(
+    () =>
+      events.filter((event) => {
+        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+        return end >= new Date()
+      }),
+    [events]
+  )
+  const historyEvents = useMemo(
+    () =>
+      events.filter((event) => {
+        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+        return end < new Date()
+      }),
+    [events]
+  )
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
   const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents

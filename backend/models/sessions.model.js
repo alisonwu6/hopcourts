@@ -116,7 +116,9 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
   const conditions = [
     roleCondition,
     '(s.ends_at IS NULL OR s.ends_at >= $2)',
-    role === 'hosted' ? "(s.status = 'published' OR s.status = 'draft')" : "s.status = 'published'",
+    role === 'hosted'
+      ? "(s.status = 'published' OR s.status = 'draft' OR s.status = 'cancelled')"
+      : "(s.status = 'published' OR s.status = 'cancelled')",
   ]
 
   if (role === 'hosted') {

@@ -60,7 +60,7 @@ function DayCell({
           {Array.from({ length: Math.min(eventDots, 3) }).map((_, i) => (
             <span
               key={i}
-              className={`h-1 w-1 rounded-full ${isSelected ? 'bg-white/60' : 'bg-indigo-400'}`}
+              className={`h-1 w-1 rounded-full ${isSelected ? 'bg-slate-900' : 'bg-indigo-400'}`}
             />
           ))}
         </span>
