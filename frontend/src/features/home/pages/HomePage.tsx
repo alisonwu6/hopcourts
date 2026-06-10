@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
-import { Sparkles, ArrowRight, MessageSquareOff, CalendarOff, PartyPopper } from 'lucide-react'
+import { Sparkles, ArrowRight, MessageSquareOff, Clock, Coins, Users } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 
@@ -75,29 +75,43 @@ export function HomePage() {
                   <MessageSquareOff className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">No more group chat chaos</p>
-                  <p className="mt-0.5 text-sm text-slate-500">Skip the 47-message threads. Just show up.</p>
+                  <p className="font-bold text-slate-900">Ditch the chat chaos</p>
+                  <p className="mt-0.5 text-sm text-slate-500">Skip the 47-message threads. Just turn up and play.</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-500">
-                  <CalendarOff className="h-5 w-5" />
+                  <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">Zero scheduling commitment</p>
-                  <p className="mt-0.5 text-sm text-slate-500">No rigid leagues. Play when you want.</p>
+                  <p className="font-bold text-slate-900">Play when you want</p>
+                  <p className="mt-0.5 text-sm text-slate-500">
+                    No rigid leagues. Just open courts and games ready right now near you.
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-                  <PartyPopper className="h-5 w-5" />
+                  <Coins className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">Your sports circle, built naturally</p>
+                  <p className="font-bold text-slate-900">Split the bill, play premium</p>
                   <p className="mt-0.5 text-sm text-slate-500">
-                    Play together once. Stay connected. Your circle builds itself.
+                    Share court bookings and split training fees with mates.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900">Instant mate connection</p>
+                  <p className="mt-0.5 text-sm text-slate-500">
+                    Played once? You're automatically linked under My Mates for the next game.
                   </p>
                 </div>
               </div>
@@ -109,7 +123,7 @@ export function HomePage() {
             <blockquote className="text-md font-semibold italic leading-relaxed text-white">
               "Sport is the oldest social network.
               <br />
-              We just forgot to build the app for it."
+              We just built the app for it."
             </blockquote>
             <p className="mt-3 text-xs font-semibold text-slate-400">— HopCourts</p>
           </section>

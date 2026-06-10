@@ -42,7 +42,7 @@ export function VenueListView({
 }: VenueListViewProps) {
   const sentinelRef = useInfiniteScroll(onLoadMore, hasMore && !loadingMore)
   return (
-    <div className="relative min-h-screen bg-slate-50">
+    <div className="relative min-h-screen bg-white">
       {/* Top Search Bar & Toggle (Floating) */}
       <div
         className={clsx(
