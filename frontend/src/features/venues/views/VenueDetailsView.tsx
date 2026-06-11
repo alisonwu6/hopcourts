@@ -199,7 +199,7 @@ export function VenueDetailsView({
             isLoading={isClaiming}
             disabled={venue.has_pending_claim}
           >
-            {venue.has_pending_claim ? '已提出申請' : 'Claim venue'}
+            {venue.has_pending_claim ? 'Claim Submitted' : 'Claim venue'}
           </VenueButton>
         </div>
       )}
