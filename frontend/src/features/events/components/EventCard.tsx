@@ -2,7 +2,7 @@ import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
-import { Calendar, MapPin, PersonStanding, CircleDollarSign, ShieldCheck, Smile } from 'lucide-react'
+import { Calendar, MapPin, CircleDollarSign, ShieldCheck } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { BookmarkButton } from './BookmarkButton'
 import { getSportColor } from '@/constants/sportTokens'
@@ -163,11 +163,6 @@ export function EventCard({
 
         <div className="flex flex-col items-end justify-end gap-1">
           {showStatus && event.status && <StatusBadge status={event.status} />}
-          {event.maxAttendees > 0 && remaining === 0 && event.status !== 'cancelled' && (
-            <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-orange-600">
-              Full
-            </span>
-          )}
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
               <ShieldCheck
@@ -193,100 +188,77 @@ export function EventCard({
       )}
 
       {/* 3. Info Content */}
-      <div className="space-y-3.5 px-5 py-4">
-        <div className="flex flex-col gap-2.5">
-          {/* Tags above Title */}
-          <div className="flex items-center gap-2">
-            {/* Sport Tag */}
-            <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${getSportColor(event.sport)}`}>
-              {sportLabel}
-            </div>
-            {/* Skill Tag */}
-            <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-[11px] font-medium text-slate-800">
-              {skillLabel}
-            </div>
-            {/* Gender Tag (Added) */}
-            <div className="flex items-center gap-1.5 rounded-full border border-pink-100 bg-pink-50/50 px-3 py-1 text-[11px] font-medium text-pink-800">
-              {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : 'Mixed'}
-            </div>
-          </div>
-
-          <h3 className="text-[13px] font-bold leading-tight tracking-tight text-slate-900">{event.title}</h3>
+      <div className="px-5 pb-4 pt-3.5">
+        {/* Tags */}
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${getSportColor(event.sport)}`}>
+            {sportLabel}
+          </span>
+          <span className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
+            {skillLabel}
+          </span>
+          <span className="rounded-full border border-orange-300 px-2.5 py-0.5 text-[10px] font-medium text-orange-500">
+            {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : 'Mixed'}
+          </span>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <Calendar
-                className="h-4.5 w-4.5"
-                strokeWidth={2.5}
-              />
-            </div>
-            <span className="text-[11px]">{scheduleLabel}</span>
+        {/* Title */}
+        <h3 className="mb-3 text-[15px] font-bold leading-snug tracking-tight text-slate-900">{event.title}</h3>
+
+        {/* Info rows — compact */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <span className="text-[12px] text-slate-600">{scheduleLabel}</span>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <MapPin
-                className="h-4.5 w-4.5"
-                strokeWidth={2.5}
-              />
-            </div>
-            <div className="min-w-0 text-[11px] leading-snug">
+          <div className="flex items-start gap-2">
+            <MapPin className="mt-px h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <div className="min-w-0 text-[12px] leading-snug text-slate-600">
               <p className="break-words">{locationLine1}</p>
               {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
             </div>
           </div>
 
-          {/* Attendance Area */}
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-5 w-5 items-center justify-center text-blue-600">
-              <PersonStanding
-                className="h-5 w-5"
-                strokeWidth={2.5}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px]">
-                {attendeeCount} Joined · {remaining} Spots Left
-                <br />
-                Min. {minPeople} players
-              </span>
-              <div className="flex -space-x-1.5">
-                {event.participants.slice(0, 3).map((p, i) => (
-                  <div
-                    key={i}
-                    className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-slate-200 text-[8px] font-bold text-slate-600 shadow-sm"
-                  >
-                    {p.avatarUrl ? (
-                      <img
-                        src={p.avatarUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      (p.name || '?').charAt(0).toUpperCase()
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <span className="text-[12px] text-slate-600">
+              {event.isFree ? 'Free' : `${event.priceRange || `$${event.pricePerPerson}`} per person`}
+            </span>
           </div>
+        </div>
+      </div>
 
-          {/* Price Area - Now aligned with other icons */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <CircleDollarSign
-                className="w-4.5 h-4.5"
-                strokeWidth={2.5}
+      {/* 4. Footer — join progress */}
+      <div className="border-t border-slate-100 px-5 py-3">
+        <p className="mb-1.5 text-[11px] text-slate-400">
+          {attendeeCount} joined · {remaining > 0 ? `${remaining} spots left` : 'All spots filled'}
+          {minPeople > 1 && <span className="text-slate-300"> · </span>}
+          {minPeople > 1 && <span>Min. {minPeople} players</span>}
+        </p>
+        <div className="flex items-center gap-2">
+          <div
+            className="relative h-1.5 w-4/5 overflow-hidden rounded-full"
+            style={{ background: 'linear-gradient(to right, #bbf7d0, #16a34a 55%, #ef4444)' }}
+          >
+            {/* gray cover slides from right, revealing gradient as attendees join */}
+            <div
+              className="absolute right-0 h-full bg-slate-200 transition-all duration-500"
+              style={{ width: `${Math.max(0, 100 - (event.maxAttendees > 0 ? (attendeeCount / event.maxAttendees) * 100 : 0))}%` }}
+            />
+            {/* min threshold notch */}
+            {minPeople > 1 && event.maxAttendees > 0 && (
+              <div
+                className="absolute inset-y-0 z-10 w-0.5 -translate-x-1/2 bg-white/70"
+                style={{ left: `${Math.min(99, (minPeople / event.maxAttendees) * 100)}%` }}
               />
-            </div>
-            <div className="text-[11px]">
-              <span className="text-slate-900">
-                {event.isFree ? 'Free' : `${event.priceRange || `$${event.pricePerPerson}`} per person`}
-              </span>
-            </div>
+            )}
           </div>
+          {remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled' && (
+            <span className="shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
+              Full
+            </span>
+          )}
         </div>
       </div>
     </article>
@@ -313,13 +285,18 @@ function AvatarCircle({
   size?: 'sm' | 'md'
   ring?: boolean
 }) {
-  const dimension = size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
-  const iconSize = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
+  const dimension = size === 'sm' ? 'h-9 w-9' : 'h-10 w-10'
+  const initials = name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w.charAt(0).toUpperCase())
+    .join('')
   return (
     <div
       className={clsx(
-        'flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100',
+        'flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full',
         dimension,
+        src ? 'bg-slate-100' : 'bg-blue-100',
         ring && 'border-2 border-white shadow ring-1 ring-slate-200'
       )}
       style={
@@ -332,7 +309,9 @@ function AvatarCircle({
           : undefined
       }
     >
-      {!src && <Smile className={clsx(iconSize, 'text-slate-300')} />}
+      {!src && (
+        <span className="text-[11px] font-bold text-blue-700">{initials || '?'}</span>
+      )}
     </div>
   )
 }
