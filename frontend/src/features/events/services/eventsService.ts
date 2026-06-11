@@ -204,7 +204,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
       username: session.host_username || undefined,
       cityKey: session.host_city_key || undefined,
       cityName: session.host_city_name || undefined,
-      countryKey: session.host_country_key || undefined,
+      countryKey: session.host_nationality_key || session.host_country_key || undefined,
     },
     highFives: 0,
     joined: false, // need to check participation
@@ -353,7 +353,7 @@ export const eventsService = {
             username: responseData.host.username || undefined,
             cityKey: responseData.host.city_key || undefined,
             cityName: responseData.host.city_name || undefined,
-            countryKey: responseData.host.country_key || undefined,
+            countryKey: responseData.host.nationality_key || responseData.host.country_key || undefined,
             // rating: responseData.host.rating
           }
         }

@@ -146,6 +146,8 @@ async function getSessionDetail(sessionId, userId) {
       avatar_url: session.venue_logo_url || null,
       bio: null,
       role: 'venue',
+      nationality_key: host?.nationality_key || null,
+      city_key: host?.city_key || null,
     }
     : host
       ? {
@@ -154,6 +156,8 @@ async function getSessionDetail(sessionId, userId) {
         username: host.username,
         avatar_url: host.avatar_url,
         bio: host.bio,
+        nationality_key: host.nationality_key || null,
+        city_key: host.city_key || null,
       }
       : null
 

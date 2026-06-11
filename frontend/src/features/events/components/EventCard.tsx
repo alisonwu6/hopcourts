@@ -150,7 +150,7 @@ export function EventCard({
               {/* {displayHost.isOfficial && (
                 <BadgeCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
               )} */}
-              {event.host.countryKey && !displayHost.isOfficial && (
+              {event.host.countryKey && (
                 <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
               )}
             </p>
