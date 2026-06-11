@@ -189,9 +189,15 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
 
             <div className="mt-8">
               <h2 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">About</h2>
-              <p className="rounded-2xl border border-slate-50 bg-slate-50/50 p-4 text-sm font-medium italic leading-relaxed text-slate-600">
-                {formData.description ? `"${formData.description}"` : 'No description yet.'}
-              </p>
+              {formData.description ? (
+                <p className="rounded-2xl border border-slate-50 bg-slate-50/50 p-4 text-sm font-medium italic leading-relaxed text-slate-600">
+                  "{formData.description}"
+                </p>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-4 py-5 text-xs font-bold text-slate-400">
+                  Add a short bio to let players know more about this venue.
+                </div>
+              )}
             </div>
 
             <div className="mt-8">
@@ -212,7 +218,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-4 py-5 text-xs font-bold text-slate-400">
-                  No amenities configured yet.
+                  List amenities like parking, showers, or water stations.
                 </div>
               )}
             </div>
@@ -250,7 +256,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-4 py-5 text-xs font-bold text-slate-400">
-                  No courts configured yet.
+                  Add courts and select supported sports for this venue.
                 </div>
               )}
             </div>
@@ -259,30 +265,36 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
               <div className="mb-4 flex items-center gap-2">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Operating Hours</h2>
               </div>
-              <div className="space-y-2 rounded-2xl border border-slate-100/50 bg-slate-50 p-4">
-                {orderedDays.map((day) => {
-                  const hour = formData.operating_hours.find((h) => h.day === day)
-                  const isConfigured = Boolean(hour)
-                  return (
-                    <div
-                      key={day}
-                      className="flex items-center justify-between text-xs"
-                    >
-                      <span className="w-20 text-[9px] font-black uppercase tracking-widest text-slate-500">{day}</span>
-                      <div className="mx-4 h-px flex-1 bg-slate-200/50" />
-                      {!isConfigured ? (
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Not set</span>
-                      ) : hour?.is_closed ? (
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">Closed</span>
-                      ) : (
-                        <span className="font-black tabular-nums text-[oklch(0.511_0.262_276.966)]">
-                          {hour?.open_time} — {hour?.close_time}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+              {formData.operating_hours.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-4 py-5 text-xs font-bold text-slate-400">
+                  Set your operating hours to help players plan their sessions.
+                </div>
+              ) : (
+                <div className="space-y-2 rounded-2xl border border-slate-100/50 bg-slate-50 p-4">
+                  {orderedDays.map((day) => {
+                    const hour = formData.operating_hours.find((h) => h.day === day)
+                    const isConfigured = Boolean(hour)
+                    return (
+                      <div
+                        key={day}
+                        className="flex items-center justify-between text-xs"
+                      >
+                        <span className="w-20 text-[9px] font-black uppercase tracking-widest text-slate-500">{day}</span>
+                        <div className="mx-4 h-px flex-1 bg-slate-200/50" />
+                        {!isConfigured ? (
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Hours not available</span>
+                        ) : hour?.is_closed ? (
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">Closed</span>
+                        ) : (
+                          <span className="font-black tabular-nums text-[oklch(0.511_0.262_276.966)]">
+                            {hour?.open_time} — {hour?.close_time}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         ) : (

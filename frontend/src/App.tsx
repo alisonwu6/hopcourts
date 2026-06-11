@@ -44,6 +44,14 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
   return children
 }
 
+const RequireAdmin = ({ children }: { children: ReactNode }) => {
+  const { isAuthenticated, isLoading, user } = useAuthStore()
+  if (isLoading) return null
+  if (!isAuthenticated || !user?.role?.includes('admin'))
+    return <Navigate to="/" replace />
+  return children
+}
+
 function AppChrome({
   children,
   showHeader = true,
@@ -124,9 +132,9 @@ export default function App() {
       <Route
         path="/admin/venues"
         element={
-          <RequireAuth>
+          <RequireAdmin>
             <AdminVenueManagementPage />
-          </RequireAuth>
+          </RequireAdmin>
         }
       />
       <Route

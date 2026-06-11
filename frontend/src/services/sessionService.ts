@@ -80,6 +80,7 @@ export const sessionService = {
         eventsHosted: backendUser.hosted_count || 0,
         teammateCount: backendUser.teammate_count || 0,
         gender: backendUser.gender,
+        role: Array.isArray(backendUser.role) ? backendUser.role : [],
         onboarding_completed_at: backendUser.onboarding_completed_at || null,
         createdAt: new Date(backendUser.created_at),
         updatedAt: new Date(backendUser.updated_at),

@@ -25,11 +25,11 @@ export function VenueDashboardPage() {
     const res = await venuePortalService.getMyVenues()
     if (res.success && res.data && res.data.length > 0) {
       setVenues(res.data)
-
-      // If NO venueId in URL, redirect to the first one
       if (!venueId) {
         navigate(`/admin/${res.data[0].id}`, { replace: true })
       }
+    } else {
+      navigate('/', { replace: true })
     }
     setLoading(false)
   }
