@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Calendar, MapPin, PersonStanding, CircleDollarSign, ShieldCheck, Smile } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { BookmarkButton } from './BookmarkButton'
+import { getSportColor } from '@/constants/sportTokens'
 
 const ACCENT = {
   primary: '#2563EB',
@@ -197,7 +198,7 @@ export function EventCard({
           {/* Tags above Title */}
           <div className="flex items-center gap-2">
             {/* Sport Tag */}
-            <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-white px-3 py-1 text-[11px] font-medium text-slate-800">
+            <div className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${getSportColor(event.sport)}`}>
               {sportLabel}
             </div>
             {/* Skill Tag */}

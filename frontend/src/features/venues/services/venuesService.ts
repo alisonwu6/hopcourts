@@ -30,6 +30,8 @@ export interface ApiVenue {
     supported_sports: string[]
   }[]
   active_sessions_count: number
+  today_sessions_count: number
+  sport_keys: string[]
   created_at: string
 }
 
@@ -119,6 +121,7 @@ const normalizeVenue = (venue: any): ApiVenue => ({
   amenities: normalizeAmenities(venue),
   operating_hours: normalizeOperatingHours(venue),
   spaces: normalizeSpaces(venue),
+  sport_keys: Array.isArray(venue?.sport_keys) ? venue.sport_keys : [],
 })
 
 export const venuesService = {
