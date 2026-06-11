@@ -111,10 +111,10 @@ export const VenueScheduleView: React.FC<VenueScheduleViewProps> = ({
               {/* Create Event (One-off) */}
               <div
                 onClick={() => venueId && navigate(`/admin/${venueId}/sessions/create`)}
-                className="group flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:border-indigo-300 hover:bg-slate-50/50 hover:shadow-md"
+                className="group flex cursor-pointer flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:border-venue-300 hover:bg-slate-50/50 hover:shadow-md"
               >
                 <div className="relative z-10">
-                  <h3 className="mb-1.5 text-lg font-bold text-slate-800 transition-colors group-hover:text-indigo-700">
+                  <h3 className="mb-1.5 text-lg font-bold text-slate-800 transition-colors group-hover:text-venue-700">
                     Create Event
                   </h3>
                   <p className="mb-4 text-sm leading-relaxed text-slate-500">
@@ -137,14 +137,14 @@ export const VenueScheduleView: React.FC<VenueScheduleViewProps> = ({
               {/* Manage Weekly Schedule (CORE) */}
               <div
                 onClick={() => setViewMode('template')}
-                className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl bg-[#5A29E4] p-5 text-white transition-all duration-300 hover:scale-[1.01] hover:shadow-md"
+                className="group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl bg-venue-500 p-5 text-white transition-all duration-300 hover:scale-[1.01] hover:shadow-md"
               >
                 <div className="pointer-events-none absolute right-0 top-0 select-none p-4 text-8xl font-black leading-none opacity-[0.08]">
                   📅
                 </div>
                 <div className="relative z-10">
                   <h3 className="mb-1.5 text-lg font-bold shadow-sm">Manage Weekly Schedule</h3>
-                  <p className="mb-4 text-sm font-medium leading-relaxed text-indigo-100">
+                  <p className="mb-4 text-sm font-medium leading-relaxed text-venue-100">
                     Set your recurring weekly rules. The system will auto-generate sessions for players to join.
                   </p>
                 </div>
@@ -154,7 +154,7 @@ export const VenueScheduleView: React.FC<VenueScheduleViewProps> = ({
                       e.stopPropagation()
                       setViewMode('template')
                     }}
-                    className="w-fit rounded-lg bg-white px-4 py-2 text-xs font-bold text-[#5A29E4] shadow-sm transition-colors hover:bg-slate-50"
+                    className="w-fit rounded-lg bg-white px-4 py-2 text-xs font-bold text-venue-500 shadow-sm transition-colors hover:bg-slate-50"
                   >
                     Set Schedule
                   </button>
@@ -169,7 +169,7 @@ export const VenueScheduleView: React.FC<VenueScheduleViewProps> = ({
                   Active Events
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <div className="text-4xl font-extrabold tracking-tight text-[#5A29E4]">{activeEventsCount}</div>
+                  <div className="text-4xl font-extrabold tracking-tight text-venue-500">{activeEventsCount}</div>
                   <div className="text-sm font-medium text-slate-400">Published</div>
                 </div>
               </div>
@@ -186,7 +186,7 @@ export const VenueScheduleView: React.FC<VenueScheduleViewProps> = ({
 
         {/* Success Overlay */}
         {showSuccess && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-indigo-900/5 backdrop-blur-[4px] duration-300 animate-in fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-venue-900/5 backdrop-blur-[4px] duration-300 animate-in fade-in">
             <div className="flex flex-col items-center rounded-[2.5rem] border border-slate-100 bg-white p-10 shadow-2xl duration-200 animate-in zoom-in-95">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-100 shadow-inner">
                 <CheckCircle className="h-8 w-8 text-emerald-600" />

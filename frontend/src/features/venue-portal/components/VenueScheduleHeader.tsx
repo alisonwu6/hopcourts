@@ -32,7 +32,7 @@ export const VenueScheduleHeader: React.FC<VenueScheduleHeaderProps> = ({
       <button
         onClick={onSync}
         disabled={saving}
-        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-500 transition-opacity hover:opacity-70 disabled:opacity-30"
+        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-venue-500 transition-opacity hover:opacity-70 disabled:opacity-30"
       >
         {saving ? 'Syncing...' : 'Sync Calendar'}
       </button>

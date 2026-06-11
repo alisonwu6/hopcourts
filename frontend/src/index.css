@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
+@theme {
+  --color-venue-50: #f3f8ea;
+  --color-venue-100: #e5f1d0;
+  --color-venue-200: #cce3a1;
+  --color-venue-300: #b0d472;
+  --color-venue-400: #91c047;
+  --color-venue-500: #74A12E;
+  --color-venue-600: #5e8225;
+  --color-venue-700: #486318;
+  --color-venue-800: #324510;
+  --color-venue-900: #1e2b0b;
+}
+
 @layer base {
   :root {
     /* Fonts */

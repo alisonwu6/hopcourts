@@ -129,7 +129,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                   </div>
                   <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-800 shadow-inner">
                     <div
-                      className="h-full rounded-full bg-indigo-500 transition-all duration-1000"
+                      className="h-full rounded-full bg-venue-500 transition-all duration-1000"
                       style={{
                         width: `${(session.participants_count / session.max_participants) * 100}%`,
                       }}
@@ -141,9 +141,9 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                   {mockParticipants.slice(0, session.participants_count).map((p) => (
                     <div
                       key={p.id}
-                      className="group flex items-center gap-4 rounded-[1.25rem] border border-slate-100 bg-white p-4 transition-all hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-50/50"
+                      className="group flex items-center gap-4 rounded-[1.25rem] border border-slate-100 bg-white p-4 transition-all hover:border-venue-100 hover:shadow-lg hover:shadow-venue-50/50"
                     >
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-xs font-black uppercase text-slate-400 shadow-inner transition-colors group-hover:bg-indigo-50 group-hover:text-indigo-400">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-xs font-black uppercase text-slate-400 shadow-inner transition-colors group-hover:bg-venue-50 group-hover:text-venue-400">
                         {p.name.charAt(0)}
                       </div>
                       <div className="flex-1">
@@ -195,38 +195,38 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                   </h4>
                   <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-slate-400">
                     <div className="h-1.5 w-1.5 rounded-full bg-slate-200"></div>
-                    <Clock className="h-3.5 w-3.5 text-indigo-400" />
+                    <Clock className="h-3.5 w-3.5 text-venue-400" />
                     {session.start_time} — {session.end_time}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="group rounded-2xl border border-slate-100/50 bg-slate-50 p-5 text-center shadow-inner">
-                    <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-slate-400 transition-colors group-hover:text-indigo-400">
+                    <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-slate-400 transition-colors group-hover:text-venue-400">
                       Max Capacity
                     </div>
                     <div className="text-2xl font-black tabular-nums text-slate-900">{session.max_participants}</div>
                   </div>
-                  <div className="group rounded-2xl border border-indigo-100/50 bg-indigo-50/30 p-5 text-center shadow-inner">
-                    <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-indigo-300 transition-colors group-hover:text-amber-500">
+                  <div className="group rounded-2xl border border-venue-100/50 bg-venue-50/30 p-5 text-center shadow-inner">
+                    <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-venue-300 transition-colors group-hover:text-amber-500">
                       Registered
                     </div>
-                    <div className="text-2xl font-black tabular-nums text-indigo-600">{session.participants_count}</div>
+                    <div className="text-2xl font-black tabular-nums text-venue-600">{session.participants_count}</div>
                   </div>
                 </div>
 
                 <div className="space-y-4 rounded-[1.5rem] border border-slate-100 bg-white p-6 shadow-sm">
                   <div className="group flex items-center gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 transition-colors group-hover:bg-indigo-50">
-                      <Award className="h-4 w-4 text-slate-400 group-hover:text-indigo-400" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 transition-colors group-hover:bg-venue-50">
+                      <Award className="h-4 w-4 text-slate-400 group-hover:text-venue-400" />
                     </div>
                     <div className="text-xs font-black uppercase tracking-widest text-slate-400">
                       Skill Tier <span className="ml-2 text-slate-900">{session.level}</span>
                     </div>
                   </div>
                   <div className="group flex items-center gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 transition-colors group-hover:bg-indigo-50">
-                      <User className="h-4 w-4 text-slate-400 group-hover:text-indigo-400" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 transition-colors group-hover:bg-venue-50">
+                      <User className="h-4 w-4 text-slate-400 group-hover:text-venue-400" />
                     </div>
                     <div className="text-xs font-black uppercase tracking-widest text-slate-400">
                       Gender Rule <span className="ml-2 text-slate-900">{session.gender}</span>
@@ -237,7 +237,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                       <DollarSign className="h-4 w-4 text-amber-300 group-hover:text-amber-500" />
                     </div>
                     <div className="text-xs font-black uppercase tracking-widest text-slate-400">
-                      Slot Fee <span className="ml-2 text-indigo-600">A${session.price}</span>
+                      Slot Fee <span className="ml-2 text-venue-600">A${session.price}</span>
                     </div>
                   </div>
                 </div>
@@ -298,7 +298,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                     <select
                       value={session.sport}
                       onChange={(e) => onUpdate({ sport: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-700 shadow-sm outline-none transition-all focus:border-indigo-500"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-700 shadow-sm outline-none transition-all focus:border-venue-500"
                     >
                       {SPORTS.map((s) => (
                         <option key={s}>{s}</option>
@@ -349,7 +349,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                         type="number"
                         value={session.price}
                         onChange={(e) => onUpdate({ price: parseFloat(e.target.value) })}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-indigo-600 shadow-sm"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-venue-600 shadow-sm"
                       />
                     </div>
                   </div>
@@ -366,7 +366,7 @@ export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
                   <VenueButton
                     variant="primary"
                     size="lg"
-                    className="flex-1 shadow-lg shadow-indigo-100"
+                    className="flex-1 shadow-lg shadow-venue-100"
                     onClick={() => onUpdate({})}
                   >
                     Commit Changes

@@ -126,7 +126,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
           e.stopPropagation()
           onToggleMode('edit')
         }}
-        className="p-2 text-[11px] font-black uppercase tracking-widest text-[oklch(0.511_0.262_276.966)] transition-opacity hover:opacity-70"
+        className="p-2 text-[11px] font-black uppercase tracking-widest text-venue-500 transition-opacity hover:opacity-70"
       >
         Edit
       </button>
@@ -135,11 +135,11 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
         type="submit"
         form="venue-profile-form"
         disabled={saving}
-        className="flex items-center gap-1.5 p-2 text-[11px] font-black uppercase tracking-widest text-indigo-600 transition-all hover:text-indigo-700 disabled:opacity-50"
+        className="flex items-center gap-1.5 p-2 text-[11px] font-black uppercase tracking-widest text-venue-600 transition-all hover:text-venue-700 disabled:opacity-50"
       >
         {saving ? (
           <>
-            <div className="h-3 w-3 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent"></div>
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-venue-600 border-t-transparent"></div>
             <span>Saving...</span>
           </>
         ) : (
@@ -211,7 +211,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                       key={item}
                       className="flex items-center gap-2.5 rounded-xl border border-slate-100/50 bg-slate-50 px-4 py-2.5"
                     >
-                      <span className="text-[oklch(0.511_0.262_276.966)]">✓</span>
+                      <span className="text-venue-500">✓</span>
                       <span className="text-xs font-bold text-slate-700">{item}</span>
                     </div>
                   ))}
@@ -265,36 +265,30 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
               <div className="mb-4 flex items-center gap-2">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Operating Hours</h2>
               </div>
-              {formData.operating_hours.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-4 py-5 text-xs font-bold text-slate-400">
-                  Set your operating hours to help players plan their sessions.
-                </div>
-              ) : (
-                <div className="space-y-2 rounded-2xl border border-slate-100/50 bg-slate-50 p-4">
-                  {orderedDays.map((day) => {
-                    const hour = formData.operating_hours.find((h) => h.day === day)
-                    const isConfigured = Boolean(hour)
-                    return (
-                      <div
-                        key={day}
-                        className="flex items-center justify-between text-xs"
-                      >
-                        <span className="w-20 text-[9px] font-black uppercase tracking-widest text-slate-500">{day}</span>
-                        <div className="mx-4 h-px flex-1 bg-slate-200/50" />
-                        {!isConfigured ? (
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Hours not available</span>
-                        ) : hour?.is_closed ? (
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">Closed</span>
-                        ) : (
-                          <span className="font-black tabular-nums text-[oklch(0.511_0.262_276.966)]">
-                            {hour?.open_time} — {hour?.close_time}
-                          </span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+              <div className="space-y-2 rounded-2xl border border-slate-100/50 bg-slate-50 p-4">
+                {orderedDays.map((day) => {
+                  const hour = formData.operating_hours.find((h) => h.day === day)
+                  const isConfigured = Boolean(hour)
+                  return (
+                    <div
+                      key={day}
+                      className="flex items-center justify-between text-xs"
+                    >
+                      <span className="w-20 text-[9px] font-black uppercase tracking-widest text-slate-500">{day}</span>
+                      <div className="mx-4 h-px flex-1 bg-slate-200/50" />
+                      {!isConfigured ? (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Hours not available</span>
+                      ) : hour?.is_closed ? (
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-red-400">Closed</span>
+                      ) : (
+                        <span className="font-black tabular-nums text-venue-500">
+                          {hour?.open_time} — {hour?.close_time}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
         ) : (
@@ -350,7 +344,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                     type="url"
                     value={formData.logo_url}
                     onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                     placeholder="https://example.com/logo.png"
                   />
                 </div>
@@ -361,7 +355,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                     rows={3}
                   />
                 </div>
@@ -377,7 +371,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                 <button
                   type="button"
                   onClick={addSpace}
-                  className="text-[10px] font-black uppercase text-[oklch(0.511_0.262_276.966)] hover:opacity-70"
+                  className="text-[10px] font-black uppercase text-venue-500 hover:opacity-70"
                 >
                   + Add Space
                 </button>
@@ -406,7 +400,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                       placeholder="e.g. Court 1, Field A, Studio Room"
                       value={space.name}
                       onChange={(e) => updateSpaceName(index, e.target.value)}
-                      className="focus:ring-[oklch(0.511_0.262_276.966)]/10 mb-4 w-full rounded-2xl border border-slate-100 bg-white px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-[oklch(0.511_0.262_276.966)] focus:ring-4"
+                      className="focus:ring-venue-500/10 mb-4 w-full rounded-2xl border border-slate-100 bg-white px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:ring-4"
                     />
 
                     <label className="mb-2 block px-1 text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -421,7 +415,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                               key={sport}
                               type="button"
                               onClick={() => toggleSportInSpace(index, sport)}
-                              className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'shadow-[oklch(0.511_0.262_276.966)]/20 border-[oklch(0.511_0.262_276.966)] bg-[oklch(0.511_0.262_276.966)] text-white shadow-md' : 'border-slate-100 bg-white text-slate-400 opacity-60'}`}
+                              className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${isSelected ? 'shadow-venue-500/20 border-venue-500 bg-venue-500 text-white shadow-md' : 'border-slate-100 bg-white text-slate-400 opacity-60'}`}
                             >
                               {sport}
                             </button>
@@ -456,39 +450,39 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
               </h2>
 
               {/* Quick Template Apply */}
-              <div className="mb-8 rounded-2xl border border-indigo-100/50 bg-indigo-50/50 p-4 sm:p-6">
+              <div className="mb-8 rounded-2xl border border-venue-100/50 bg-venue-50/50 p-4 sm:p-6">
                 <div className="mb-4 flex items-center gap-2">
                   <Settings2
                     size={14}
-                    className="text-indigo-600"
+                    className="text-venue-600"
                   />
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-900">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-venue-900">
                     Apply Template to All Days
                   </h3>
                 </div>
                 <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end">
                   <div className="flex flex-1 items-center gap-3">
                     <div className="flex-1">
-                      <label className="mb-1 ml-1 block text-center text-[8px] font-black uppercase tracking-widest text-indigo-400">
+                      <label className="mb-1 ml-1 block text-center text-[8px] font-black uppercase tracking-widest text-venue-400">
                         Open
                       </label>
                       <input
                         type="time"
                         value={templateHours.open}
                         onChange={(e) => setTemplateHours({ ...templateHours, open: e.target.value })}
-                        className="w-full rounded-lg border border-indigo-100 bg-white px-3 py-2 text-center text-xs font-black text-indigo-600 outline-none"
+                        className="w-full rounded-lg border border-venue-100 bg-white px-3 py-2 text-center text-xs font-black text-venue-600 outline-none"
                       />
                     </div>
-                    <div className="pt-4 font-bold text-indigo-200">—</div>
+                    <div className="pt-4 font-bold text-venue-200">—</div>
                     <div className="flex-1">
-                      <label className="mb-1 ml-1 block text-center text-[8px] font-black uppercase tracking-widest text-indigo-400">
+                      <label className="mb-1 ml-1 block text-center text-[8px] font-black uppercase tracking-widest text-venue-400">
                         Close
                       </label>
                       <input
                         type="time"
                         value={templateHours.close}
                         onChange={(e) => setTemplateHours({ ...templateHours, close: e.target.value })}
-                        className="w-full rounded-lg border border-indigo-100 bg-white px-3 py-2 text-center text-xs font-black text-indigo-600 outline-none"
+                        className="w-full rounded-lg border border-venue-100 bg-white px-3 py-2 text-center text-xs font-black text-venue-600 outline-none"
                       />
                     </div>
                   </div>
@@ -534,7 +528,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                             type="time"
                             value={hour.open_time}
                             onChange={(e) => updateDay(hour.day, 'open_time', e.target.value)}
-                            className="w-full rounded-xl border border-slate-100 bg-white px-4 py-2.5 text-center text-xs font-black text-indigo-600 shadow-sm outline-none transition-all focus:border-indigo-500 focus:bg-white sm:w-28 sm:bg-slate-50 sm:shadow-inner"
+                            className="w-full rounded-xl border border-slate-100 bg-white px-4 py-2.5 text-center text-xs font-black text-venue-600 shadow-sm outline-none transition-all focus:border-venue-500 focus:bg-white sm:w-28 sm:bg-slate-50 sm:shadow-inner"
                           />
                         </div>
                         <span className="font-bold text-slate-300">—</span>
@@ -543,7 +537,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                             type="time"
                             value={hour.close_time}
                             onChange={(e) => updateDay(hour.day, 'close_time', e.target.value)}
-                            className="w-full rounded-xl border border-slate-100 bg-white px-4 py-2.5 text-center text-xs font-black text-indigo-600 shadow-sm outline-none transition-all focus:border-indigo-500 focus:bg-white sm:w-28 sm:bg-slate-50 sm:shadow-inner"
+                            className="w-full rounded-xl border border-slate-100 bg-white px-4 py-2.5 text-center text-xs font-black text-venue-600 shadow-sm outline-none transition-all focus:border-venue-500 focus:bg-white sm:w-28 sm:bg-slate-50 sm:shadow-inner"
                           />
                         </div>
                       </div>
@@ -577,7 +571,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                         onClick={() => toggleAmenity(amenity.label)}
                         className="group flex w-full items-center gap-4 rounded-2xl border border-slate-50 bg-white p-4 transition-all hover:border-slate-200"
                       >
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-indigo-500 transition-colors group-hover:bg-slate-100">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-venue-500 transition-colors group-hover:bg-slate-100">
                           {amenity.icon}
                         </div>
                         <div className="min-w-0 flex-1 text-left">
@@ -587,7 +581,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
                         </div>
 
                         <div
-                          className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all ${active ? 'border-indigo-600 bg-indigo-600 shadow-md shadow-indigo-100' : 'border-slate-200 bg-transparent'}`}
+                          className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition-all ${active ? 'border-venue-600 bg-venue-600 shadow-md shadow-venue-100' : 'border-slate-200 bg-transparent'}`}
                         >
                           {active && <span className="text-xs font-black text-white">✓</span>}
                         </div>

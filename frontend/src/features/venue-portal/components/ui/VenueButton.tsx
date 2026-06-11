@@ -20,11 +20,11 @@ export const VenueButton: React.FC<VenueButtonProps> = ({
     'inline-flex items-center justify-center gap-2 font-bold transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl'
 
   const variants = {
-    primary: 'bg-indigo-600 text-white shadow-sm shadow-indigo-100 hover:bg-indigo-700',
+    primary: 'bg-venue-600 text-white shadow-sm shadow-venue-100 hover:bg-venue-700',
     secondary: 'bg-slate-900 text-white hover:bg-slate-800',
     danger: 'bg-red-50 text-red-600 border border-red-100 hover:bg-red-100',
     ghost: 'bg-transparent text-slate-500 hover:bg-slate-100',
-    outline: 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-100 hover:text-indigo-600',
+    outline: 'bg-white border border-slate-200 text-slate-600 hover:border-venue-100 hover:text-venue-600',
     success: 'bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100',
   }
 
