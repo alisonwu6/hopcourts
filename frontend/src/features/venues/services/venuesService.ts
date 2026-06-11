@@ -32,6 +32,7 @@ export interface ApiVenue {
   active_sessions_count: number
   today_sessions_count: number
   sport_keys: string[]
+  has_pending_claim: boolean
   created_at: string
 }
 

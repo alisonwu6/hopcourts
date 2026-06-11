@@ -85,7 +85,7 @@ async function getVenueById(id, userId = null) {
     WHERE v.id = $1
       AND v.status <> 'suspended'
   `
-  const { rows } = await query(sql, [id])
+  const { rows } = await query(sql, [id, userId])
   return rows[0]
 }
 

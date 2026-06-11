@@ -72,8 +72,8 @@ async function listVenues(params) {
   return venuesModel.listVenues(params)
 }
 
-async function getVenue(id) {
-  return venuesModel.getVenueById(id)
+async function getVenue(id, userId = null) {
+  return venuesModel.getVenueById(id, userId)
 }
 
 async function requestVenueClaim(venueId, userId, claimData) {
