@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { ShieldX } from 'lucide-react'
 import { venuePortalService, ManagedVenue, VenueDashboardData } from '../services/venuePortalService'
 import { VenueDashboardView } from '../views/VenueDashboardView'
 
@@ -7,6 +8,7 @@ export function VenueDashboardPage() {
   const { venueId } = useParams<{ venueId?: string }>()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
+  const [unauthorized, setUnauthorized] = useState(false)
   const [venues, setVenues] = useState<ManagedVenue[]>([])
   const [dashboardData, setDashboardData] = useState<VenueDashboardData | null>(null)
 
@@ -16,6 +18,11 @@ export function VenueDashboardPage() {
 
   useEffect(() => {
     if (venueId && venues.length > 0) {
+      const owned = venues.some((v) => v.id === venueId)
+      if (!owned) {
+        setUnauthorized(true)
+        return
+      }
       fetchVenueStats(venueId)
     }
   }, [venueId, venues])
@@ -91,6 +98,28 @@ export function VenueDashboardPage() {
 
   const handleSetVenueId = (id: string) => {
     navigate(`/admin/${id}`)
+  }
+
+  if (unauthorized) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-6 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
+          <ShieldX className="h-7 w-7 text-red-400" />
+        </div>
+        <h1 className="text-base font-black uppercase tracking-widest text-slate-800">
+          Access Denied
+        </h1>
+        <p className="max-w-xs text-sm text-slate-500">
+          You don't have permission to manage this venue.
+        </p>
+        <button
+          onClick={() => navigate('/', { replace: true })}
+          className="mt-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white"
+        >
+          Go Home
+        </button>
+      </div>
+    )
   }
 
   return (
