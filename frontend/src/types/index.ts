@@ -21,6 +21,7 @@ export interface User {
   teammateCount: number
   gender?: 'male' | 'female' | null
 
+  role?: string[]
   onboarding_completed_at?: Date | string | null
   createdAt: Date
   updatedAt: Date

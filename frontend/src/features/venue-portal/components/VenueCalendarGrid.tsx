@@ -51,7 +51,7 @@ export const VenueCalendarGrid: React.FC<CalendarGridProps> = ({
             </button>
             <button
               onClick={() => setCurrentMonth(new Date())}
-              className="px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-500 transition-colors hover:text-indigo-600"
+              className="px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-500 transition-colors hover:text-venue-600"
             >
               Today
             </button>
@@ -66,7 +66,7 @@ export const VenueCalendarGrid: React.FC<CalendarGridProps> = ({
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsCompact(!isCompact)}
-            className={`rounded-lg border px-3 py-1 text-[9px] font-black uppercase tracking-widest transition-all ${isCompact ? 'border-indigo-100 bg-indigo-50 text-indigo-600' : 'border-slate-100 bg-white text-slate-400 hover:text-slate-600'}`}
+            className={`rounded-lg border px-3 py-1 text-[9px] font-black uppercase tracking-widest transition-all ${isCompact ? 'border-venue-100 bg-venue-50 text-venue-600' : 'border-slate-100 bg-white text-slate-400 hover:text-slate-600'}`}
           >
             {isCompact ? 'Standard' : 'Compact'}
           </button>
@@ -103,7 +103,7 @@ export const VenueCalendarGrid: React.FC<CalendarGridProps> = ({
               >
                 <div className="mb-2 flex items-center justify-center">
                   <span
-                    className={`${isCompact ? 'h-5 w-5 text-[9px]' : 'h-7 w-7 text-xs'} flex items-center justify-center rounded-xl font-black transition-all ${is_Today ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : is_CurrentMonth ? 'border border-slate-100 text-slate-900' : 'text-slate-200'}`}
+                    className={`${isCompact ? 'h-5 w-5 text-[9px]' : 'h-7 w-7 text-xs'} flex items-center justify-center rounded-xl font-black transition-all ${is_Today ? 'bg-venue-600 text-white shadow-lg shadow-venue-200' : is_CurrentMonth ? 'border border-slate-100 text-slate-900' : 'text-slate-200'}`}
                   >
                     {format(day, 'd')}
                   </span>
@@ -118,7 +118,7 @@ export const VenueCalendarGrid: React.FC<CalendarGridProps> = ({
                       <div
                         key={session.id}
                         onClick={() => setSelectedSession(session)}
-                        className={`group cursor-pointer rounded-xl border p-1.5 shadow-sm transition-all hover:scale-[1.02] ${isCancelled ? 'border-slate-100 bg-slate-50 opacity-50 grayscale' : isCompleted ? 'border-slate-200/50 bg-slate-100/50' : 'border-slate-100 bg-white hover:border-indigo-100 hover:shadow-md hover:shadow-indigo-50'}`}
+                        className={`group cursor-pointer rounded-xl border p-1.5 shadow-sm transition-all hover:scale-[1.02] ${isCancelled ? 'border-slate-100 bg-slate-50 opacity-50 grayscale' : isCompleted ? 'border-slate-200/50 bg-slate-100/50' : 'border-slate-100 bg-white hover:border-venue-100 hover:shadow-md hover:shadow-venue-50'}`}
                       >
                         <div className="flex items-center justify-between gap-1 overflow-hidden">
                           <div className="truncate text-[9px] font-black uppercase leading-none tracking-tight text-slate-800">
@@ -129,7 +129,7 @@ export const VenueCalendarGrid: React.FC<CalendarGridProps> = ({
                           )}
                         </div>
                         <div className="mt-1 flex items-baseline justify-between">
-                          <div className="text-[8px] font-black uppercase tabular-nums text-slate-400 transition-colors group-hover:text-indigo-500">
+                          <div className="text-[8px] font-black uppercase tabular-nums text-slate-400 transition-colors group-hover:text-venue-500">
                             {session.start_time}
                           </div>
                           {!isCancelled && !isCompact && (

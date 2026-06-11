@@ -80,12 +80,12 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
               disabled={isDisabled}
               className={clsx(
                 'flex flex-col items-center gap-1 rounded-md px-2 text-[10px] font-medium transition-colors',
-                isActive ? 'text-[oklch(0.511_0.262_276.966)]' : 'text-slate-500',
+                isActive ? 'text-venue-500' : 'text-slate-500',
                 isDisabled && 'cursor-not-allowed opacity-50'
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon className={clsx('h-6 w-6', isActive ? 'text-[oklch(0.511_0.262_276.966)]' : 'text-slate-400')} />
+              <Icon className={clsx('h-6 w-6', isActive ? 'text-venue-500' : 'text-slate-400')} />
               <span className="text-[11px] sm:text-xs">{label}</span>
             </button>
           )

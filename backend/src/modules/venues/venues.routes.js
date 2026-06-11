@@ -4,6 +4,12 @@ const { verifyToken } = require('../../middleware/verifyToken')
 
 const router = express.Router()
 
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || ''
+  if (!header.startsWith('Bearer ')) return next()
+  verifyToken(req, res, next)
+}
+
 // GET /venues - List venues
 router.get('/', async (req, res, next) => {
   try {
@@ -22,9 +28,10 @@ router.get('/', async (req, res, next) => {
 })
 
 // GET /venues/:id - Get single venue details (Entry point for Claim)
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', optionalAuth, async (req, res, next) => {
   try {
-    const venue = await venuesService.getVenue(req.params.id)
+    const userId = req.userId || req.authUser?.id || req.user?.id || null
+    const venue = await venuesService.getVenue(req.params.id, userId)
     if (!venue) {
       return res.status(404).json({ success: false, error: 'Venue not found' })
     }

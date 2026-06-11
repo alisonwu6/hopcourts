@@ -25,7 +25,7 @@ export function VenueDashboardView({
   if (loading && venues.length === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 pb-20">
-        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
+        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-venue-500 border-t-transparent"></div>
         <div className="text-sm font-medium text-slate-500">Loading your venue...</div>
       </div>
     )
@@ -69,7 +69,7 @@ export function VenueDashboardView({
         leftAction={
           <button
             onClick={() => navigate('/profile')}
-            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-indigo-500"
+            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-venue-500"
           >
             <PersonStanding className="h-5 w-5" /> Me
           </button>
@@ -77,7 +77,7 @@ export function VenueDashboardView({
         rightAction={
           <button
             onClick={() => dashboardData && window.open(`/venues/${dashboardData.venue.id}`, '_blank')}
-            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-indigo-500"
+            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-venue-500"
           >
             <Building2 className="h-5 w-5" />
             Public ↗
@@ -91,7 +91,7 @@ export function VenueDashboardView({
             {/* Main Insights Header */}
             <div className="mt-2 flex items-center justify-between px-1">
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Venue Insights</h2>
-              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-black uppercase text-indigo-500">
+              <span className="rounded-full bg-venue-50 px-2 py-0.5 text-[9px] font-black uppercase text-venue-500">
                 Last 7 Days
               </span>
             </div>
@@ -111,9 +111,9 @@ export function VenueDashboardView({
 
               <div className="group relative flex flex-col items-start overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
                 <div className="absolute right-0 top-0 p-3 opacity-10 transition-opacity group-hover:opacity-20">
-                  <Building2 className="h-8 w-8 text-indigo-600" />
+                  <Building2 className="h-8 w-8 text-venue-600" />
                 </div>
-                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-indigo-600">
+                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-venue-600">
                   {dashboardData.stats.players_played_here}
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Players</div>
@@ -132,9 +132,9 @@ export function VenueDashboardView({
 
               <div className="group relative flex flex-col items-start overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
                 <div className="absolute right-0 top-0 p-3 opacity-10 transition-opacity group-hover:opacity-20">
-                  <Users className="h-8 w-8 text-purple-600" />
+                  <Users className="h-8 w-8 text-venue-600" />
                 </div>
-                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-purple-600">
+                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-venue-600">
                   {dashboardData.stats.participants_this_week}
                 </div>
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Players Weekly</div>
@@ -143,7 +143,7 @@ export function VenueDashboardView({
           </div>
         ) : (
           <div className="mt-4 flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-slate-200 bg-white p-12">
-            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-purple-400"></div>
+            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-venue-400"></div>
             <p className="text-center text-sm font-black uppercase tracking-widest text-slate-400">
               Preparing dashboard
             </p>

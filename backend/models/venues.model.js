@@ -47,7 +47,7 @@ async function findNearbyVenues({ lat, lng, radiusMeters = 100 }) {
   return rows
 }
 
-async function getVenueById(id) {
+async function getVenueById(id, userId = null) {
   const sql = `
     SELECT v.*,
       COALESCE(v.name_display, v.name) as name_display,
@@ -57,16 +57,35 @@ async function getVenueById(id) {
       vp.opening_hours,
       vp.amenities,
       vp.spaces,
-      (SELECT COUNT(*)::int FROM public.sessions s 
-       WHERE s.venue_id = v.id 
-         AND s.ends_at > NOW() 
-         AND s.status = 'published') as active_sessions_count
+      CASE WHEN $2::uuid IS NOT NULL THEN
+        EXISTS (
+          SELECT 1 FROM public.venue_claims vc
+          WHERE vc.venue_id = v.id
+            AND vc.owner_id = $2::uuid
+            AND vc.status = 'pending'
+        )
+      ELSE false END as has_pending_claim,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at > NOW()
+         AND s.status = 'published') as active_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.starts_at::date = CURRENT_DATE
+         AND s.status = 'published') as today_sessions_count,
+      COALESCE((
+        SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
+        FROM public.sessions s
+        WHERE s.venue_id = v.id
+          AND s.ends_at > NOW()
+          AND s.status = 'published'
+      ), '{}') as sport_keys
     FROM public.venues v
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     WHERE v.id = $1
       AND v.status <> 'suspended'
   `
-  const { rows } = await query(sql, [id])
+  const { rows } = await query(sql, [id, userId])
   return rows[0]
 }
 
@@ -98,14 +117,25 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
       COALESCE(v.name_display, v.name) as name_display,
       v.address as address_display,
       COALESCE(vp.logo_url, v.logo_url) as logo_url,
-      (SELECT COUNT(*)::int FROM public.sessions s 
-       WHERE s.venue_id = v.id 
-         AND s.ends_at > NOW() 
-         AND s.status = 'published') as active_sessions_count
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at > NOW()
+         AND s.status = 'published') as active_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.starts_at::date = CURRENT_DATE
+         AND s.status = 'published') as today_sessions_count,
+      COALESCE((
+        SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
+        FROM public.sessions s
+        WHERE s.venue_id = v.id
+          AND s.ends_at > NOW()
+          AND s.status = 'published'
+      ), '{}') as sport_keys
     FROM public.venues v
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     ${whereClause}
-    ORDER BY v.created_at DESC
+    ORDER BY active_sessions_count DESC, v.created_at DESC
     LIMIT $${params.length + 1} OFFSET $${params.length + 2}
   `
   

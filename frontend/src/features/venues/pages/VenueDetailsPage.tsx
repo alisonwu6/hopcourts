@@ -117,6 +117,7 @@ export function VenueDetailsPage() {
     setIsClaimSheetOpen(false)
     setClaimForm(EMPTY_CLAIM_FORM)
     setClaimError('')
+    setVenue((v) => v ? { ...v, has_pending_claim: true } : v)
     setClaimDialog({
       open: true,
       type: 'success',

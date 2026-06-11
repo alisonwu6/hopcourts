@@ -17,7 +17,7 @@ export const VenuePortalHeader: React.FC<VenuePortalHeaderProps> = ({ title, sub
       <div className="flex-1 px-2 text-center font-sans">
         <h1 className="mb-0.5 text-base font-black uppercase leading-none tracking-tight text-slate-900">{title}</h1>
         {subtitle && (
-          <p className="mt-0.5 truncate text-[11px] font-black uppercase leading-tight tracking-widest text-indigo-500">
+          <p className="mt-0.5 truncate text-[11px] font-black uppercase leading-tight tracking-widest text-venue-500">
             {subtitle}
           </p>
         )}

@@ -20,7 +20,7 @@ export const VenueBadge: React.FC<VenueBadgeProps> = ({
     published: 'bg-emerald-50 text-emerald-600 border-emerald-100',
     amber: 'bg-amber-50 text-amber-600 border-amber-100',
     red: 'bg-red-50 text-red-600 border-red-100',
-    indigo: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    indigo: 'bg-venue-50 text-venue-600 border-venue-100',
     slate: 'bg-slate-50 text-slate-400 border-slate-100',
     draft: 'bg-slate-50 text-slate-400 border-slate-100',
     default: 'bg-white text-slate-500 border-slate-200',

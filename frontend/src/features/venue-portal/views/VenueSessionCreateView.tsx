@@ -57,7 +57,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
             form="create-event-form"
             type="submit"
             disabled={loading}
-            className="text-[10px] font-black uppercase tracking-widest text-indigo-500 transition-opacity hover:opacity-70 disabled:opacity-30"
+            className="text-[10px] font-black uppercase tracking-widest text-venue-500 transition-opacity hover:opacity-70 disabled:opacity-30"
           >
             {loading ? 'Publishing...' : 'Publish'}
           </button>
@@ -87,7 +87,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                     type="text"
                     required
                     placeholder="e.g. Friday midnight open play"
-                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   />
@@ -98,7 +98,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                       Sport
                     </label>
                     <select
-                      className="w-full appearance-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                      className="w-full appearance-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                       value={formData.sportKey}
                       onChange={(e) => setFormData({ ...formData, sportKey: e.target.value })}
                     >
@@ -117,7 +117,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                       Spot / Court
                     </label>
                     <select
-                      className="w-full appearance-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                      className="w-full appearance-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                       value={formData.court_id}
                       onChange={(e) => setFormData({ ...formData, court_id: e.target.value })}
                     >
@@ -142,7 +142,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                       type="number"
                       min="1"
                       max="100"
-                      className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                      className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                       value={formData.maxPeople}
                       onChange={(e) => setFormData({ ...formData, maxPeople: Number(e.target.value) || 0 })}
                     />
@@ -155,7 +155,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                       type="number"
                       min="1"
                       max="100"
-                      className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                      className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                       value={formData.minPeople}
                       onChange={(e) => setFormData({ ...formData, minPeople: Number(e.target.value) || 0 })}
                     />
@@ -174,7 +174,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                           key={level.value}
                           type="button"
                           onClick={() => setFormData({ ...formData, skillLevel: level.value })}
-                          className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${active ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                          className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${active ? 'bg-venue-600 text-white shadow-sm shadow-venue-200' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
                         >
                           {level.label}
                         </button>
@@ -195,7 +195,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                           key={gender.value}
                           type="button"
                           onClick={() => setFormData({ ...formData, genderRule: gender.value })}
-                          className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${active ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                          className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${active ? 'bg-venue-600 text-white shadow-sm shadow-venue-200' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
                         >
                           {gender.label}
                         </button>
@@ -217,7 +217,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                   <input
                     type="date"
                     required
-                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   />
@@ -229,7 +229,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                   <input
                     type="time"
                     required
-                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                     value={formData.startTime}
                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                   />
@@ -241,7 +241,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                   <input
                     type="time"
                     required
-                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                    className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                     value={formData.endTime}
                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                   />
@@ -260,7 +260,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                     type="checkbox"
                     checked={formData.isFree}
                     onChange={(e) => setFormData({ ...formData, isFree: e.target.checked })}
-                    className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-5 w-5 rounded border-slate-300 text-venue-600 focus:ring-venue-500"
                   />
                   <label
                     htmlFor="venue-is-free-checkbox"
@@ -277,14 +277,14 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, priceMode: 'total' })}
-                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${formData.priceMode === 'total' ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${formData.priceMode === 'total' ? 'bg-white text-venue-600 shadow-sm ring-1 ring-venue-600' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                           Total Cost
                         </button>
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, priceMode: 'person' })}
-                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${formData.priceMode === 'person' ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
+                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${formData.priceMode === 'person' ? 'bg-white text-venue-600 shadow-sm ring-1 ring-venue-600' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                           Per Person
                         </button>
@@ -304,7 +304,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                         type="number"
                         min="0"
                         placeholder={formData.priceMode === 'total' ? 'e.g. 2000' : 'e.g. 200'}
-                        className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                        className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                         value={formData.pricePerPerson}
                         onChange={(e) => setFormData({ ...formData, pricePerPerson: Number(e.target.value) || 0 })}
                       />
@@ -317,7 +317,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                       <textarea
                         rows={3}
                         placeholder="e.g. on-site payment"
-                        className="w-full resize-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                        className="w-full resize-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                         value={formData.feeNotes}
                         onChange={(e) => setFormData({ ...formData, feeNotes: e.target.value })}
                       />
@@ -336,7 +336,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
                 <textarea
                   rows={4}
                   placeholder="e.g. Shuttlecocks provided, intermediate players only..."
-                  className="w-full resize-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+                  className="w-full resize-none rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-inner outline-none transition-all focus:border-venue-500 focus:bg-white focus:ring-4 focus:ring-venue-500/10"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
