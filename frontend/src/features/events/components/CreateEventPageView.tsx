@@ -405,6 +405,9 @@ export function CreateEventPageView({
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    <div>
                       <span className="text-xs text-slate-400">
                         {costMode === 'total'
                           ? 'Per-person cost is estimated from total capacity.'

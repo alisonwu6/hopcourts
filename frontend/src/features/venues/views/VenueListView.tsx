@@ -1,6 +1,6 @@
-import { Search, Map as MapIcon, List as ListIcon, X, Building2 } from 'lucide-react'
-import clsx from 'clsx'
-import { EventMap } from '@/features/events/components/EventMap'
+import { Search, List as ListIcon, Map as MapIcon, X, Building2 } from 'lucide-react'
+import { VenueMap } from '../components/VenueMap'
+import { VenueMapFilters, VenueMapFilterType } from '../components/VenueMapFilters'
 import { ApiVenue } from '../services/venuesService'
 import { VenueCard } from '../components/VenueCard'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
@@ -13,12 +13,14 @@ interface VenueListViewProps {
   showMap: boolean
   onToggleView: () => void
   onVenueClick: (id: string) => void
-  // Map props
-  mapMarkers: any[]
-  sportsCatalog: any[]
+  // Map-specific
+  mapVenues: ApiVenue[]
   selectedVenueId: string | null
-  onSelectMarker: (id: string | null) => void
-  // Pagination
+  onSelectVenue: (id: string | null) => void
+  // Filters (map mode only)
+  activeFilter: VenueMapFilterType
+  onFilterChange: (filter: VenueMapFilterType) => void
+  // Pagination (list mode only)
   hasMore: boolean
   loadingMore: boolean
   onLoadMore: () => void
@@ -32,30 +34,27 @@ export function VenueListView({
   showMap,
   onToggleView,
   onVenueClick,
-  mapMarkers,
-  sportsCatalog,
+  mapVenues,
   selectedVenueId,
-  onSelectMarker,
+  onSelectVenue,
+  activeFilter,
+  onFilterChange,
   hasMore,
   loadingMore,
   onLoadMore,
 }: VenueListViewProps) {
   const sentinelRef = useInfiniteScroll(onLoadMore, hasMore && !loadingMore)
+
   return (
     <div className="relative min-h-screen bg-white">
-      {/* Top Search Bar & Toggle (Floating) */}
-      <div
-        className={clsx(
-          'fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md p-4 transition-all duration-300',
-          showMap ? 'pointer-events-none' : 'pointer-events-auto bg-white/95 backdrop-blur'
-        )}
-      >
-        <div className="flex w-full items-center gap-3">
-          {/* Real Input Search */}
+      <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md p-4 pointer-events-none">
+        {!showMap && <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur" />}
+
+        <div className="relative z-10 flex w-full items-center gap-3">
           <div className="pointer-events-auto relative flex-1">
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
               <Search
-                className={clsx('h-5 w-5 transition-colors', searchQuery ? 'text-indigo-600' : 'text-slate-400')}
+                className={`h-5 w-5 transition-colors ${searchQuery ? 'text-indigo-600' : 'text-slate-400'}`}
                 strokeWidth={2.5}
               />
             </div>
@@ -79,7 +78,6 @@ export function VenueListView({
             )}
           </div>
 
-          {/* View Toggle */}
           <button
             onClick={onToggleView}
             className="pointer-events-auto flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-95"
@@ -87,21 +85,25 @@ export function VenueListView({
             {showMap ? <ListIcon className="h-6 w-6 text-slate-700" /> : <MapIcon className="h-6 w-6 text-slate-700" />}
           </button>
         </div>
+
+        <div className="pointer-events-auto relative z-10 mt-2">
+          <VenueMapFilters
+            activeFilter={activeFilter}
+            onFilterChange={onFilterChange}
+          />
+        </div>
       </div>
 
-      {/* Content Area */}
       {showMap ? (
         <div className="h-screen w-full">
-          <EventMap
-            events={mapMarkers}
-            sports={sportsCatalog}
-            mode="venues"
-            selectedEventId={selectedVenueId}
-            onSelectEvent={(e) => onSelectMarker(e?.id || null)}
+          <VenueMap
+            venues={mapVenues}
+            selectedVenueId={selectedVenueId}
+            onSelectVenue={onSelectVenue}
           />
         </div>
       ) : (
-        <div className="mx-auto max-w-md px-4 pb-[100px] pt-24">
+        <div className="mx-auto max-w-md px-4 pb-[100px] pt-36">
           {venues.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
               <div className="p-2">
@@ -111,9 +113,7 @@ export function VenueListView({
                 {searchQuery ? 'No venues found' : 'No venues yet'}
               </h3>
               <p className="mt-1 px-10 text-sm text-slate-500">
-                {searchQuery
-                  ? 'Try a different name or address.'
-                  : 'Venues in your area will appear here.'}
+                {searchQuery ? 'Try a different name or address.' : 'Venues in your area will appear here.'}
               </p>
             </div>
           ) : (
@@ -125,7 +125,10 @@ export function VenueListView({
                   onClick={onVenueClick}
                 />
               ))}
-              <div ref={sentinelRef} className="h-4" />
+              <div
+                ref={sentinelRef}
+                className="h-4"
+              />
               {loadingMore && (
                 <div className="flex justify-center py-4">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
