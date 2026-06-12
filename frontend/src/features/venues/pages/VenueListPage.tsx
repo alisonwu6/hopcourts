@@ -1,31 +1,11 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useSports } from '@/features/dictionaries/hooks'
 import { PageLoading } from '@/components/PageLoading'
 import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
 import { VenueListView } from '../views/VenueListView'
+import { VenueMapFilterType } from '../components/VenueMapFilters'
 
 const PAGE_SIZE = 50
-
-// Adapter to make ApiVenue compatible with EventMap logic
-const mapVenueToEventStub = (venue: ApiVenue): any => ({
-  id: `venue-${venue.id}`,
-  venueId: venue.id,
-  title: venue.name_display,
-  sport: 'VENUE',
-  startTime: new Date(),
-  heroImageUrl: venue.logo_url,
-  location: {
-    name: venue.name_display,
-    address: venue.address_display,
-    lat: Number(venue.lat),
-    lng: Number(venue.lng),
-    status: venue.status,
-    logo_url: venue.logo_url,
-  },
-  status: venue.status,
-  activeSessionsCount: venue.active_sessions_count,
-})
 
 export function VenueListPage() {
   const navigate = useNavigate()
@@ -37,22 +17,10 @@ export function VenueListPage() {
   const [offset, setOffset] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null)
-  const { items: sportsCatalog } = useSports('en')
+  const [activeFilter, setActiveFilter] = useState<VenueMapFilterType>('all')
 
-  // Dynamic filtering based on search query
-  const filteredVenues = useMemo(() => {
-    if (!searchQuery.trim()) return venues
-    const q = searchQuery.toLowerCase()
-    return venues.filter((v) => v.name_display.toLowerCase().includes(q) || v.address_display.toLowerCase().includes(q))
-  }, [venues, searchQuery])
-
-  // Adapting venues for the map
-  const venueMarkers = useMemo(() => {
-    return filteredVenues.map(mapVenueToEventStub)
-  }, [filteredVenues])
-
-  // Toggle handlers
   const isMapView = searchParams.get('view') === 'map'
+
   const handleToggleView = () => {
     setSearchParams(
       (prev) => {
@@ -93,6 +61,19 @@ export function VenueListPage() {
     }
   }, [offset, loadingMore])
 
+  const filteredVenues = useMemo(() => {
+    let result = venues
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter(
+        (v) => v.name_display.toLowerCase().includes(q) || v.address_display.toLowerCase().includes(q)
+      )
+    }
+    if (activeFilter === 'official') return result.filter((v) => v.status === 'claimed')
+    if (activeFilter === 'has_events') return result.filter((v) => v.active_sessions_count > 0)
+    return result
+  }, [venues, searchQuery, activeFilter])
+
   if (isLoading && venues.length === 0) {
     return <PageLoading />
   }
@@ -106,10 +87,11 @@ export function VenueListPage() {
       showMap={isMapView}
       onToggleView={handleToggleView}
       onVenueClick={(id) => navigate(`/venues/${id}`)}
-      mapMarkers={venueMarkers}
-      sportsCatalog={sportsCatalog}
+      mapVenues={filteredVenues}
       selectedVenueId={selectedVenueId}
-      onSelectMarker={setSelectedVenueId}
+      onSelectVenue={setSelectedVenueId}
+      activeFilter={activeFilter}
+      onFilterChange={setActiveFilter}
       hasMore={hasMore && !searchQuery}
       loadingMore={loadingMore}
       onLoadMore={loadMoreVenues}
