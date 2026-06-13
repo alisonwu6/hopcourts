@@ -417,7 +417,7 @@ export function CreateEventPageView({
 
                     <div ref={setFieldRef('price')}>
                       <FloatingField
-                        label={costMode === 'total' ? 'Total Cost (TWD)' : 'Per Person (TWD)'}
+                        label={costMode === 'total' ? 'Total Cost (AUD)' : 'Per Person (AUD)'}
                         name="price"
                         type="number"
                         min={0}

@@ -33,7 +33,7 @@ import { PageLoading } from '@/components/PageLoading'
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuthStore()
-  if (isLoading) return null
+  if (isLoading) return <PageLoading />
   if (!isAuthenticated)
     return (
       <Navigate

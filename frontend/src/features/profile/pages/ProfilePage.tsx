@@ -757,13 +757,21 @@ export function ProfilePage() {
       const constraint = errorData.details?.constraint || ''
 
       if (status === 409) {
-        if (constraint.includes('username')) {
-          alert('Username already taken. Please choose another.')
-        } else {
-          alert('Save failed due to a conflict. Please check your input.')
-        }
+        setAlertDialog({
+          open: true,
+          title: 'Save failed',
+          description: constraint.includes('username')
+            ? 'Username already taken. Please choose another.'
+            : 'Save failed due to a conflict. Please check your input.',
+          type: 'error',
+        })
       } else {
-        alert('Save failed. Please try again.')
+        setAlertDialog({
+          open: true,
+          title: 'Save failed',
+          description: 'Something went wrong. Please try again.',
+          type: 'error',
+        })
       }
     } finally {
       setIsSavingProfile(false)
