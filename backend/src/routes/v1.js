@@ -11,6 +11,7 @@ const { venuePortalRouter } = require('./v1/venuePortal.routes')
 const { feedbackRouter } = require('../modules/feedback/feedback.routes')
 const { notificationsRouter } = require('./v1/notifications.routes')
 const { bookmarksRouter } = require('../modules/bookmarks/bookmarks.routes')
+const { pushRouter } = require('./v1/push.routes')
 
 const router = express.Router()
 
@@ -26,5 +27,6 @@ router.use('/admin', adminRouter)
 router.use('/feedback', feedbackRouter)
 router.use('/notifications', notificationsRouter)
 router.use('/', bookmarksRouter)
+router.use('/push', pushRouter)
 
 module.exports = { v1Router: router }

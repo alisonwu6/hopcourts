@@ -4,6 +4,7 @@ import logo from '@/assets/main-logo.png'
 import { Sparkles, ArrowRight, MessageSquareOff, Clock, Coins, Users } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
+import { PushNotificationBanner } from '@/components/PushNotificationBanner'
 
 export function HomePage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
@@ -32,6 +33,7 @@ export function HomePage() {
           />
         </div>
 
+        <PushNotificationBanner />
         <main className="flex flex-col">
           {/* Badge & Headlines */}
           <header className="flex flex-col items-center gap-4 text-center">

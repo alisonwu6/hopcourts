@@ -3,6 +3,7 @@ import { useAuthStore } from '@/hooks'
 import { supabase } from '@/lib/supabase'
 import { setOnUnauthorized } from '@/api/http'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { registerServiceWorker } from '@/services/pushService'
 
 // Wrap global providers here (AuthProvider, ToastProvider, QueryClientProvider, etc.)
 export function AppProviders({ children }: PropsWithChildren) {
@@ -21,6 +22,7 @@ export function AppProviders({ children }: PropsWithChildren) {
   }, [location.pathname, isAuthenticated])
 
   useEffect(() => {
+    void registerServiceWorker()
     hydrate()
 
     // Handle 401 from backend API

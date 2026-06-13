@@ -1,9 +1,64 @@
-import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck } from 'lucide-react'
+import { useState } from 'react'
+import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, List, CalendarDays } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EventCard } from '@/features/events/components/EventCard'
+import { CalendarView } from '@/features/profile/components/ProfileEventsPanel'
 import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton'
 import { ApiVenue } from '../services/venuesService'
 import { getSportColor, getSportLabel } from '@/constants/sportTokens'
+import { useSports } from '@/features/dictionaries/hooks'
+import type { PlayerEvent } from '@/types'
+
+function groupEventsByDate(events: any[]) {
+  const formatter = new Intl.DateTimeFormat('en-AU', { weekday: 'short', month: 'short', day: 'numeric' })
+  const today = new Date()
+  const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+  const map = new Map<string, any[]>()
+  events.forEach((event) => {
+    const date = new Date(event.startTime ?? event.starts_at)
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+    const base = formatter.format(date)
+    const label = dateKey === todayKey ? `Today · ${base}` : base
+    map.set(label, [...(map.get(label) ?? []), event])
+  })
+  return Array.from(map.entries())
+}
+
+function getEventDotStyle(event: any) {
+  const now = new Date()
+  const start = new Date(event.startTime ?? event.starts_at)
+  const end = new Date(event.endTime ?? event.ends_at ?? start)
+  const openMins = event.checkinOpenMinsBefore ?? 15
+  const checkInStart = new Date(start.getTime() - openMins * 60000)
+  if (now >= start && now <= end) return 'scale-125 bg-amber-500 ring-amber-300'
+  if (now >= checkInStart && now < start) return 'scale-125 bg-emerald-500 ring-emerald-300'
+  return 'bg-slate-200 ring-slate-200'
+}
+
+function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; onViewDetails: (id: string) => void }) {
+  return (
+    <div className="space-y-8">
+      {groups.map(([dateLabel, events]) => (
+        <div key={dateLabel}>
+          <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
+          <div className="relative ml-3 space-y-6 border-l border-slate-200 pb-2">
+            {events.map((event) => (
+              <div key={event.id} className="relative pl-6">
+                <span className={`absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full border-2 border-white ring-1 ${getEventDotStyle(event)}`} />
+                <EventCard
+                  event={event}
+                  sportLabel={getSportLabel(event.sport)}
+                  onViewDetails={onViewDetails}
+                  disableVenueHostNavigation
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 interface VenueDetailsViewProps {
   venue: ApiVenue
@@ -24,9 +79,12 @@ export function VenueDetailsView({
   isClaiming,
   onViewSessionDetails,
 }: VenueDetailsViewProps) {
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+  const { items: sportsCatalog } = useSports('en')
   const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
   const todayCount = (venue as any).today_sessions_count ?? 0
   const upcomingCount = venue.active_sessions_count ?? 0
+  const typedEvents = upcomingEvents as PlayerEvent[]
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20 text-slate-900">
@@ -208,23 +266,43 @@ export function VenueDetailsView({
       <div className="px-4 py-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight text-slate-900">Upcoming events</h2>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            {upcomingEvents.length} events
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              {upcomingEvents.length} events
+            </span>
+            <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('calendar')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+              >
+                <CalendarDays className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {upcomingEvents.length > 0 ? (
-          <div className="space-y-4">
-            {upcomingEvents.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                sportLabel={getSportLabel(event.sport)}
-                onViewDetails={onViewSessionDetails}
-                disableVenueHostNavigation
-              />
-            ))}
-          </div>
+        {typedEvents.length > 0 ? (
+          viewMode === 'list' ? (
+            <TimelineGroups
+              groups={groupEventsByDate(upcomingEvents)}
+              onViewDetails={onViewSessionDetails}
+            />
+          ) : (
+            <CalendarView
+              events={typedEvents}
+              sportsCatalog={sportsCatalog}
+              mode="hosted"
+              onExplore={undefined}
+            />
+          )
         ) : (
           <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white py-12 text-center">
             <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50">

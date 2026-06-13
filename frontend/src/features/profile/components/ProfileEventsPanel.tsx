@@ -20,99 +20,11 @@ import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
 import { eventsService } from '@/features/events/services/eventsService'
 import { EventCard } from '@/features/events/components/EventCard'
+import { EventTimeline, groupEventsByDate, type SportsItem } from '@/features/events/components/EventTimeline'
 import { Bike, BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
 
 type TabKey = 'upcoming' | 'history'
 type PanelMode = 'all' | 'hosted' | 'joined'
-type SportsItem = { key: string; label: string; icon?: string | null }
-type EventStatus = 'check-in-open' | 'ongoing' | null
-
-function groupByDate(events: PlayerEvent[]) {
-  const formatter = new Intl.DateTimeFormat('en-AU', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  })
-  const today = new Date()
-  const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
-  const map = new Map<string, PlayerEvent[]>()
-  events.forEach((event) => {
-    const date = event.startTime ? new Date(event.startTime) : new Date(event.updatedAt || Date.now())
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
-    const base = formatter.format(date)
-    const label = dateKey === todayKey ? `Today · ${base}` : base
-    map.set(label, [...(map.get(label) ?? []), event])
-  })
-  return Array.from(map.entries())
-}
-
-function getEventStatus(event: PlayerEvent): EventStatus {
-  const now = new Date()
-  const start = new Date(event.startTime)
-  const end = event.endTime ? new Date(event.endTime) : start
-
-  if (event.status === 'draft') return null
-
-  const openMins = event.checkinOpenMinsBefore ?? 15
-  const checkInStart = new Date(start.getTime() - openMins * 60000)
-  if (now >= start && now <= end) return 'ongoing'
-  if (now >= checkInStart && now < start) return 'check-in-open'
-  return null
-}
-
-function EventGroupList({
-  groups,
-  mode,
-  sportsCatalog,
-  emptyState,
-}: {
-  groups: Array<[string, PlayerEvent[]]>
-  mode: PanelMode
-  sportsCatalog: SportsItem[]
-  emptyState: React.ReactNode
-}) {
-  const navigate = useNavigate()
-  if (groups.length === 0) return emptyState
-
-  return (
-    <div className="space-y-8">
-      {groups.map(([dateLabel, groupedEvents]) => (
-        <div key={dateLabel}>
-          <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
-          <div className="relative ml-3 space-y-6 border-l border-slate-200 pb-2">
-            {groupedEvents.map((event) => {
-              const status = getEventStatus(event)
-              const sportItem = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
-              const sportLabel = sportItem?.label || event.sport
-              return (
-                <div
-                  key={event.id}
-                  className="relative pl-6"
-                >
-                  <span
-                    className={`absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full border-2 border-white ring-1 ${status === 'check-in-open' ? 'scale-125 bg-emerald-500 ring-emerald-300' : status === 'ongoing' ? 'scale-125 bg-amber-500 ring-amber-300' : 'bg-slate-200 ring-slate-200'}`}
-                  />
-                  <EventCard
-                    event={event}
-                    sportLabel={sportLabel}
-                    showStatus={mode === 'hosted' || event.status === 'cancelled'}
-                    onViewDetails={(id) => {
-                      if (mode === 'hosted' && event.status === 'draft') {
-                        navigate(`/create-event?id=${id}`)
-                      } else {
-                        navigate(`/event/${id}`)
-                      }
-                    }}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 function EmptyState({
   icon,
@@ -147,7 +59,7 @@ const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 type CalendarSpan = 'week' | 'month'
 
-function CalendarView({
+export function CalendarView({
   events,
   sportsCatalog,
   mode,
@@ -498,10 +410,10 @@ export function ProfileEventsPanel({
             onExplore={onExplore}
           />
         ) : (
-          <EventGroupList
-            groups={groupByDate(activeEvents)}
-            mode={mode === 'all' ? 'hosted' : mode}
+          <EventTimeline
+            events={activeEvents}
             sportsCatalog={sportsCatalog}
+            mode={mode === 'all' ? 'hosted' : mode}
             emptyState={
               <EmptyState
                 icon={<Bike className="h-8 w-8" />}
