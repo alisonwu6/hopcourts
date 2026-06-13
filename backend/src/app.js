@@ -38,6 +38,9 @@ const authLimiter = rateLimit({
 function createApp() {
   const app = express()
 
+  // Trust fly.io proxy so rate limiter uses real client IP, not the shared fly.io edge IP
+  app.set('trust proxy', 1)
+
   app.use(helmet())
 
   // Add version header
