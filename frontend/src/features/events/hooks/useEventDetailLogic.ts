@@ -137,16 +137,16 @@ export function useEventDetailLogic() {
       return
     }
     if (!event || !id) return
-    if (isHost && event.joined) {
+    if (isHost && isJoined) {
       showAlert('Host Required', 'As the organizer, you must be a participant of this event.', 'warning')
       return
     }
-    if (!event.joined && !user?.onboarding_completed_at) {
+    if (!isJoined && !user?.onboarding_completed_at) {
       setShowProfileRequired(true)
       return
     }
 
-    if (!event.joined && event.gender && event.gender !== 'mixed') {
+    if (!isJoined && event.gender && event.gender !== 'mixed') {
       const currentUser = useAuthStore.getState().user
       const userGender = currentUser?.gender
 
@@ -161,7 +161,7 @@ export function useEventDetailLogic() {
       }
     }
 
-    if (event.joined) {
+    if (isJoined) {
       setIsJoinSubmitting(true)
       try {
         await leaveEvent(id)

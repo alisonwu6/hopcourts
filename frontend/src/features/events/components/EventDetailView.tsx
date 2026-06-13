@@ -7,9 +7,9 @@ import {
   MapPin,
   MessageCircle,
   PersonStanding,
-  Trash2,
   LandPlot,
   LockKeyhole,
+  LockKeyholeOpen,
   Pencil,
   Share,
   Smile,
@@ -626,7 +626,10 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
           Processing...
         </span>
       ) : (
-        'Hop in'
+        <span className="flex items-center justify-center gap-2">
+          <LockKeyholeOpen className="h-4 w-4" />
+          Hop in
+        </span>
       )}
     </Button>
   )
@@ -761,9 +764,12 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
     mainButton = (
       <Button
         disabled
-        className="cursor-not-allowed bg-slate-300 text-slate-500 opacity-80"
+        className="cursor-not-allowed bg-blue-600 text-white"
       >
-        Fully booked
+        <span className="flex items-center justify-center gap-2">
+          <LockKeyhole className="h-4 w-4" />
+          Hop in (Full)
+        </span>
       </Button>
     )
   }
