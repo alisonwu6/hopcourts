@@ -587,7 +587,7 @@ type JoinBarProps = {
 }
 
 function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmitting, hasCheckedIn, hasSignaledOnTheWay }: JoinBarProps) {
-  const isFull = event.attendeeCount >= event.maxAttendees
+  const isFull = event.maxAttendees > 0 && event.attendeeCount >= event.maxAttendees
   const now = new Date()
   const startTime = new Date(event.startTime)
   const endTime = new Date(event.endTime)
