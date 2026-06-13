@@ -33,10 +33,14 @@ function groupByDate(events: PlayerEvent[]) {
     month: 'short',
     day: 'numeric',
   })
+  const today = new Date()
+  const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
   const map = new Map<string, PlayerEvent[]>()
   events.forEach((event) => {
     const date = event.startTime ? new Date(event.startTime) : new Date(event.updatedAt || Date.now())
-    const label = formatter.format(date)
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+    const base = formatter.format(date)
+    const label = dateKey === todayKey ? `Today · ${base}` : base
     map.set(label, [...(map.get(label) ?? []), event])
   })
   return Array.from(map.entries())
@@ -349,10 +353,12 @@ function CalendarView({
 export function ProfileEventsPanel({
   mode,
   showTimeTabs = true,
+  viewMode = 'list',
   onExplore,
 }: {
   mode: PanelMode
   showTimeTabs?: boolean
+  viewMode?: 'list' | 'calendar'
   onExplore?: () => void
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -484,12 +490,26 @@ export function ProfileEventsPanel({
         )}
         {isLoading ? (
           <div className="py-10 text-center text-slate-500">Loading your events...</div>
-        ) : (
+        ) : viewMode === 'calendar' ? (
           <CalendarView
             events={activeEvents}
             sportsCatalog={sportsCatalog}
             mode={mode === 'all' ? 'hosted' : mode}
             onExplore={onExplore}
+          />
+        ) : (
+          <EventGroupList
+            groups={groupByDate(activeEvents)}
+            mode={mode === 'all' ? 'hosted' : mode}
+            sportsCatalog={sportsCatalog}
+            emptyState={
+              <EmptyState
+                icon={<Bike className="h-8 w-8" />}
+                title={empty.title}
+                description={empty.description}
+                onExplore={onExplore}
+              />
+            }
           />
         )}
       </div>
