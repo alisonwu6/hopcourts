@@ -1,9 +1,11 @@
-import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, List, CalendarDays } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel'
 
 export function HostedEventsPage() {
   const navigate = useNavigate()
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -16,10 +18,26 @@ export function HostedEventsPage() {
           <ArrowLeft className="h-6 w-6" />
         </button>
         <span className="text-lg font-bold text-slate-900">Hosted Events</span>
+        <div className="absolute right-4 flex items-center gap-1 rounded-full bg-slate-100 p-1">
+          <button
+            type="button"
+            onClick={() => setViewMode('list')}
+            className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+          >
+            <List className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('calendar')}
+            className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+          >
+            <CalendarDays className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="p-4">
-        <ProfileEventsPanel mode="hosted" />
+        <ProfileEventsPanel mode="hosted" viewMode={viewMode} />
       </div>
     </div>
   )

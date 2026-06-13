@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X } from 'lucide-react'
+import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
@@ -90,6 +90,7 @@ export function ProfilePage() {
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
   const [showCompletionSheet, setShowCompletionSheet] = useState(false)
+  const [activityViewMode, setActivityViewMode] = useState<'list' | 'calendar'>('list')
 
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
@@ -883,10 +884,29 @@ export function ProfilePage() {
         )}
 
         <div className="mt-4 space-y-4 px-3">
-          <h3 className="px-1 text-xl font-semibold text-slate-700">Recent Activity</h3>
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-xl font-semibold text-slate-700">Recent Activity</h3>
+            <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => setActivityViewMode('list')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivityViewMode('calendar')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+              >
+                <CalendarDays className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
           <ProfileEventsPanel
             mode="all"
             showTimeTabs={false}
+            viewMode={activityViewMode}
             onExplore={() => navigate('/events')}
           />
         </div>
