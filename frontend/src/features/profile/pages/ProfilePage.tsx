@@ -84,6 +84,7 @@ export function ProfilePage() {
   const [draftUsername, setDraftUsername] = useState<string>((user as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false)
   const [isProfileLoaded, setIsProfileLoaded] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
@@ -501,7 +502,8 @@ export function ProfilePage() {
   }
 
   const handleRemoveAvatar = async () => {
-    if (!userId || !supabase) return
+    if (!userId || !supabase || isRemovingAvatar) return
+    setIsRemovingAvatar(true)
     try {
       // Storage delete is best-effort; file may not exist
       await supabase.storage.from('avatars').remove([`${userId}/avatar.webp`])
@@ -522,6 +524,8 @@ export function ProfilePage() {
       setRawProfile(data)
     } catch (err) {
       console.error('Failed to clear avatar in DB', err)
+    } finally {
+      setIsRemovingAvatar(false)
     }
   }
 
@@ -1032,7 +1036,7 @@ export function ProfilePage() {
         >
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-slate-200 shadow-lg ring-4 ring-white">
+              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-slate-200 shadow-lg ring-4 ring-white">
                 {draftProfile.avatar || userAvatar ? (
                   <img
                     src={draftProfile.avatar || userAvatar || ''}
@@ -1042,12 +1046,18 @@ export function ProfilePage() {
                 ) : (
                   <Smile className="h-14 w-14 text-slate-400" />
                 )}
+                {isRemovingAvatar && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                    <span className="h-7 w-7 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  </div>
+                )}
               </div>
               <div className="absolute -bottom-3 left-1/2 flex -translate-x-1/2 gap-1">
                 <button
                   type="button"
                   onClick={() => setShowAvatarCropper(true)}
-                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-400 shadow-md hover:text-slate-500"
+                  disabled={isRemovingAvatar}
+                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-400 shadow-md hover:text-slate-500 disabled:opacity-50"
                 >
                   Edit
                 </button>
@@ -1055,7 +1065,8 @@ export function ProfilePage() {
                   <button
                     type="button"
                     onClick={handleRemoveAvatar}
-                    className="flex items-center justify-center rounded-full bg-white p-2 text-slate-300 shadow-md hover:text-slate-500"
+                    disabled={isRemovingAvatar}
+                    className="flex items-center justify-center rounded-full bg-white p-2 text-slate-300 shadow-md hover:text-slate-500 disabled:opacity-50"
                     aria-label="Remove avatar"
                   >
                     <X className="h-4 w-4" />

@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ActionToolbar } from '@/components/navigation/ActionToolbar'
-import { EventCard } from '@/features/events/components/EventCard'
-import { EventsViewPanel } from '@/features/events/components/EventsViewPanel'
+import { Bookmark } from 'lucide-react'
 import { useSavedEventsStore } from '@/stores/savedEvents.store'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/dictionaries/hooks'
-import { Bookmark, CalendarDays, List } from 'lucide-react'
+import { EventsPageShell } from '@/features/profile/components/EventsPageShell'
+import { EventTimeline } from '@/features/events/components/EventTimeline'
+import { CalendarView } from '@/features/profile/components/ProfileEventsPanel'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
 const PAGE_SIZE = 20
@@ -14,12 +14,14 @@ const PAGE_SIZE = 20
 export function SavedEventsPage() {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
 
   const savedIds = useSavedEventsStore((state) => state.savedIds)
   const fetchBookmarks = useSavedEventsStore((state) => state.fetchBookmarks)
-
   const events = useEventsStore((state) => state.events)
   const fetchEvents = useEventsStore((state) => state.fetchEvents)
+  const { items: sportsCatalog } = useSports('en')
 
   useEffect(() => {
     const load = async () => {
@@ -31,84 +33,55 @@ export function SavedEventsPage() {
   }, [])
 
   const savedEvents = events.filter((event) => savedIds.includes(event.id))
-  const { items: sportsCatalog } = useSports('en')
-  const [view, setView] = useState<'list' | 'calendar'>('list')
-  const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
+  const visibleEvents = savedEvents.slice(0, displayCount)
+  const hasMore = displayCount < savedEvents.length
 
-  const visibleSaved = savedEvents.slice(0, displayCount)
-  const hasMoreSaved = displayCount < savedEvents.length
   const sentinelRef = useInfiniteScroll(
     useCallback(() => setDisplayCount((c) => c + PAGE_SIZE), []),
-    hasMoreSaved && view === 'list'
+    hasMore && viewMode === 'list'
+  )
+
+  const empty = (
+    <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+      <div className="p-2">
+        <Bookmark className="h-8 w-8 text-slate-400" />
+      </div>
+      <h3 className="text-lg font-bold text-slate-900">No saved events</h3>
+      <p className="mt-1 px-10 text-sm text-slate-500">
+        Save events you are interested in to keep track of slots and timing.
+      </p>
+    </div>
   )
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <ActionToolbar
-        title="Saved Events"
-        showBack={true}
-        rightContent={
-          <div className="flex rounded-full bg-slate-100 p-1">
-            <button
-              type="button"
-              onClick={() => setView('list')}
-              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${view === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-              aria-label="List view"
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setView('calendar')}
-              className={`flex h-8 w-8 items-center justify-center rounded-full transition ${view === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-              aria-label="Calendar view"
-            >
-              <CalendarDays className="h-4 w-4" />
-            </button>
-          </div>
-        }
-      />
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-sm text-slate-400">Loading...</p>
-          </div>
-        ) : savedEvents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-            <div className="p-2">
-              <Bookmark className="h-8 w-8 text-slate-400" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-900">No saved events</h3>
-            <p className="mt-1 px-10 text-sm text-slate-500">
-              Save events you're interested in to keep track of slots and timing.
-            </p>
-          </div>
-        ) : view === 'calendar' ? (
-          <EventsViewPanel
-            events={savedEvents}
+    <EventsPageShell
+      title="Saved Events"
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      onBack={() => navigate('/profile')}
+    >
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-sm text-slate-400">Loading...</p>
+        </div>
+      ) : viewMode === 'calendar' ? (
+        <CalendarView
+          events={savedEvents}
+          sportsCatalog={sportsCatalog}
+          mode="joined"
+        />
+      ) : (
+        <>
+          <EventTimeline
+            events={visibleEvents}
             sportsCatalog={sportsCatalog}
-            onViewDetails={(id) => navigate(`/event/${id}`)}
-            onExplore={() => navigate('/events')}
+            mode="saved"
             showBookmark
+            emptyState={empty}
           />
-        ) : (
-          <>
-            {visibleSaved.map((event) => {
-              const sportLabel = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label ?? event.sport
-              return (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  sportLabel={sportLabel}
-                  onViewDetails={(id) => navigate(`/event/${id}`)}
-                  showBookmark
-                />
-              )
-            })}
-            <div ref={sentinelRef} className="h-4" />
-          </>
-        )}
-      </div>
-    </div>
+          <div ref={sentinelRef} className="h-4" />
+        </>
+      )}
+    </EventsPageShell>
   )
 }
