@@ -1,11 +1,19 @@
 const webpush = require('web-push')
-const { supabaseAdmin } = require('../../lib/supabase')
+const { supabaseAdmin } = require('../../lib/supabaseAdmin')
 
-webpush.setVapidDetails(
-  'mailto:alison.wu23@gmail.com',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-)
+let vapidConfigured = false
+function ensureVapid() {
+  if (vapidConfigured) return
+  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+    throw new Error('VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY must be set')
+  }
+  webpush.setVapidDetails(
+    'mailto:alison.wu23@gmail.com',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  )
+  vapidConfigured = true
+}
 
 async function saveSubscription(userId, subscription) {
   const { endpoint, keys } = subscription
@@ -28,6 +36,7 @@ async function deleteSubscription(userId, endpoint) {
 }
 
 async function sendPushToUser(userId, payload) {
+  ensureVapid()
   const { data: subs, error } = await supabaseAdmin
     .from('push_subscriptions')
     .select('endpoint, p256dh, auth')
