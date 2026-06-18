@@ -230,7 +230,7 @@ export function useEventDetailLogic() {
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
             showAlert(
               'Too Early to Check In',
-              'The check-in window isn’t open yet. Please check the session time.',
+              'The check-in window is not open yet. Please check the session time.',
               'warning'
             )
           } else {
