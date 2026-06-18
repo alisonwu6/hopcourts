@@ -71,7 +71,7 @@ export function VenueDashboardView({
             onClick={() => navigate('/profile')}
             className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-venue-500"
           >
-            <PersonStanding className="h-5 w-5" /> Me
+            <PersonStanding className="h-5 w-5" /> Profile
           </button>
         }
         rightAction={
