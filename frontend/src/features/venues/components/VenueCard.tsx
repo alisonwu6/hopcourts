@@ -10,7 +10,8 @@ interface VenueCardProps {
 export function VenueCard({ venue, onClick }: VenueCardProps) {
   const sports = (venue.sport_keys ?? []).slice(0, 4)
   const upcoming = venue.active_sessions_count ?? 0
-  const today = (venue as any).today_sessions_count ?? 0
+  const today = venue.today_sessions_count ?? 0
+  const past = venue.past_sessions_count ?? 0
 
   return (
     <div
@@ -67,12 +68,16 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
       {/* Row 3: today + upcoming */}
       <div className="mt-3 flex gap-2">
         <div className="flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-1.5">
-          <span className="text-sm font-black text-slate-800">{today}</span>
+          <span className="text-sm font-black text-orange-500">{today}</span>
           <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Today</span>
         </div>
         <div className="flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-1.5">
-          <span className="text-sm font-black text-blue-600">{upcoming}</span>
+          <span className="text-sm font-black text-emerald-600">{upcoming}</span>
           <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Upcoming</span>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-1.5">
+          <span className="text-sm font-black text-slate-400">{past}</span>
+          <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Past</span>
         </div>
       </div>
     </div>

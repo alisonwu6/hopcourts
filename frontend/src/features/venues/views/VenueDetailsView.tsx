@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, List, CalendarDays } from 'lucide-react'
+import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EventCard } from '@/features/events/components/EventCard'
 import { CalendarView } from '@/features/profile/components/ProfileEventsPanel'
@@ -84,6 +84,7 @@ export function VenueDetailsView({
   const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
   const todayCount = (venue as any).today_sessions_count ?? 0
   const upcomingCount = venue.active_sessions_count ?? 0
+  const pastCount = (venue as any).past_sessions_count ?? 0
   const typedEvents = upcomingEvents as PlayerEvent[]
 
   return (
@@ -99,23 +100,30 @@ export function VenueDetailsView({
       <div className="border-b border-slate-100 bg-white px-5 pb-6 pt-2 shadow-sm">
         <div className="flex items-center gap-4">
           {/* Logo */}
-          <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-sm">
-            {venue.logo_url ? (
-              <img src={venue.logo_url} alt="Logo" className="h-full w-full object-cover" />
-            ) : (
-              <Building2 className="h-8 w-8 text-slate-300" />
+          <div className="relative h-16 w-16 flex-none">
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-sm">
+              {venue.logo_url ? (
+                <img src={venue.logo_url} alt="Logo" className="h-full w-full object-cover" />
+              ) : (
+                <Building2 className="h-8 w-8 text-slate-300" />
+              )}
+            </div>
+            {venue.venue_type === 'official' && (
+              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
+                <ShieldCheck size={10} className="text-white" />
+              </div>
+            )}
+            {venue.venue_type === 'public' && (
+              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
+                <Trees size={10} className="text-white" />
+              </div>
             )}
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h1 className="truncate text-xl font-black leading-tight tracking-tight text-slate-900">
-                {venue.name_display}
-              </h1>
-              {venue.status === 'claimed' && (
-                <ShieldCheck size={16} className="shrink-0 text-emerald-500" />
-              )}
-            </div>
+            <h1 className="truncate text-xl font-black leading-tight tracking-tight text-slate-900">
+              {venue.name_display}
+            </h1>
             <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-400">
               <MapPin size={11} className="shrink-0" />
               {venue.address_display || 'Address not listed'}
@@ -137,15 +145,19 @@ export function VenueDetailsView({
           </div>
         )}
 
-        {/* Row 2: Today + Upcoming stats */}
+        {/* Row 2: Today + Upcoming + Past stats */}
         <div className="mt-3 flex gap-3">
           <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
-            <span className="text-lg font-black leading-none text-slate-900">{todayCount}</span>
+            <span className="text-lg font-black leading-none text-orange-500">{todayCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Today</span>
           </div>
           <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
-            <span className="text-lg font-black leading-none text-blue-600">{upcomingCount}</span>
+            <span className="text-lg font-black leading-none text-emerald-600">{upcomingCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Upcoming</span>
+          </div>
+          <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
+            <span className="text-lg font-black leading-none text-slate-400">{pastCount}</span>
+            <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Past</span>
           </div>
         </div>
 
