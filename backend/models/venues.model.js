@@ -75,6 +75,10 @@ async function getVenueById(id, userId = null) {
        WHERE s.venue_id = v.id
          AND s.starts_at::date = CURRENT_DATE
          AND s.status = 'published') as today_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at < NOW()
+         AND s.status = 'published') as past_sessions_count,
       COALESCE((
         SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
         FROM public.sessions s
@@ -132,6 +136,10 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm, venueTyp
        WHERE s.venue_id = v.id
          AND s.starts_at::date = CURRENT_DATE
          AND s.status = 'published') as today_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at < NOW()
+         AND s.status = 'published') as past_sessions_count,
       COALESCE((
         SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
         FROM public.sessions s
