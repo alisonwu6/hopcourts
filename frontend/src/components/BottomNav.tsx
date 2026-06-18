@@ -50,7 +50,7 @@ export function BottomNav() {
     ...(isAuthenticated
       ? [
           {
-            label: 'Me',
+            label: 'Profile',
             icon: PersonStanding,
             path: '/profile',
             matchPaths: ['/profile', '/settings'],
