@@ -1,7 +1,7 @@
-import { CalendarCheck, ShieldCheck } from 'lucide-react'
+import { CalendarCheck, ShieldCheck, Trees, Lock } from 'lucide-react'
 import clsx from 'clsx'
 
-export type VenueMapFilterType = 'all' | 'official' | 'has_events'
+export type VenueMapFilterType = 'all' | 'official' | 'public' | 'private' | 'has_events'
 
 interface VenueMapFiltersProps {
   activeFilter: VenueMapFilterType
@@ -25,6 +25,22 @@ export function VenueMapFilters({ activeFilter, onFilterChange }: VenueMapFilter
         icon={<ShieldCheck size={14} />}
         onClick={() => onFilterChange('official')}
       />
+      <Chip
+        label="Public"
+        isActive={activeFilter === 'public'}
+        activeClassName="text-white"
+        activeStyle={{ background: '#2d7a3a' }}
+        icon={<Trees size={14} />}
+        onClick={() => onFilterChange('public')}
+      />
+      {/* <Chip
+        label="Private"
+        isActive={activeFilter === 'private'}
+        activeClassName="text-white"
+        activeStyle={{ background: '#7c3aed' }}
+        icon={<Lock size={14} />}
+        onClick={() => onFilterChange('private')}
+      /> */}
       <Chip
         label="Has events"
         isActive={activeFilter === 'has_events'}
@@ -66,4 +82,3 @@ function Chip({
     </button>
   )
 }
-

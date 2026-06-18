@@ -32,10 +32,16 @@ export function VenueListPage() {
     )
   }
 
+  const venueTypeFilter = (activeFilter === 'official' || activeFilter === 'public' || activeFilter === 'private')
+    ? activeFilter
+    : undefined
+
   useEffect(() => {
     const fetchVenues = async () => {
       setIsLoading(true)
-      const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset: 0 })
+      setVenues([])
+      setOffset(0)
+      const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset: 0, type: venueTypeFilter })
       if (res.success && res.data) {
         setVenues(res.data.data)
         setHasMore(res.data.hasMore)
@@ -44,13 +50,13 @@ export function VenueListPage() {
       setIsLoading(false)
     }
     void fetchVenues()
-  }, [])
+  }, [activeFilter])
 
   const loadMoreVenues = useCallback(async () => {
     if (loadingMore) return
     setLoadingMore(true)
     try {
-      const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset })
+      const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset, type: venueTypeFilter })
       if (res.success && res.data) {
         setVenues((prev) => [...prev, ...res.data!.data])
         setHasMore(res.data.hasMore)
@@ -59,7 +65,7 @@ export function VenueListPage() {
     } finally {
       setLoadingMore(false)
     }
-  }, [offset, loadingMore])
+  }, [offset, loadingMore, venueTypeFilter])
 
   const filteredVenues = useMemo(() => {
     let result = venues
@@ -69,7 +75,6 @@ export function VenueListPage() {
         (v) => v.name_display.toLowerCase().includes(q) || v.address_display.toLowerCase().includes(q)
       )
     }
-    if (activeFilter === 'official') return result.filter((v) => v.status === 'claimed')
     if (activeFilter === 'has_events') return result.filter((v) => v.active_sessions_count > 0)
     return result
   }, [venues, searchQuery, activeFilter])

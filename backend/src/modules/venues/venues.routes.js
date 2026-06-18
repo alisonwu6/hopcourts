@@ -13,12 +13,15 @@ function optionalAuth(req, res, next) {
 // GET /venues - List venues
 router.get('/', async (req, res, next) => {
   try {
+    const VALID_VENUE_TYPES = ['public', 'official', 'private']
+    const venueType = VALID_VENUE_TYPES.includes(req.query.type) ? req.query.type : undefined
     const filters = {
       limit: req.query.limit ? parseInt(req.query.limit) : 50,
       offset: req.query.offset ? parseInt(req.query.offset) : 0,
       lat: req.query.lat ? parseFloat(req.query.lat) : undefined,
       lng: req.query.lng ? parseFloat(req.query.lng) : undefined,
       radiusKm: req.query.radiusKm ? parseFloat(req.query.radiusKm) : undefined,
+      venueType,
     }
     const venues = await venuesService.listVenues(filters)
     res.json({ success: true, data: venues, has_more: venues.length === filters.limit })

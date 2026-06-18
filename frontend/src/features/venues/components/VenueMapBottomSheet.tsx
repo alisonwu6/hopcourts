@@ -1,4 +1,4 @@
-import { Building2, MapPin, Navigation, Share2, ShieldCheck } from 'lucide-react'
+import { Building2, MapPin, Navigation, Share2, ShieldCheck, Trees } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ApiVenue } from '../services/venuesService'
 import { getSportColor, getSportLabel } from '@/constants/sportTokens'
@@ -9,9 +9,16 @@ interface VenueMapBottomSheetProps {
   onShare: () => void
 }
 
+const VENUE_TYPE_BADGE = {
+  official: { label: 'Official', icon: <ShieldCheck size={10} />, className: 'border-blue-200 bg-blue-50 text-blue-600' },
+  public:   { label: 'Public',   icon: <Trees size={10} />,       className: 'border-green-200 bg-green-50 text-green-700' },
+  private:  { label: 'Private',  icon: null,                       className: 'border-slate-200 bg-slate-50 text-slate-600' },
+} as const
+
 export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBottomSheetProps) {
   const navigate = useNavigate()
-  const isOfficial = venue.status === 'claimed'
+  const venueType = venue.venue_type ?? 'public'
+  const badge = VENUE_TYPE_BADGE[venueType] ?? VENUE_TYPE_BADGE.public
   const today = venue.today_sessions_count ?? 0
   const upcoming = venue.active_sessions_count ?? 0
   const sports = (venue.sport_keys ?? []).slice(0, 2)
@@ -21,22 +28,26 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
   return (
     <div className="rounded-[28px] bg-white p-5 shadow-[0_24px_60px_rgba(15,41,77,0.18)] ring-1 ring-black/5">
       <div className="flex items-center gap-4">
-        <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[20px] bg-slate-50 ring-1 ring-slate-100">
-          {venue.logo_url ? (
-            <img
-              src={venue.logo_url}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <Building2 className="h-8 w-8 text-slate-300" />
-          )}
-          {isOfficial && (
-            <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
-              <ShieldCheck
-                size={10}
-                className="text-white"
+        <div className="relative h-16 w-16 shrink-0">
+          <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-[20px] bg-slate-50 ring-1 ring-slate-100">
+            {venue.logo_url ? (
+              <img
+                src={venue.logo_url}
+                alt=""
+                className="h-full w-full object-cover"
               />
+            ) : (
+              <Building2 className="h-8 w-8 text-slate-300" />
+            )}
+          </div>
+          {venueType === 'official' && (
+            <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
+              <ShieldCheck size={10} className="text-white" />
+            </div>
+          )}
+          {venueType === 'public' && (
+            <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
+              <Trees size={10} className="text-white" />
             </div>
           )}
         </div>
@@ -54,12 +65,6 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {isOfficial && (
-          <span className="flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-600">
-            <ShieldCheck size={10} />
-            Official
-          </span>
-        )}
         {sports.map((key) => (
           <span
             key={key}

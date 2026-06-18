@@ -1,12 +1,15 @@
 import { ApiResponse, PaginatedResponse } from '@/types'
 import { httpGet, httpPost } from '@/api/http'
 
+export type VenueType = 'public' | 'official' | 'private'
+
 export interface VenueFilter {
   lat?: number
   lng?: number
   radiusKm?: number
   limit?: number
   offset?: number
+  type?: VenueType
 }
 
 export interface ApiVenue {
@@ -16,6 +19,7 @@ export interface ApiVenue {
   lat: string | number
   lng: string | number
   status: 'unclaimed' | 'claimed' | 'suspended'
+  venue_type: VenueType
   logo_url?: string
   description?: string
   amenities?: string[]
@@ -135,6 +139,7 @@ export const venuesService = {
           radiusKm: filter.radiusKm,
           limit: filter.limit,
           offset: filter.offset,
+          type: filter.type,
         },
       })
 
