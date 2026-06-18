@@ -8,9 +8,10 @@ async function createVenue(input) {
       address,
       lat,
       lng,
-      status
+      status,
+      venue_type
     ) VALUES (
-      $1, $2, $3, $4, $5, $6
+      $1, $2, $3, $4, $5, $6, $7
     )
     RETURNING *
   `
@@ -20,7 +21,8 @@ async function createVenue(input) {
     input.address,
     input.lat,
     input.lng,
-    input.status ?? 'unclaimed' // 'unclaimed' | 'claimed'
+    input.status ?? 'unclaimed',
+    input.venueType ?? 'public',
   ]
   const { rows } = await query(sql, params)
   return rows[0]
@@ -89,14 +91,19 @@ async function getVenueById(id, userId = null) {
   return rows[0]
 }
 
-async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
+async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm, venueType } = {}) {
   let conditions = []
   let params = []
 
   // Public venues list should not expose suspended venues.
   conditions.push(`v.status <> $${params.length + 1}`)
   params.push('suspended')
-  
+
+  if (venueType) {
+    conditions.push(`v.venue_type = $${params.length + 1}`)
+    params.push(venueType)
+  }
+
   // Basic geo filtering if provided
   if (lat && lng && radiusKm) {
     const latDelta = (radiusKm * 1000) / 111320

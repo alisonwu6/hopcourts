@@ -1,4 +1,4 @@
-import { CalendarCheck, ShieldCheck } from 'lucide-react'
+import { ShieldCheck, Trees, CalendarCheck } from 'lucide-react'
 import clsx from 'clsx'
 import { ApiVenue } from '../services/venuesService'
 
@@ -7,31 +7,30 @@ interface VenueMapMarkerProps {
   isSelected: boolean
 }
 
-type MarkerVariant = 'hasEvents' | 'official'
-
-function getVariant(venue: ApiVenue): MarkerVariant {
-  if (venue.status === 'claimed') return 'official'
-  return 'hasEvents'
-}
-
-const VARIANT_STYLES = {
-  hasEvents: {
-    pill: 'text-white',
-    pillStyle: { background: '#df6c03' },
-    tailColor: '#df6c03',
-  },
+const TYPE_STYLES = {
   official: {
     pill: 'text-white',
     pillStyle: { background: '#0067b6' },
     tailColor: '#0067b6',
+    icon: <ShieldCheck size={14} />,
+  },
+  public: {
+    pill: 'text-white',
+    pillStyle: { background: '#2d7a3a' },
+    tailColor: '#2d7a3a',
+    icon: <Trees size={14} />,
+  },
+  private: {
+    pill: 'text-white',
+    pillStyle: { background: '#7c3aed' },
+    tailColor: '#7c3aed',
+    icon: <CalendarCheck size={14} />,
   },
 } as const
 
 export function VenueMapMarker({ venue, isSelected }: VenueMapMarkerProps) {
-  const variant = getVariant(venue)
-  const styles = VARIANT_STYLES[variant]
-
-  const icon = variant === 'hasEvents' ? <CalendarCheck size={14} /> : <ShieldCheck size={14} />
+  const type = venue.venue_type ?? 'public'
+  const styles = TYPE_STYLES[type] ?? TYPE_STYLES.public
 
   const eventCount = venue.active_sessions_count
   const label = eventCount > 0 ? (eventCount === 1 ? '1 event' : `${eventCount} events`) : null
@@ -46,7 +45,7 @@ export function VenueMapMarker({ venue, isSelected }: VenueMapMarkerProps) {
         )}
         style={styles.pillStyle}
       >
-        {icon}
+        {styles.icon}
         {label && <span className="whitespace-nowrap">{label}</span>}
       </div>
       <div
