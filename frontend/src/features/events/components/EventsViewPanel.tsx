@@ -18,6 +18,7 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { PlayerEvent } from '@/types'
 import { EventCard } from './EventCard'
+import { EventTimeline } from './EventTimeline'
 
 type SportsItem = { key: string; label: string; icon?: string | null }
 type CalendarSpan = 'week' | 'month'
@@ -234,13 +235,25 @@ export function EventsViewPanel({
   onViewDetails,
   onExplore,
   showBookmark,
+  viewMode = 'calendar',
 }: {
   events: PlayerEvent[]
   sportsCatalog: SportsItem[]
   onViewDetails: (id: string, event: PlayerEvent) => void
   onExplore?: () => void
   showBookmark?: boolean
+  viewMode?: 'list' | 'calendar'
 }) {
+  if (viewMode === 'list') {
+    return (
+      <EventTimeline
+        events={events}
+        sportsCatalog={sportsCatalog}
+        mode="hosted"
+      />
+    )
+  }
+
   return (
     <CalendarPanel
       events={events}

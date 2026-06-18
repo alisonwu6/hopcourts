@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Frown } from 'lucide-react'
+import { ArrowLeft, Frown, List, CalendarDays } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
@@ -57,6 +57,7 @@ export function MateProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [hostedUpcomingEvents, setHostedUpcomingEvents] = useState<PlayerEvent[]>([])
   const [isHostedEventsLoading, setIsHostedEventsLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar')
 
   useEffect(() => {
     const normalizeSports = (list: any[]) => {
@@ -252,7 +253,25 @@ export function MateProfilePage() {
                 actionDisabled={loading}
               />
               <div className="mt-4 space-y-3 px-3">
-                <h3 className="px-1 text-lg font-semibold text-slate-700">Hosting soon</h3>
+                <div className="flex items-center justify-between px-1">
+                  <h3 className="text-lg font-semibold text-slate-700">Hosting soon</h3>
+                  <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('list')}
+                      className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                    >
+                      <List className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode('calendar')}
+                      className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                    >
+                      <CalendarDays className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
                 {isHostedEventsLoading ? (
                   <div className="rounded-2xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
                     Loading...
@@ -262,6 +281,7 @@ export function MateProfilePage() {
                     events={hostedUpcomingEvents}
                     sportsCatalog={sportsDict}
                     onViewDetails={(id) => navigate(`/event/${id}`)}
+                    viewMode={viewMode}
                   />
                 )}
               </div>
