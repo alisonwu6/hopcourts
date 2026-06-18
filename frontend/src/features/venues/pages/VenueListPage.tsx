@@ -79,13 +79,10 @@ export function VenueListPage() {
     return result
   }, [venues, searchQuery, activeFilter])
 
-  if (isLoading && venues.length === 0) {
-    return <PageLoading />
-  }
-
   return (
     <VenueListView
       venues={filteredVenues}
+      isLoading={isLoading}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       onSearchClear={() => setSearchQuery('')}

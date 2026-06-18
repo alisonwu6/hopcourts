@@ -106,7 +106,7 @@ async function countJoinedSessions(userId) {
       from public.session_participants sp
       join public.sessions s on s.id = sp.session_id
       where sp.user_id = $1
-        and s.status != 'draft'
+        and s.status not in ('draft', 'cancelled')
         and s.host_user_id != $1`,
     [userId]
   )

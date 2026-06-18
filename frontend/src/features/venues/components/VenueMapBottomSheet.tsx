@@ -21,6 +21,7 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
   const badge = VENUE_TYPE_BADGE[venueType] ?? VENUE_TYPE_BADGE.public
   const today = venue.today_sessions_count ?? 0
   const upcoming = venue.active_sessions_count ?? 0
+  const past = venue.past_sessions_count ?? 0
   const sports = (venue.sport_keys ?? []).slice(0, 2)
   const eventCount = today > 0 ? today : upcoming
   const btnLabel = eventCount > 0 ? `See ${eventCount} events →` : 'View venue →'
@@ -90,8 +91,8 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
           <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">Upcoming</span>
         </div>
         <div className="flex flex-col items-center justify-center rounded-2xl bg-slate-50 py-3">
-          <span className="text-xl font-black text-slate-800">—</span>
-          <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">Away</span>
+          <span className="text-xl font-black text-slate-400">{past}</span>
+          <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">Past</span>
         </div>
       </div>
 

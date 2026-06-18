@@ -7,6 +7,7 @@ import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
 interface VenueListViewProps {
   venues: ApiVenue[]
+  isLoading?: boolean
   searchQuery: string
   onSearchChange: (query: string) => void
   onSearchClear: () => void
@@ -28,6 +29,7 @@ interface VenueListViewProps {
 
 export function VenueListView({
   venues,
+  isLoading = false,
   searchQuery,
   onSearchChange,
   onSearchClear,
@@ -104,16 +106,36 @@ export function VenueListView({
         </div>
       ) : (
         <div className="mx-auto max-w-md px-4 pb-[100px] pt-36">
-          {venues.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+            </div>
+          ) : venues.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
               <div className="p-2">
                 <Building2 className="h-8 w-8 text-slate-400" />
               </div>
               <h3 className="text-lg font-bold text-slate-900">
-                {searchQuery ? 'No venues found' : 'No venues yet'}
+                {searchQuery
+                  ? 'No venues found'
+                  : activeFilter === 'official'
+                  ? 'No official venues yet'
+                  : activeFilter === 'public'
+                  ? 'No public venues yet'
+                  : activeFilter === 'has_events'
+                  ? 'No venues with events'
+                  : 'No venues yet'}
               </h3>
               <p className="mt-1 px-10 text-sm text-slate-500">
-                {searchQuery ? 'Try a different name or address.' : 'Venues in your area will appear here.'}
+                {searchQuery
+                  ? 'Try a different name or address.'
+                  : activeFilter === 'official'
+                  ? 'Official partner venues will appear here.'
+                  : activeFilter === 'public'
+                  ? 'Public courts and parks will appear here.'
+                  : activeFilter === 'has_events'
+                  ? 'Check back later for upcoming events.'
+                  : 'Venues in your area will appear here.'}
               </p>
             </div>
           ) : (

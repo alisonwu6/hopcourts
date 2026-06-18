@@ -16,7 +16,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { BottomSheet } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
 
-export type SportFilterOption = { key: string; label: string; icon?: string | null }
+export type SportFilterOption = { key: string; label: string; icon?: string | null; category?: string }
 
 type DiscoverEventsSearchSheetProps = {
   open: boolean
@@ -125,33 +125,74 @@ export function DiscoverEventsSearchSheet({
               />
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {sportsOptions.map((sport) => {
-                const active =
-                  pendingSports.includes(sport.key) || (sport.key === 'all' && pendingSports.includes('all'))
+            <div className="space-y-4">
+              {(() => {
+                const CATEGORY_LABELS: Record<string, string> = {
+                  ball_sports:      'Ball Sports',
+                  racket_sports:    'Racket Sports',
+                  outdoor:          'Outdoor',
+                  fitness_wellness: 'Fitness & Wellness',
+                  extreme:          'Extreme',
+                }
+                const CATEGORY_ORDER = ['ball_sports', 'racket_sports', 'outdoor', 'fitness_wellness', 'extreme']
+
+                const allOption = sportsOptions.find((s) => s.key === 'all')
+                const grouped = CATEGORY_ORDER.reduce<Record<string, typeof sportsOptions>>((acc, cat) => {
+                  acc[cat] = sportsOptions.filter((s) => s.category === cat)
+                  return acc
+                }, {})
+
+                const renderChip = (sport: SportFilterOption) => {
+                  const active =
+                    pendingSports.includes(sport.key) || (sport.key === 'all' && pendingSports.includes('all'))
+                  return (
+                    <button
+                      key={sport.key}
+                      onClick={() => {
+                        setPendingSports((prev) => {
+                          if (sport.key === 'all') return ['all']
+                          const next = prev.filter((item) => item !== 'all' && item !== sport.key)
+                          if (prev.includes(sport.key)) return next.length ? next : ['all']
+                          return [...next, sport.key]
+                        })
+                      }}
+                      className={clsx(
+                        'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition',
+                        active
+                          ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                          : 'border-slate-200 bg-white text-slate-700'
+                      )}
+                    >
+                      <span className="text-base">{sport.icon || ''}</span>
+                      <span>{sport.label}</span>
+                    </button>
+                  )
+                }
+
                 return (
-                  <button
-                    key={sport.key}
-                    onClick={() => {
-                      setPendingSports((prev) => {
-                        if (sport.key === 'all') return ['all']
-                        const next = prev.filter((item) => item !== 'all' && item !== sport.key)
-                        if (prev.includes(sport.key)) return next.length ? next : ['all']
-                        return [...next, sport.key]
-                      })
-                    }}
-                    className={clsx(
-                      'flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition',
-                      active
-                        ? 'border-blue-600 bg-blue-600 text-white shadow-sm'
-                        : 'border-slate-200 bg-white text-slate-700'
+                  <>
+                    {allOption && (
+                      <div className="flex flex-wrap gap-2">
+                        {renderChip(allOption)}
+                      </div>
                     )}
-                  >
-                    <span className="text-base">{sport.icon || ''}</span>
-                    <span>{sport.label}</span>
-                  </button>
+                    {CATEGORY_ORDER.map((cat) => {
+                      const items = grouped[cat]
+                      if (!items?.length) return null
+                      return (
+                        <div key={cat}>
+                          <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                            {CATEGORY_LABELS[cat]}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {items.map(renderChip)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </>
                 )
-              })}
+              })()}
             </div>
           )}
         </div>

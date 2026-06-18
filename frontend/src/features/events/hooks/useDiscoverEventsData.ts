@@ -5,7 +5,7 @@ import type { EventFilter, PlayerEvent, User } from '@/types'
 import type { Sport } from '@/types/dictionary'
 import { eventsService } from '@/features/events/services/eventsService'
 
-export type DiscoverSportFilterOption = { key: string; label: string; icon?: string | null }
+export type DiscoverSportFilterOption = { key: string; label: string; icon?: string | null; category?: string }
 
 type SuggestionType = 'interests' | 'hosts'
 
@@ -132,6 +132,7 @@ export function useDiscoverEventsData({
         key: sport.key,
         label: sport.label,
         icon: sport.icon,
+        category: sport.category,
       })),
     [sportsCatalog]
   )
