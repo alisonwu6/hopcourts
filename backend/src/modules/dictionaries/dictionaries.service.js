@@ -41,37 +41,30 @@ async function listSports(query = {}) {
   return { items }
 }
 
+const VERSION_SQL = (table) =>
+  `select coalesce(to_char(max(updated_at), 'YYYY-MM-DD"T"HH24:MI:SSZ'), '1970-01-01T00:00:00Z') as version from public.${table}`
+
 async function dictionaryMeta() {
   const meta = {}
-  const now = new Date().toISOString()
 
-  /*
-  try {
-    const configRes = await query(
-      `select value from public.system_config where key = 'sm.dict.meta'`
-    )
-    if (configRes.rows.length > 0) {
-      // ...
-    }
-  } catch (err) {
-    console.error('Failed to read system_config for dict meta', err)
-  }
-  */
-
-  // Fallback
-  try {
-    const sportsRes = await query(
-      `select coalesce(to_char(max(updated_at), 'YYYY-MM-DD"T"HH24:MI:SSZ'), to_char(now(), 'YYYY-MM-DD"T"HH24:MI:SSZ')) as version from public.sports`
-    )
-    meta.sports = { version: sportsRes.rows[0]?.version || now }
-  } catch {
-    meta.sports = { version: now }
+  const tables = {
+    sports:     'sports',
+    vibes:      'vibes',
+    countries:  'countries',
+    age_ranges: 'age_ranges',
+    cities:     'cities',
   }
 
-  meta.vibes = { version: now }
-  meta.countries = { version: now }
-  meta.age_ranges = { version: now }
-  meta.cities = { version: now }
+  await Promise.all(
+    Object.entries(tables).map(async ([key, table]) => {
+      try {
+        const res = await query(VERSION_SQL(table))
+        meta[key] = { version: res.rows[0]?.version ?? '1970-01-01T00:00:00Z' }
+      } catch {
+        meta[key] = { version: '1970-01-01T00:00:00Z' }
+      }
+    })
+  )
 
   return meta
 }

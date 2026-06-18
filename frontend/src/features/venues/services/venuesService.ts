@@ -130,39 +130,51 @@ const normalizeVenue = (venue: any): ApiVenue => ({
   sport_keys: Array.isArray(venue?.sport_keys) ? venue.sport_keys : [],
 })
 
+const listVenuesInflight: Record<string, Promise<ApiResponse<PaginatedResponse<ApiVenue>>> | undefined> = {}
+
 export const venuesService = {
   async listVenues(filter: VenueFilter = {}): Promise<ApiResponse<PaginatedResponse<ApiVenue>>> {
-    try {
-      const response = await httpGet<any>('/venues', {
-        params: {
-          lat: filter.lat,
-          lng: filter.lng,
-          radiusKm: filter.radiusKm,
-          limit: filter.limit,
-          offset: filter.offset,
-          type: filter.type,
-        },
-      })
+    const key = `${filter.type ?? ''}_${filter.offset ?? 0}_${filter.limit ?? 50}`
+    if (listVenuesInflight[key]) return listVenuesInflight[key]
 
-      const rows: any[] = Array.isArray(response?.data) ? response.data : []
-      const items: ApiVenue[] = rows.map(normalizeVenue)
-      const limit = filter.limit ?? 50
-      const hasMore = response?.has_more ?? items.length === limit
+    const request = (async () => {
+      try {
+        const response = await httpGet<any>('/venues', {
+          params: {
+            lat: filter.lat,
+            lng: filter.lng,
+            radiusKm: filter.radiusKm,
+            limit: filter.limit,
+            offset: filter.offset,
+            type: filter.type,
+          },
+        })
 
-      return wrapSuccess({
-        data: items,
-        total: items.length,
-        page: filter.offset ? Math.floor(filter.offset / limit) + 1 : 1,
-        pageSize: limit,
-        hasMore,
-      })
-    } catch (err: any) {
-      return {
-        success: false,
-        error: { code: 'FETCH_VENUES_FAILED', message: err?.details?.error || err.message },
-        timestamp: new Date(),
-      } as any
-    }
+        const rows: any[] = Array.isArray(response?.data) ? response.data : []
+        const items: ApiVenue[] = rows.map(normalizeVenue)
+        const limit = filter.limit ?? 50
+        const hasMore = response?.has_more ?? items.length === limit
+
+        return wrapSuccess({
+          data: items,
+          total: items.length,
+          page: filter.offset ? Math.floor(filter.offset / limit) + 1 : 1,
+          pageSize: limit,
+          hasMore,
+        })
+      } catch (err: any) {
+        return {
+          success: false,
+          error: { code: 'FETCH_VENUES_FAILED', message: err?.details?.error || err.message },
+          timestamp: new Date(),
+        } as any
+      } finally {
+        delete listVenuesInflight[key]
+      }
+    })()
+
+    listVenuesInflight[key] = request
+    return request
   },
 
   async getVenueById(venueId: string): Promise<ApiResponse<ApiVenue>> {

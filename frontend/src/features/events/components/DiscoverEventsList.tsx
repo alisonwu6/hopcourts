@@ -4,7 +4,7 @@ import { Bike } from 'lucide-react'
 import { EventCard } from '@/features/events/components/EventCard'
 import { PageLoading } from '@/components/PageLoading'
 import type { PlayerEvent } from '@/types'
-import { useCities, useSports } from '@/features/dictionaries/hooks'
+import { useSports } from '@/features/dictionaries/hooks'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
 const PAGE_SIZE = 20
@@ -41,7 +41,6 @@ export function DiscoverEventsBody({
   onLoadMoreFromServer,
 }: DiscoverEventsBodyProps) {
   const { items: sports } = useSports('en')
-  const { items: cities } = useCities(undefined, 'en')
   const [displayCount, setDisplayCount] = useState(PAGE_SIZE)
 
   // Reset when filteredEvents changes (new filter applied)
@@ -65,21 +64,13 @@ export function DiscoverEventsBody({
     return new Map(sports.map((item) => [item.key.toUpperCase(), item.label]))
   }, [sports])
 
-  const cityLabelByKey = useMemo(() => {
-    return new Map(cities.map((item) => [item.key, item.label]))
-  }, [cities])
 
   const resolveSportLabel = (event: PlayerEvent) => {
     return sportLabelByKey.get(event.sport.toUpperCase()) || event.sport
   }
 
-  const resolveCityLabel = (event: PlayerEvent) => {
-    if (event.host.cityKey) {
-      const cityLabel = cityLabelByKey.get(event.host.cityKey)
-      if (cityLabel) return cityLabel
-    }
-    return event.host.cityName || event.location?.city || 'City TBD'
-  }
+  const resolveCityLabel = (event: PlayerEvent) =>
+    event.host.cityName || event.location?.city || 'City TBD'
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">

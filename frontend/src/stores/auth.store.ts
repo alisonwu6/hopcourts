@@ -3,8 +3,11 @@ import { User } from '@/types'
 import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/services/authService'
 import { sessionService } from '@/services/sessionService'
 import { useSavedEventsStore } from './savedEvents.store'
+import { useProfileStore } from './profile.store'
 
 const hydrateBookmarks = () => void useSavedEventsStore.getState().fetchBookmarks()
+
+let hydrateInflight: Promise<void> | null = null
 
 import { AUTH_TOKEN_STORAGE_KEY } from '@/constants/storage'
 import { supabase } from '@/lib/supabase'
@@ -12,7 +15,6 @@ import { supabase } from '@/lib/supabase'
 interface AuthState {
   user: User | null
   token: string | null
-  profileCache: any | null
   isAuthenticated: boolean
   isLoading: boolean
   isLoggingOut: boolean
@@ -23,7 +25,6 @@ interface AuthState {
   clearAuthState: () => void
   hydrate: (silent?: boolean) => Promise<void>
   setAuthData: (user: User | null, token: string | null, options?: { remember?: boolean }) => void
-  setProfileCache: (profile: any | null) => void
   clearError: () => void
 }
 
@@ -57,7 +58,6 @@ const persistUserId = (userId: string | null, remember = true) => {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
-  profileCache: null,
   isAuthenticated: false,
   isLoading: true,
   isLoggingOut: false,
@@ -74,21 +74,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { token, user } = response
       persistToken(token, remember)
       persistUserId(user.id, remember)
-      set({
-        user,
-        token,
-        profileCache: null,
-        isAuthenticated: true,
-        isLoading: false,
-      })
+      set({ user, token, isAuthenticated: true, isLoading: false })
       hydrateBookmarks()
+      if (response.rawProfile) useProfileStore.getState().seedFromBootstrap(response.rawProfile)
     } catch (error: any) {
       set({
         error: error?.message ?? 'Login failed',
         isLoading: false,
         user: null,
         token: null,
-        profileCache: null,
         isAuthenticated: false,
       })
       persistToken(null)
@@ -109,14 +103,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await sessionService.bootstrap(data.session.access_token)
       persistToken(response.token, remember)
       persistUserId(response.user.id, remember)
-      set({
-        user: response.user,
-        token: response.token,
-        profileCache: null,
-        isAuthenticated: true,
-        isLoading: false,
-      })
+      set({ user: response.user, token: response.token, isAuthenticated: true, isLoading: false })
       hydrateBookmarks()
+      if (response.rawProfile) useProfileStore.getState().seedFromBootstrap(response.rawProfile)
     } catch (error: any) {
       set({
         error: error?.message ?? 'Signup failed',
@@ -138,14 +127,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       persistToken(null)
       persistUserId(null)
       useSavedEventsStore.getState().clearSavedEvents()
-      set({
-        user: null,
-        token: null,
-        profileCache: null,
-        isAuthenticated: false,
-        isLoading: false,
-        isLoggingOut: false,
-      })
+      useProfileStore.getState().clear()
+      set({ user: null, token: null, isAuthenticated: false, isLoading: false, isLoggingOut: false })
       return
     }
 
@@ -158,98 +141,71 @@ export const useAuthStore = create<AuthState>((set) => ({
       persistToken(null)
       persistUserId(null)
       useSavedEventsStore.getState().clearSavedEvents()
-      set({
-        user: null,
-        token: null,
-        profileCache: null,
-        isAuthenticated: false,
-        isLoading: false,
-        isLoggingOut: false,
-      })
+      useProfileStore.getState().clear()
+      set({ user: null, token: null, isAuthenticated: false, isLoading: false, isLoggingOut: false })
     }
   },
 
   clearAuthState: () => {
     persistToken(null)
     persistUserId(null)
-    set({
-      user: null,
-      token: null,
-      profileCache: null,
-      isAuthenticated: false,
-      isLoading: false,
-      isLoggingOut: false,
-    })
+    useProfileStore.getState().clear()
+    set({ user: null, token: null, isAuthenticated: false, isLoading: false, isLoggingOut: false })
   },
 
-  hydrate: async (silent = false) => {
-    const hasToken =
-      typeof window !== 'undefined' &&
-      (window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY))
+  hydrate: (silent = false) => {
+    if (!hydrateInflight) {
+      hydrateInflight = (async () => {
+        const hasToken =
+          typeof window !== 'undefined' &&
+          (window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || window.sessionStorage.getItem(AUTH_TOKEN_STORAGE_KEY))
 
-    if (!hasToken) {
-      set({
-        isLoading: false,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-      })
-      return
-    }
+        if (!hasToken) {
+          set({ isLoading: false, isAuthenticated: false, user: null, token: null })
+          return
+        }
 
-    if (!silent) set({ isLoading: true, error: null })
-    try {
-      if (!supabase) throw new Error('Supabase 未設定')
-      const { data, error } = await supabase.auth.getSession()
-      if (error) throw error
-      const accessToken = data.session?.access_token
-      if (!accessToken) {
-        persistToken(null)
-        persistUserId(null)
-        set({
-          user: null,
-          token: null,
-          profileCache: null,
-          isAuthenticated: false,
-          isLoading: false,
-        })
-        return
-      }
-      const context = await sessionService.bootstrap(accessToken)
-      persistToken(context.token, true)
-      persistUserId(context.user.id, true)
-      set({
-        user: context.user,
-        token: context.token,
-        profileCache: null,
-        isAuthenticated: true,
-        isLoading: false,
+        if (!silent) set({ isLoading: true, error: null })
+        try {
+          if (!supabase) throw new Error('Supabase 未設定')
+          const { data, error } = await supabase.auth.getSession()
+          if (error) throw error
+          const accessToken = data.session?.access_token
+          if (!accessToken) {
+            persistToken(null)
+            persistUserId(null)
+            set({ user: null, token: null, isAuthenticated: false, isLoading: false })
+            return
+          }
+          const context = await sessionService.bootstrap(accessToken)
+          persistToken(context.token, true)
+          persistUserId(context.user.id, true)
+          set({ user: context.user, token: context.token, isAuthenticated: true, isLoading: false })
+          hydrateBookmarks()
+          if (context.rawProfile) useProfileStore.getState().seedFromBootstrap(context.rawProfile)
+        } catch (err: any) {
+          set({
+            error: err?.message ?? 'Unable to load login status',
+            isLoading: false,
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          })
+          persistToken(null)
+          persistUserId(null)
+        }
+      })().finally(() => {
+        hydrateInflight = null
       })
-      hydrateBookmarks()
-    } catch (err: any) {
-      set({
-        error: err?.message ?? 'Unable to load login status',
-        isLoading: false,
-        user: null,
-        token: null,
-        isAuthenticated: false,
-      })
-      persistToken(null)
-      persistUserId(null)
     }
+    return hydrateInflight
   },
 
   setAuthData: (user, token, options) => {
     persistToken(token, options?.remember ?? true)
     persistUserId(user?.id ?? null, options?.remember ?? true)
-    set({
-      user,
-      token,
-      profileCache: null,
-      isAuthenticated: Boolean(user && token),
-    })
+    set({ user, token, isAuthenticated: Boolean(user && token) })
   },
 
-  setProfileCache: (profile) => set({ profileCache: profile }),
   clearError: () => set({ error: null }),
 }))

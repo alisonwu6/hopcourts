@@ -28,14 +28,24 @@ interface ListNotificationsResponse {
   }
 }
 
+const listInflight = new Map<string, Promise<ListNotificationsResponse>>()
+
 export const notificationsService = {
-  async listNotifications(params?: ListNotificationsParams) {
+  listNotifications(params?: ListNotificationsParams): Promise<ListNotificationsResponse> {
+    const key = `${params?.limit ?? ''}_${params?.offset ?? 0}_${params?.unread_only ?? ''}`
+    const existing = listInflight.get(key)
+    if (existing) return existing
+
     const query: Record<string, string | number | boolean> = {}
     if (params?.limit) query.limit = params.limit
     if (params?.offset) query.offset = params.offset
     if (params?.unread_only) query.unread_only = params.unread_only
 
-    return httpGet<ListNotificationsResponse>('/notifications', { params: query })
+    const request = httpGet<ListNotificationsResponse>('/notifications', { params: query }).finally(() => {
+      listInflight.delete(key)
+    })
+    listInflight.set(key, request)
+    return request
   },
 
   async markRead(id: string) {

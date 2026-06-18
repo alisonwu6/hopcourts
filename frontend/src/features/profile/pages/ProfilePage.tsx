@@ -8,6 +8,7 @@ import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
+import { useProfileStore } from '@/stores/profile.store'
 import { profileService } from '@/features/profile/services/profileService'
 import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
@@ -231,11 +232,13 @@ export function ProfilePage() {
         const unread = (notificationsSettled.value as any)?.data?.unread_count
         if (typeof unread === 'number') {
           setUnreadCount(unread)
+          useProfileStore.getState().setUnreadCount(unread)
         }
       }
 
       if (profileSettled.status === 'fulfilled') {
         payload = (profileSettled.value as any)?.data ?? profileSettled.value
+        useProfileStore.getState().setRawProfile(payload)
       } else {
         const err: any = profileSettled.reason
         console.warn('Profile load failed (expected for new users):', err)
@@ -395,6 +398,16 @@ export function ProfilePage() {
     }
     if (hasBootstrappedRef.current) return
     hasBootstrappedRef.current = true
+
+    const stored = useProfileStore.getState()
+    if (stored.isLoaded && stored.rawProfile) {
+      setRawProfile(stored.rawProfile)
+      setUnreadCount(stored.unreadCount)
+      setIsProfileLoaded(true)
+      const isStale = !stored.fetchedAt || Date.now() - stored.fetchedAt > 30_000
+      if (!isStale) return
+    }
+
     fetchProfileData()
   }, [isAuthenticated, fetchProfileData])
 

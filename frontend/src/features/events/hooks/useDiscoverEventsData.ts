@@ -68,7 +68,7 @@ export function useDiscoverEventsData({
 
     const loadFeed = async () => {
       try {
-        const response = await eventsService.getEvents({ feedType }, { force: true, ttlMs: 10_000 })
+        const response = await eventsService.getEvents({ feedType }, { ttlMs: 10_000 })
         if (!active || requestSeq !== feedRequestSeq.current) return
 
         if (response.success && response.data?.data) {

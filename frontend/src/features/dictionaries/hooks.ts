@@ -52,6 +52,28 @@ const setVersionCache = (meta: DictionaryMeta) => {
   }
 }
 
+let metaInflight: Promise<DictionaryMeta> | null = null
+
+const fetchMeta = (): Promise<DictionaryMeta> => {
+  if (!metaInflight) {
+    metaInflight = dictionaryService.meta().finally(() => {
+      metaInflight = null
+    })
+  }
+  return metaInflight
+}
+
+const dataInflight: Record<string, Promise<any>> = {}
+
+const fetchData = <T>(key: string, loader: () => Promise<T[]>): Promise<T[]> => {
+  if (!dataInflight[key]) {
+    dataInflight[key] = loader().finally(() => {
+      delete dataInflight[key]
+    })
+  }
+  return dataInflight[key] as Promise<T[]>
+}
+
 const useDictionary = <T>(
   type: DictType,
   lang: 'zh' | 'en',
@@ -74,16 +96,13 @@ const useDictionary = <T>(
       const versionMap = getVersionCache()
 
       try {
-        const meta = await dictionaryService.meta()
-        if (meta) {
-          setVersionCache(meta as DictionaryMeta)
-        }
+        const meta = await fetchMeta()
         const remoteVersion = meta?.[type]?.version
         const localVersion = versionMap[type]?.version
 
         const shouldRefresh = !remoteVersion || remoteVersion !== localVersion || !cachedItems
         if (shouldRefresh) {
-          const data = await loader()
+          const data = await fetchData(`${type}.${lang}`, loader)
           if (!active) return
           setItems(data)
           setCache(type, lang, data)

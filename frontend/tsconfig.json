@@ -5,16 +5,15 @@
     "jsx": "react-jsx",
 
     /* Set target environment */
-    "target": "es2016",
+    "target": "es2018",
 
     /* Module resolution */
     "module": "ESNext",
     "moduleResolution": "Bundler",
 
     /* Use `@/` as alias for `src/` */
-    "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["./src/*"]
     },
 
     /* Interop and type safety */

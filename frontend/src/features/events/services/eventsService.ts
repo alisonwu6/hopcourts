@@ -48,13 +48,8 @@ const DEFAULT_LIST_TTL_MS = 30_000
 const DEFAULT_DETAIL_TTL_MS = 60_000
 const DEFAULT_MY_EVENTS_TTL_MS = 15_000
 
-let eventsListCacheKey: string | null = null
-let eventsListCacheAt = 0
-let eventsListCache: ApiResponse<PaginatedResponse<PlayerEvent>> | null = null
-let eventsListInFlight: {
-  key: string
-  promise: Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>
-} | null = null
+const eventsListCache = new Map<string, { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }>()
+const eventsListInFlight = new Map<string, Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
 
 const eventDetailCache = new Map<string, { at: number; data: ApiResponse<PlayerEvent> }>()
 const eventDetailInFlight = new Map<string, Promise<ApiResponse<PlayerEvent>>>()
@@ -82,10 +77,8 @@ const stableFilterKey = (filters?: EventFilter) => {
 const isFresh = (cachedAt: number, ttlMs: number) => Date.now() - cachedAt < ttlMs
 
 const invalidateEventCaches = (eventId?: string) => {
-  eventsListCache = null
-  eventsListCacheAt = 0
-  eventsListCacheKey = null
-  eventsListInFlight = null
+  eventsListCache.clear()
+  eventsListInFlight.clear()
 
   if (eventId) {
     eventDetailCache.delete(eventId)
@@ -251,13 +244,12 @@ export const eventsService = {
     const cacheKey = stableFilterKey(filters)
     const ttlMs = options.ttlMs ?? DEFAULT_LIST_TTL_MS
 
-    // Only cache the first page
-    if (offset === 0 && !options.force && eventsListCache && eventsListCacheKey === cacheKey && isFresh(eventsListCacheAt, ttlMs)) {
-      return cloneValue(eventsListCache)
-    }
+    if (offset === 0 && !options.force) {
+      const cached = eventsListCache.get(cacheKey)
+      if (cached && isFresh(cached.at, ttlMs)) return cloneValue(cached.data)
 
-    if (offset === 0 && !options.force && eventsListInFlight?.key === cacheKey) {
-      return eventsListInFlight.promise.then(cloneValue)
+      const inflight = eventsListInFlight.get(cacheKey)
+      if (inflight) return inflight.then(cloneValue)
     }
 
     const request = (async () => {
@@ -292,25 +284,18 @@ export const eventsService = {
           hasMore,
         })
 
-        if (offset === 0) {
-          eventsListCacheKey = cacheKey
-          eventsListCacheAt = Date.now()
-          eventsListCache = result
-        }
+        if (offset === 0) eventsListCache.set(cacheKey, { at: Date.now(), data: result })
 
         return cloneValue(result)
       } catch (err: any) {
         console.error('getEvents error', err)
         return wrapEmptyEvents()
+      } finally {
+        eventsListInFlight.delete(cacheKey)
       }
     })()
 
-    if (offset === 0) {
-      eventsListInFlight = { key: cacheKey, promise: request }
-      return request.finally(() => {
-        if (eventsListInFlight?.key === cacheKey) eventsListInFlight = null
-      })
-    }
+    if (offset === 0) eventsListInFlight.set(cacheKey, request)
 
     return request
   },

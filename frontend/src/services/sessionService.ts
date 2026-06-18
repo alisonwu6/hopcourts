@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 export interface SessionContext {
   token: string
   user: User
+  rawProfile: any | null
 }
 
 type SupabaseUser = {
@@ -89,6 +90,7 @@ export const sessionService = {
       return {
         token,
         user,
+        rawProfile: response.data,
       }
     } catch (error) {
       console.error('Bootstrap failed, falling back to basic auth:', error)
@@ -98,6 +100,7 @@ export const sessionService = {
       return {
         token,
         user: buildUser(supabaseUser),
+        rawProfile: null,
       }
     }
   },
