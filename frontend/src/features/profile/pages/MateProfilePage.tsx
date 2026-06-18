@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Frown, List, CalendarDays } from 'lucide-react'
+import { ArrowLeft, Frown, List, CalendarDays, Share2 } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
@@ -225,10 +225,31 @@ export function MateProfilePage() {
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-[68%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
             <span className="block truncate text-2xl font-bold text-slate-900">{headerName}</span>
           </div>
-          <div
-            className="w-10"
-            aria-hidden="true"
-          />
+          <div className="flex w-10 items-center justify-end">
+            {targetProfileUsername && (
+              <button
+                type="button"
+                aria-label="Share profile"
+                onClick={async () => {
+                  const url = `${window.location.origin}/mate/${targetProfileUsername}`
+                  try {
+                    if (navigator.share) {
+                      await navigator.share({
+                        title: 'HopCourts',
+                        text: `Check out ${profile?.name || targetProfileUsername} on HopCourts`,
+                        url,
+                      })
+                    } else {
+                      await navigator.clipboard.writeText(url)
+                    }
+                  } catch {}
+                }}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
+              >
+                <Share2 className="h-5 w-5" />
+              </button>
+            )}
+          </div>
         </div>
 
         {!error && loading && !profileData ? (

@@ -261,6 +261,12 @@ async function updateVenueStatus(venueId, status) {
   return rows[0]
 }
 
+async function updateVenueType(venueId, venueType) {
+  const sql = `UPDATE public.venues SET venue_type = $2, updated_at = NOW() WHERE id = $1 RETURNING *`
+  const { rows } = await query(sql, [venueId, venueType])
+  return rows[0]
+}
+
 // --- Admin/Governance Operations (C0) ---
 
 async function writeAuditLog({ adminId, action, targetId, targetType, note }) {
@@ -577,6 +583,7 @@ module.exports = {
   getVenueClaimById,
   updateVenueClaimStatus,
   updateVenueStatus,
+  updateVenueType,
   // C0 Export
   writeAuditLog,
   getAdminVenues,

@@ -141,6 +141,7 @@ async function reviewVenueClaim(claimId, status) {
 
   if (status === 'approved') {
     await venuesModel.updateVenueStatus(claim.venue_id, 'claimed')
+    await venuesModel.updateVenueType(claim.venue_id, 'official')
   }
 
   return updatedClaim
