@@ -43,20 +43,21 @@ function isNameSimilar(name1, name2) {
 
 async function resolveVenue({ lat, lng, name, address, source }) {
   // 1. Search for candidates within 100m
-  //    Distance is a NECESSARY but INSUFFICIENT condition.
   const candidates = await venuesModel.findNearbyVenues({ lat, lng, radiusMeters: 100 })
-  
-  // 2. Evaluate Candidates with STRICT RULES to avoid incorrect merges
+
+  // 2a. Single candidate within radius → high-confidence coordinate match, use it
+  if (candidates.length === 1) {
+    return candidates[0].id
+  }
+
+  // 2b. Multiple candidates → use name similarity to disambiguate
   for (const venue of candidates) {
     if (isNameSimilar(venue.name_display, name)) {
-      // High confidence match
-      // TODO: Check aliases here when implemented
       return venue.id
     }
   }
-  
-  // 3. No match found -> Create New Venue
-  //    Default status is 'unclaimed'. 'source' is tracked in the Event/Session, not the Venue itself.
+
+  // 3. No candidates at all → create new venue
   const newVenue = await venuesModel.createVenue({
     name,
     lat,
@@ -64,7 +65,7 @@ async function resolveVenue({ lat, lng, name, address, source }) {
     address,
     status: 'unclaimed'
   })
-  
+
   return newVenue.id
 }
 
