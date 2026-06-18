@@ -21,7 +21,7 @@ if (isProduction && (!env.corsOrigin || env.corsOrigin === '*')) {
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: isProduction ? 300 : 2000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests, please try again later.' } },
@@ -29,7 +29,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: isProduction ? 30 : 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: { ok: false, error: { code: 'RATE_LIMITED', message: 'Too many requests, please try again later.' } },
