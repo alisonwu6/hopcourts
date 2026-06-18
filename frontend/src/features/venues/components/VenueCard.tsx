@@ -44,8 +44,8 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
           <h3 className="truncate font-black leading-tight tracking-tight text-slate-900">
             {venue.name_display}
           </h3>
-          <p className="flex items-center gap-1 truncate text-xs font-medium text-slate-400">
-            <MapPin size={10} className="shrink-0" />
+          <p className="flex items-start gap-1 text-xs font-medium text-slate-400">
+            <MapPin size={10} className="mt-[3px] shrink-0" />
             {venue.address_display}
           </p>
         </div>
