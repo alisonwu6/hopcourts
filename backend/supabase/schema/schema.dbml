@@ -1,0 +1,334 @@
+// SportMatch Database Schema
+// Generated from Supabase schema dump
+
+Project sportsmatch {
+  database_type: 'PostgreSQL'
+  Note: 'SportMatch - Sports session & venue matching platform'
+}
+
+// ===== DICTIONARIES =====
+
+Table countries {
+  key text [pk]
+  name_zh text [not null]
+  name_en text [not null]
+  sort integer [default: 0]
+  is_active boolean [default: true]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table cities {
+  key text [pk]
+  country_key text
+  name_zh text [not null]
+  name_en text [not null]
+  sort integer [default: 0]
+  is_active boolean [default: true]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table vibes {
+  key text [pk, note: 'CHILL | SOCIAL | FLOW | EXPLORER | GROWTH | COMPETITIVE | SUPPORTIVE']
+  name_zh text [not null]
+  name_en text [not null]
+  subtitle_zh text
+  subtitle_en text
+  sort integer [default: 0]
+  is_active boolean [default: true]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table age_ranges {
+  key text [pk]
+  label_zh text [not null]
+  label_en text [not null]
+  min_age integer
+  max_age integer
+  sort integer [default: 0]
+  is_active boolean [default: true]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table sports {
+  key text [pk]
+  label_zh text [not null]
+  label_en text [not null]
+  category text
+  icon text
+  cover_image text
+  sort integer [default: 0]
+  is_active boolean [default: true]
+  updated_at timestamptz [default: `now()`]
+}
+
+// ===== USERS =====
+
+Table users {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  email text [unique, not null]
+  username text [unique]
+  username_updated_at timestamptz
+  display_name text
+  avatar_url text
+  bio text
+  city_key text
+  gender text
+  birth_date date
+  age_range_key text
+  vibe_key text
+  nationality_key text
+  role text[] [note: 'user | admin | moderator | venue']
+  onboarding_completed_at timestamptz
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table user_sports {
+  user_id uuid [not null]
+  sport_key text [not null]
+  status text [not null, note: 'favorite | trying']
+  level text
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+
+  indexes {
+    (user_id, sport_key) [pk]
+    user_id [name: 'idx_user_sports_user_id']
+    sport_key [name: 'idx_user_sports_sport_key']
+  }
+}
+
+Table user_preferences {
+  user_id uuid [pk]
+  preferred_days text[]
+  preferred_time_slots text[]
+  sessions_per_week_goal integer [default: 1]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table follows {
+  follower_id uuid [not null]
+  following_id uuid [not null]
+  created_at timestamptz [default: `now()`]
+
+  indexes {
+    (follower_id, following_id) [pk]
+  }
+}
+
+// ===== VENUES =====
+
+Table venues {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  name text [not null]
+  name_display text
+  logo_url text
+  address text
+  city_key text
+  lat float
+  lng float
+  description text
+  cover_image text
+  images text[]
+  amenities text[]
+  website_url text
+  phone text
+  is_official boolean [default: false]
+  owner_user_id uuid
+  status text [default: 'active', note: 'active | pending | suspended']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+}
+
+Table venue_profiles {
+  venue_id uuid [pk]
+  logo_url text
+  cover_url text
+  description text
+  amenities jsonb [note: '{ facilities, playing, services, supply }']
+  social_links jsonb
+  opening_hours jsonb
+  images jsonb
+  spaces jsonb
+  updated_at timestamptz [default: `now()`]
+}
+
+Table venue_claims {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  venue_id uuid [not null]
+  owner_id uuid [note: 'official user assigned by admin']
+  contact_name text
+  contact_person text
+  contact_title text
+  contact_phone text
+  contact_email text
+  note text
+  status text [not null, default: 'pending', note: 'pending | approved | rejected']
+  created_at timestamptz [default: `now()`]
+  reviewed_at timestamptz
+  reviewed_by_admin_id uuid
+
+  indexes {
+    venue_id [name: 'idx_venue_claims_venue_id']
+    owner_id [name: 'idx_venue_claims_owner_id']
+    status [name: 'idx_venue_claims_status']
+    contact_email [name: 'idx_venue_claims_contact_email']
+  }
+}
+
+Table venue_audit_logs {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  admin_id uuid
+  action text [not null]
+  target_type text [not null, note: 'venue | venue_claim']
+  target_id uuid [not null]
+  note text
+  created_at timestamptz [default: `now()`]
+
+  indexes {
+    admin_id [name: 'idx_venue_audit_logs_admin_id']
+    (target_type, target_id) [name: 'idx_venue_audit_logs_target']
+  }
+}
+
+// ===== SESSIONS =====
+
+Table sessions {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  host_user_id uuid
+  sport_key text
+  venue_id uuid
+  title text
+  notes text
+  starts_at timestamptz [not null]
+  ends_at timestamptz
+  place_name text
+  address text
+  lat float
+  lng float
+  location_source text
+  checkin_radius_m integer [default: 100]
+  checkin_open_mins_before integer [default: 15]
+  checkin_close_mins_after integer [default: 10]
+  min_people integer [default: 2]
+  max_people integer [default: 10]
+  status text [default: 'published', note: 'draft | published | cancelled | completed']
+  visibility text [default: 'public', note: 'public | private | link']
+  skill_level text
+  gender text [default: 'mixed', note: 'mixed | male | female']
+  photos text[]
+  is_free boolean [default: true]
+  price_total decimal(10,2)
+  price_per_person decimal(10,2)
+  price_mode text [default: 'total', note: 'total | person']
+  price_note text
+  currency text [default: 'TWD']
+  is_official boolean [default: false]
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+
+  indexes {
+    sport_key [name: 'idx_sessions_sport_key']
+    starts_at [name: 'idx_sessions_starts_at']
+    venue_id [name: 'idx_sessions_venue_id']
+  }
+}
+
+Table session_participants {
+  session_id uuid [not null]
+  user_id uuid [not null]
+  status text [not null, default: 'joined', note: 'joined | left | kicked | waitlist']
+  role text [not null, default: 'player', note: 'player | organizer']
+  joined_at timestamptz [default: `now()`]
+  status_updated_at timestamptz [default: `now()`]
+
+  indexes {
+    (session_id, user_id) [pk]
+    (session_id, status) [name: 'idx_session_participants_session_status']
+    (user_id, status) [name: 'idx_session_participants_user_status']
+  }
+}
+
+Table check_ins {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  session_id uuid
+  user_id uuid
+  venue_id uuid
+  checked_in_at timestamptz [default: `now()`]
+  location_lat float
+  location_lng float
+  is_verified boolean [default: false]
+}
+
+// ===== SOCIAL =====
+
+Table notifications {
+  id uuid [pk, default: `gen_random_uuid()`]
+  recipient_user_id uuid [not null]
+  actor_user_id uuid
+  type text [not null]
+  entity_type text
+  entity_id uuid
+  title text [not null]
+  message text
+  metadata jsonb [not null, default: `{}`]
+  is_read boolean [not null, default: false]
+  read_at timestamptz
+  created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (recipient_user_id, created_at) [name: 'idx_notifications_recipient_created']
+    (recipient_user_id, is_read, created_at) [name: 'idx_notifications_recipient_unread']
+  }
+}
+
+Table feedback {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  user_id uuid
+  type text [not null]
+  message text [not null]
+  images text[]
+  allow_reply boolean [default: false]
+  status text [default: 'new', note: 'new | read | archived | replied']
+  created_at timestamptz [default: `now()`]
+}
+
+// ===== REFERENCES =====
+
+// Dictionaries
+Ref: cities.country_key > countries.key
+
+// Users
+Ref: users.city_key > cities.key
+Ref: users.age_range_key > age_ranges.key
+Ref: users.vibe_key > vibes.key
+Ref: users.nationality_key > countries.key
+Ref: user_sports.user_id > users.id [delete: cascade]
+Ref: user_sports.sport_key > sports.key [delete: cascade]
+Ref: user_preferences.user_id - users.id [delete: cascade]
+Ref: follows.follower_id > users.id [delete: cascade]
+Ref: follows.following_id > users.id [delete: cascade]
+
+// Venues
+Ref: venues.city_key > cities.key
+Ref: venues.owner_user_id > users.id
+Ref: venue_profiles.venue_id - venues.id [delete: cascade]
+Ref: venue_claims.venue_id > venues.id [delete: cascade]
+Ref: venue_claims.owner_id > users.id [delete: set null]
+Ref: venue_claims.reviewed_by_admin_id > users.id [delete: set null]
+Ref: venue_audit_logs.admin_id > users.id [delete: set null]
+
+// Sessions
+Ref: sessions.host_user_id > users.id
+Ref: sessions.sport_key > sports.key
+Ref: sessions.venue_id > venues.id
+Ref: session_participants.session_id > sessions.id [delete: cascade]
+Ref: session_participants.user_id > users.id [delete: cascade]
+Ref: check_ins.session_id > sessions.id [delete: cascade]
+Ref: check_ins.user_id > users.id
+Ref: check_ins.venue_id > venues.id
+
+// Notifications & Feedback
+Ref: notifications.recipient_user_id > users.id [delete: cascade]
+Ref: notifications.actor_user_id > users.id [delete: set null]
+Ref: feedback.user_id > users.id

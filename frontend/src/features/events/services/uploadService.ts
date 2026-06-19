@@ -10,9 +10,7 @@ export const uploadService = {
     if (!supabase) throw new Error('Supabase client not initialized')
 
     // 2. Upload
-    const { error: uploadError } = await supabase.storage
-      .from('sessions-photos')
-      .upload(filePath, file)
+    const { error: uploadError } = await supabase.storage.from('sessions-photos').upload(filePath, file)
 
     if (uploadError) {
       throw new Error(`Upload failed: ${uploadError.message}`)

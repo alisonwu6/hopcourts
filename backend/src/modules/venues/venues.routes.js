@@ -4,27 +4,37 @@ const { verifyToken } = require('../../middleware/verifyToken')
 
 const router = express.Router()
 
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || ''
+  if (!header.startsWith('Bearer ')) return next()
+  verifyToken(req, res, next)
+}
+
 // GET /venues - List venues
 router.get('/', async (req, res, next) => {
   try {
+    const VALID_VENUE_TYPES = ['public', 'official', 'private']
+    const venueType = VALID_VENUE_TYPES.includes(req.query.type) ? req.query.type : undefined
     const filters = {
       limit: req.query.limit ? parseInt(req.query.limit) : 50,
       offset: req.query.offset ? parseInt(req.query.offset) : 0,
       lat: req.query.lat ? parseFloat(req.query.lat) : undefined,
       lng: req.query.lng ? parseFloat(req.query.lng) : undefined,
       radiusKm: req.query.radiusKm ? parseFloat(req.query.radiusKm) : undefined,
+      venueType,
     }
     const venues = await venuesService.listVenues(filters)
-    res.json({ success: true, data: venues })
+    res.json({ success: true, data: venues, has_more: venues.length === filters.limit })
   } catch (err) {
     next(err)
   }
 })
 
 // GET /venues/:id - Get single venue details (Entry point for Claim)
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', optionalAuth, async (req, res, next) => {
   try {
-    const venue = await venuesService.getVenue(req.params.id)
+    const userId = req.userId || req.authUser?.id || req.user?.id || null
+    const venue = await venuesService.getVenue(req.params.id, userId)
     if (!venue) {
       return res.status(404).json({ success: false, error: 'Venue not found' })
     }
@@ -34,8 +44,8 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// POST /venues/:id/claim - Request venue claim (Public, no login required)
-router.post('/:id/claim', async (req, res, next) => {
+// POST /venues/:id/claim - Request venue claim (Authenticated)
+router.post('/:id/claim', verifyToken, async (req, res, next) => {
   try {
     const claimData = {
       contact_name: req.body.contact_name,
@@ -46,42 +56,12 @@ router.post('/:id/claim', async (req, res, next) => {
       note: req.body.note
     }
     
-    // Optional: if token exists, we can still link it, but it's not required
-    // For now, let's keep it clean as per user feedback: "no identity needed"
-    const userId = null; 
+    const userId = req.userId || null
     
     const claim = await venuesService.requestVenueClaim(req.params.id, userId, claimData)
     res.json({ success: true, data: claim })
   } catch (err) {
     if (err.message === 'Venue already claimed' || err.message === 'Claim already pending') {
-      return res.status(400).json({ success: false, error: err.message })
-    }
-    next(err)
-  }
-})
-
-// POST /venue-claims/:id/approve - Approve claim (Admin only)
-router.post('/venue-claims/:id/approve', verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Add admin role check here
-    const claim = await venuesService.reviewVenueClaim(req.params.id, 'approved')
-    res.json({ success: true, data: claim })
-  } catch (err) {
-    if (err.message === 'Claim not found' || err.message === 'Claim already processed') {
-      return res.status(400).json({ success: false, error: err.message })
-    }
-    next(err)
-  }
-})
-
-// POST /venue-claims/:id/reject - Reject claim (Admin only)
-router.post('/venue-claims/:id/reject', verifyToken, async (req, res, next) => {
-  try {
-    // TODO: Add admin role check here
-    const claim = await venuesService.reviewVenueClaim(req.params.id, 'rejected')
-    res.json({ success: true, data: claim })
-  } catch (err) {
-    if (err.message === 'Claim not found' || err.message === 'Claim already processed') {
       return res.status(400).json({ success: false, error: err.message })
     }
     next(err)

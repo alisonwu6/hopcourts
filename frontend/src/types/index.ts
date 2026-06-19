@@ -21,6 +21,7 @@ export interface User {
   teammateCount: number
   gender?: 'male' | 'female' | null
 
+  role?: string[]
   onboarding_completed_at?: Date | string | null
   createdAt: Date
   updatedAt: Date
@@ -106,7 +107,9 @@ export interface PaginatedResponse<T> {
 
 // ACTIVE: consumed by events.service.ts and useEventsStore filters.
 export interface EventFilter {
+  feedType?: 'upcoming' | 'interests' | 'relations'
   sport?: string
+  sportKeys?: string[]
   skillLevel?: 'beginner' | 'intermediate' | 'advanced'
   minPrice?: number
   maxPrice?: number
@@ -245,6 +248,7 @@ export interface SaveEventPayload {
 export interface PlayerEvent {
   id: string
   venueId?: string
+  courtName?: string
   title: string
   sport: string
   heroImageUrl?: string
@@ -294,6 +298,7 @@ export interface PlayerEvent {
     avatarUrl?: string
     username?: string
     checkedInAt?: string | Date
+    onTheWayAt?: string | Date
   }>
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date
@@ -317,6 +322,9 @@ export interface PlayerEvent {
     hideParticipants?: boolean
     heroImageUrl?: string
   }
+  isOfficial?: boolean
+  venueNameDisplay?: string
+  venueLogoUrl?: string
 }
 
 export interface PlayerVenue {

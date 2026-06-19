@@ -37,6 +37,7 @@ const BASE_FIELDS = [
 async function listUpcomingSessions({
   city,
   sportKey,
+  sportKeys,
   venueId,
   from,
   to,
@@ -64,10 +65,13 @@ async function listUpcomingSessions({
     params.push(to)
     conditions.push(`starts_at <= $${++idx}`)
   }
-  if (sportKey) {
-    params.push(sportKey)
-    conditions.push(`sport_key = $${++idx}`)
+
+  const resolvedSportKeys = sportKeys?.length ? sportKeys : sportKey ? [sportKey] : null
+  if (resolvedSportKeys) {
+    params.push(resolvedSportKeys)
+    conditions.push(`sport_key = ANY($${++idx})`)
   }
+
   if (city) {
     params.push(city)
     conditions.push(`address ILIKE $${++idx}`)
@@ -81,7 +85,8 @@ async function listUpcomingSessions({
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name,
+      h.nationality_key as host_nationality_key,
+      c.name_en as host_city_name,
       v.status as venue_status,
       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
       v.name_display as venue_name_display
@@ -100,11 +105,11 @@ async function listUpcomingSessions({
   return rows
 }
 
-async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
+async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 200, offset = 0 } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
   
-  let roleCondition = '(sp.user_id = $1 OR s.host_user_id = $1)'
+  let roleCondition = '(sp.user_id = $1 OR (s.host_user_id = $1 AND s.is_official = false))'
   if (role === 'hosted') {
     roleCondition = 's.host_user_id = $1'
   } else if (role === 'joined') {
@@ -116,8 +121,14 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
   const conditions = [
     roleCondition,
     '(s.ends_at IS NULL OR s.ends_at >= $2)',
-    role === 'hosted' ? "(s.status = 'published' OR s.status = 'draft')" : "s.status = 'published'",
+    role === 'hosted'
+      ? "(s.status = 'published' OR s.status = 'draft' OR s.status = 'cancelled')"
+      : "(s.status = 'published' OR s.status = 'cancelled')",
   ]
+
+  if (role === 'hosted') {
+    conditions.push('s.is_official = false')
+  }
 
   if (to) {
     params.push(to)
@@ -131,14 +142,22 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all' } = {}) {
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name
+      h.nationality_key as host_nationality_key,
+      c.name_en as host_city_name,
+      v.status as venue_status,
+      COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
+      v.name_display as venue_name_display
     from public.sessions s
     left join public.session_participants sp on sp.session_id = s.id
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
+    left join public.venues v on s.venue_id = v.id
+    left join public.venue_profiles vp on v.id = vp.venue_id
     where ${conditions.join(' AND ')}
     order by s.starts_at asc
+    limit $${++idx} offset $${++idx}
   `
+  params.push(limit, offset)
   const { rows } = await query(sql, params)
   return rows
 }
@@ -162,7 +181,7 @@ async function listMyPastSessions({ userId, limit = 50, offset = 0 } = {}) {
 async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'all' } = {}) {
   const now = new Date()
   const params = [userId, now, limit, offset]
-  let roleCondition = '(sp.user_id = $1 OR s.host_user_id = $1)'
+  let roleCondition = '(sp.user_id = $1 OR (s.host_user_id = $1 AND s.is_official = false))'
   if (role === 'hosted') {
     roleCondition = 's.host_user_id = $1'
   } else if (role === 'joined') {
@@ -176,12 +195,19 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
       h.avatar_url as host_avatar_url,
       h.username as host_username,
       h.city_key as host_city_key,
-      c.name_zh as host_city_name
+      h.nationality_key as host_nationality_key,
+      c.name_en as host_city_name,
+      v.status as venue_status,
+      COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
+      v.name_display as venue_name_display
     FROM public.sessions s
     LEFT JOIN public.session_participants sp ON sp.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
+    LEFT JOIN public.venues v ON s.venue_id = v.id
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     WHERE ${roleCondition}
+      ${role === 'hosted' ? 'AND s.is_official = false' : ''}
       AND (
         (s.ends_at IS NOT NULL AND s.ends_at < $2)
         OR (s.status = 'draft' AND s.host_user_id = $1)
@@ -203,13 +229,16 @@ async function getSessionById(sessionId) {
        h.avatar_url as host_avatar_url,
        h.username as host_username,
        h.city_key as host_city_key,
-       c.name_zh as host_city_name,
+      h.nationality_key as host_nationality_key,
+       c.name_en as host_city_name,
        v.status as venue_status,
-       v.logo_url as venue_logo_url
+       v.name_display as venue_name_display,
+       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url
      from public.sessions s
      left join public.users h on s.host_user_id = h.id
      left join public.cities c on h.city_key = c.key
      left join public.venues v on s.venue_id = v.id
+     left join public.venue_profiles vp on v.id = vp.venue_id
      where s.id = $1`,
     [sessionId]
   )
@@ -307,6 +336,7 @@ async function updateSession(sessionId, patch = {}) {
     address: patch.address,
     lat: patch.lat,
     lng: patch.lng,
+    location_source: patch.locationSource,
     checkin_radius_m: patch.checkinRadiusM,
     checkin_open_mins_before: patch.checkinOpenMinsBefore,
     checkin_close_mins_after: patch.checkinCloseMinsAfter,
@@ -368,14 +398,193 @@ async function deleteSession(sessionId) {
 
 async function countHostedSessions(userId) {
   const { rows } = await query(
-    "select count(*)::int as count from public.sessions where host_user_id = $1 and status != 'draft'",
+    "select count(*)::int as count from public.sessions where host_user_id = $1 and status not in ('draft', 'cancelled')",
     [userId]
   )
   return rows[0]?.count ?? 0
 }
 
+async function listSessionsByUserInterests({
+  userId,
+  city,
+  sportKey,
+  from,
+  to,
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const conditions = [
+    "s.status = 'published'",
+    "s.visibility = 'public'",
+    `s.sport_key IN (SELECT sport_key FROM public.user_sports WHERE user_id = $1)`,
+  ]
+  const params = [userId]
+  let idx = params.length
+
+  if (from) {
+    params.push(from)
+    conditions.push(`s.starts_at >= $${++idx}`)
+  } else {
+    params.push(new Date())
+    conditions.push(`s.starts_at >= $${++idx}`)
+  }
+
+  if (to) {
+    params.push(to)
+    conditions.push(`s.starts_at <= $${++idx}`)
+  }
+  if (sportKey) {
+    params.push(sportKey)
+    conditions.push(`s.sport_key = $${++idx}`)
+  }
+  if (city) {
+    params.push(city)
+    conditions.push(`s.address ILIKE $${++idx}`)
+  }
+
+  params.push(limit, offset)
+  const sql = `
+    SELECT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
+      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      h.display_name AS host_display_name,
+      h.avatar_url AS host_avatar_url,
+      h.username AS host_username,
+      h.city_key AS host_city_key,
+      h.nationality_key AS host_nationality_key,
+      c.name_en AS host_city_name,
+      v.status AS venue_status,
+      COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
+      v.name_display AS venue_name_display
+    FROM public.sessions s
+    LEFT JOIN public.users h ON s.host_user_id = h.id
+    LEFT JOIN public.cities c ON h.city_key = c.key
+    LEFT JOIN public.venues v ON s.venue_id = v.id
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY s.starts_at ASC
+    LIMIT $${idx + 1}
+    OFFSET $${idx + 2}
+  `
+
+  const { rows } = await query(sql, params)
+  return rows
+}
+
+async function listSessionsByRelations({
+  userId,
+  city,
+  sportKey,
+  from,
+  to,
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const conditions = [
+    "s.status = 'published'",
+    "s.visibility = 'public'",
+    // session has a co-attendee registered
+    `EXISTS (
+      SELECT 1 FROM public.session_participants sp_co
+      WHERE sp_co.session_id = s.id
+        AND sp_co.user_id IN (
+          SELECT DISTINCT sp2.user_id
+          FROM public.session_participants sp1
+          JOIN public.session_participants sp2 ON sp1.session_id = sp2.session_id
+          JOIN public.sessions s2 ON s2.id = sp1.session_id
+          WHERE sp1.user_id = $1
+            AND sp2.user_id != $1
+            AND s2.starts_at >= NOW() - INTERVAL '3 months'
+        )
+    )`,
+    // session sport must match user's interests
+    `s.sport_key IN (SELECT sport_key FROM public.user_sports WHERE user_id = $1)`,
+    // exclude already joined
+    `NOT EXISTS (
+      SELECT 1 FROM public.session_participants sp_me
+      WHERE sp_me.session_id = s.id AND sp_me.user_id = $1
+    )`,
+  ]
+  const params = [userId]
+  let idx = params.length
+
+  if (from) {
+    params.push(from)
+    conditions.push(`s.starts_at >= $${++idx}`)
+  } else {
+    params.push(new Date())
+    conditions.push(`s.starts_at >= $${++idx}`)
+  }
+
+  if (to) {
+    params.push(to)
+    conditions.push(`s.starts_at <= $${++idx}`)
+  }
+  if (sportKey) {
+    params.push(sportKey)
+    conditions.push(`s.sport_key = $${++idx}`)
+  }
+  if (city) {
+    params.push(city)
+    conditions.push(`s.address ILIKE $${++idx}`)
+  }
+
+  params.push(limit, offset)
+  const sql = `
+    SELECT DISTINCT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
+      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      h.display_name AS host_display_name,
+      h.avatar_url AS host_avatar_url,
+      h.username AS host_username,
+      h.city_key AS host_city_key,
+      h.nationality_key AS host_nationality_key,
+      c.name_en AS host_city_name,
+      v.status AS venue_status,
+      COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
+      v.name_display AS venue_name_display
+    FROM public.sessions s
+    LEFT JOIN public.users h ON s.host_user_id = h.id
+    LEFT JOIN public.cities c ON h.city_key = c.key
+    LEFT JOIN public.venues v ON s.venue_id = v.id
+    LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY s.starts_at ASC
+    LIMIT $${idx + 1}
+    OFFSET $${idx + 2}
+  `
+
+  const { rows } = await query(sql, params)
+  return rows
+}
+
+async function listVenueSessions(venueId, { from, to } = {}) {
+  const conditions = ['s.venue_id = $1']
+  const params = [venueId]
+  let idx = params.length
+
+  if (from) {
+    params.push(from)
+    conditions.push(`s.starts_at >= $${++idx}`)
+  }
+  if (to) {
+    params.push(to)
+    conditions.push(`s.starts_at <= $${++idx}`)
+  }
+
+  const sql = `
+    SELECT s.id, s.sport_key, s.starts_at, s.ends_at, s.title, s.status, s.max_people,
+      (SELECT COUNT(*)::int FROM public.session_participants WHERE session_id = s.id) AS participant_count
+    FROM public.sessions s
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY s.starts_at ASC
+  `
+  const { rows } = await query(sql, params)
+  return rows
+}
+
 module.exports = {
   listUpcomingSessions,
+  listSessionsByUserInterests,
+  listSessionsByRelations,
   listMyUpcomingSessions,
   listMyPastSessions,
   listMyHistorySessions,
@@ -387,4 +596,5 @@ module.exports = {
   getParticipantCount,
   deleteSession,
   countHostedSessions,
+  listVenueSessions,
 }

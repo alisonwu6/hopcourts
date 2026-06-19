@@ -13,8 +13,14 @@ const {
 const { verifyToken } = require('../../middleware/verifyToken')
 const router = express.Router()
 
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || ''
+  if (!header.startsWith('Bearer ')) return next()
+  verifyToken(req, res, next)
+}
+
 router.get('/my', verifyToken, handleListMySessions)
-router.get('/', handleListSessions)
+router.get('/', optionalAuth, handleListSessions)
 router.post('/', verifyToken, handleCreateSession)
 router.get('/:id', handleGetSession)
 router.put('/:id', verifyToken, handleUpdateSession)

@@ -1,24 +1,28 @@
-const { query } = require('../src/lib/db')
+const { query, getPool } = require('../src/lib/db')
 
 async function createVenue(input) {
   const sql = `
     INSERT INTO public.venues (
+      name,
       name_display,
-      address_display,
+      address,
       lat,
       lng,
-      status
+      status,
+      venue_type
     ) VALUES (
-      $1, $2, $3, $4, $5
+      $1, $2, $3, $4, $5, $6, $7
     )
     RETURNING *
   `
   const params = [
     input.name,
+    input.name,
     input.address,
     input.lat,
     input.lng,
-    input.status ?? 'unclaimed' // 'unclaimed' | 'claimed'
+    input.status ?? 'unclaimed',
+    input.venueType ?? 'public',
   ]
   const { rows } = await query(sql, params)
   return rows[0]
@@ -45,26 +49,65 @@ async function findNearbyVenues({ lat, lng, radiusMeters = 100 }) {
   return rows
 }
 
-async function getVenueById(id) {
+async function getVenueById(id, userId = null) {
   const sql = `
     SELECT v.*,
+      COALESCE(v.name_display, v.name) as name_display,
+      v.address as address_display,
       COALESCE(vp.logo_url, v.logo_url) as logo_url,
-      (SELECT COUNT(*)::int FROM public.sessions s 
-       WHERE s.venue_id = v.id 
-         AND s.ends_at > NOW() 
-         AND s.status = 'published') as active_sessions_count
+      COALESCE(vp.description, v.description) as description,
+      vp.opening_hours,
+      vp.amenities,
+      vp.spaces,
+      CASE WHEN $2::uuid IS NOT NULL THEN
+        EXISTS (
+          SELECT 1 FROM public.venue_claims vc
+          WHERE vc.venue_id = v.id
+            AND vc.owner_id = $2::uuid
+            AND vc.status = 'pending'
+        )
+      ELSE false END as has_pending_claim,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at > NOW()
+         AND s.status = 'published') as active_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.starts_at::date = CURRENT_DATE
+         AND s.status = 'published') as today_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at < NOW()
+         AND s.status = 'published') as past_sessions_count,
+      COALESCE((
+        SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
+        FROM public.sessions s
+        WHERE s.venue_id = v.id
+          AND s.ends_at > NOW()
+          AND s.status = 'published'
+      ), '{}') as sport_keys
     FROM public.venues v
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     WHERE v.id = $1
+      AND v.status <> 'suspended'
   `
-  const { rows } = await query(sql, [id])
+  const { rows } = await query(sql, [id, userId])
   return rows[0]
 }
 
-async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
+async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm, venueType } = {}) {
   let conditions = []
   let params = []
-  
+
+  // Public venues list should not expose suspended venues.
+  conditions.push(`v.status <> $${params.length + 1}`)
+  params.push('suspended')
+
+  if (venueType) {
+    conditions.push(`v.venue_type = $${params.length + 1}`)
+    params.push(venueType)
+  }
+
   // Basic geo filtering if provided
   if (lat && lng && radiusKm) {
     const latDelta = (radiusKm * 1000) / 111320
@@ -82,15 +125,32 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm } = {}) {
   // Note: Using subquery for counts is simpler for now than GROUP BY everything
   const sql = `
     SELECT v.*,
+      COALESCE(v.name_display, v.name) as name_display,
+      v.address as address_display,
       COALESCE(vp.logo_url, v.logo_url) as logo_url,
-      (SELECT COUNT(*)::int FROM public.sessions s 
-       WHERE s.venue_id = v.id 
-         AND s.ends_at > NOW() 
-         AND s.status = 'published') as active_sessions_count
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at > NOW()
+         AND s.status = 'published') as active_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.starts_at::date = CURRENT_DATE
+         AND s.status = 'published') as today_sessions_count,
+      (SELECT COUNT(*)::int FROM public.sessions s
+       WHERE s.venue_id = v.id
+         AND s.ends_at < NOW()
+         AND s.status = 'published') as past_sessions_count,
+      COALESCE((
+        SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
+        FROM public.sessions s
+        WHERE s.venue_id = v.id
+          AND s.ends_at > NOW()
+          AND s.status = 'published'
+      ), '{}') as sport_keys
     FROM public.venues v
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
     ${whereClause}
-    ORDER BY v.created_at DESC
+    ORDER BY active_sessions_count DESC, v.created_at DESC
     LIMIT $${params.length + 1} OFFSET $${params.length + 2}
   `
   
@@ -185,7 +245,9 @@ async function getVenueClaimById(id) {
 async function updateVenueClaimStatus(claimId, status) {
   const sql = `
     UPDATE public.venue_claims
-    SET status = $2, claimed_at = CASE WHEN $2 = 'approved' THEN NOW() ELSE NULL END
+    SET
+      status = $2,
+      reviewed_at = CASE WHEN $2 IN ('approved', 'rejected') THEN NOW() ELSE reviewed_at END
     WHERE id = $1
     RETURNING *
   `
@@ -199,11 +261,17 @@ async function updateVenueStatus(venueId, status) {
   return rows[0]
 }
 
+async function updateVenueType(venueId, venueType) {
+  const sql = `UPDATE public.venues SET venue_type = $2, updated_at = NOW() WHERE id = $1 RETURNING *`
+  const { rows } = await query(sql, [venueId, venueType])
+  return rows[0]
+}
+
 // --- Admin/Governance Operations (C0) ---
 
 async function writeAuditLog({ adminId, action, targetId, targetType, note }) {
   const sql = `
-    INSERT INTO public.admin_audit_logs (
+    INSERT INTO public.venue_audit_logs (
       admin_id, action, target_id, target_type, note
     ) VALUES ($1, $2, $3, $4, $5)
     RETURNING *
@@ -217,7 +285,7 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
   let params = []
 
   if (search) {
-    conditions.push(`(v.name_display ILIKE $1 OR v.id::text = $1)`)
+    conditions.push(`(COALESCE(v.name_display, v.name) ILIKE $1 OR v.id::text = $1)`)
     params.push(`%${search}%`)
   }
 
@@ -228,10 +296,14 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
       v.*,
       c.id as claim_id,
       c.status as claim_status,
+      c.contact_name,
+      c.contact_title,
+      c.contact_phone,
       c.contact_email,
       pc.id as pending_claim_id,
       pc.contact_name as pending_contact_name,
       pc.contact_email as pending_contact_email,
+      sal.note as suspended_reason,
       (SELECT MAX(starts_at) FROM public.sessions s WHERE s.venue_id = v.id) as last_activity_at
     FROM public.venues v
     LEFT JOIN public.venue_claims c ON c.venue_id = v.id AND c.status = 'approved'
@@ -241,6 +313,15 @@ async function getAdminVenues({ search, limit = 50, offset = 0 } = {}) {
       WHERE venue_id = v.id AND status = 'pending' 
       ORDER BY created_at DESC LIMIT 1
     ) pc ON true
+    LEFT JOIN LATERAL (
+      SELECT note
+      FROM public.venue_audit_logs al
+      WHERE al.target_type = 'venue'
+        AND al.target_id = v.id
+        AND al.action = 'suspend_venue'
+      ORDER BY al.created_at DESC
+      LIMIT 1
+    ) sal ON true
     ${whereClause}
     ORDER BY v.created_at DESC
     LIMIT $${params.length + 1} OFFSET $${params.length + 2}
@@ -254,11 +335,12 @@ async function revokeVenueClaim(claimId) {
   // 1. Get the claim to know the venue_id
   const claim = await getVenueClaimById(claimId)
   if (!claim) throw new Error('Claim not found')
+  if (claim.status !== 'approved') throw new Error('Only approved claim can be revoked')
 
-  // 2. Set claim to revoked
+  // 2. Mark claim as rejected since venue_claims status only allows pending/approved/rejected.
   const sqlUpdateClaim = `
     UPDATE public.venue_claims 
-    SET status = 'revoked', claimed_at = NULL 
+    SET status = 'rejected', reviewed_at = NOW()
     WHERE id = $1 
     RETURNING *
   `
@@ -270,18 +352,127 @@ async function revokeVenueClaim(claimId) {
   return claimRows[0]
 }
 
-async function patchVenueDisplay(id, { name_display, address_display }) {
+async function getAdminClaims({ status = undefined, limit = 50, offset = 0 } = {}) {
+  let conditions = []
+  let params = []
+  let paramIndex = 1
+
+  if (status && status !== 'all') {
+    conditions.push(`vc.status = $${paramIndex++}`)
+    params.push(status)
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
   const sql = `
-    UPDATE public.venues 
-    SET 
-      name_display = COALESCE($2, name_display),
-      address_display = COALESCE($3, address_display),
-      updated_at = NOW()
+    SELECT 
+      vc.id,
+      vc.venue_id,
+      v.name_display as venue_name,
+      v.address as venue_address,
+      vc.contact_name as applicant_name,
+      vc.contact_email as applicant_email,
+      vc.contact_title as applicant_role,
+      vc.contact_phone as applicant_phone,
+      vc.note,
+      vc.status,
+      vc.created_at as submitted_at,
+      vc.reviewed_at,
+      vc.owner_id,
+      u.email as reviewed_by,
+      ral.note as rejection_reason
+    FROM public.venue_claims vc
+    JOIN public.venues v ON vc.venue_id = v.id
+    LEFT JOIN public.users u ON vc.reviewed_by_admin_id = u.id
+    LEFT JOIN LATERAL (
+      SELECT note
+      FROM public.venue_audit_logs al
+      WHERE al.target_type = 'venue_claim'
+        AND al.target_id = vc.id
+        AND al.action IN ('reject_claim', 'revoke_claim')
+      ORDER BY al.created_at DESC
+      LIMIT 1
+    ) ral ON true
+    ${whereClause}
+    ORDER BY vc.created_at DESC
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `
+  params.push(limit, offset)
+  
+  const { rows } = await query(sql, params)
+  return rows
+}
+
+async function suspendVenue(id) {
+  const sql = `
+    UPDATE public.venues
+    SET status = 'suspended', updated_at = NOW()
     WHERE id = $1
     RETURNING *
   `
-  const { rows } = await query(sql, [id, name_display, address_display])
+  const { rows } = await query(sql, [id])
   return rows[0]
+}
+
+async function unsuspendVenue(id) {
+  const sql = `
+    UPDATE public.venues
+    SET status = 'claimed', updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `
+  const { rows } = await query(sql, [id])
+  return rows[0]
+}
+
+async function patchVenueDisplay(
+  id,
+  { name_display, address_display, operator_name, operator_email, operator_role, operator_phone, lat, lng }
+) {
+  const pool = getPool()
+  const client = await pool.connect()
+
+  try {
+    await client.query('BEGIN')
+
+    const venueSql = `
+      UPDATE public.venues
+      SET
+        name_display = COALESCE($2, name_display),
+        address = COALESCE($3, address),
+        lat = COALESCE($4, lat),
+        lng = COALESCE($5, lng),
+        updated_at = NOW()
+      WHERE id = $1
+      RETURNING *
+    `
+    const { rows: venueRows } = await client.query(venueSql, [id, name_display, address_display, lat, lng])
+
+    const operatorFieldsProvided = [operator_name, operator_email, operator_role, operator_phone].some(
+      (value) => value !== undefined
+    )
+
+    if (operatorFieldsProvided) {
+      const claimSql = `
+        UPDATE public.venue_claims
+        SET
+          contact_name = COALESCE($2, contact_name),
+          contact_email = COALESCE($3, contact_email),
+          contact_title = COALESCE($4, contact_title),
+          contact_phone = COALESCE($5, contact_phone)
+        WHERE venue_id = $1 AND status = 'approved'
+      `
+      await client.query(claimSql, [id, operator_name, operator_email, operator_role, operator_phone])
+    }
+
+    await client.query('COMMIT')
+    return venueRows[0]
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 async function getManagedVenues(userId) {
@@ -297,39 +488,86 @@ async function getManagedVenues(userId) {
 }
 
 async function getVenueProfile(venueId) {
-  const sql = `SELECT * FROM public.venue_profiles WHERE venue_id = $1`
+  const sql = `SELECT to_jsonb(vp) AS profile FROM public.venue_profiles vp WHERE vp.venue_id = $1`
   const { rows } = await query(sql, [venueId])
-  return rows[0]
+  return rows[0]?.profile || null
 }
 
 async function upsertVenueProfile(venueId, data) {
-  const sql = `
+  const baseSql = `
     INSERT INTO public.venue_profiles (
-      venue_id, logo_url, cover_url, description, social_links, opening_hours, images, updated_at
+      venue_id, logo_url, cover_url
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, NOW()
+      $1, $2, $3
     )
     ON CONFLICT (venue_id) DO UPDATE SET
       logo_url = COALESCE($2, public.venue_profiles.logo_url),
-      cover_url = COALESCE($3, public.venue_profiles.cover_url),
-      description = COALESCE($4, public.venue_profiles.description),
-      social_links = COALESCE($5, public.venue_profiles.social_links),
-      opening_hours = COALESCE($6, public.venue_profiles.opening_hours),
-      images = COALESCE($7, public.venue_profiles.images),
-      updated_at = NOW()
+      cover_url = COALESCE($3, public.venue_profiles.cover_url)
     RETURNING *
   `
-  const params = [
+
+  const baseParams = [
     venueId,
     data.logo_url || null,
     data.cover_url || null,
+  ]
+
+  const { rows } = await query(baseSql, baseParams)
+  const baseRow = rows[0]
+
+  const extendedSql = `
+    UPDATE public.venue_profiles
+    SET
+      description = COALESCE($2, description),
+      social_links = COALESCE($3::jsonb, social_links),
+      opening_hours = COALESCE($4::jsonb, opening_hours),
+      images = COALESCE($5::jsonb, images),
+      amenities = COALESCE($6::jsonb, amenities),
+      spaces = COALESCE($7::jsonb, spaces),
+      updated_at = NOW()
+    WHERE venue_id = $1
+    RETURNING *
+  `
+
+  const extendedParams = [
+    venueId,
     data.description || null,
     data.social_links ? JSON.stringify(data.social_links) : null,
     data.opening_hours ? JSON.stringify(data.opening_hours) : null,
-    data.images ? JSON.stringify(data.images) : null
+    data.images ? JSON.stringify(data.images) : null,
+    data.amenities ? JSON.stringify(data.amenities) : null,
+    data.spaces ? JSON.stringify(data.spaces) : null,
   ]
-  
-  const { rows } = await query(sql, params)
+
+  try {
+    const ext = await query(extendedSql, extendedParams)
+    return ext.rows[0] || baseRow
+  } catch (err) {
+    if (err && err.code === '42703') {
+      return baseRow
+    }
+    throw err
+  }
+}
+
+async function getVenueStats(venueId) {
+  const sql = `
+    SELECT
+      (SELECT COUNT(DISTINCT user_id)::int
+       FROM public.check_ins
+       WHERE venue_id = $1 AND checked_in_at >= NOW() - INTERVAL '7 days') AS active_users,
+      (SELECT COUNT(*)::int
+       FROM public.session_participants sp
+       JOIN public.sessions s ON sp.session_id = s.id
+       WHERE s.venue_id = $1
+         AND s.starts_at >= date_trunc('week', NOW())
+         AND s.starts_at < date_trunc('week', NOW()) + INTERVAL '7 days') AS participants_of_the_week,
+      (SELECT COUNT(DISTINCT sp.user_id)::int
+       FROM public.session_participants sp
+       JOIN public.sessions s ON sp.session_id = s.id
+       WHERE s.venue_id = $1) AS total_players
+  `
+  const { rows } = await query(sql, [venueId])
   return rows[0]
 }
 
@@ -345,13 +583,18 @@ module.exports = {
   getVenueClaimById,
   updateVenueClaimStatus,
   updateVenueStatus,
+  updateVenueType,
   // C0 Export
   writeAuditLog,
   getAdminVenues,
+  getAdminClaims,
   revokeVenueClaim,
   patchVenueDisplay,
+  suspendVenue,
+  unsuspendVenue,
   // C1 Export
   getManagedVenues,
   getVenueProfile,
-  upsertVenueProfile
+  upsertVenueProfile,
+  getVenueStats,
 }

@@ -3,6 +3,41 @@ export type ApiResponse<T> = {
   data: T
 }
 
+// ─── Profile API ─────────────────────────────────────────────────────────────
+
+export type UserRole = 'player' | 'venue' | 'admin'
+
+export type ProfileUser = {
+  id: string
+  email: string
+  username: string | null
+  display_name: string | null
+  avatar_url: string | null
+  bio: string | null
+  city_key: string | null
+  nationality_key: string | null
+  vibe_key: string | null
+  age_range_key: string | null
+  gender: string | null
+  role: UserRole[]
+  onboarding_completed_at: string | null
+  created_at: string
+  updated_at: string
+  teammate_count: number
+  joined_count: number
+  hosted_count: number
+}
+
+export type ProfileSport = {
+  sport_key: string
+  kind: 'FAVORITE' | 'TRYING'
+}
+
+export type ProfileResponse = {
+  user: ProfileUser
+  sports: ProfileSport[]
+}
+
 export type Page = {
   limit: number
   offset: number

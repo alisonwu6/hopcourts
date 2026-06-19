@@ -1,28 +1,90 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { venuePortalService } from '../services/venuePortalService'
+import { VenueProfileView, VenueProfileData } from '../views/VenueProfileView'
+import {
+  Car,
+  Bath,
+  ShowerHead,
+  DoorClosed,
+  Armchair,
+  Lightbulb,
+  Sun,
+  House,
+  ShoppingBag,
+  Users,
+  Droplets,
+  Coffee,
+  SmartphoneNfc,
+  Wifi,
+} from 'lucide-react'
 
-interface VenueProfileData {
-  logo_url: string
-  cover_url: string
-  description: string
-  social_links: {
-    facebook?: string
-    instagram?: string
-    website?: string
-  }
+const AMENITIES_CATEGORIES = [
+  {
+    title: 'Facilities',
+    items: [
+      { label: 'Parking', icon: <Car className="h-3.5 w-3.5" /> },
+      { label: 'Restrooms', icon: <Bath className="h-3.5 w-3.5" /> },
+      { label: 'Showers', icon: <ShowerHead className="h-3.5 w-3.5" /> },
+      { label: 'Changing rooms', icon: <DoorClosed className="h-3.5 w-3.5" /> },
+      { label: 'Seating area', icon: <Armchair className="h-3.5 w-3.5" /> },
+    ],
+  },
+  {
+    title: 'Playing',
+    items: [
+      { label: 'Night lighting', icon: <Lightbulb className="h-3.5 w-3.5" /> },
+      { label: 'Indoor', icon: <House className="h-3.5 w-3.5" /> },
+      { label: 'Outdoor', icon: <Sun className="h-3.5 w-3.5" /> },
+    ],
+  },
+  {
+    title: 'Services',
+    items: [
+      { label: 'Equipment rental', icon: <ShoppingBag className="h-3.5 w-3.5" /> },
+      { label: 'Coaching', icon: <Users className="h-3.5 w-3.5" /> },
+    ],
+  },
+  {
+    title: 'Convenience',
+    items: [
+      { label: 'Water refill', icon: <Droplets className="h-3.5 w-3.5" /> },
+      { label: 'Vending machine', icon: <Coffee className="h-3.5 w-3.5" /> },
+      { label: 'Contactless pay', icon: <SmartphoneNfc className="h-3.5 w-3.5" /> },
+      { label: 'Wi-Fi', icon: <Wifi className="h-3.5 w-3.5" /> },
+    ],
+  },
+]
+
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+interface OperatingDay {
+  day: string
+  open_time: string
+  close_time: string
+  is_closed: boolean
 }
 
+/**
+ * VenueProfilePage - Container for Venue Profile editing.
+ * Orchestrates API calls and data flow for the VenueProfileView.
+ */
 export function VenueProfilePage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
+  const [mode, setMode] = useState<'view' | 'edit'>('view')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
   const [formData, setFormData] = useState<VenueProfileData>({
+    name_display: '',
+    address_display: '',
     logo_url: '',
-    cover_url: '',
     description: '',
-    social_links: {}
+    amenities: [] as string[],
+    spaces: [] as { name: string; supported_sports: string[] }[],
+    operating_hours: [] as OperatingDay[],
+    social_links: {},
   })
 
   useEffect(() => {
@@ -34,17 +96,43 @@ export function VenueProfilePage() {
   const loadProfile = async () => {
     if (!venueId) return
     setLoading(true)
-    const res = await venuePortalService.getVenueProfile(venueId)
-    if (res.success && res.data) {
-      // Merge with default struct to avoid undefined access
+    const [venuesRes, profileRes] = await Promise.all([
+      venuePortalService.getMyVenues(),
+      venuePortalService.getVenueProfile(venueId),
+    ])
+
+    const currentVenue =
+      venuesRes.success && venuesRes.data
+        ? venuesRes.data.find((v) => v.id === venueId) || venuesRes.data[0] || null
+        : null
+
+    if (profileRes.success && profileRes.data) {
+      const operatingHours = Array.isArray(profileRes.data.operating_hours) ? profileRes.data.operating_hours : []
+
       setFormData({
-        logo_url: res.data.logo_url || '',
-        cover_url: res.data.cover_url || '',
-        description: res.data.description || '',
-        social_links: res.data.social_links || {}
+        name_display: currentVenue?.name_display || '',
+        address_display: currentVenue?.address_display || '',
+        logo_url: profileRes.data.logo_url || '',
+        description: profileRes.data.description || '',
+        amenities: profileRes.data.amenities || [],
+        spaces: Array.isArray(profileRes.data.spaces) ? profileRes.data.spaces : [],
+        operating_hours: operatingHours,
+        social_links: profileRes.data.social_links || {},
       })
     }
     setLoading(false)
+  }
+
+  const handleApplyAll = (open: string, close: string) => {
+    setFormData({
+      ...formData,
+      operating_hours: DAYS.map((d) => ({
+        day: d,
+        open_time: open,
+        close_time: close,
+        is_closed: false,
+      })),
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,132 +142,26 @@ export function VenueProfilePage() {
     setSaving(true)
     const res = await venuePortalService.updateVenueProfile(venueId, formData)
     if (res.success) {
-      alert('場館資料更新成功！')
-      navigate('/venue-portal')
+      await loadProfile()
+      setMode('view')
     } else {
-      alert('更新失敗：' + res.error?.message)
+      console.error('Update failed:', res.error?.message)
     }
     setSaving(false)
   }
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading profile...</div>
-
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-20">
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-         <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/venue-portal')} className="p-2 -ml-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors">
-                ←
-            </button>
-            <h1 className="font-bold text-slate-800 tracking-tight">編輯場館資料</h1>
-         </div>
-      </header>
-
-      <main className="max-w-2xl mx-auto p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Branding Section */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">品牌形象 (Branding)</h2>
-                
-                <div className="mb-4">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Logo URL</label>
-                    <input 
-                        type="url" 
-                        value={formData.logo_url}
-                        onChange={e => setFormData({...formData, logo_url: e.target.value})}
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="https://example.com/logo.png"
-                    />
-                    <p className="text-xs text-slate-500 mt-1">建議尺寸 200x200px (正方形)</p>
-                </div>
-
-                 <div className="mb-4">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Cover Image URL</label>
-                    <input 
-                        type="url" 
-                        value={formData.cover_url}
-                        onChange={e => setFormData({...formData, cover_url: e.target.value})}
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="https://example.com/cover.jpg"
-                    />
-                    <p className="text-xs text-slate-500 mt-1">將顯示於場館主頁頂部</p>
-                </div>
-            </div>
-
-            {/* Info Section */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">詳細資訊</h2>
-                
-                <div className="mb-4">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">場館介紹 (Description)</label>
-                    <textarea 
-                        rows={5}
-                        value={formData.description}
-                        onChange={e => setFormData({...formData, description: e.target.value})}
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                        placeholder="請介紹您的場館設施、特色..."
-                    />
-                </div>
-            </div>
-
-             {/* Social Section */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-                <h2 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 border-slate-100">社群連結</h2>
-                
-                <div className="grid gap-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Official Website</label>
-                        <input 
-                            type="url" 
-                            value={formData.social_links.website || ''}
-                            onChange={e => setFormData({...formData, social_links: {...formData.social_links, website: e.target.value}})}
-                            className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all"
-                            placeholder="https://your-venue.com"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Instagram</label>
-                        <input 
-                            type="text" 
-                            value={formData.social_links.instagram || ''}
-                            onChange={e => setFormData({...formData, social_links: {...formData.social_links, instagram: e.target.value}})}
-                             className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all"
-                            placeholder="@sportsmatch"
-                        />
-                    </div>
-                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Facebook</label>
-                        <input 
-                            type="url" 
-                            value={formData.social_links.facebook || ''}
-                            onChange={e => setFormData({...formData, social_links: {...formData.social_links, facebook: e.target.value}})}
-                             className="w-full rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all"
-                            placeholder="https://facebook.com/..."
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex gap-4 pt-4">
-                <button 
-                    type="button"
-                    onClick={() => navigate('/venue-portal')}
-                    className="flex-1 py-3 font-bold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                    取消
-                </button>
-                <button 
-                    type="submit"
-                    disabled={saving}
-                    className="flex-1 py-3 font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50"
-                >
-                    {saving ? '儲存中...' : '儲存變更'}
-                </button>
-            </div>
-
-        </form>
-      </main>
-    </div>
+    <VenueProfileView
+      loading={loading}
+      saving={saving}
+      mode={mode}
+      onToggleMode={setMode}
+      formData={formData}
+      setFormData={setFormData}
+      onBack={() => navigate('/admin')}
+      onSubmit={handleSubmit}
+      onApplyAll={handleApplyAll}
+      AMENITIES_CATEGORIES={AMENITIES_CATEGORIES}
+    />
   )
 }

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 export interface SessionContext {
   token: string
   user: User
+  rawProfile: any | null
 }
 
 type SupabaseUser = {
@@ -21,7 +22,7 @@ const buildUser = (payload: SupabaseUser | null): User => {
     id: String(payload?.id ?? ''),
     email: payload?.email ?? '',
     name: metadata.full_name ?? metadata.name ?? '',
-    avatar: metadata.avatar_url ?? metadata.picture ?? undefined,
+    avatar: metadata.avatar_url ?? undefined,
     phone: metadata.phone ?? undefined,
     bio: metadata.bio ?? '',
     location: metadata.city ?? '',
@@ -57,9 +58,9 @@ export const sessionService = {
       // We explicitly pass the token since it might not be in storage yet
       const response = await http<ApiResponse<any>>('GET', '/me/profile', {
         headers: { Authorization: `Bearer ${token}` },
-        tokenOverride: token
+        tokenOverride: token,
       })
-      
+
       const backendUser = response.data.user
       const userSports = response.data.sports || []
 
@@ -80,23 +81,26 @@ export const sessionService = {
         eventsHosted: backendUser.hosted_count || 0,
         teammateCount: backendUser.teammate_count || 0,
         gender: backendUser.gender,
+        role: Array.isArray(backendUser.role) ? backendUser.role : [],
         onboarding_completed_at: backendUser.onboarding_completed_at || null,
         createdAt: new Date(backendUser.created_at),
-        updatedAt: new Date(backendUser.updated_at)
+        updatedAt: new Date(backendUser.updated_at),
       }
 
       return {
         token,
-        user
+        user,
+        rawProfile: response.data,
       }
     } catch (error) {
       console.error('Bootstrap failed, falling back to basic auth:', error)
       const supabaseUser = await fetchSupabaseUser(token)
       if (!supabaseUser) throw new Error('Authentication failed')
-      
+
       return {
         token,
-        user: buildUser(supabaseUser)
+        user: buildUser(supabaseUser),
+        rawProfile: null,
       }
     }
   },

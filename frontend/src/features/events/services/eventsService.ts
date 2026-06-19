@@ -1,10 +1,4 @@
-import type {
-  ApiResponse,
-  PaginatedResponse,
-  CreateEventInput,
-  EventFilter,
-  PlayerEvent,
-} from '@/types'
+import type { ApiResponse, PaginatedResponse, CreateEventInput, EventFilter, PlayerEvent } from '@/types'
 import { httpPost, httpGet, httpPut, httpDelete } from '@/api/http'
 
 type QueryOptions = {
@@ -30,19 +24,32 @@ const wrapEmptyEvents = (): ApiResponse<PaginatedResponse<PlayerEvent>> =>
 const formatTwdNoDecimal = (value: unknown): string => {
   const n = Number(value)
   if (!Number.isFinite(n)) return '0'
-  return Math.round(n).toLocaleString('zh-TW')
+  return Math.round(n).toLocaleString('en-AU')
+}
+
+const deriveCourtName = (session: any): string | undefined => {
+  const explicitCourt = String(session?.court_name || '').trim()
+  if (explicitCourt) return explicitCourt
+
+  const placeName = String(session?.place_name || '').trim()
+  const venueName = String(session?.venue_name_display || '').trim()
+  if (!placeName || !venueName || !session?.venue_id) return undefined
+
+  const prefix = `${venueName} - `
+  if (placeName.startsWith(prefix)) {
+    const parsed = placeName.slice(prefix.length).trim()
+    return parsed || undefined
+  }
+
+  return undefined
 }
 
 const DEFAULT_LIST_TTL_MS = 30_000
 const DEFAULT_DETAIL_TTL_MS = 60_000
 const DEFAULT_MY_EVENTS_TTL_MS = 15_000
 
-let eventsListCacheKey: string | null = null
-let eventsListCacheAt = 0
-let eventsListCache: ApiResponse<PaginatedResponse<PlayerEvent>> | null = null
-let eventsListInFlight:
-  | { key: string; promise: Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> }
-  | null = null
+const eventsListCache = new Map<string, { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }>()
+const eventsListInFlight = new Map<string, Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
 
 const eventDetailCache = new Map<string, { at: number; data: ApiResponse<PlayerEvent> }>()
 const eventDetailInFlight = new Map<string, Promise<ApiResponse<PlayerEvent>>>()
@@ -50,18 +57,14 @@ const myEventsCache = new Map<
   'upcoming' | 'history' | 'all' | 'hosted' | 'joined',
   { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
 >()
-const myEventsInFlight = new Map<'upcoming' | 'history' | 'all' | 'hosted' | 'joined', Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
-const myEventsScopedCache = new Map<
-  string,
-  { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
->()
-const myEventsScopedInFlight = new Map<
-  string,
+const myEventsInFlight = new Map<
+  'upcoming' | 'history' | 'all' | 'hosted' | 'joined',
   Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>
 >()
+const myEventsScopedCache = new Map<string, { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }>()
+const myEventsScopedInFlight = new Map<string, Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
 
-const cloneValue = <T>(value: T): T =>
-  typeof structuredClone === 'function' ? structuredClone(value) : value
+const cloneValue = <T>(value: T): T => (typeof structuredClone === 'function' ? structuredClone(value) : value)
 
 const stableFilterKey = (filters?: EventFilter) => {
   if (!filters) return ''
@@ -74,10 +77,8 @@ const stableFilterKey = (filters?: EventFilter) => {
 const isFresh = (cachedAt: number, ttlMs: number) => Date.now() - cachedAt < ttlMs
 
 const invalidateEventCaches = (eventId?: string) => {
-  eventsListCache = null
-  eventsListCacheAt = 0
-  eventsListCacheKey = null
-  eventsListInFlight = null
+  eventsListCache.clear()
+  eventsListInFlight.clear()
 
   if (eventId) {
     eventDetailCache.delete(eventId)
@@ -99,7 +100,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
   const end = new Date(now.getTime() + 60 * 60 * 1000)
   return {
     id,
-    title: 'SportsMatch 活動',
+    title: 'HopCourts Event',
     sport: 'running',
     vibeIcon: '🏃',
     skillLevel: 'mixed',
@@ -108,11 +109,11 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
     location: {
       name: 'Location TBC',
       address: '',
-      city: '台北',
+      city: 'Brisbane',
     },
     host: {
       id: 'host',
-      name: 'SportsMatch',
+      name: 'HopCourts',
     },
     highFives: 0,
     joined: false,
@@ -123,7 +124,7 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
     priceRange: 'Free to join',
     participants: [],
     detail: {
-      description: '活動資訊準備中。',
+      description: 'Event details are coming soon.',
     },
   }
 }
@@ -146,7 +147,7 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
     },
     host: {
       id: 'local-user',
-      name: '你',
+      name: 'You',
     },
     highFives: 0,
     joined: true,
@@ -164,9 +165,13 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
 }
 
 const mapSessionToEvent = (session: any): PlayerEvent => {
+  const courtName = deriveCourtName(session)
+  const locationName = session.venue_name_display || session.place_name
+
   return {
     id: session.id,
     venueId: session.venue_id,
+    courtName,
     title: session.title,
     sport: session.sport_key,
     vibeIcon: '🎯', // TODO: Map sport to icon
@@ -177,7 +182,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     startTime: new Date(session.starts_at),
     endTime: session.ends_at ? new Date(session.ends_at) : new Date(session.starts_at),
     location: {
-      name: session.place_name,
+      name: locationName,
       address: session.address ?? '',
       city: '', // TODO: logic to extract city
       lat: session.lat,
@@ -192,7 +197,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
       username: session.host_username || undefined,
       cityKey: session.host_city_key || undefined,
       cityName: session.host_city_name || undefined,
-      countryKey: session.host_country_key || undefined,
+      countryKey: session.host_nationality_key || session.host_country_key || undefined,
     },
     highFives: 0,
     joined: false, // need to check participation
@@ -204,12 +209,11 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     pricePerPerson: session.price_per_person ?? undefined,
     priceMode: session.price_mode ?? 'total',
     priceNote: session.price_note,
-    priceRange:
-      session.is_free
-        ? '免費參加'
-        : session.price_per_person
-          ? `$${formatTwdNoDecimal(session.price_per_person)}`
-          : '收費活動',
+    priceRange: session.is_free
+      ? 'Free to join'
+      : session.price_per_person
+        ? `$${formatTwdNoDecimal(session.price_per_person)}`
+        : 'Paid event',
     description: session.description ?? '',
     participants: [],
     status: session.status as any,
@@ -233,65 +237,67 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
 export const eventsService = {
   async getEvents(
     filters?: EventFilter,
-    options: QueryOptions = {}
+    options: QueryOptions & { offset?: number; limit?: number } = {}
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    const offset = options.offset ?? 0
+    const limit = options.limit ?? 50
     const cacheKey = stableFilterKey(filters)
     const ttlMs = options.ttlMs ?? DEFAULT_LIST_TTL_MS
 
-    if (!options.force && eventsListCache && eventsListCacheKey === cacheKey && isFresh(eventsListCacheAt, ttlMs)) {
-      return cloneValue(eventsListCache)
-    }
+    if (offset === 0 && !options.force) {
+      const cached = eventsListCache.get(cacheKey)
+      if (cached && isFresh(cached.at, ttlMs)) return cloneValue(cached.data)
 
-    if (!options.force && eventsListInFlight?.key === cacheKey) {
-      return eventsListInFlight.promise.then(cloneValue)
+      const inflight = eventsListInFlight.get(cacheKey)
+      if (inflight) return inflight.then(cloneValue)
     }
 
     const request = (async () => {
-    try {
-      // Map filters to backend params if needed
-      const queryParams: Record<string, any> = {}
-      if (filters?.sport) queryParams.sportKey = filters.sport
-      if (filters?.venueId) queryParams.venue_id = filters.venueId
+      try {
+        const queryParams: Record<string, any> = { limit, offset }
+        if (filters?.feedType && filters.feedType !== 'upcoming') queryParams.type = filters.feedType
+        if (filters?.sportKeys?.length) queryParams.sport_keys = filters.sportKeys.join(',')
+        else if (filters?.sport) queryParams.sport_key = filters.sport
+        if (filters?.venueId) queryParams.venue_id = filters.venueId
+        if (filters?.startDate) queryParams.from = filters.startDate.toISOString()
+        if (filters?.endDate) queryParams.to = filters.endDate.toISOString()
 
-      const response = await httpGet<any>('/sessions', { params: queryParams })
-      // Backend returns { success: true, data: { data: [...], ... } } or just { success: true, data: [...] } ?
-      // Based on typical pattern: response.data should have the list.
-      // Wait, look closely: httpGet returns `T`. If wrapper is { ok: true, data: ... }
-      // Then `response` is { ok: true, data: ... }.
+        const response = await httpGet<any>('/sessions', { params: queryParams })
 
-      const sessions = Array.isArray(response)
-        ? response
-        : response.data && Array.isArray(response.data)
-          ? response.data
-          : response.data?.items && Array.isArray(response.data.items)
-            ? response.data.items
-            : []
+        const sessions = Array.isArray(response)
+          ? response
+          : response.data && Array.isArray(response.data)
+            ? response.data
+            : response.data?.items && Array.isArray(response.data.items)
+              ? response.data.items
+              : []
 
-      const events = sessions.map(mapSessionToEvent)
+        const hasMore = response.data?.page?.has_more ?? sessions.length === limit
 
-      const result = wrapSuccess({
-        data: events,
-        total: events.length,
-        page: 1,
-        pageSize: 50,
-        hasMore: false,
-      })
+        const events = sessions.map(mapSessionToEvent)
 
-      eventsListCacheKey = cacheKey
-      eventsListCacheAt = Date.now()
-      eventsListCache = result
+        const result = wrapSuccess({
+          data: events,
+          total: events.length,
+          page: Math.floor(offset / limit) + 1,
+          pageSize: limit,
+          hasMore,
+        })
 
-      return cloneValue(result)
-    } catch (err: any) {
-      console.error('getEvents error', err)
-      return wrapEmptyEvents()
-    }
+        if (offset === 0) eventsListCache.set(cacheKey, { at: Date.now(), data: result })
+
+        return cloneValue(result)
+      } catch (err: any) {
+        console.error('getEvents error', err)
+        return wrapEmptyEvents()
+      } finally {
+        eventsListInFlight.delete(cacheKey)
+      }
     })()
 
-    eventsListInFlight = { key: cacheKey, promise: request }
-    return request.finally(() => {
-      if (eventsListInFlight?.key === cacheKey) eventsListInFlight = null
-    })
+    if (offset === 0) eventsListInFlight.set(cacheKey, request)
+
+    return request
   },
 
   async getEventById(id: string, options: QueryOptions = {}): Promise<ApiResponse<PlayerEvent>> {
@@ -307,57 +313,58 @@ export const eventsService = {
     }
 
     const request = (async () => {
-    try {
-      const response = await httpGet<any>(`/sessions/${id}`)
-      // Response structure: { ok: true, data: { session: {...}, meta: {...} } }
-      const responseData = response.data || response
-      const sessionData = responseData.session || responseData
-      const metaData = responseData.meta || {}
+      try {
+        const response = await httpGet<any>(`/sessions/${id}`)
+        // Response structure: { ok: true, data: { session: {...}, meta: {...} } }
+        const responseData = response.data || response
+        const sessionData = responseData.session || responseData
+        const metaData = responseData.meta || {}
 
-      if (!sessionData) throw new Error('Session not found')
+        if (!sessionData) throw new Error('Session not found')
 
-      const event = mapSessionToEvent(sessionData)
+        const event = mapSessionToEvent(sessionData)
 
-      // Merge meta info
-      if (metaData) {
-        event.joined = metaData.is_joined ?? false
-        event.attendeeCount = metaData.participant_count ?? event.attendeeCount
-      }
-
-      if (responseData.host) {
-        event.host = {
-          id: responseData.host.id,
-          name: responseData.host.display_name || 'User',
-          avatarUrl: responseData.host.avatar_url || undefined,
-          username: responseData.host.username || undefined,
-          cityKey: responseData.host.city_key || undefined,
-          cityName: responseData.host.city_name || undefined,
-          countryKey: responseData.host.country_key || undefined,
-          // rating: responseData.host.rating
+        // Merge meta info
+        if (metaData) {
+          event.joined = metaData.is_joined ?? false
+          event.attendeeCount = metaData.participant_count ?? event.attendeeCount
         }
-      }
 
-      if (Array.isArray(responseData.participants)) {
-        event.participants = responseData.participants.map((p: any) => ({
-          id: p.id,
-          name: p.display_name || 'Participant',
-          avatarUrl: p.avatar_url || undefined,
-          username: p.username || undefined,
-          checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
-        }))
-      }
+        if (responseData.host) {
+          event.host = {
+            id: responseData.host.id,
+            name: responseData.host.display_name || 'User',
+            avatarUrl: responseData.host.avatar_url || undefined,
+            username: responseData.host.username || undefined,
+            cityKey: responseData.host.city_key || undefined,
+            cityName: responseData.host.city_name || undefined,
+            countryKey: responseData.host.nationality_key || responseData.host.country_key || undefined,
+            // rating: responseData.host.rating
+          }
+        }
 
-      const result = wrapSuccess(event)
-      eventDetailCache.set(id, { at: Date.now(), data: result })
-      return cloneValue(result)
-    } catch (err: any) {
-      return {
-        success: false,
-        error: { code: 'FETCH_FAILED', message: err.message ?? 'Failed to load event' },
-        timestamp: new Date(),
-        data: undefined,
-      } as any
-    }
+        if (Array.isArray(responseData.participants)) {
+          event.participants = responseData.participants.map((p: any) => ({
+            id: p.id,
+            name: p.display_name || 'Participant',
+            avatarUrl: p.avatar_url || undefined,
+            username: p.username || undefined,
+            checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
+            onTheWayAt: p.on_the_way_at ? new Date(p.on_the_way_at) : undefined,
+          }))
+        }
+
+        const result = wrapSuccess(event)
+        eventDetailCache.set(id, { at: Date.now(), data: result })
+        return cloneValue(result)
+      } catch (err: any) {
+        return {
+          success: false,
+          error: { code: 'FETCH_FAILED', message: err.message ?? 'Failed to load event' },
+          timestamp: new Date(),
+          data: undefined,
+        } as any
+      }
     })()
 
     eventDetailInFlight.set(id, request)
@@ -381,40 +388,40 @@ export const eventsService = {
     }
 
     const request = (async () => {
-    try {
-      let allItems: any[] = []
-      if (type === 'all') {
-        const [upcomingRes, historyRes] = await Promise.all([
-          httpGet<any>('/sessions/my?type=upcoming'),
-          httpGet<any>('/sessions/my?type=history'),
-        ])
-        const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
-        const historyItems = historyRes.data?.items ?? historyRes.items ?? []
-        allItems = [...upcomingItems, ...historyItems]
-      } else {
-        const res = await httpGet<any>(`/sessions/my?type=${type}`)
-        allItems = res.data?.items ?? res.items ?? []
+      try {
+        let allItems: any[] = []
+        if (type === 'all') {
+          const [upcomingRes, historyRes] = await Promise.all([
+            httpGet<any>('/sessions/my?type=upcoming'),
+            httpGet<any>('/sessions/my?type=history'),
+          ])
+          const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
+          const historyItems = historyRes.data?.items ?? historyRes.items ?? []
+          allItems = [...upcomingItems, ...historyItems]
+        } else {
+          const res = await httpGet<any>(`/sessions/my?type=${type}`)
+          allItems = res.data?.items ?? res.items ?? []
+        }
+
+        // Deduplicate by ID just in case
+        const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
+
+        const events = uniqueItems.map(mapSessionToEvent)
+
+        const result = wrapSuccess({
+          data: events,
+          total: events.length,
+          page: 1,
+          pageSize: events.length,
+          hasMore: false,
+        })
+
+        myEventsCache.set(type, { at: Date.now(), data: result })
+        return cloneValue(result)
+      } catch (err: any) {
+        console.error('getMyEvents error', err)
+        return wrapEmptyEvents()
       }
-
-      // Deduplicate by ID just in case
-      const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
-
-      const events = uniqueItems.map(mapSessionToEvent)
-
-      const result = wrapSuccess({
-        data: events,
-        total: events.length,
-        page: 1,
-        pageSize: events.length,
-        hasMore: false,
-      })
-
-      myEventsCache.set(type, { at: Date.now(), data: result })
-      return cloneValue(result)
-    } catch (err: any) {
-      console.error('getMyEvents error', err)
-      return wrapEmptyEvents()
-    }
     })()
 
     myEventsInFlight.set(type, request)
@@ -424,12 +431,14 @@ export const eventsService = {
   },
 
   async getMyEventsScoped(
-    params: { role?: 'all' | 'hosted' | 'joined'; time?: 'upcoming' | 'history' },
+    params: { role?: 'all' | 'hosted' | 'joined'; time?: 'upcoming' | 'history'; limit?: number; offset?: number },
     options?: QueryOptions
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
     const role = params.role ?? 'all'
     const time = params.time ?? 'upcoming'
-    const cacheKey = `${role}:${time}`
+    const limit = params.limit ?? 20
+    const offset = params.offset ?? 0
+    const cacheKey = `${role}:${time}:${limit}:${offset}`
     const force = options?.force ?? false
     const ttlMs = options?.ttlMs ?? DEFAULT_MY_EVENTS_TTL_MS
 
@@ -443,16 +452,17 @@ export const eventsService = {
 
     const request = (async () => {
       try {
-        const res = await httpGet<any>('/sessions/my', { params: { role, time } })
+        const res = await httpGet<any>('/sessions/my', { params: { role, time, limit, offset } })
         const items = res.data?.items ?? res.items ?? []
         const uniqueItems = Array.from(new Map(items.map((item: any) => [item.id, item])).values())
         const events = uniqueItems.map(mapSessionToEvent)
+        const hasMore = res.data?.page?.has_more ?? res.page?.has_more ?? events.length === limit
         const result = wrapSuccess({
           data: events,
           total: events.length,
-          page: 1,
-          pageSize: events.length,
-          hasMore: false,
+          page: Math.floor(offset / limit) + 1,
+          pageSize: limit,
+          hasMore,
         })
         myEventsScopedCache.set(cacheKey, { at: Date.now(), data: result })
         return cloneValue(result)
@@ -468,9 +478,38 @@ export const eventsService = {
     })
   },
 
-  async createEvent(
-    input: CreateEventInput & { status?: string }
-  ): Promise<ApiResponse<PlayerEvent>> {
+  async getProfileEventsByUsername(
+    username: string,
+    params: {
+      role?: 'all' | 'hosted' | 'joined'
+      time?: 'upcoming' | 'history'
+      limit?: number
+      offset?: number
+    } = {}
+  ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
+    try {
+      const res = await httpGet<any>(`/profiles/${encodeURIComponent(username)}/sessions`, {
+        auth: false,
+        params,
+      })
+      const items = res.data?.items ?? res.items ?? []
+      const uniqueItems = Array.from(new Map(items.map((item: any) => [item.id, item])).values())
+      const events = uniqueItems.map(mapSessionToEvent)
+
+      return wrapSuccess({
+        data: events,
+        total: events.length,
+        page: 1,
+        pageSize: events.length,
+        hasMore: res.data?.page?.has_more ?? res.page?.has_more ?? false,
+      })
+    } catch (err: any) {
+      console.error('getProfileEventsByUsername error', err)
+      return wrapEmptyEvents()
+    }
+  },
+
+  async createEvent(input: CreateEventInput & { status?: string }): Promise<ApiResponse<PlayerEvent>> {
     try {
       const payload = {
         title: input.title,
@@ -489,18 +528,16 @@ export const eventsService = {
         skill_level: (input.skillLevel as any) ?? 'any',
         gender: input.gender ?? 'mixed',
         isFree: input.isFree ?? true,
-        price_total:
-          input.isFree
+        price_total: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'person'
             ? null
-            : (input.priceMode ?? 'total') === 'person'
-              ? null
-              : (input.priceTotal ?? null),
-        price_per_person:
-          input.isFree
+            : (input.priceTotal ?? null),
+        price_per_person: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'total'
             ? null
-            : (input.priceMode ?? 'total') === 'total'
-              ? null
-              : (input.pricePerPerson ?? null),
+            : (input.pricePerPerson ?? null),
         price_mode: input.priceMode ?? 'total',
         priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
@@ -539,7 +576,8 @@ export const eventsService = {
         title: input.title,
         sport_key: input.sport,
         description: input.description,
-        address: input.location?.address || undefined,
+        place_name: input.location?.name ?? '',
+        address: input.location?.address ?? null,
         lat: input.location?.lat,
         lng: input.location?.lng,
         max_people: input.maxAttendees,
@@ -549,18 +587,16 @@ export const eventsService = {
         skill_level: input.skillLevel,
         gender: input.gender,
         is_free: input.isFree,
-        price_total:
-          input.isFree
+        price_total: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'person'
             ? null
-            : (input.priceMode ?? 'total') === 'person'
-              ? null
-              : (input.priceTotal ?? null),
-        price_per_person:
-          input.isFree
+            : (input.priceTotal ?? null),
+        price_per_person: input.isFree
+          ? null
+          : (input.priceMode ?? 'total') === 'total'
             ? null
-            : (input.priceMode ?? 'total') === 'total'
-              ? null
-              : (input.pricePerPerson ?? null),
+            : (input.pricePerPerson ?? null),
         price_mode: input.priceMode,
         priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
@@ -640,6 +676,57 @@ export const eventsService = {
         error: {
           code: backendErr.code || 'CHECKIN_FAILED',
           message: backendErr.message || err?.message || 'Check-in failed',
+          details: backendErr.details,
+        } as any,
+        timestamp: new Date(),
+      }
+    }
+  },
+
+  async toggleBookmark(eventId: string, bookmarked: boolean): Promise<ApiResponse<{ bookmarked: boolean }>> {
+    try {
+      const fn = bookmarked ? httpDelete : httpPost
+      const res = await fn<{ bookmarked: boolean }>(`/sessions/${eventId}/bookmark`)
+      return wrapSuccess((res as any).data ?? res)
+    } catch (err: any) {
+      const backendErr = (err.details || {}).error || err.details || {}
+      return {
+        success: false,
+        data: undefined as any,
+        error: { code: backendErr.code || 'BOOKMARK_FAILED', message: backendErr.message || err?.message || 'Failed to update bookmark' } as any,
+        timestamp: new Date(),
+      }
+    }
+  },
+
+  async fetchBookmarkIds(): Promise<ApiResponse<{ ids: string[] }>> {
+    try {
+      const res = await httpGet<{ ids: string[] }>('/me/bookmarks')
+      return wrapSuccess((res as any).data ?? res)
+    } catch (err: any) {
+      const backendErr = (err.details || {}).error || err.details || {}
+      return {
+        success: false,
+        data: undefined as any,
+        error: { code: backendErr.code || 'FETCH_BOOKMARKS_FAILED', message: backendErr.message || err?.message || 'Failed to fetch bookmarks' } as any,
+        timestamp: new Date(),
+      }
+    }
+  },
+
+  async signalOnTheWay(eventId: string): Promise<ApiResponse<any>> {
+    try {
+      const res = await httpPost<any>(`/sessions/${eventId}/on-the-way`)
+      return wrapSuccess(res.data ?? res)
+    } catch (err: any) {
+      const jsonResponse = err.details || {}
+      const backendErr = jsonResponse.error || jsonResponse
+      return {
+        success: false,
+        data: undefined as any,
+        error: {
+          code: backendErr.code || 'ON_THE_WAY_FAILED',
+          message: backendErr.message || err?.message || 'Failed to signal on the way',
           details: backendErr.details,
         } as any,
         timestamp: new Date(),

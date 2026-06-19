@@ -39,26 +39,25 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-6 top-6 text-sm font-normal text-slate-400 hover:text-slate-600 transition-colors"
+          className="absolute right-6 top-6 text-sm font-normal text-slate-400 transition-colors hover:text-slate-600"
         >
-          繼續探索
+          Not now
         </button>
       )}
       <div className="flex flex-col items-center text-center">
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
           <Lock className="h-7 w-7" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900">請先建立運動卡</h3>
+        <h3 className="text-xl font-bold text-slate-900">Set Up Your Profile</h3>
         <p className="mt-2 text-sm text-slate-500">
-          在發佈活動或參與活動前，<br />
-          請先完成運動卡建立。
+          You'll need a completed profile to host or join sessions.
         </p>
         <button
           type="button"
           onClick={handleConfirm}
           className="mt-8 w-full rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98]"
         >
-          立即建立
+          Set up now
         </button>
       </div>
     </BottomSheet>

@@ -1,15 +1,11 @@
 import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
+import { useNavigate } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
-import {
-  Calendar,
-  MapPin,
-  PersonStanding,
-  CircleDollarSign,
-  ChartColumnIncreasing,
-} from 'lucide-react'
+import { Calendar, MapPin, CircleDollarSign, ShieldCheck } from 'lucide-react'
 import { PlayerEvent } from '@/types'
-import { useSports } from '@/features/dictionaries/hooks'
+import { BookmarkButton } from './BookmarkButton'
+import { getSportColor } from '@/constants/sportTokens'
 
 const ACCENT = {
   primary: '#2563EB',
@@ -21,54 +17,64 @@ const ACCENT = {
 type EventCardProps = {
   event: PlayerEvent
   onViewDetails?: (eventId: string) => void
+  className?: string
+  sportLabel?: string
+  cityLabel?: string
+  disableVenueHostNavigation?: boolean
+  showStatus?: boolean
+  showBookmark?: boolean
 }
 
 function getFlagEmoji(countryCode: string) {
   if (!countryCode || countryCode.length !== 2) return ''
-  return countryCode
-    .toUpperCase()
-    .replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
+  return countryCode.toUpperCase().replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
 }
 
-export function EventCard({ event, onViewDetails }: EventCardProps) {
-  const { items: sports } = useSports('zh')
+export function EventCard({
+  event,
+  onViewDetails,
+  className,
+  sportLabel: sportLabelProp,
+  cityLabel: cityLabelProp,
+  disableVenueHostNavigation = false,
+  showStatus = false,
+  showBookmark = false,
+}: EventCardProps) {
+  const navigate = useNavigate()
 
-  // Official Event Logic
-  const raw = event as any
-  const isOfficial = raw.isOfficial || raw.is_official
-  const venueName = raw.venueNameDisplay || raw.venue_name_display
-  const venueLogo = raw.venueLogoUrl || raw.venue_logo_url
+  const isVenueHost = Boolean(event.isOfficial && event.venueId)
+  const venueName = event.venueNameDisplay
+  const venueLogo = event.venueLogoUrl
+
+  const canNavigateToVenue = isVenueHost && Boolean(event.venueId) && !disableVenueHostNavigation
 
   const displayHost = {
-    name: isOfficial && venueName ? venueName : event.host.name,
-    avatarUrl: isOfficial && venueLogo ? venueLogo : event.host.avatarUrl,
-    isOfficial: Boolean(isOfficial),
+    name: isVenueHost && venueName ? venueName : event.host.name,
+    avatarUrl: isVenueHost ? venueLogo : event.host.avatarUrl,
+    isOfficial: isVenueHost,
   }
 
-  const sportItem = sports.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
-  const sportLabel = sportItem?.label || event.sport
-  const sportIcon = sportItem?.icon
+  const sportLabel = sportLabelProp || event.sport
 
   const skillLabel = friendlySkill(event.skillLevel)
   const locationCity = event.location?.city
   const locationLine1 =
     event.location.name && event.location.name !== event.location.address
       ? event.location.name
-      : event.location.name || event.location.address || '地點待確認'
+      : event.location.name || event.location.address || 'Location TBD'
   const locationLine2 =
     event.location.name && event.location.address && event.location.name !== event.location.address
       ? event.location.address
       : ''
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
-  const priceLabel = event.priceRange ?? (event.isFree ? '免費參加' : '付費活動')
-  const cityLabel = event.host.cityName || locationCity || '城市待確認'
+  const priceLabel = event.priceRange ?? (event.isFree ? 'Free' : 'Paid event')
+  const cityLabel = cityLabelProp || event.host.cityName || locationCity || 'City TBD'
 
   const attendeeCount = event.attendeeCount
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)
   const minPeople = Math.max(1, event.minPeople ?? 1)
   const isClickable = Boolean(onViewDetails)
-  const heroImage =
-    (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
+  const heroImage = (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
   const heroStyle = heroImage
     ? {
         backgroundImage: `url(${heroImage})`,
@@ -93,7 +99,7 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
         tabIndex: 0,
         onClick: handleCardClick,
         onKeyDown: handleCardKeyDown,
-        'aria-label': `查看 ${event.title} 詳細資訊`,
+        'aria-label': `View details for ${event.title}`,
       }
     : {}
 
@@ -101,141 +107,170 @@ export function EventCard({ event, onViewDetails }: EventCardProps) {
     <article
       {...interactionHandlers}
       className={clsx(
-        'relative mb-5 overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)] transition-all active:scale-[0.98]',
-        isClickable &&
-          'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500'
+        'relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)]',
+        isClickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500',
+        className ?? 'mb-5'
       )}
     >
+      {showBookmark && (
+        <div className="absolute right-4 top-0 z-10">
+          <BookmarkButton eventId={event.id} className="px-2 pb-2 pt-0 text-blue-600" />
+        </div>
+      )}
+
       {/* 1. Host Header at top */}
-      <header className="flex items-center justify-between border-b border-slate-50 px-5 py-3.5">
-        <div className="flex items-center gap-2.5">
-          <AvatarCircle name={displayHost.name} src={displayHost.avatarUrl} size="sm" />
+      <header className="flex items-stretch justify-between border-b border-slate-50 px-5 py-3.5">
+        <div
+          className={clsx('flex items-center gap-2.5', canNavigateToVenue && 'cursor-pointer')}
+          onClick={(e) => {
+            if (canNavigateToVenue && event.venueId) {
+              e.stopPropagation()
+              navigate(`/venues/${event.venueId}`)
+            }
+          }}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && canNavigateToVenue && event.venueId) {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(`/venues/${event.venueId}`)
+            }
+          }}
+          role={canNavigateToVenue ? 'button' : undefined}
+          tabIndex={canNavigateToVenue ? 0 : undefined}
+          aria-label={canNavigateToVenue ? `View venue ${displayHost.name}` : undefined}
+        >
+          <AvatarCircle
+            name={displayHost.name}
+            src={displayHost.avatarUrl}
+            size="sm"
+          />
           <div>
             <p className="flex items-center gap-1.5 text-sm font-medium text-slate-900">
               {displayHost.name}
               {/* {displayHost.isOfficial && (
                 <BadgeCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
               )} */}
-              {event.host.countryKey && !displayHost.isOfficial && (
+              {event.host.countryKey && (
                 <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
               )}
             </p>
             <div className="mt-1 flex items-center gap-1">
               <MapPin className="h-3 w-3 text-slate-400" />
-              <p className="text-[11px] leading-none text-slate-500">{cityLabel}</p>
+              <p className="text-[12px] leading-none text-slate-500">{cityLabel}</p>
             </div>
           </div>
         </div>
 
-        {event.visibility !== 'public' && (
-          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] uppercase tracking-tighter text-amber-600">
-            Private
-          </span>
-        )}
+        <div className="flex flex-col items-end justify-end gap-1">
+          {showStatus && event.status && <StatusBadge status={event.status} />}
+          {isVenueHost && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
+              <ShieldCheck
+                size={10}
+                className="text-emerald-600"
+              />
+              OFFICIAL
+            </span>
+          )}
+        </div>
       </header>
 
       {/* 2. Full-width Hero Image */}
-      <div className="relative h-56 w-full" style={heroStyle}>
-        {!heroImage && (
-          <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">
-            {sportIcon}
-          </div>
-        )}
-      </div>
+      {false && (
+        <div
+          className="relative h-56 w-full"
+          style={heroStyle}
+        >
+          {!heroImage && (
+            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">{sportLabel}</div>
+          )}
+        </div>
+      )}
 
       {/* 3. Info Content */}
-      <div className="space-y-3.5 px-5 py-4">
-        <div className="flex flex-col gap-2.5">
-          {/* Tags above Title */}
-          <div className="flex items-center gap-2">
-            {/* Sport Tag */}
-            <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-white px-3 py-1 text-[11px] font-medium text-slate-800">
-              <span>{sportIcon}</span>
-              {sportLabel}
-            </div>
-            {/* Skill Tag */}
-            <div className="flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-3 py-1 text-[11px] font-medium text-slate-800">
-              <ChartColumnIncreasing className="h-3 w-3 text-blue-600" strokeWidth={3} />
-              {skillLabel}
-            </div>
-            {/* Gender Tag (Added) */}
-            <div className="flex items-center gap-1.5 rounded-full border border-pink-100 bg-pink-50/50 px-3 py-1 text-[11px] font-medium text-pink-800">
-              {event.gender === 'female'
-                ? '女性專屬'
-                : event.gender === 'male'
-                  ? '男性專屬'
-                  : '性別混合'}
-            </div>
-          </div>
-
-          <h3 className="text-xl font-medium leading-tight tracking-tight text-slate-900">
-            {event.title}
-          </h3>
+      <div className="px-5 pb-4 pt-3.5">
+        {/* Tags */}
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${getSportColor(event.sport)}`}>
+            {sportLabel}
+          </span>
+          <span className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
+            {skillLabel}
+          </span>
+          <span className="rounded-full border border-orange-300 px-2.5 py-0.5 text-[10px] font-medium text-orange-500">
+            {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : 'Mixed'}
+          </span>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <Calendar className="h-4.5 w-4.5" strokeWidth={2.5} />
-            </div>
-            <span className="text-sm">{scheduleLabel}</span>
+        {/* Title */}
+        <h3 className="mb-3 text-[15px] font-bold leading-snug tracking-tight text-slate-900">{event.title}</h3>
+
+        {/* Info rows — compact */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <span className="text-[12px] text-slate-600">{scheduleLabel}</span>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
-            </div>
-            <div className="min-w-0 text-sm leading-snug">
+          <div className="flex items-start gap-2">
+            <MapPin className="mt-px h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <div className="min-w-0 text-[12px] leading-snug text-slate-600">
               <p className="break-words">{locationLine1}</p>
               {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
             </div>
           </div>
 
-          {/* Attendance Area */}
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-5 w-5 items-center justify-center text-blue-600">
-              <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm">
-                {attendeeCount}人已加入 | 剩 {remaining} 位名額（{minPeople}人成團）
-              </span>
-              <div className="flex -space-x-1.5">
-                {event.participants.slice(0, 3).map((p, i) => (
-                  <div
-                    key={i}
-                    className="h-5 w-5 overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-sm"
-                  >
-                    <img
-                      src={
-                        p.avatarUrl ||
-                        `https://ui-avatars.com/api/?name=${p.name}&background=random`
-                      }
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Price Area - Now aligned with other icons */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-5 w-5 items-center justify-center text-blue-600">
-              <CircleDollarSign className="w-4.5 h-4.5" strokeWidth={2.5} />
-            </div>
-            <div className="text-sm">
-              <span className="text-slate-900">
-                {event.isFree
-                  ? '免費活動'
-                  : `${event.priceRange || `$${event.pricePerPerson}`} /人`}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <span className="text-[12px] text-slate-600">
+              {event.isFree ? 'Free' : `${event.priceRange || `$${event.pricePerPerson}`} per person`}
+            </span>
           </div>
         </div>
       </div>
+
+      {/* 4. Footer — join progress */}
+      <div className="border-t border-slate-100 px-5 py-3">
+        <p className="mb-1.5 text-[11px] text-slate-400">
+          {attendeeCount} joined · {remaining > 0 ? `${remaining} spots left` : 'All spots filled'}
+          {minPeople > 1 && <span className="text-slate-300"> · </span>}
+          {minPeople > 1 && <span>Min. {minPeople} players</span>}
+        </p>
+        <div className="flex items-center gap-2">
+          <div
+            className="relative h-1.5 w-4/5 overflow-hidden rounded-full"
+            style={{ background: 'linear-gradient(to right, #bbf7d0, #16a34a 55%, #ef4444)' }}
+          >
+            {/* gray cover slides from right, revealing gradient as attendees join */}
+            <div
+              className="absolute right-0 h-full bg-slate-200 transition-all duration-500"
+              style={{ width: `${Math.max(0, 100 - (event.maxAttendees > 0 ? (attendeeCount / event.maxAttendees) * 100 : 0))}%` }}
+            />
+            {/* min threshold notch */}
+            {minPeople > 1 && event.maxAttendees > 0 && (
+              <div
+                className="absolute inset-y-0 z-10 w-0.5 -translate-x-1/2 bg-white/70"
+                style={{ left: `${Math.min(99, (minPeople / event.maxAttendees) * 100)}%` }}
+              />
+            )}
+          </div>
+          {remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled' && (
+            <span className="shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
+              Full
+            </span>
+          )}
+        </div>
+      </div>
     </article>
+  )
+}
+
+function StatusBadge({ status }: { status: NonNullable<PlayerEvent['status']> }) {
+  if (status !== 'cancelled') return null
+  return (
+    <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-600">
+      Cancelled
+    </span>
   )
 }
 
@@ -250,12 +285,18 @@ function AvatarCircle({
   size?: 'sm' | 'md'
   ring?: boolean
 }) {
-  const dimension = size === 'sm' ? 'h-8 w-8 text-xs' : 'h-10 w-10 text-sm'
+  const dimension = size === 'sm' ? 'h-9 w-9' : 'h-10 w-10'
+  const initials = name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w.charAt(0).toUpperCase())
+    .join('')
   return (
     <div
       className={clsx(
-        'flex items-center justify-center rounded-full bg-slate-200 text-slate-700',
+        'flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full',
         dimension,
+        src ? 'bg-slate-100' : 'bg-blue-100',
         ring && 'border-2 border-white shadow ring-1 ring-slate-200'
       )}
       style={
@@ -268,7 +309,9 @@ function AvatarCircle({
           : undefined
       }
     >
-      {!src && name.charAt(0).toUpperCase()}
+      {!src && (
+        <span className="text-[11px] font-bold text-blue-700">{initials || '?'}</span>
+      )}
     </div>
   )
 }
@@ -277,7 +320,10 @@ function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-        <Icon className="h-5 w-5" strokeWidth={2} />
+        <Icon
+          className="h-5 w-5"
+          strokeWidth={2}
+        />
       </div>
       <div className="text-sm text-slate-600">{label}</div>
     </div>
@@ -311,44 +357,56 @@ function formatTimeRange(start: Date | string, end: Date | string) {
 function formatSchedule(start: Date | string, end: Date | string) {
   const startDate = toDate(start)
   const endDate = toDate(end)
-  const dateStr = startDate.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+  const dateStr = startDate.toLocaleDateString('en-AU', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   })
-  const startTimeStr = startDate.toLocaleTimeString('zh-TW', {
-    hour: '2-digit',
+
+  const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: false,
+    hour12: true,
   })
-  const endTimeStr = endDate.toLocaleTimeString('zh-TW', {
-    hour: '2-digit',
+  const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: false,
+    hour12: true,
   })
-  return `${dateStr} ${startTimeStr}-${endTimeStr}`
+
+  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
+  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
+  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
+
+  const timeStr =
+    startSuffix && startSuffix === endSuffix
+      ? `${startCore}–${endCore} ${endSuffix}`
+      : `${startWithSuffix}–${endWithSuffix}`
+
+  return `${dateStr} · ${timeStr}`
 }
 
 function summaryText(attending: number, max: number, remaining: number) {
-  const base = `${attending}/${max} 已報名`
-  return `${base} · 還有${remaining}位`
+  const base = `${attending}/${max} registered`
+  return `${base} · ${remaining} left`
 }
 
 function friendlySkill(level: PlayerEvent['skillLevel']) {
   switch (level) {
     case 'beginner':
-      return '新手友善'
+      return 'Beginner'
     case 'intermediate':
-      return '中階步調'
+      return 'Intermediate'
     case 'advanced':
-      return '進階高手'
+      return 'Advanced'
     case 'mixed':
     default:
-      return '不限程度'
+      return 'All levels'
   }
 }
 
 function formatSportName(value: string) {
-  if (!value) return '運動'
+  if (!value) return 'Sport'
   return value
 }

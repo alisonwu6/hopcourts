@@ -2,11 +2,7 @@
  * Converts a File object to a WebP File object.
  * Resizes the image if it exceeds the maximum dimension (default 1920px).
  */
-export async function convertFileToWebP(
-  file: File,
-  maxWidth = 1920,
-  quality = 0.8
-): Promise<File> {
+export async function convertFileToWebP(file: File, maxWidth = 1920, quality = 0.8): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.readAsDataURL(file)

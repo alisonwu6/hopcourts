@@ -66,7 +66,7 @@ export function SheetLayout({
         disabled={btn.disabled || btn.isLoading}
         className={clsx(base, styles, {
           'w-full': fullWidth,
-          'opacity-70 cursor-not-allowed': btn.isLoading,
+          'cursor-not-allowed opacity-70': btn.isLoading,
           'inline-flex items-center justify-center gap-2': btn.isLoading,
         })}
       >

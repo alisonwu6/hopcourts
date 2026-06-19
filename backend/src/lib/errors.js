@@ -21,6 +21,9 @@ const Errors = {
   notFound: (message = 'Not found', details = {}) =>
     new AppError({ code: 'NOT_FOUND', message, status: 404, details }),
 
+  conflict: (message = 'Conflict', details = {}) =>
+    new AppError({ code: 'CONFLICT', message, status: 409, details }),
+
   internal: (message = 'Internal error', details = {}) =>
     new AppError({ code: 'INTERNAL_ERROR', message, status: 500, details }),
 }

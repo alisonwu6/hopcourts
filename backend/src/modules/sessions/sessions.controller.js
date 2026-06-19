@@ -13,19 +13,20 @@ const {
 } = require('./sessions.service')
 
 function resolveUserId(req) {
-  return (
-    req.userId ||
-    req.authUser?.id ||
-    req.user?.id ||
-    req.headers['x-user-id'] ||
-    req.headers['x-userid']
-  )
+  return req.userId || req.authUser?.id || req.user?.id
 }
 
 async function handleListSessions(req, res, next) {
   try {
     const params = buildListParams(req.query || {})
-    const data = await listSessions(params)
+    const type = req.query.type || 'upcoming'
+    const userId = resolveUserId(req)
+
+    if ((type === 'interests' || type === 'relations') && !userId) {
+      throw Errors.unauthenticated('Authentication required for this feed type')
+    }
+
+    const data = await listSessions({ ...params, type, userId })
     return ok(res, data)
   } catch (err) {
     next(err)
@@ -159,10 +160,11 @@ async function handleUpdateSession(req, res, next) {
       description: body.description,
       startAt: body.starts_at || body.startAt,
       endAt: body.ends_at || body.endAt,
-      placeName: body.place_name || body.locationName || body.location_name,
+      placeName: body.place_name ?? body.locationName ?? body.location_name,
       address: body.address,
       lat: body.lat,
       lng: body.lng,
+      locationSource: body.location_source ?? body.locationSource,
       checkinRadiusM: body.checkin_radius_m ?? body.checkinRadiusM,
       checkinOpenMinsBefore: body.checkin_open_mins_before ?? body.checkinOpenMinsBefore,
       checkinCloseMinsAfter: body.checkin_close_mins_after ?? body.checkinCloseMinsAfter,

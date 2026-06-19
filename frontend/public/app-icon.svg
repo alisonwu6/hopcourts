@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
+  <defs>
+    <clipPath id="c"><rect width="320" height="320" rx="72"/></clipPath>
+  </defs>
+
+  <rect width="320" height="320" rx="72" fill="#1A3A0A"/>
+
+  <g clip-path="url(#c)" opacity="0.28" stroke="white" fill="none" stroke-linecap="round">
+    <g transform="translate(-20, -15) rotate(12, 90, 70) scale(1.7)">
+      <rect x="0" y="0" width="124" height="66" stroke-width="1.5"/>
+      <line x1="62" y1="0" x2="62" y2="66" stroke-width="1.2"/>
+      <circle cx="62" cy="33" r="7.9" stroke-width="1.2"/>
+      <circle cx="62" cy="33" r="2" fill="white" stroke="none"/>
+      <rect x="0" y="22.2" width="25.7" height="21.6" stroke-width="1.2"/>
+      <circle cx="25.7" cy="33" r="7.9" stroke-width="1.2"/>
+      <line x1="0" y1="4" x2="8" y2="4" stroke-width="1.2"/>
+      <line x1="0" y1="62" x2="8" y2="62" stroke-width="1.2"/>
+      <path d="M8,4 A29,29 0 0,1 8,62" stroke-width="1.2"/>
+      <rect x="98.3" y="22.2" width="25.7" height="21.6" stroke-width="1.2"/>
+      <circle cx="98.3" cy="33" r="7.9" stroke-width="1.2"/>
+      <line x1="124" y1="4" x2="116" y2="4" stroke-width="1.2"/>
+      <line x1="124" y1="62" x2="116" y2="66" stroke-width="1.2"/>
+      <path d="M116,4 A29,29 0 0,0 116,62" stroke-width="1.2"/>
+    </g>
+
+    <g transform="translate(-25, 210) rotate(-8, 65, 32) scale(1.6)">
+      <rect x="0" y="0" width="130" height="65" stroke-width="1.5"/>
+      <line x1="65" y1="0" x2="65" y2="65" stroke-width="1.2"/>
+      <circle cx="65" cy="32.5" r="9.75" stroke-width="1.2"/>
+      <circle cx="65" cy="32.5" r="2" fill="white" stroke="none"/>
+      <rect x="0" y="13" width="28" height="39" stroke-width="1.1"/>
+      <rect x="0" y="23" width="10" height="19.5" stroke-width="1.1"/>
+      <rect x="102" y="13" width="28" height="39" stroke-width="1.1"/>
+      <rect x="120" y="23" width="10" height="19.5" stroke-width="1.1"/>
+      <path d="M0,0 Q5,0 5,5" stroke-width="1"/>
+      <path d="M130,0 Q125,0 125,5" stroke-width="1"/>
+      <path d="M0,65 Q5,65 5,60" stroke-width="1"/>
+      <path d="M130,65 Q125,65 125,60" stroke-width="1"/>
+    </g>
+
+    <g transform="translate(322, 30) rotate(93, 0, 0) scale(1.6)">
+      <rect x="0" y="0" width="130" height="60" stroke-width="1.5"/>
+      <line x1="0" y1="9" x2="130" y2="9" stroke-width="1.1"/>
+      <line x1="0" y1="51" x2="130" y2="51" stroke-width="1.1"/>
+      <line x1="65" y1="0" x2="65" y2="60" stroke-width="1.6"/>
+      <line x1="0" y1="30" x2="65" y2="30" stroke-width="1.1"/>
+      <line x1="65" y1="30" x2="130" y2="30" stroke-width="1.1"/>
+      <line x1="15" y1="9" x2="15" y2="51" stroke-width="1.1"/>
+      <line x1="115" y1="9" x2="115" y2="51" stroke-width="1.1"/>
+    </g>
+  </g>
+
+  <text x="37" y="160" font-family="'Arial Black',Impact,sans-serif" font-size="112" font-weight="900" fill="rgba(232,93,4,0.2)" letter-spacing="-4" transform="rotate(-6,36,148)">Hop</text>
+  <text x="33" y="156" font-family="'Arial Black',Impact,sans-serif" font-size="112" font-weight="900" fill="rgba(232,93,4,0.38)" letter-spacing="-4" transform="rotate(-6,32,148)">Hop</text>
+  <text x="30" y="153" font-family="'Arial Black',Impact,sans-serif" font-size="112" font-weight="900" fill="#E85D04" letter-spacing="-4" transform="rotate(-6,30,148)">Hop</text>
+
+  <text x="30" y="224" font-family="'Arial Black',Impact,sans-serif" font-size="74" font-weight="900" fill="white" letter-spacing="-3">Courts</text>
+</svg>

@@ -5,18 +5,17 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "db:dump": "supabase db dump --schema public > supabase/schema/dump.sql",
-    "db:update": "npm run db:dump",
-    "db:local:migrate": "sh -c 'npx supabase --workdir . migration up --db-url \"${LOCAL_DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}\" --include-all'",
-    "db:local:push-seed": "sh -c 'npx supabase --workdir . db push --db-url \"${LOCAL_DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:54322/postgres}\" --include-all --include-seed'",
+    "test": "jest",
+    "db:local:migrate": "sh -c 'npx supabase --workdir . migration up --db-url \"${LOCAL_DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:54422/postgres}\" --include-all'",
+    "db:local:push-seed": "sh -c 'npx supabase --workdir . db push --db-url \"${LOCAL_DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:54422/postgres}\" --include-all --include-seed'",
     "db:local:rebuild": "npm run db:local:migrate && npm run db:local:push-seed",
+    "seed:events": "node scripts/seed-events.js",
     "db:verify": "npm run verify:schema && npm run openapi:lint",
     "db:remote:push": "sh -c 'test -n \"$SUPABASE_DB_URL\" || { echo \"SUPABASE_DB_URL is required\"; exit 1; }; npx supabase --workdir . db push --db-url \"$SUPABASE_DB_URL\" --include-all --include-seed'",
     "openapi:lint": "npx swagger-cli validate docs/openapi.yaml",
     "openapi:build": "node src/config/swagger.js",
     "openapi:update": "npm run openapi:lint && npm run openapi:build",
-    "verify:schema": "node scripts/check_session_schema.js",
+    "verify:schema": "node scripts/check_schema_contracts.js",
     "docs:update": "npm run openapi:update",
     "db:pull": "supabase db pull",
     "db:push": "supabase db push",
@@ -34,8 +33,11 @@
     "node": ">=20"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.7.10",
+    "jest": "^30.3.0",
     "nodemon": "^3.0.0",
-    "openapi-typescript": "^7.4.1"
+    "openapi-typescript": "^7.4.1",
+    "supertest": "^7.2.2"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
@@ -43,12 +45,16 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "node-cron": "^4.3.0",
     "pg": "^8.13.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "web-push": "^3.6.7",
     "yaml": "^2.5.0"
   }
 }

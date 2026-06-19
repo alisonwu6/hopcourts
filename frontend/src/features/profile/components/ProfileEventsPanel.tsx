@@ -1,365 +1,263 @@
-import { useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  addMonths,
+  addWeeks,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  getDay,
+  isSameDay,
+  isSameMonth,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+  subWeeks,
+} from 'date-fns'
 import type { PlayerEvent } from '@/types'
 import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
 import { eventsService } from '@/features/events/services/eventsService'
-import {
-  Calendar,
-  MapPin,
-  PersonStanding,
-  CircleDollarSign,
-  ChartColumnIncreasing,
-  Smile,
-  type LucideIcon,
-} from 'lucide-react'
+import { EventCard } from '@/features/events/components/EventCard'
+import { EventTimeline, groupEventsByDate, type SportsItem } from '@/features/events/components/EventTimeline'
+import { Bike, BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
 
 type TabKey = 'upcoming' | 'history'
 type PanelMode = 'all' | 'hosted' | 'joined'
-type SportsItem = { key: string; label: string; icon?: string | null }
-type EventStatus = 'check-in-open' | 'ongoing' | null
-
-function groupByDate(events: PlayerEvent[]) {
-  const formatter = new Intl.DateTimeFormat('zh-TW', {
-    month: 'numeric',
-    day: 'numeric',
-    weekday: 'long',
-  })
-  const map = new Map<string, PlayerEvent[]>()
-  events.forEach((event) => {
-    const date = event.startTime
-      ? new Date(event.startTime)
-      : new Date(event.updatedAt || Date.now())
-    const label = formatter.format(date)
-    map.set(label, [...(map.get(label) ?? []), event])
-  })
-  return Array.from(map.entries())
-}
-
-function formatTimeRange(start: Date | string, end: Date | string) {
-  const s = new Date(start)
-  const e = new Date(end)
-  const date = s.toLocaleDateString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  const startStr = s.toLocaleTimeString('zh-TW', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-  const endStr = e.toLocaleTimeString('zh-TW', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-  return `${date} ${startStr}-${startStr !== endStr ? endStr : ''}`
-}
-
-function getEventStatus(event: PlayerEvent): EventStatus {
-  const now = new Date()
-  const start = new Date(event.startTime)
-  const end = event.endTime ? new Date(event.endTime) : start
-
-  if (event.status === 'draft') return null
-
-  const openMins = event.checkinOpenMinsBefore ?? 15
-  const checkInStart = new Date(start.getTime() - openMins * 60000)
-  if (now >= start && now <= end) return 'ongoing'
-  if (now >= checkInStart && now < start) return 'check-in-open'
-  return null
-}
-
-function getSkillLabel(skillLevel: PlayerEvent['skillLevel']) {
-  if (skillLevel === 'beginner') return '初階'
-  if (skillLevel === 'intermediate') return '中階步調'
-  if (skillLevel === 'advanced') return '進階'
-  return '不限程度'
-}
-
-function getGenderLabel(gender: PlayerEvent['gender']) {
-  if (gender === 'female') return '女性專屬'
-  if (gender === 'male') return '男性專屬'
-  return '性別混合'
-}
-
-function formatTwdNoDecimal(value: unknown) {
-  const n = Number(value)
-  if (!Number.isFinite(n)) return '0'
-  return Math.round(n).toLocaleString('zh-TW')
-}
-
-function getPriceLabel(event: PlayerEvent) {
-  return event.isFree
-    ? '免費活動'
-    : event.priceRange || `$${formatTwdNoDecimal(event.pricePerPerson)} /人`
-}
-
-function getLocationLines(event: PlayerEvent) {
-  const line1 =
-    event.location.name && event.location.name !== event.location.address
-      ? event.location.name
-      : event.location.name || event.location.address || '地點待確認'
-  const line2 =
-    event.location.name && event.location.address && event.location.name !== event.location.address
-      ? event.location.address
-      : ''
-  return { line1, line2 }
-}
-
-function CardInfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-        <Icon className="h-4.5 w-4.5" strokeWidth={2.5} />
-      </div>
-      <div className="text-sm font-normal text-slate-700">{label}</div>
-    </div>
-  )
-}
-
-function EventTags({ event, sportsCatalog }: { event: PlayerEvent; sportsCatalog: SportsItem[] }) {
-  const sportItem = sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())
-  const sportLabel = sportItem?.label || event.sport
-  const sportIcon = sportItem?.icon || '🎯'
-
-  return (
-    <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-      <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-        <span>{sportIcon}</span>
-        {sportLabel}
-      </span>
-      <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
-        <ChartColumnIncreasing className="h-3 w-3" strokeWidth={2.5} />
-        {getSkillLabel(event.skillLevel)}
-      </span>
-      <span className="inline-flex items-center rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
-        {getGenderLabel(event.gender)}
-      </span>
-    </div>
-  )
-}
-
-function StatusBadge({ status }: { status: EventStatus }) {
-  if (status === 'check-in-open') {
-    return (
-      <span className="flex-shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
-        開放報到中
-      </span>
-    )
-  }
-  if (status === 'ongoing') {
-    return (
-      <span className="flex-shrink-0 animate-pulse rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-        進行中
-      </span>
-    )
-  }
-  return null
-}
-
-function HostedEventCard({
-  event,
-  sportsCatalog,
-}: {
-  event: PlayerEvent
-  sportsCatalog: SportsItem[]
-}) {
-  const navigate = useNavigate()
-  const status = getEventStatus(event)
-  const { line1, line2 } = getLocationLines(event)
-  const attendeeCount = Number(event.attendeeCount ?? 0)
-  const maxAttendees = Number(event.maxAttendees ?? 0)
-  const minPeople = Number(event.minPeople ?? 3)
-  const remaining = Math.max(maxAttendees - attendeeCount, 0)
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        if (event.status === 'draft') {
-          navigate(`/create-event?id=${event.id}`)
-        } else {
-          navigate(`/event/${event.id}`)
-        }
-      }}
-      className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition"
-    >
-      <div className="mb-3 flex items-start justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <h4 className="text-lg font-bold text-slate-900">{event.title}</h4>
-        </div>
-        <div className="flex items-center gap-2">
-          {event.status === 'draft' && (
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-              草稿
-            </span>
-          )}
-          <StatusBadge status={status} />
-        </div>
-      </div>
-      <EventTags event={event} sportsCatalog={sportsCatalog} />
-      <div className="space-y-1 pt-3">
-        <CardInfoRow icon={Calendar} label={formatTimeRange(event.startTime, event.endTime)} />
-        <div className="flex items-start gap-3">
-          <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-            <MapPin className="h-4.5 w-4.5" strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0 text-sm font-normal leading-snug text-slate-700">
-            <p className="break-words">{line1}</p>
-            {line2 ? <p className="break-words">{line2}</p> : null}
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-            <PersonStanding className="h-5 w-5" strokeWidth={2.5} />
-          </div>
-          <div className="text-sm font-normal text-slate-700">
-            {attendeeCount}人已加入 | 剩 {remaining} 位名額（{minPeople}人成團）
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-            <CircleDollarSign className="h-4.5 w-4.5" strokeWidth={2.5} />
-          </div>
-          <div className="text-sm font-normal text-slate-700">{getPriceLabel(event)}</div>
-        </div>
-      </div>
-    </button>
-  )
-}
-
-function JoinedEventCard({
-  event,
-  sportsCatalog,
-}: {
-  event: PlayerEvent
-  sportsCatalog: SportsItem[]
-}) {
-  const navigate = useNavigate()
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => navigate(`/event/${event.id}`)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          navigate(`/event/${event.id}`)
-        }
-      }}
-      className="w-full rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition"
-    >
-      <div>
-        <button
-          type="button"
-          disabled={!event.host?.username}
-          onClick={(e) => {
-            e.stopPropagation()
-            if (!event.host?.username) return
-            navigate(`/mate/${event.host.username}`)
-          }}
-          className="flex cursor-pointer items-center gap-3 transition disabled:cursor-default"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 overflow-hidden rounded-full bg-slate-100">
-              {event.host?.avatarUrl ? (
-                <img
-                  src={event.host.avatarUrl}
-                  alt={event.host.name || 'host'}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-slate-300">
-                  <Smile className="h-6 w-6" />
-                </div>
-              )}
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-semibold text-slate-900">
-                {event.host?.name || '活動發起人'}
-              </p>
-              <p className="text-xs text-slate-500">活動發起人</p>
-            </div>
-          </div>
-        </button>
-
-        <hr className="my-3 border-slate-200" />
-
-        <div className="space-y-3">
-          <h4 className="text-[18px] font-semibold leading-tight text-slate-900">{event.title}</h4>
-          <EventTags event={event} sportsCatalog={sportsCatalog} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function EventGroupList({
-  groups,
-  mode,
-  sportsCatalog,
-  emptyState,
-}: {
-  groups: Array<[string, PlayerEvent[]]>
-  mode: PanelMode
-  sportsCatalog: SportsItem[]
-  emptyState: React.ReactNode
-}) {
-  if (groups.length === 0) return emptyState
-
-  return (
-    <div className="space-y-8">
-      {groups.map(([dateLabel, groupedEvents]) => (
-        <div key={dateLabel}>
-          <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">
-            {dateLabel}
-          </h3>
-          <div className="relative ml-3 space-y-6 border-l border-slate-200 pb-2">
-            {groupedEvents.map((event) => {
-              const status = getEventStatus(event)
-              return (
-                <div key={event.id} className="relative pl-6">
-                  <span
-                    className={`absolute -left-[5px] top-8 h-2.5 w-2.5 rounded-full border-2 border-white ring-1 ${
-                      status === 'check-in-open'
-                        ? 'scale-125 bg-emerald-500 ring-emerald-300'
-                        : status === 'ongoing'
-                          ? 'scale-125 bg-amber-500 ring-amber-300'
-                          : 'bg-slate-200 ring-slate-200'
-                    }`}
-                  />
-                  {mode === 'hosted' ? (
-                    <HostedEventCard event={event} sportsCatalog={sportsCatalog} />
-                  ) : (
-                    <JoinedEventCard event={event} sportsCatalog={sportsCatalog} />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 function EmptyState({
   icon,
   title,
   description,
+  onExplore,
 }: {
-  icon: string
+  icon: ReactNode
   title: string
   description: string
+  onExplore?: () => void
 }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-      <div className="rounded-full bg-white p-2 text-4xl shadow-sm">{icon}</div>
-      <h3 className="mt-4 text-lg font-bold text-slate-900">{title}</h3>
-      <p className="mt-1 text-sm text-slate-500">{description}</p>
+      <div className="p-2 text-4xl">{icon}</div>
+      <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+      <p className="mt-1 px-10 text-sm text-slate-500">{description}</p>
+      {onExplore && (
+        <button
+          type="button"
+          onClick={onExplore}
+          className="mt-5 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition"
+        >
+          Explore Events
+        </button>
+      )}
+    </div>
+  )
+}
+
+const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
+type CalendarSpan = 'week' | 'month'
+
+export function CalendarView({
+  events,
+  sportsCatalog,
+  mode,
+  onExplore,
+}: {
+  events: PlayerEvent[]
+  sportsCatalog: SportsItem[]
+  mode: PanelMode
+  onExplore?: () => void
+}) {
+  const navigate = useNavigate()
+  const today = useMemo(() => new Date(), [])
+  const [span, setSpan] = useState<CalendarSpan>('week')
+  const [cursor, setCursor] = useState<Date>(() => today)
+  const [selected, setSelected] = useState<Date>(() => today)
+
+  // Derived grid days based on span
+  const { days, prefixBlanks, navLabel } = useMemo(() => {
+    if (span === 'week') {
+      const weekStart = startOfWeek(cursor)
+      const weekEnd = endOfWeek(cursor)
+      const weekLabel =
+        isSameMonth(weekStart, weekEnd)
+          ? `${format(weekStart, 'd')} – ${format(weekEnd, 'd MMM yyyy')}`
+          : `${format(weekStart, 'd MMM')} – ${format(weekEnd, 'd MMM yyyy')}`
+      return { days: eachDayOfInterval({ start: weekStart, end: weekEnd }), prefixBlanks: 0, navLabel: weekLabel }
+    }
+    const monthStart = startOfMonth(cursor)
+    const monthEnd = endOfMonth(cursor)
+    return {
+      days: eachDayOfInterval({ start: monthStart, end: monthEnd }),
+      prefixBlanks: getDay(monthStart),
+      navLabel: format(cursor, 'MMMM yyyy'),
+    }
+  }, [span, cursor])
+
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, PlayerEvent[]>()
+    events.forEach((e) => {
+      const key = format(new Date(e.startTime), 'yyyy-MM-dd')
+      map.set(key, [...(map.get(key) ?? []), e])
+    })
+    return map
+  }, [events])
+
+  const selectedDayEvents = useMemo(
+    () => eventsByDay.get(format(selected, 'yyyy-MM-dd')) ?? [],
+    [selected, eventsByDay]
+  )
+  const selectedIsToday = isSameDay(selected, today)
+
+  function goBack() {
+    setCursor((c) => span === 'week' ? subWeeks(c, 1) : subMonths(c, 1))
+  }
+  function goForward() {
+    setCursor((c) => span === 'week' ? addWeeks(c, 1) : addMonths(c, 1))
+  }
+  function switchSpan(next: CalendarSpan) {
+    setSpan(next)
+    setCursor(selected)
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Navigation bar */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={goBack}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 active:bg-slate-100"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <span className="flex-1 text-center text-sm font-bold text-slate-800">{navLabel}</span>
+        <button
+          type="button"
+          onClick={goForward}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 active:bg-slate-100"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+
+        {/* Week / Month pill */}
+        <div className="flex shrink-0 rounded-full bg-slate-100 p-0.5 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => switchSpan('week')}
+            className={`rounded-full px-3 py-1 transition ${span === 'week' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+          >
+            W
+          </button>
+          <button
+            type="button"
+            onClick={() => switchSpan('month')}
+            className={`rounded-full px-3 py-1 transition ${span === 'month' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+          >
+            M
+          </button>
+        </div>
+      </div>
+
+      {/* Day-of-week header */}
+      <div className="grid grid-cols-7 text-center">
+        {DAY_LABELS.map((d) => (
+          <span key={d} className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{d}</span>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-y-1 text-center">
+        {Array.from({ length: prefixBlanks }).map((_, i) => (
+          <span key={`blank-${i}`} />
+        ))}
+        {days.map((day) => {
+          const key = format(day, 'yyyy-MM-dd')
+          const dayEvents = eventsByDay.get(key) ?? []
+          const hasEvents = dayEvents.length > 0
+          const isSelected = isSameDay(day, selected)
+          const isToday = isSameDay(day, today)
+
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSelected(day)}
+              className="flex flex-col items-center gap-0.5 py-1"
+            >
+              <span
+                className={[
+                  'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors',
+                  isSelected
+                    ? 'bg-slate-900 text-white'
+                    : isToday
+                      ? 'bg-slate-100 text-slate-900'
+                      : isSameMonth(day, cursor)
+                        ? 'text-slate-700'
+                        : 'text-slate-300',
+                ].join(' ')}
+              >
+                {format(day, 'd')}
+              </span>
+              {hasEvents && (
+                <span className="flex gap-0.5">
+                  {dayEvents.slice(0, 3).map((e) => (
+                    <span
+                      key={e.id}
+                      className={`h-1 w-1 rounded-full ${isSelected ? 'bg-slate-900' : 'bg-indigo-400'}`}
+                    />
+                  ))}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Selected day events — always shown */}
+      <div className="space-y-3 pt-1">
+        <p className="pl-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+          {selectedIsToday ? 'Today · ' : ''}{format(selected, 'EEE, d MMM')}
+        </p>
+        {selectedDayEvents.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <p className="text-sm font-medium text-slate-500">
+              {selectedIsToday ? 'No events for today' : 'No events this day'}
+            </p>
+            {selectedIsToday && onExplore && (
+              <button
+                type="button"
+                onClick={onExplore}
+                className="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition active:scale-95"
+              >
+                Explore events
+              </button>
+            )}
+          </div>
+        ) : (
+          selectedDayEvents.map((event) => {
+            const sportLabel =
+              sportsCatalog.find((s) => s.key.toUpperCase() === event.sport.toUpperCase())?.label ?? event.sport
+            return (
+              <EventCard
+                key={event.id}
+                event={event}
+                sportLabel={sportLabel}
+                showStatus={mode === 'hosted' || event.status === 'cancelled'}
+                onViewDetails={(id) => {
+                  if (mode === 'hosted' && event.status === 'draft') {
+                    navigate(`/create-event?id=${id}`)
+                  } else {
+                    navigate(`/event/${id}`)
+                  }
+                }}
+              />
+            )
+          })
+        )}
+      </div>
     </div>
   )
 }
@@ -367,14 +265,18 @@ function EmptyState({
 export function ProfileEventsPanel({
   mode,
   showTimeTabs = true,
+  viewMode = 'list',
+  onExplore,
 }: {
   mode: PanelMode
   showTimeTabs?: boolean
+  viewMode?: 'list' | 'calendar'
+  onExplore?: () => void
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = (searchParams.get('tab') as TabKey) || 'upcoming'
   const [events, setEvents] = useState<PlayerEvent[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const setTab = (newTab: TabKey) => {
@@ -389,7 +291,7 @@ export function ProfileEventsPanel({
   }
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  const { items: sportsCatalog } = useSports('zh')
+  const { items: sportsCatalog } = useSports('en')
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -431,39 +333,46 @@ export function ProfileEventsPanel({
   }, [isAuthenticated, mode, showTimeTabs, tab])
 
   const upcomingEvents = useMemo(
-    () => events.filter((event) => new Date(event.endTime) >= new Date()),
+    () =>
+      events.filter((event) => {
+        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+        return end >= new Date()
+      }),
     [events]
   )
   const historyEvents = useMemo(
-    () => events.filter((event) => new Date(event.endTime) < new Date()),
+    () =>
+      events.filter((event) => {
+        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+        return end < new Date()
+      }),
     [events]
   )
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
   const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents
-  const upcomingLabel = '即將到來'
-  const historyLabel = '歷史紀錄'
+  const upcomingLabel = 'Upcoming'
+  const historyLabel = 'History'
   const empty =
     activeTab === 'upcoming'
       ? {
-          icon: '📭',
+          icon: <Bike className="h-8 w-8" />,
           title:
+            mode === 'hosted' ? 'No hosted events yet' : mode === 'joined' ? 'No joined events yet' : 'No events yet',
+          description:
             mode === 'hosted'
-              ? '目前沒有主辦活動'
-              : mode === 'joined'
-                ? '目前沒有參與活動'
-                : '目前沒有場次',
-          description: mode === 'hosted' ? '建立一個活動來邀請夥伴吧！' : '去看看其他活動並加入吧',
+              ? 'Create an event and invite your mates!'
+              : 'Browse games happening around you and join the action.',
         }
       : {
-          icon: '📜',
+          icon: <BicepsFlexed className="h-8 w-8" />,
           title:
             mode === 'hosted'
-              ? '尚無主辦歷史紀錄'
+              ? 'No past hosted events'
               : mode === 'joined'
-                ? '尚無參與歷史紀錄'
-                : '尚無歷史紀錄',
-          description: '完成的活動會顯示在這裡',
+                ? 'No past joined events'
+                : 'No past events',
+          description: 'Completed events will appear here.',
         }
 
   return (
@@ -473,18 +382,14 @@ export function ProfileEventsPanel({
           <button
             type="button"
             onClick={() => setTab('upcoming')}
-            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
-              tab === 'upcoming' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
-            }`}
+            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${tab === 'upcoming' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'}`}
           >
             {upcomingLabel}
           </button>
           <button
             type="button"
             onClick={() => setTab('history')}
-            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${
-              tab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'
-            }`}
+            className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${tab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'}`}
           >
             {historyLabel}
           </button>
@@ -493,19 +398,29 @@ export function ProfileEventsPanel({
 
       <div className="min-h-[200px]">
         {error && (
-          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-            {error}
-          </div>
+          <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">載入你的場次中…</div>
-        ) : (
-          <EventGroupList
-            groups={groupByDate(activeEvents)}
-            mode={mode === 'all' ? 'hosted' : mode}
+          <div className="py-10 text-center text-slate-500">Loading your events...</div>
+        ) : viewMode === 'calendar' ? (
+          <CalendarView
+            events={activeEvents}
             sportsCatalog={sportsCatalog}
+            mode={mode === 'all' ? 'hosted' : mode}
+            onExplore={onExplore}
+          />
+        ) : (
+          <EventTimeline
+            events={activeEvents}
+            sportsCatalog={sportsCatalog}
+            mode={mode === 'all' ? 'hosted' : mode}
             emptyState={
-              <EmptyState icon={empty.icon} title={empty.title} description={empty.description} />
+              <EmptyState
+                icon={<Bike className="h-8 w-8" />}
+                title={empty.title}
+                description={empty.description}
+                onExplore={onExplore}
+              />
             }
           />
         )}

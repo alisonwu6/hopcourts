@@ -8,6 +8,8 @@ type FetchOptions = {
 
 interface EventsStore {
   events: PlayerEvent[]
+  eventsHasMore: boolean
+  eventsOffset: number
   myEvents: PlayerEvent[]
   myEventsLoaded: {
     upcoming: boolean
@@ -17,8 +19,10 @@ interface EventsStore {
   }
   selectedEvent: PlayerEvent | null
   isLoading: boolean
+  isLoadingMore: boolean
   error: string | null
   fetchEvents: (filters?: EventFilter, options?: FetchOptions) => Promise<void>
+  fetchMoreEvents: (filters?: EventFilter) => Promise<void>
   fetchEventById: (id: string, options?: FetchOptions) => Promise<void>
   fetchMyEvents: (type?: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined', options?: FetchOptions) => Promise<void>
   createEvent: (input: CreateEventInput) => Promise<PlayerEvent>
@@ -30,6 +34,8 @@ interface EventsStore {
 
 export const useEventsStore = create<EventsStore>((set, get) => ({
   events: [],
+  eventsHasMore: false,
+  eventsOffset: 0,
   myEvents: [],
   myEventsLoaded: {
     upcoming: false,
@@ -39,15 +45,21 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
   },
   selectedEvent: null,
   isLoading: false,
+  isLoadingMore: false,
   error: null,
 
   fetchEvents: async (filters?: EventFilter, options?: FetchOptions) => {
     const shouldShowLoading = options?.force || get().events.length === 0
-    set({ isLoading: Boolean(shouldShowLoading), error: null })
+    set({ isLoading: Boolean(shouldShowLoading), error: null, eventsOffset: 0 })
     try {
-      const response = await eventsService.getEvents(filters, options)
+      const response = await eventsService.getEvents(filters, { ...options, offset: 0 })
       if (response.success && response.data) {
-        set({ events: response.data.data, isLoading: false })
+        set({
+          events: response.data.data,
+          eventsHasMore: response.data.hasMore,
+          eventsOffset: response.data.data.length,
+          isLoading: false,
+        })
       } else {
         set({
           error: response.error?.message ?? 'Failed to load events',
@@ -59,6 +71,27 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
         error: 'An error occurred',
         isLoading: false,
       })
+    }
+  },
+
+  fetchMoreEvents: async (filters?: EventFilter) => {
+    const { eventsHasMore, eventsOffset, isLoadingMore } = get()
+    if (!eventsHasMore || isLoadingMore) return
+    set({ isLoadingMore: true })
+    try {
+      const response = await eventsService.getEvents(filters, { force: true, offset: eventsOffset })
+      if (response.success && response.data) {
+        set((state) => ({
+          events: [...state.events, ...response.data!.data],
+          eventsHasMore: response.data!.hasMore,
+          eventsOffset: state.eventsOffset + response.data!.data.length,
+          isLoadingMore: false,
+        }))
+      } else {
+        set({ isLoadingMore: false })
+      }
+    } catch {
+      set({ isLoadingMore: false })
     }
   },
 
@@ -90,7 +123,10 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     }
   },
 
-  fetchMyEvents: async (type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'upcoming', options?: FetchOptions) => {
+  fetchMyEvents: async (
+    type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'upcoming',
+    options?: FetchOptions
+  ) => {
     set({ isLoading: true, error: null })
     try {
       const response = await eventsService.getMyEvents(type, options)

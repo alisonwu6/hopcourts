@@ -62,7 +62,12 @@ export function BottomSheet({
       aria-modal="true"
       aria-labelledby={labelledBy}
     >
-      <button type="button" className="flex-1" onClick={onClose} aria-label="Close sheet overlay" />
+      <button
+        type="button"
+        className="flex-1"
+        onClick={onClose}
+        aria-label="Close sheet overlay"
+      />
       <div
         className={clsx(
           'relative mx-auto w-full max-w-md animate-[sheetIn_0.25s_ease-out] rounded-t-[32px] bg-white shadow-[0_-20px_45px_rgba(15,41,77,0.2)]',
@@ -77,18 +82,15 @@ export function BottomSheet({
         {disableContainer ? (
           <div className={clsx('relative w-full', contentClassName)}>{children}</div>
         ) : (
-          <div
-            className={clsx(
-              'relative mx-auto w-full px-5 pb-6 pt-4',
-              maxWidthClassName,
-              contentClassName
-            )}
-          >
+          <div className={clsx('relative mx-auto w-full px-5 pb-6 pt-4', maxWidthClassName, contentClassName)}>
             {(icon || title || description) && (
               <div className="mb-4 text-center">
                 {icon && <div className="mb-4 flex justify-center">{icon}</div>}
                 {title && (
-                  <h2 id={labelledBy} className="text-xl font-semibold text-slate-900">
+                  <h2
+                    id={labelledBy}
+                    className="text-xl font-semibold text-slate-900"
+                  >
                     {title}
                   </h2>
                 )}
@@ -100,9 +102,7 @@ export function BottomSheet({
           </div>
         )}
       </div>
-      <style>
-        {`@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }`}
-      </style>
+      <style>{`@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
     </div>
   )
 }

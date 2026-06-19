@@ -13,7 +13,7 @@ export type City = DictionaryItem & {
   country_key: string
 }
 
-export type Vibe = DictionaryItem
+export type VibeItem = DictionaryItem
 
 export type AgeRange = DictionaryItem
 

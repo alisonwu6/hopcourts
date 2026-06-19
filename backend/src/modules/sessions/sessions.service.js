@@ -23,9 +23,15 @@ function buildListParams(query) {
   const limit = Math.min(Math.max(limitRaw, 1), 50)
   const offset = Math.max(parseNumber(query.offset, 0), 0)
 
+  const rawSportKeys = query.sport_keys || query.sport_key || query.sport
+  const sportKeys = rawSportKeys
+    ? String(rawSportKeys).split(',').map(s => s.trim().toUpperCase()).filter(Boolean)
+    : undefined
+
   return {
-    sportKey: query.sport_key || query.sport ? String(query.sport_key || query.sport) : undefined,
+    sportKeys: sportKeys?.length ? sportKeys : undefined,
     city: query.city ? String(query.city) : undefined,
+    venueId: query.venue_id ? String(query.venue_id) : undefined,
     from: parseDate(query.from),
     to: parseDate(query.to),
     limit,
@@ -34,8 +40,16 @@ function buildListParams(query) {
 }
 
 async function listSessions(params = {}) {
+  const { type = 'upcoming', userId, ...rest } = params
   try {
-    const sessions = await sessionsModel.listUpcomingSessions(params)
+    let sessions
+    if (type === 'interests') {
+      sessions = await sessionsModel.listSessionsByUserInterests({ userId, ...rest })
+    } else if (type === 'relations') {
+      sessions = await sessionsModel.listSessionsByRelations({ userId, ...rest })
+    } else {
+      sessions = await sessionsModel.listUpcomingSessions(rest)
+    }
     return {
       items: sessions,
       page: {
@@ -124,17 +138,34 @@ async function getSessionDetail(sessionId, userId) {
     participantsModel.listParticipantsWithDetails(sessionId)
   ])
 
-  return { 
-    session, 
-    meta, 
-    host: host ? {
-      id: host.id,
-      display_name: host.display_name,
-      username: host.username,
-      avatar_url: host.avatar_url,
-      bio: host.bio
-    } : null, 
-    participants 
+  const hostSummary = session.is_official && session.venue_id
+    ? {
+      id: session.venue_id,
+      display_name: session.venue_name_display || host?.display_name || null,
+      username: null,
+      avatar_url: session.venue_logo_url || null,
+      bio: null,
+      role: 'venue',
+      nationality_key: host?.nationality_key || null,
+      city_key: host?.city_key || null,
+    }
+    : host
+      ? {
+        id: host.id,
+        display_name: host.display_name,
+        username: host.username,
+        avatar_url: host.avatar_url,
+        bio: host.bio,
+        nationality_key: host.nationality_key || null,
+        city_key: host.city_key || null,
+      }
+      : null
+
+  return {
+    session,
+    meta,
+    host: hostSummary,
+    participants,
   }
 }
 
@@ -180,15 +211,15 @@ async function joinSession({ sessionId, userId }) {
   if (session.host_user_id && session.host_user_id !== userId) {
     // Fire and forget (or await if guaranteed fast). Service handles errors.
     usersModel.getUserById(userId).then(actor => {
-      const actorName = actor?.display_name || actor?.name || '有人'
+      const actorName = actor?.display_name || actor?.name || 'Someone'
       notificationsService.createNotification({
         recipient_user_id: session.host_user_id,
         actor_user_id: userId,
         type: 'session_joined',
         entity_type: 'session',
         entity_id: sessionId,
-        title: '有人加入你的活動',
-        message: `${actorName} 加入了「${session.title}」`,
+        title: 'Someone joined your event',
+        message: `${actorName} joined "${session.title}"`,
         metadata: { deep_link: `/event/${sessionId}` }
       })
     }).catch(err => console.error('Notify join failed', err))
@@ -208,7 +239,20 @@ async function leaveSession({ sessionId, userId }) {
   const session = await getSessionById(sessionId)
   if (!session) throw Errors.notFound('Session not found')
   if (session.host_user_id === userId) {
-    throw Errors.forbidden('Host cannot leave their own session')
+    if (!session.is_official) {
+      throw Errors.forbidden('Host cannot leave their own session')
+    }
+
+    const selfParticipant = await participantsModel.getParticipant({ sessionId, userId })
+    if (!selfParticipant) {
+      const meta = await buildSessionMeta({ sessionId, session, userId })
+      return {
+        session_id: sessionId,
+        joined: false,
+        meta,
+      }
+    }
+
   }
 
   await participantsModel.leaveSession({ sessionId, userId })
@@ -216,15 +260,15 @@ async function leaveSession({ sessionId, userId }) {
   // Notification: Notify Host
   if (session.host_user_id && session.host_user_id !== userId) {
     usersModel.getUserById(userId).then(actor => {
-      const actorName = actor?.display_name || actor?.name || '有人'
+      const actorName = actor?.display_name || actor?.name || 'Someone'
       notificationsService.createNotification({
         recipient_user_id: session.host_user_id,
         actor_user_id: userId,
         type: 'session_left',
         entity_type: 'session',
         entity_id: sessionId,
-        title: '有人退出你的活動',
-        message: `${actorName} 退出了「${session.title}」`,
+        title: 'Someone left your event',
+        message: `${actorName} left "${session.title}"`,
         metadata: { deep_link: `/event/${sessionId}` }
       })
     }).catch(err => console.error('Notify leave failed', err))
@@ -319,7 +363,7 @@ async function createSession(input) {
     checkinRadiusM: input.checkinRadiusM ?? 100,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 15,
     checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 5,
-    minPeople: input.minPeople ?? 3,
+    minPeople: input.minPeople,
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',
     visibility: input.visibility ?? 'public',
@@ -388,6 +432,21 @@ async function updateSession(sessionId, input) {
     throw Errors.validation('max_people must be >= min_people')
   }
 
+  let venueId = undefined
+  if (input.lat && input.lng && input.lat !== 0 && input.lng !== 0) {
+    try {
+      venueId = await resolveVenue({
+        lat: Number(input.lat),
+        lng: Number(input.lng),
+        name: input.placeName,
+        address: input.address,
+        source: input.locationSource,
+      })
+    } catch (err) {
+      console.error('Venue resolution failed on update', err)
+    }
+  }
+
   const patch = {
     sportKey: input.sportKey,
     title: input.title,
@@ -398,6 +457,8 @@ async function updateSession(sessionId, input) {
     address: input.address,
     lat: input.lat,
     lng: input.lng,
+    locationSource: input.locationSource,
+    venueId,
     checkinRadiusM: input.checkinRadiusM,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore,
     checkinCloseMinsAfter: input.checkinCloseMinsAfter,
@@ -425,8 +486,9 @@ async function updateSession(sessionId, input) {
   if (hasChanges && updatedSession) {
     const participants = await participantsModel.listParticipantsBySession(sessionId)
     const actor = await usersModel.getUserById(input.userId).catch(() => null)
-    const actorName = actor?.display_name || actor?.name || '活動發起人'
-    const sessionTitle = updatedSession.title || existing.title || '活動'
+    const actorName = actor?.display_name || actor?.name || 'Event host'
+    const sessionTitle = updatedSession.title || existing.title || 'Event'
+    const isCancellation = patch.status === 'cancelled'
 
     participants.forEach((participant) => {
       const recipientId = participant.user_id
@@ -436,11 +498,13 @@ async function updateSession(sessionId, input) {
         .createNotification({
           recipient_user_id: recipientId,
           actor_user_id: input.userId,
-          type: 'session_updated',
+          type: isCancellation ? 'session_cancelled' : 'session_updated',
           entity_type: 'session',
           entity_id: sessionId,
-          title: '活動資訊已更新',
-          message: `${actorName} 更新了「${sessionTitle}」`,
+          title: isCancellation ? 'Event cancelled' : 'Event details updated',
+          message: isCancellation
+            ? `"${sessionTitle}" has been cancelled`
+            : `${actorName} updated "${sessionTitle}"`,
           metadata: { deep_link: `/event/${sessionId}` },
         })
         .catch((err) => console.error('Notify update failed', err))
@@ -474,8 +538,8 @@ async function deleteSession(sessionId, userId) {
         type: 'session_cancelled',
         entity_type: 'session',
         entity_id: sessionId,
-        title: '活動已取消',
-        message: `「${existing.title}」已被取消`,
+        title: 'Event cancelled',
+        message: `"${existing.title}" was cancelled`,
         metadata: {}
       }).catch(err => console.error('Notify cancel failed', err))
     }

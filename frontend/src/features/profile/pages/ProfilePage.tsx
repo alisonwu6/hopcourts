@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Menu, PlusSquare, Copy, MessageCircle, Bell } from 'lucide-react'
+import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
@@ -8,11 +8,12 @@ import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
-import { profileService } from '@/features/profile/profile.service'
-import { useSports } from '@/features/dictionaries/hooks'
-import { useCities, useVibes } from '@/features/dictionaries/hooks'
+import { useProfileStore } from '@/stores/profile.store'
+import { profileService } from '@/features/profile/services/profileService'
+import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { supabase } from '@/lib/supabase'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
 import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel'
@@ -20,6 +21,7 @@ import { createDaySlots, dayLabels } from '@/features/profile/constants'
 import type { GoalState } from '@/features/profile/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
+import { getFlagEmoji } from '@/utils/flags'
 
 type ProfileVM = {
   username: string
@@ -29,13 +31,20 @@ type ProfileVM = {
   tryingSportKeys: string[]
 }
 
-const isUuid = (str: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying' | 'bio'
+
+const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+
+const FIRST_MARKET_COUNTRY_KEY = 'AU'
+const FIRST_MARKET_COUNTRY_LABEL = 'Australia'
+const FIRST_MARKET_CITY_KEY = 'BRISBANE'
+const FIRST_MARKET_CITY_LABEL = 'Brisbane'
 
 const emptyProfile: MateCardProps = {
   name: '',
-  location: '',
-  cityKey: '',
+  location: FIRST_MARKET_CITY_LABEL,
+  cityKey: FIRST_MARKET_CITY_KEY,
+  countryKey: '',
   vibe: null,
   vibeKey: null,
   sports: [],
@@ -61,12 +70,12 @@ export function ProfilePage() {
   const [goal, setGoal] = useState<GoalState | null>(null)
   const [draftGoal, setDraftGoal] = useState<GoalState>({
     sessionsPerWeek: '',
-    timeOfDay: '早上',
+    timeOfDay: 'Morning',
     days: [],
   })
   const [goalDaySlots, setGoalDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
-  const [draftPreferredTime, setDraftPreferredTime] = useState('早上')
+  const [draftPreferredTime, setDraftPreferredTime] = useState('Morning')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
   const { user, isAuthenticated, isLoading } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
@@ -76,23 +85,35 @@ export function ProfilePage() {
   const [draftUsername, setDraftUsername] = useState<string>((user as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
+  const [isRemovingAvatar, setIsRemovingAvatar] = useState(false)
   const [isProfileLoaded, setIsProfileLoaded] = useState(false)
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
   const [showCompletionSheet, setShowCompletionSheet] = useState(false)
+  const [activityViewMode, setActivityViewMode] = useState<'list' | 'calendar'>('list')
 
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
-    null | 'name' | 'username' | 'location' | 'vibe' | 'bio' | 'gender'
+    null | 'name' | 'username' | 'location' | 'nationality' | 'vibe' | 'bio' | 'gender'
   >(null)
   const [fieldValue, setFieldValue] = useState('')
+  const [locationSheetCountry, setLocationSheetCountry] = useState('')
   const [sportsSearch, setSportsSearch] = useState('')
   const [tryingSearch, setTryingSearch] = useState('')
-  const { items: sportsCatalog } = useSports('zh')
-  const { items: vibesCatalog } = useVibes('zh')
-  const { items: citiesCatalog } = useCities(undefined, 'zh')
+  const [invalidProfileFields, setInvalidProfileFields] = useState<ProfileRequiredField[]>([])
+  const { items: sportsCatalog } = useSports('en')
+  const { vibesCatalog, vibeKeyToUnion, labelForVibe, vibeUnionToKey } = useVibeUtils('en')
+  const { items: citiesCatalog } = useCities(undefined, 'en')
+  const { items: countriesCatalog } = useCountries('en')
+  const availableCountries = useMemo(
+    () =>
+      countriesCatalog.length
+        ? countriesCatalog
+        : [{ key: FIRST_MARKET_COUNTRY_KEY, label: FIRST_MARKET_COUNTRY_LABEL }],
+    [countriesCatalog]
+  )
   const navigate = useNavigate()
   const location = useLocation()
   const labelForSport = useMemo(() => {
@@ -120,68 +141,41 @@ export function ProfilePage() {
     return (label: string) => map.get(label) || map.get(label?.toLowerCase?.() || '') || label
   }, [sportsCatalog])
 
-  const labelForVibe = useMemo(() => {
-    const map = new Map<string, string>()
-    vibesCatalog.forEach((v) => {
-      map.set(v.key, v.label)
-      map.set(v.key.toLowerCase(), v.label)
-    })
-    return (key: string) => map.get(key) || map.get(key?.toLowerCase?.() || '') || key
-  }, [vibesCatalog])
-
-  const vibeKeyToUnion = useMemo(() => {
-    const map = new Map<string, MateCardProps['vibe']>()
-    vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      map.set(v.key, union)
-      map.set(v.key.toLowerCase(), union)
-    })
-    return map
-  }, [vibesCatalog])
-
-  const vibeUnionToKey = useMemo(() => {
-    const map = new Map<string, string>()
-    vibesCatalog.forEach((v) => {
-      const union = (v.key.charAt(0) + v.key.slice(1).toLowerCase()) as MateCardProps['vibe']
-      if (union) {
-        map.set(union as string, v.key)
-        map.set((union as string).toLowerCase(), v.key)
-      }
-    })
-    return map
-  }, [vibesCatalog])
-
   const labelForCity = useMemo(() => {
     const map = new Map(citiesCatalog.map((c) => [c.key, c.label]))
     return (key?: string) => (key ? map.get(key) || key : '')
   }, [citiesCatalog])
 
-  // Helper: fallback for vibe key to union conversion (e.g., 'CHILL' -> 'Chill')
-  const vibeKeyToUnionFallback = (key: string): MateCardProps['vibe'] =>
-    key && typeof key === 'string'
-      ? ((key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()) as MateCardProps['vibe'])
-      : null
+  const labelForCountry = useMemo(() => {
+    const map = new Map(availableCountries.map((c) => [c.key, c.label]))
+    return (key?: string | null) => (key ? map.get(key) || key : '')
+  }, [availableCountries])
+
+  const countryKeyForCity = useMemo(() => {
+    const map = new Map(citiesCatalog.map((c) => [c.key, c.country_key]))
+    return (cityKey?: string) => (cityKey ? map.get(cityKey) || '' : '')
+  }, [citiesCatalog])
+
+  const livingLocationText = useMemo(() => {
+    const cityLabel = labelForCity(FIRST_MARKET_CITY_KEY) || draftProfile.location || FIRST_MARKET_CITY_LABEL
+    const countryLabel = labelForCountry(FIRST_MARKET_COUNTRY_KEY) || FIRST_MARKET_COUNTRY_LABEL
+    if (cityLabel && countryLabel) return `${cityLabel}, ${countryLabel}`
+    return cityLabel || countryLabel || ''
+  }, [draftProfile.location, labelForCity, labelForCountry])
 
   // Memo: derive resolvedProfile (display-ready, labels filled, union vibe)
   const resolvedProfile = useMemo<MateCardProps | null>(() => {
     if (!vm?.card) return null
-    const favoriteLabels = (
-      vm.favoriteSportKeys.length ? vm.favoriteSportKeys : vm.card.sports || []
-    ).map(labelForSport)
-    const tryingLabels = (
-      vm.tryingSportKeys.length ? vm.tryingSportKeys : vm.card.trying || []
-    ).map(labelForSport)
-    const locationLabel = vm.card.cityKey
-      ? labelForCity(vm.card.cityKey) || vm.card.location
-      : vm.card.location
+    const favoriteLabels = (vm.favoriteSportKeys.length ? vm.favoriteSportKeys : vm.card.sports || []).map(
+      labelForSport
+    )
+    const tryingLabels = (vm.tryingSportKeys.length ? vm.tryingSportKeys : vm.card.trying || []).map(labelForSport)
+    const locationLabel = vm.card.cityKey ? labelForCity(vm.card.cityKey) || vm.card.location : vm.card.location
     let vibeUnion: MateCardProps['vibe'] = null
     if (vm.card.vibe) {
       vibeUnion = vm.card.vibe
     } else if (vm.card.vibeKey) {
-      vibeUnion =
-        vibeKeyToUnion.get(vm.card.vibeKey) ||
-        vibeKeyToUnion.get(vm.card.vibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(vm.card.vibeKey)
+      vibeUnion = vibeKeyToUnion(vm.card.vibeKey) as MateCardProps['vibe']
     } else {
       vibeUnion = null
     }
@@ -202,10 +196,7 @@ export function ProfilePage() {
     let vibeUnion: MateCardProps['vibe'] = draftProfile.vibe
     const draftVibeKey = (draftProfile as any).vibeKey
     if (!vibeUnion && draftVibeKey) {
-      vibeUnion =
-        vibeKeyToUnion.get(draftVibeKey) ||
-        vibeKeyToUnion.get(draftVibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(draftVibeKey)
+      vibeUnion = vibeKeyToUnion(draftVibeKey) as MateCardProps['vibe']
     }
     return {
       ...draftProfile,
@@ -216,10 +207,11 @@ export function ProfilePage() {
 
   const usernameFromVm = vm?.username
   const usernameFromUser = (user as any)?.username
-  const username =
-    usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
+  const username = usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
+  const headerFlag = getFlagEmoji((resolvedProfile?.countryKey || draftProfile.countryKey || '').toString())
 
   const [rawProfile, setRawProfile] = useState<any>(null)
+  const hasVenueAccess = (rawProfile?.user?.role ?? []).includes('venue')
   const hasBootstrappedRef = React.useRef(false)
 
   // 1. Fetch Data Only (Stable dependencies)
@@ -240,11 +232,13 @@ export function ProfilePage() {
         const unread = (notificationsSettled.value as any)?.data?.unread_count
         if (typeof unread === 'number') {
           setUnreadCount(unread)
+          useProfileStore.getState().setUnreadCount(unread)
         }
       }
 
       if (profileSettled.status === 'fulfilled') {
         payload = (profileSettled.value as any)?.data ?? profileSettled.value
+        useProfileStore.getState().setRawProfile(payload)
       } else {
         const err: any = profileSettled.reason
         console.warn('Profile load failed (expected for new users):', err)
@@ -304,8 +298,7 @@ export function ProfilePage() {
                 location: newLocation,
                 gender: newGender,
                 bio: newBio,
-                onboarding_completed_at:
-                  data.onboarding_completed_at || authUser.onboarding_completed_at,
+                onboarding_completed_at: data.onboarding_completed_at || authUser.onboarding_completed_at,
               },
               token
             )
@@ -354,22 +347,16 @@ export function ProfilePage() {
       sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
 
     const vibeKey = data.vibe_key || null
-    const vibeUnion = vibeKey
-      ? vibeKeyToUnion.get(vibeKey) ||
-        vibeKeyToUnion.get(vibeKey.toLowerCase()) ||
-        vibeKeyToUnionFallback(vibeKey)
-      : null
+    const vibeUnion = vibeKey ? (vibeKeyToUnion(vibeKey) as MateCardProps['vibe']) : null
 
     const mapped: MateCardProps = {
-      name:
-        data.display_name ||
-        (isUuid(data.username) ? '' : data.username) ||
-        (user as any)?.name ||
-        '',
-      location: data.city_label || data.city || '',
-      cityKey: data.city_key || '',
+      name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
+      location: FIRST_MARKET_CITY_LABEL,
+      cityKey: FIRST_MARKET_CITY_KEY,
+      countryKey: data.nationality_key || '',
       vibe: vibeUnion,
       vibeKey,
+      vibeLabel: vibeKey ? labelForVibe(vibeKey) : undefined,
       sports: (favoriteKeys || []).map(labelForSport),
       trying: (tryingKeys || []).map(labelForSport),
       blurb: data.bio || '',
@@ -411,6 +398,16 @@ export function ProfilePage() {
     }
     if (hasBootstrappedRef.current) return
     hasBootstrappedRef.current = true
+
+    const stored = useProfileStore.getState()
+    if (stored.isLoaded && stored.rawProfile) {
+      setRawProfile(stored.rawProfile)
+      setUnreadCount(stored.unreadCount)
+      setIsProfileLoaded(true)
+      const isStale = !stored.fetchedAt || Date.now() - stored.fetchedAt > 30_000
+      if (!isStale) return
+    }
+
     fetchProfileData()
   }, [isAuthenticated, fetchProfileData])
 
@@ -428,7 +425,6 @@ export function ProfilePage() {
   useEffect(() => {
     const isNowOnboarded = !!(user as any)?.onboarding_completed_at
     if (!prevOnboardedRef.current && isNowOnboarded) {
-      // Immediate trigger for overlap effect
       setShowEditSheet(false)
       setShowCompletionSheet(true)
       setShowProfileRequiredSheet(false)
@@ -439,12 +435,12 @@ export function ProfilePage() {
   const handleOpenGoal = () => {
     const baseGoal = goal ?? {
       sessionsPerWeek: '',
-      timeOfDay: draftPreferredTime || '早上',
+      timeOfDay: draftPreferredTime || 'Morning',
       days: [],
     }
     setDraftGoal(baseGoal)
     setDraftDaySlots(goalDaySlots)
-    setDraftPreferredTime(baseGoal.timeOfDay || '早上')
+    setDraftPreferredTime(baseGoal.timeOfDay || 'Morning')
     setShowGoalSheet(true)
   }
 
@@ -468,8 +464,8 @@ export function ProfilePage() {
 
     const url = `${window.location.origin}/mate/${shareUsername}`
     const shareData = {
-      title: 'SportsMatch 運動卡',
-      text: `看看 ${draftProfile.name} 的運動檔案`,
+      title: 'HopCourts Activity Card',
+      text: `Check out ${draftProfile.name}'s activity profile`,
       url,
     }
 
@@ -487,7 +483,7 @@ export function ProfilePage() {
   const handleShareToLine = () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`
     window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`
     setShowShareSheet(false)
   }
@@ -495,18 +491,18 @@ export function ProfilePage() {
   const handleCopyLink = async () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `看看 ${draftProfile.name} 的運動檔案\n${url}`
+    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`
 
     try {
       await navigator.clipboard.writeText(text)
       setAlertDialog({
         open: true,
-        title: '已複製',
-        description: '連結與文字已複製到剪貼簿',
+        title: 'Copied',
+        description: 'Link and text copied to clipboard',
         type: 'success',
       })
     } catch (err) {
-      window.prompt('請複製連結', text)
+      window.prompt('Copy this link', text)
     } finally {
       setShowShareSheet(false)
     }
@@ -518,15 +514,84 @@ export function ProfilePage() {
     setShowEditSheet(true)
   }
 
+  const handleRemoveAvatar = async () => {
+    if (!userId || !supabase || isRemovingAvatar) return
+    setIsRemovingAvatar(true)
+    try {
+      // Storage delete is best-effort; file may not exist
+      await supabase.storage.from('avatars').remove([`${userId}/avatar.webp`])
+    } catch {
+      // continue — DB clear is what matters
+    }
+    try {
+      const res = await profileService.saveProfile({ avatar_url: null })
+      // Only clear UI after the DB confirms the change
+      setDraftProfile((prev) => ({ ...prev, avatar: '' }))
+      setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: '' } } : prev))
+      const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
+      if (authUser && token) setAuth({ ...authUser, avatar: null, avatar_url: null, avatarUrl: null } as any, token)
+      // Patch rawProfile so useEffect doesn't re-hydrate the old URL
+      const data = (res as any)?.data ?? res
+      if (data?.user) data.user.avatar_url = null
+      else if (data) data.avatar_url = null
+      setRawProfile(data)
+    } catch (err) {
+      console.error('Failed to clear avatar in DB', err)
+    } finally {
+      setIsRemovingAvatar(false)
+    }
+  }
+
+  const hasProfileFieldError = (field: ProfileRequiredField) => invalidProfileFields.includes(field)
+
+  const clearProfileFieldError = (field: ProfileRequiredField) => {
+    setInvalidProfileFields((prev) => prev.filter((item) => item !== field))
+  }
+
+  useEffect(() => {
+    if (!invalidProfileFields.length) return
+
+    const currentVibeKey = (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined
+
+    setInvalidProfileFields((prev) =>
+      prev.filter((field) => {
+        switch (field) {
+          case 'name':
+            return !draftProfile.name?.trim()
+          case 'username':
+            return !vm?.username && !draftUsername.trim()
+          case 'vibe':
+            return !currentVibeKey
+          case 'gender':
+            return !draftProfile.gender
+          case 'sports':
+            return !draftProfile.sports?.length
+          case 'trying':
+            return !draftProfile.trying?.length
+          case 'bio':
+            return !draftProfile.blurb?.trim()
+          default:
+            return false
+        }
+      })
+    )
+  }, [draftProfile, draftUsername, invalidProfileFields.length, vm?.username, vibeUnionToKey])
+
   const openFieldSheet = (field: typeof activeField, value: string, rawKey?: string) => {
     let nextValue = rawKey ?? value
     if (field === 'vibe') {
       const vibe = value as NonNullable<MateCardProps['vibe']>
-      nextValue = rawKey || (vibe ? vibeUnionToKey.get(vibe) : undefined) || value
+      nextValue = rawKey || (vibe ? vibeUnionToKey(vibe) : undefined) || value
     }
     setFieldError(null)
     setActiveField(field)
-    setFieldValue(nextValue)
+    if (field === 'location') {
+      setLocationSheetCountry(FIRST_MARKET_COUNTRY_KEY)
+      setFieldValue(FIRST_MARKET_CITY_KEY)
+    } else {
+      setLocationSheetCountry('')
+      setFieldValue(nextValue)
+    }
   }
 
   const handleSaveField = async () => {
@@ -537,56 +602,65 @@ export function ProfilePage() {
     switch (activeField) {
       case 'name':
         next.name = value
+        clearProfileFieldError('name')
         break
       case 'username':
         if (!value) {
-          setFieldError('請輸入使用者名稱')
+          setFieldError('Enter a username')
           return
         }
         if (!/^[a-zA-Z0-9_.]+$/.test(value)) {
-          setFieldError('帳號只能包含英文、數字、底線與句號')
+          setFieldError('Username can only include letters, numbers, underscores, and periods')
           return
         }
         if (value.length < 3 || value.length > 10) {
-          setFieldError('帳號長度需介於 3 至 10 個字')
+          setFieldError('Username must be 3 to 10 characters')
           return
         }
         {
+          const normalizedValue = value.toLowerCase()
           const currentUsername = ((vm?.username || (user as any)?.username || '') as string).trim()
-          const isSameUsername = value.toLowerCase() === currentUsername.toLowerCase()
+          const isSameUsername = normalizedValue === currentUsername.toLowerCase()
           if (!isSameUsername) {
             setIsSavingProfile(true)
             try {
               // 200 => already exists, 404 => available
-              await profileService.getProfileByUsername(value)
-              setFieldError('使用者名稱已存在，請選擇其他名稱')
+              await profileService.getProfileByUsername(normalizedValue)
+              setFieldError('Username taken. Try another.')
               return
             } catch (err: any) {
               const status = err?.status || err?.response?.status
               if (status !== 404) {
-                setFieldError('目前無法驗證帳號，請稍後再試')
+                setFieldError("Couldn't verify username. Please try again.")
                 return
               }
             } finally {
               setIsSavingProfile(false)
             }
           }
+          setDraftUsername(normalizedValue)
         }
-        setDraftUsername(value)
+        clearProfileFieldError('username')
         break
       case 'location':
         next.location = labelForCity(value) || value
         next.cityKey = value
         break
       case 'vibe':
-        next.vibe = vibeKeyToUnion.get(value) || (value as MateCardProps['vibe'])
+        next.vibe = (vibeKeyToUnion(value) ?? value) as MateCardProps['vibe']
         next.vibeKey = value
+        clearProfileFieldError('vibe')
+        break
+      case 'nationality':
+        next.countryKey = value
         break
       case 'bio':
         next.blurb = value
+        clearProfileFieldError('bio')
         break
       case 'gender':
         next.gender = value
+        clearProfileFieldError('gender')
         break
       default:
         break
@@ -596,13 +670,37 @@ export function ProfilePage() {
   }
 
   const saveSports = () => {
-    // Sports selections are local draft only; final save happens on "完成".
+    // Sports selections are local draft only; final save happens on "Done".
+    if (draftProfile.sports.length > 0) {
+      clearProfileFieldError('sports')
+    }
+    if (draftProfile.trying.length > 0) {
+      clearProfileFieldError('trying')
+    }
     setShowSportsSheet(false)
     setShowTryingSheet(false)
   }
 
   const handleSaveProfile = async () => {
     if (isSavingProfile) return
+
+    const currentVibeKey = (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined
+
+    const missingFields: ProfileRequiredField[] = []
+    if (!draftProfile.name?.trim()) missingFields.push('name')
+    if (!vm?.username && !draftUsername.trim()) missingFields.push('username')
+    if (!currentVibeKey) missingFields.push('vibe')
+    if (!draftProfile.gender) missingFields.push('gender')
+    if (!draftProfile.sports?.length) missingFields.push('sports')
+    if (!draftProfile.trying?.length) missingFields.push('trying')
+    if (!draftProfile.blurb?.trim()) missingFields.push('bio')
+
+    if (missingFields.length > 0) {
+      setInvalidProfileFields(missingFields)
+      return
+    }
+
+    setInvalidProfileFields([])
     setIsSavingProfile(true)
     try {
       const favoriteKeys = Array.from(
@@ -615,19 +713,18 @@ export function ProfilePage() {
       const payload: any = {
         display_name: draftProfile.name,
         bio: draftProfile.blurb,
-        vibe_key:
-          (draftProfile as any).vibeKey ||
-          vibeUnionToKey.get(draftProfile.vibe as string) ||
-          undefined,
-        city_key: draftProfile.cityKey || undefined,
+        vibe_key: (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || undefined,
+        city_key: FIRST_MARKET_CITY_KEY,
+        nationality_key: draftProfile.countryKey || null,
         gender: draftProfile.gender || undefined,
         age_range_key: draftProfile.ageRangeKey || undefined,
         favorite_sports: favoriteKeys,
         trying_sports: tryingKeys,
         avatar_url: draftProfile.avatar || undefined,
       }
-      if (draftUsername && !isUuid(draftUsername)) {
-        payload.username = draftUsername
+      const normalizedUsername = draftUsername.trim().toLowerCase()
+      if (normalizedUsername && !isUuid(normalizedUsername)) {
+        payload.username = normalizedUsername
       }
 
       const res = await profileService.saveProfile(payload)
@@ -646,7 +743,7 @@ export function ProfilePage() {
         trying: draftProfile.trying.filter(Boolean),
       }
       setVm({
-        username: draftUsername || vm?.username || '',
+        username: normalizedUsername || vm?.username || '',
         usernameUpdatedCount: newCount,
         card: updated,
         favoriteSportKeys: favoriteKeys,
@@ -663,8 +760,7 @@ export function ProfilePage() {
           gender: savedUser.gender || authUser.gender,
           bio: savedUser.bio || authUser.bio,
           location: savedUser.city_key || authUser.location,
-          onboarding_completed_at:
-            savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
+          onboarding_completed_at: savedUser.onboarding_completed_at || authUser.onboarding_completed_at,
         }
         setAuthData(updatedUser, token)
       }
@@ -679,13 +775,21 @@ export function ProfilePage() {
       const constraint = errorData.details?.constraint || ''
 
       if (status === 409) {
-        if (constraint.includes('username')) {
-          alert('使用者名稱已存在，請選擇其他名稱')
-        } else {
-          alert('儲存失敗：資料衝突，請檢查輸入內容')
-        }
+        setAlertDialog({
+          open: true,
+          title: 'Save failed',
+          description: constraint.includes('username')
+            ? 'Username already taken. Please choose another.'
+            : 'Save failed due to a conflict. Please check your input.',
+          type: 'error',
+        })
       } else {
-        alert('儲存失敗，請稍後再試')
+        setAlertDialog({
+          open: true,
+          title: 'Save failed',
+          description: 'Something went wrong. Please try again.',
+          type: 'error',
+        })
       }
     } finally {
       setIsSavingProfile(false)
@@ -701,7 +805,7 @@ export function ProfilePage() {
     <div className="min-h-screen overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
         <div className="relative flex items-center justify-between bg-white px-4 py-4">
-          <div className="flex items-center">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               aria-label="Add game"
@@ -717,6 +821,17 @@ export function ProfilePage() {
               }}
             >
               <PlusSquare className="h-6 w-6" />
+            </button>
+
+            <button
+              type="button"
+              aria-label="Saved events"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
+              onClick={() => {
+                navigate('/profile/saved-events')
+              }}
+            >
+              <Bookmark className="h-6 w-6" />
             </button>
           </div>
 
@@ -757,15 +872,60 @@ export function ProfilePage() {
           }
           onEdit={handleOpenProfileEdit}
           avatarFallback={userAvatar || ''}
-          actionLabel="編輯運動卡"
+          actionLabel="Edit"
           actionClassName=""
           onHostedClick={() => navigate('/profile/hosted-events')}
           onJoinedClick={() => navigate('/profile/joined-events')}
-          onTeammatesClick={() => navigate('/circle')}
+          onTeammatesClick={() => navigate('/my-mates')}
         />
+        {hasVenueAccess && (
+          <div className="mt-2 px-3">
+            <div
+              onClick={() => navigate('/admin')}
+              className="flex cursor-pointer items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-3.5 transition-all active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <dt className="text-xs font-black uppercase tracking-tight text-slate-900">Venue Portal</dt>
+                  <dd className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                    Manage courts & schedule
+                  </dd>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-slate-300" />
+            </div>
+          </div>
+        )}
+
         <div className="mt-4 space-y-4 px-3">
-          <h3 className="px-1 text-xl font-semibold text-slate-700">近期活動</h3>
-          <ProfileEventsPanel mode="all" showTimeTabs={false} />
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-xl font-semibold text-slate-700">Recent Activity</h3>
+            <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => setActivityViewMode('list')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivityViewMode('calendar')}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+              >
+                <CalendarDays className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <ProfileEventsPanel
+            mode="all"
+            showTimeTabs={false}
+            viewMode={activityViewMode}
+            onExplore={() => navigate('/events')}
+          />
         </div>
       </div>
     </div>
@@ -832,9 +992,12 @@ export function ProfilePage() {
       />
 
       {/* Custom Share Sheet for non-native environments */}
-      <BottomSheet open={showShareSheet} onClose={() => setShowShareSheet(false)}>
+      <BottomSheet
+        open={showShareSheet}
+        onClose={() => setShowShareSheet(false)}
+      >
         <div className="px-4 pb-8 pt-4">
-          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">分享運動卡</h3>
+          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">Share Activity Card</h3>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={handleShareToLine}
@@ -852,7 +1015,7 @@ export function ProfilePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-slate-600 shadow-sm">
                 <Copy className="h-6 w-6" />
               </div>
-              <span className="text-sm font-medium text-slate-700">複製連結</span>
+              <span className="text-sm font-medium text-slate-700">Copy Link</span>
             </button>
           </div>
         </div>
@@ -872,13 +1035,13 @@ export function ProfilePage() {
             if (isSavingProfile) return
             setShowEditSheet(false)
           }}
-          title="我的運動卡"
-          subtitle="保持最新運動狀態"
+          title="Profile"
+          subtitle="Keep your profile up to date"
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 min-h-0 overflow-y-auto px-5 pb-24 pt-4 space-y-4"
           primaryButton={{
-            label: '完成',
+            label: 'Done',
             onClick: handleSaveProfile,
             disabled: isSavingProfile,
             isLoading: isSavingProfile,
@@ -886,81 +1049,172 @@ export function ProfilePage() {
         >
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
-              <img
-                src={draftProfile.avatar || userAvatar || ''}
-                alt="Avatar"
-                className="h-32 w-32 rounded-full object-cover shadow-lg ring-4 ring-white"
-              />
+              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full bg-slate-200 shadow-lg ring-4 ring-white">
+                {draftProfile.avatar || userAvatar ? (
+                  <img
+                    src={draftProfile.avatar || userAvatar || ''}
+                    alt="Avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Smile className="h-14 w-14 text-slate-400" />
+                )}
+                {isRemovingAvatar && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                    <span className="h-7 w-7 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  </div>
+                )}
+              </div>
+              <div className="absolute -bottom-3 left-1/2 flex -translate-x-1/2 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarCropper(true)}
+                  disabled={isRemovingAvatar}
+                  className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-400 shadow-md hover:text-slate-500 disabled:opacity-50"
+                >
+                  Edit
+                </button>
+                {(draftProfile.avatar || userAvatar) && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={isRemovingAvatar}
+                    className="flex items-center justify-center rounded-full bg-white p-2 text-slate-300 shadow-md hover:text-slate-500 disabled:opacity-50"
+                    aria-label="Remove avatar"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-slate-700">Basic Info</p>
+            <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <button
                 type="button"
-                onClick={() => setShowAvatarCropper(true)}
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-md"
+                onClick={() => openFieldSheet('name', draftProfile.name)}
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('name') && 'bg-red-50'
+                )}
               >
-                編輯
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">
+                    Name
+                    {hasProfileFieldError('name') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
+                  <p className={`text-base font-semibold ${draftProfile.name ? 'text-slate-900' : 'text-slate-400'}`}>{draftProfile.name || 'Your name'}</p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+
+              {vm?.username ? (
+                <div
+                  className={clsx(
+                    'flex w-full items-center justify-between px-4 py-4 text-left',
+                    hasProfileFieldError('username') ? 'bg-red-50' : 'bg-slate-100'
+                  )}
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-700">
+                      Username
+                      {hasProfileFieldError('username') && <span className="ml-1 text-red-500">*</span>}
+                    </p>
+                    <p className={`text-base font-semibold ${draftUsername ? 'text-slate-900' : 'text-slate-400'}`}>{draftUsername || 'Your username'}</p>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openFieldSheet('username', draftUsername ?? '')}
+                  className={clsx(
+                    'flex w-full items-center justify-between px-4 py-4 text-left',
+                    hasProfileFieldError('username') && 'bg-red-50'
+                  )}
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-slate-700">
+                      Username
+                      {hasProfileFieldError('username') && <span className="ml-1 text-red-500">*</span>}
+                    </p>
+                    <p className={`text-base font-semibold ${draftUsername ? 'text-slate-900' : 'text-slate-400'}`}>{draftUsername || 'Your username'}</p>
+                  </div>
+                  <span className="text-slate-400">›</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() =>
+                  openFieldSheet(
+                    'nationality',
+                    labelForCountry(draftProfile.countryKey) || '',
+                    draftProfile.countryKey || ''
+                  )
+                }
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">Nationality (Optional)</p>
+                  <p className={`text-base font-semibold ${draftProfile.countryKey ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {labelForCountry(draftProfile.countryKey) || 'Your home country'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  openFieldSheet(
+                    'location',
+                    labelForCity(FIRST_MARKET_CITY_KEY) || FIRST_MARKET_CITY_LABEL,
+                    FIRST_MARKET_CITY_KEY
+                  )
+                }
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">Current City</p>
+                  <p className="text-base font-semibold text-slate-900">{livingLocationText}</p>
+                </div>
+                <span className="text-slate-400">›</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openFieldSheet('gender', draftProfile.gender || '', draftProfile.gender || '')}
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('gender') && 'bg-red-50'
+                )}
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-slate-700">
+                    Gender
+                    {hasProfileFieldError('gender') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
+                  <p className={`text-base font-semibold ${draftProfile.gender ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.gender === 'male'
+                      ? 'Male'
+                      : draftProfile.gender === 'female'
+                        ? 'Female'
+                        : draftProfile.gender === 'non_binary'
+                          ? 'Non-binary'
+                          : draftProfile.gender === 'prefer_not_to_say'
+                            ? 'Prefer not to say'
+                            : 'Required'}
+                  </p>
+                </div>
+                <span className="text-slate-400">›</span>
               </button>
             </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">基本資料</p>
-            <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              {[
-                { key: 'name', label: '名稱', value: draftProfile.name },
-                {
-                  key: 'username',
-                  label: '使用者名稱',
-                  value: draftUsername ?? '',
-                },
-                {
-                  key: 'location',
-                  label: '現居地點',
-                  value: labelForCity(draftProfile.cityKey) || draftProfile.location,
-                  valueKey: draftProfile.cityKey || '',
-                },
-                {
-                  key: 'gender',
-                  label: '性別',
-                  value:
-                    draftProfile.gender === 'male'
-                      ? '男生'
-                      : draftProfile.gender === 'female'
-                        ? '女生'
-                        : '未設定',
-                  valueKey: draftProfile.gender || '',
-                },
-              ].map((row) => {
-                const isUsernameField = row.key === 'username'
-                const isReadOnly = isUsernameField && !!vm?.username
-                const Component = isReadOnly ? 'div' : 'button'
-                return (
-                  <Component
-                    key={row.key}
-                    type={isReadOnly ? undefined : 'button'}
-                    onClick={
-                      isReadOnly
-                        ? undefined
-                        : () => openFieldSheet(row.key as any, row.value, (row as any).valueKey)
-                    }
-                    className={clsx(
-                      'flex w-full items-center justify-between px-4 py-4 text-left',
-                      isReadOnly ? 'bg-slate-100' : ''
-                    )}
-                  >
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-slate-700">{row.label}</p>
-                      <p className="text-base font-semibold text-slate-900">
-                        {row.value || '未設定'}
-                      </p>
-                    </div>
-                    {!isReadOnly && <span className="text-slate-400">›</span>}
-                  </Component>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">運動</p>
+            <p className="text-sm font-semibold text-slate-700">Sports</p>
             <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <button
                 type="button"
@@ -968,21 +1222,25 @@ export function ProfilePage() {
                   openFieldSheet(
                     'vibe',
                     draftProfile.vibe || '',
-                    (draftProfile as any).vibeKey ||
-                      vibeUnionToKey.get(draftProfile.vibe as string) ||
-                      ''
+                    (draftProfile as any).vibeKey || vibeUnionToKey(draftProfile.vibe as string) || ''
                   )
                 }
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('vibe') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">運動氛圍</p>
-                  <p className="text-base font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-slate-700">
+                    Workout Vibe
+                    {hasProfileFieldError('vibe') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
+                  <p className={`text-base font-semibold ${(draftProfile as any).vibeKey || draftProfile.vibe ? 'text-slate-900' : 'text-slate-400'}`}>
                     {labelForVibe(
                       (draftProfile as any).vibeKey ||
-                        vibeUnionToKey.get(draftProfile.vibe as string) ||
+                        vibeUnionToKey(draftProfile.vibe as string) ||
                         (draftProfile.vibe as string)
-                    ) || '未設定'}
+                    ) || 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -990,12 +1248,18 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowSportsSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('sports') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">我的最愛</p>
-                  <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.sports.length ? draftProfile.sports.join('、') : '未設定'}
+                  <p className="text-sm font-semibold text-slate-700">
+                    My Favourites
+                    {hasProfileFieldError('sports') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
+                  <p className={`text-base font-semibold ${draftProfile.sports.length ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.sports.length ? draftProfile.sports.join(', ') : 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1003,12 +1267,18 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setShowTryingSheet(true)}
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('trying') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">想嘗試</p>
-                  <p className="text-base font-semibold text-slate-900">
-                    {draftProfile.trying.length ? draftProfile.trying.join('、') : '未設定'}
+                  <p className="text-sm font-semibold text-slate-700">
+                    Want to Try
+                    {hasProfileFieldError('trying') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
+                  <p className={`text-base font-semibold ${draftProfile.trying.length ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.trying.length ? draftProfile.trying.join(', ') : 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1017,17 +1287,22 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">關於我</p>
+            <p className="text-sm font-semibold text-slate-700">About Me</p>
             <div className="divide-y divide-slate-200 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <button
                 type="button"
                 onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
-                className="flex w-full items-center justify-between px-4 py-4 text-left"
+                className={clsx(
+                  'flex w-full items-center justify-between px-4 py-4 text-left',
+                  hasProfileFieldError('bio') && 'bg-red-50'
+                )}
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-slate-700">自我介紹</p>
-                  <p className="line-clamp-1 text-base font-semibold text-slate-900">
-                    {draftProfile.blurb || '未設定'}
+                  <p className="text-sm font-semibold text-slate-700">
+                    Bio{hasProfileFieldError('bio') && <span className="ml-1 text-red-500">*</span>}
+                  </p>
+                  <p className={`line-clamp-1 text-base font-semibold ${draftProfile.blurb ? 'text-slate-900' : 'text-slate-400'}`}>
+                    {draftProfile.blurb || 'Required'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
@@ -1044,20 +1319,22 @@ export function ProfilePage() {
       >
         {(() => {
           const titleMap: Record<string, string> = {
-            name: '名稱',
-            username: '使用者名稱',
-            location: '現居城市',
-            vibe: '運動氛圍',
-            bio: '自我介紹',
-            gender: '性別',
+            name: 'Name',
+            username: 'Username',
+            location: 'Current City',
+            nationality: 'Nationality',
+            vibe: 'Workout Vibe',
+            bio: 'Bio',
+            gender: 'Gender',
           }
           const subtitleMap: Record<string, string> = {
-            name: '請輸入卡片上要顯示的名稱。',
-            username: '你的帳號，夥伴可以用這個找到你。',
-            location: '填寫你目前所在的城市。',
-            vibe: '選擇最貼近你現況的運動狀態，並保持你的節奏。',
-            bio: '和大家分享你的運動的動態與目標吧！',
-            gender: '因應性別專場，請選擇你的生理性別。',
+            name: 'Enter your full name.',
+            username: 'A unique handle for mates to find you.',
+            location: 'Select your home city.',
+            nationality: 'Show where you’re from on your profile and connect with mates globally!',
+            vibe: 'Choose the activity vibe that fits you best.',
+            bio: 'Share your activity updates and goals.',
+            gender: 'Help us find the right sessions for you.',
           }
           const fieldKey = activeField ?? ''
           return (
@@ -1069,7 +1346,7 @@ export function ProfilePage() {
               className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
               contentClassName="flex-1 overflow-y-auto px-5 py-4 space-y-3"
               primaryButton={{
-                label: '儲存',
+                label: 'Save',
                 onClick: handleSaveField,
                 disabled: isSavingProfile,
               }}
@@ -1080,15 +1357,15 @@ export function ProfilePage() {
                   {vibesCatalog.map((v) => {
                     const active =
                       v.key === fieldValue ||
-                      vibeUnionToKey.get(fieldValue) === v.key ||
-                      vibeUnionToKey.get(fieldValue)?.toLowerCase?.() === v.key.toLowerCase()
+                      vibeUnionToKey(fieldValue) === v.key ||
+                      vibeUnionToKey(fieldValue).toLowerCase() === v.key.toLowerCase()
 
                     // Try to map dictionary key to Vibe enum key to get colors
                     // Dictionary keys might be upper case like 'GROWTH', tokens are 'Growth'
                     // We need a reliable mapping or try to match case-insensitively
-                    const tokenKey = Object.keys(vibeTokens).find(
-                      (k) => k.toUpperCase() === v.key.toUpperCase()
-                    ) as Vibe | undefined
+                    const tokenKey = Object.keys(vibeTokens).find((k) => k.toUpperCase() === v.key.toUpperCase()) as
+                      | Vibe
+                      | undefined
                     const tokens = tokenKey ? vibeTokens[tokenKey] : undefined
 
                     return (
@@ -1123,19 +1400,76 @@ export function ProfilePage() {
                     )
                   })}
                 </div>
+              ) : activeField === 'nationality' ? (
+                <div className="relative">
+                  <select
+                    value={fieldValue}
+                    onChange={(e) => setFieldValue(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-16 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="">Please select a nationality</option>
+                    {availableCountries.map((c) => (
+                      <option
+                        key={c.key}
+                        value={c.key}
+                      >
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                  </div>
+                  {fieldValue && (
+                    <button
+                      type="button"
+                      onClick={() => setFieldValue('')}
+                      className="absolute inset-y-0 right-8 flex items-center px-1 text-slate-400 hover:text-slate-600"
+                      aria-label="Clear"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               ) : activeField === 'location' ? (
-                <select
-                  value={fieldValue}
-                  onChange={(e) => setFieldValue(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                >
-                  <option value="">請選擇城市</option>
-                  {citiesCatalog.map((c) => (
-                    <option key={c.key} value={c.key}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-slate-700">Country</label>
+                    <div className="relative">
+                      <select
+                        value={locationSheetCountry}
+                        onChange={(e) => {
+                          const nextCountry = e.target.value
+                          setLocationSheetCountry(nextCountry)
+                          if (fieldValue && nextCountry !== FIRST_MARKET_COUNTRY_KEY) {
+                            setFieldValue('')
+                          }
+                        }}
+                        className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value={FIRST_MARKET_COUNTRY_KEY}>{FIRST_MARKET_COUNTRY_LABEL}</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-semibold text-slate-700">City</label>
+                    <div className="relative">
+                      <select
+                        value={fieldValue}
+                        onChange={(e) => setFieldValue(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-slate-200 px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value={FIRST_MARKET_CITY_KEY}>{FIRST_MARKET_CITY_LABEL}</option>
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ) : activeField === 'bio' ? (
                 <div className="space-y-2">
                   <textarea
@@ -1144,17 +1478,19 @@ export function ProfilePage() {
                     maxLength={120}
                     rows={10}
                     className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none"
-                    placeholder="和大家分享你想說的一句話。"
+                    placeholder="Share a short line about yourself."
                   />
                   <div className="text-right text-sm text-slate-500">
-                    還可以輸入 {120 - (fieldValue?.length || 0)} 個字
+                    {120 - (fieldValue?.length || 0)} characters remaining
                   </div>
                 </div>
               ) : activeField === 'gender' ? (
                 <div className="flex flex-col gap-3">
                   {[
-                    { key: 'male', label: '男生' },
-                    { key: 'female', label: '女生' },
+                    { key: 'male', label: 'Male' },
+                    { key: 'female', label: 'Female' },
+                    { key: 'non_binary', label: 'Non-binary' },
+                    { key: 'prefer_not_to_say', label: 'Prefer not to say' },
                   ].map((g) => (
                     <button
                       key={g.key}
@@ -1182,13 +1518,23 @@ export function ProfilePage() {
                     }}
                     className={clsx(
                       'w-full rounded-xl border px-4 py-3 text-base text-slate-900 shadow-sm focus:outline-none',
-                      fieldError
-                        ? 'border-red-500 focus:border-red-500'
-                        : 'border-slate-200 focus:border-blue-500'
+                      fieldError ? 'border-red-500 focus:border-red-500' : 'border-slate-200 focus:border-blue-500'
                     )}
-                    placeholder="請輸入"
+                    placeholder="Type here"
                   />
                   {fieldError && <p className="mt-2 text-sm text-red-500">{fieldError}</p>}
+                  {activeField === 'username' && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Usernames are saved in lowercase.
+                      {fieldValue.trim() ? (
+                        <>
+                          {' '}
+                          Will save as{' '}
+                          <span className="font-semibold text-slate-700">{fieldValue.trim().toLowerCase()}</span>
+                        </>
+                      ) : null}
+                    </p>
+                  )}
                 </div>
               )}
             </SheetLayout>
@@ -1203,22 +1549,20 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => setShowSportsSheet(false)}
-          title="選擇最愛運動"
-          subtitle="那些你能自在接受挑戰，且熱在其中的運動。"
+          title="Favourite Sports"
+          subtitle="Sports you enjoy and feel confident playing."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
           primaryButton={{
-            label: '儲存',
+            label: 'Save',
             onClick: saveSports,
             disabled: isSavingProfile,
           }}
           showHandle={false}
         >
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">
-              已選 {draftProfile.sports.length}/3
-            </p>
+            <p className="text-sm font-semibold text-slate-700">Selected {draftProfile.sports.length}/3</p>
             <div className="flex flex-wrap gap-2">
               {draftProfile.sports.map((s) => (
                 <span
@@ -1228,7 +1572,7 @@ export function ProfilePage() {
                   {s}
                   <button
                     type="button"
-                    aria-label="移除"
+                    aria-label="Remove"
                     className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
@@ -1247,7 +1591,7 @@ export function ProfilePage() {
           <input
             value={sportsSearch}
             onChange={(e) => setSportsSearch(e.target.value)}
-            placeholder="搜尋運動"
+            placeholder="Search sports"
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
           />
 
@@ -1300,22 +1644,20 @@ export function ProfilePage() {
       >
         <SheetLayout
           onClose={() => setShowTryingSheet(false)}
-          title="想嘗試的運動"
-          subtitle="挑你感興趣的新挑戰（最多選 2 項）"
+          title="Sports to Try"
+          subtitle="Sports you'd like to try (up to 2)."
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-y-auto px-4 py-3 space-y-3"
           primaryButton={{
-            label: '儲存',
+            label: 'Save',
             onClick: saveSports,
             disabled: isSavingProfile,
           }}
           showHandle={false}
         >
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-slate-700">
-              已選 {draftProfile.trying.length}/2
-            </p>
+            <p className="text-sm font-semibold text-slate-700">Selected {draftProfile.trying.length}/2</p>
             <div className="flex flex-wrap gap-2">
               {draftProfile.trying.map((s) => (
                 <span
@@ -1325,7 +1667,7 @@ export function ProfilePage() {
                   {s}
                   <button
                     type="button"
-                    aria-label="移除"
+                    aria-label="Remove"
                     className="text-slate-400"
                     onClick={() =>
                       setDraftProfile((prev) => ({
@@ -1344,7 +1686,7 @@ export function ProfilePage() {
           <input
             value={tryingSearch}
             onChange={(e) => setTryingSearch(e.target.value)}
-            placeholder="搜尋運動"
+            placeholder="Search sports"
             className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
           />
 
@@ -1399,8 +1741,8 @@ export function ProfilePage() {
         <div className="space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-500">設定你的每週節奏</p>
-              <p className="text-xl font-bold text-slate-900">我們會依此幫你推薦夥伴與活動</p>
+              <p className="text-sm font-semibold text-slate-500">Set your weekly rhythm</p>
+              <p className="text-xl font-bold text-slate-900">We'll recommend mates and events based on this.</p>
             </div>
             <button
               type="button"
@@ -1413,7 +1755,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700">每週目標次數</label>
+            <label className="text-sm font-semibold text-slate-700">Weekly target Events</label>
             <input
               type="number"
               min={1}
@@ -1430,9 +1772,9 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm font-semibold text-slate-700">通常想在什麼時段運動？</p>
+            <p className="text-sm font-semibold text-slate-700">What time do you usually prefer to work out?</p>
             <div className="flex flex-wrap gap-2">
-              {['早上', '下午', '晚上'].map((slot) => {
+              {['Morning', 'Afternoon', 'Evening'].map((slot) => {
                 const active = draftPreferredTime === slot
                 return (
                   <button
@@ -1450,9 +1792,7 @@ export function ProfilePage() {
                     }}
                     className={clsx(
                       'rounded-full border px-4 py-2 text-sm font-semibold',
-                      active
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-slate-700'
+                      active ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-700'
                     )}
                   >
                     {slot}
@@ -1463,57 +1803,56 @@ export function ProfilePage() {
 
             <details className="space-y-2 rounded-2xl border border-slate-200 bg-white px-4 py-3">
               <summary className="cursor-pointer text-sm font-semibold text-slate-700">
-                按天微調（可選）
+                Fine-tune by day (optional)
               </summary>
               <div className="space-y-3 pt-2">
-                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
-                  (day) => (
-                    <div key={day} className="space-y-2">
-                      <p className="text-base font-semibold text-slate-800">
-                        {dayLabels[day] ?? day}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {['早上', '下午', '晚上'].map((slot) => {
-                          const active = draftDaySlots[day]?.includes(slot)
-                          return (
-                            <button
-                              key={slot}
-                              type="button"
-                              onClick={() =>
-                                setDraftDaySlots((prev) => {
-                                  const next = {
-                                    ...prev,
-                                    [day]: [...(prev[day] ?? [])],
-                                  }
-                                  if (next[day].includes(slot)) {
-                                    next[day] = next[day].filter((s) => s !== slot)
-                                  } else {
-                                    next[day].push(slot)
-                                  }
-                                  return next
-                                })
-                              }
-                              className={clsx(
-                                'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
-                                active
-                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                                  : 'border-slate-200 bg-white text-slate-700'
-                              )}
-                            >
-                              {slot}
-                            </button>
-                          )
-                        })}
-                      </div>
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                  <div
+                    key={day}
+                    className="space-y-2"
+                  >
+                    <p className="text-base font-semibold text-slate-800">{dayLabels[day] ?? day}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['Morning', 'Afternoon', 'Evening'].map((slot) => {
+                        const active = draftDaySlots[day]?.includes(slot)
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            onClick={() =>
+                              setDraftDaySlots((prev) => {
+                                const next = {
+                                  ...prev,
+                                  [day]: [...(prev[day] ?? [])],
+                                }
+                                if (next[day].includes(slot)) {
+                                  next[day] = next[day].filter((s) => s !== slot)
+                                } else {
+                                  next[day].push(slot)
+                                }
+                                return next
+                              })
+                            }
+                            className={clsx(
+                              'min-w-[96px] rounded-full border px-4 py-2 text-sm font-semibold',
+                              active
+                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                : 'border-slate-200 bg-white text-slate-700'
+                            )}
+                          >
+                            {slot}
+                          </button>
+                        )
+                      })}
                     </div>
-                  )
-                )}
+                  </div>
+                ))}
               </div>
             </details>
           </div>
 
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
-            我們會幫你找到符合節奏的活動與夥伴。
+            We'll help you find events and mates that match your rhythm.
           </div>
 
           <div className="flex gap-3">
@@ -1522,7 +1861,7 @@ export function ProfilePage() {
               onClick={() => setShowGoalSheet(false)}
               className="w-1/2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700"
             >
-              取消
+              Cancel
             </button>
             <button
               type="button"
@@ -1530,7 +1869,7 @@ export function ProfilePage() {
               disabled={isSavingGoal}
               className="w-1/2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:bg-blue-300"
             >
-              {isSavingGoal ? '儲存中...' : '儲存'}
+              {isSavingGoal ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
@@ -1540,6 +1879,10 @@ export function ProfilePage() {
       <ProfileCompletionSheet
         open={showCompletionSheet}
         onClose={() => setShowCompletionSheet(false)}
+        onExplore={() => {
+          setShowCompletionSheet(false)
+          navigate('/events')
+        }}
       />
     </div>
   )

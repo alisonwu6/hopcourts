@@ -4,9 +4,10 @@ import { BottomSheet } from '@/components/BottomSheet'
 type Props = {
   open: boolean
   onClose: () => void
+  onExplore: () => void
 }
 
-export function ProfileCompletionSheet({ open, onClose }: Props) {
+export function ProfileCompletionSheet({ open, onClose, onExplore }: Props) {
   return (
     <BottomSheet
       open={open}
@@ -20,16 +21,21 @@ export function ProfileCompletionSheet({ open, onClose }: Props) {
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
           <PartyPopper className="h-7 w-7" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900">運動卡建立完成！</h3>
-        <p className="mt-2 text-sm text-slate-500">
-          準備開始探索活動與結識運動夥伴
-        </p>
+        <h3 className="text-xl font-bold text-slate-900">Your profile is ready</h3>
+        <p className="mt-2 text-sm text-slate-500">You're all set to explore activities and meet new sports mates.</p>
+        <button
+          type="button"
+          onClick={onExplore}
+          className="mt-8 w-full rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98]"
+        >
+          Explore Events
+        </button>
         <button
           type="button"
           onClick={onClose}
-          className="mt-8 w-full rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-lg transition-all active:scale-[0.98]"
+          className="mt-3 w-full rounded-2xl py-3 text-sm font-semibold text-slate-500"
         >
-          開始探索
+          View My Profile
         </button>
       </div>
     </BottomSheet>

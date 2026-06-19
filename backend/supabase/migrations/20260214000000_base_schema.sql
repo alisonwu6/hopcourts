@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS sports (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   username TEXT UNIQUE,
   username_updated_at TIMESTAMPTZ,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS follows (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS venues (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   name_display TEXT, -- Often used in models
   logo_url TEXT,     -- Using logo_url instead of cover_image in some models?
@@ -150,7 +150,7 @@ CREATE TABLE IF NOT EXISTS venues (
   
   is_official BOOLEAN DEFAULT false,
   owner_user_id UUID REFERENCES users(id),
-  status TEXT DEFAULT 'active' CHECK (status IN ('active', 'pending', 'suspended')),
+  status TEXT DEFAULT 'unclaimed' CHECK (status IN ('unclaimed', 'claimed')),
 
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS venue_profiles (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
   host_user_id UUID REFERENCES users(id),
   sport_key TEXT REFERENCES sports(key),
@@ -240,7 +240,7 @@ CREATE INDEX IF NOT EXISTS idx_session_participants_session_status
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS check_ins (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id),
   venue_id UUID REFERENCES venues(id),
@@ -254,7 +254,7 @@ CREATE TABLE IF NOT EXISTS check_ins (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS feedback (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id),
   type TEXT NOT NULL,
   message TEXT NOT NULL,
@@ -328,24 +328,27 @@ ON CONFLICT (key) DO NOTHING;
 
 -- 5. Sports
 INSERT INTO sports (key, label_zh, label_en, category, icon, sort, is_active) VALUES
+  -- Social & Competitive
   ('BASKETBALL', '籃球', 'Basketball', 'social_competitive', '🏀', 10, true),
   ('BADMINTON', '羽球', 'Badminton', 'social_competitive', '🏸', 20, true),
   ('TABLE_TENNIS', '桌球', 'Table Tennis', 'social_competitive', '🏓', 30, true),
   ('VOLLEYBALL', '排球', 'Volleyball', 'social_competitive', '🏐', 40, true),
   ('TENNIS', '網球', 'Tennis', 'social_competitive', '🎾', 50, true),
-  ('PICKLEBALL', '匹克球', 'Pickleball', 'social_competitive', '🥒', 60, true),
+  ('PICKLEBALL', '匹克球', 'Pickleball', 'social_competitive', '🥒 ', 60, true),
+  ('FRISBEE', '飛盤', 'Ultimate Frisbee', 'social_competitive', '🥏', 70, true),
 
+  -- Adventure & Endurance
   ('RUNNING', '慢跑', 'Running', 'adventure_endurance', '🏃', 100, true),
   ('CYCLING', '自行車', 'Cycling', 'adventure_endurance', '🚴', 110, true),
-  ('HIKING', '登山健行', 'Hiking', 'adventure_endurance', '🥾', 120, true),
+  ('HIKING', '登山健行', 'Hiking', 'adventure_endurance', '⛰️', 120, true),
+  ('BOULDERING', '抱石', 'Bouldering', 'adventure_endurance', '🧗', 130, true),
+  ('SKATEBOARDING', '滑板', 'Skateboarding', 'adventure_endurance', '🛹', 140, true),
 
-  ('BOULDERING', '抱石', 'Bouldering', 'adventure_endurance', '🧗', 150, true),
-
-  ('GYM', '重訓', 'Strength Training', 'training_wellness', '🏋️', 200, true),
-  ('YOGA', '瑜伽', 'Yoga', 'training_wellness', '🧘', 210, true),
-  ('PILATES', '皮拉提斯', 'Pilates', 'training_wellness', '🤸', 220, true),
-
-  ('SKATEBOARDING', '滑板', 'Skateboarding', 'adventure_endurance', '🛹', 250, true)
+  -- Training & Wellness
+  ('YOGA', '瑜伽', 'Yoga', 'training_wellness', '🧘', 200, true),
+  ('SWIMMING', '游泳', 'Swimming', 'training_wellness', '🏊', 210, true),
+  ('GYM', '重訓', 'Strength Training', 'training_wellness', '🏋️', 220, true),
+  ('PILATES', '皮拉提斯', 'Pilates', 'training_wellness', '🤸', 230, true)
 ON CONFLICT (key) DO UPDATE SET
   label_zh = EXCLUDED.label_zh,
   label_en = EXCLUDED.label_en,

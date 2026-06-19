@@ -1,6 +1,7 @@
 const venuesModel = require('../../../models/venues.model')
 const usersModel = require('../../../models/users.model')
 const { query } = require('../../lib/db')
+const { geocodeAddress } = require('../../utils/geocoding')
 
 // Simple Levenshtein distance for string similarity
 function levenshtein(a, b) {
@@ -42,20 +43,21 @@ function isNameSimilar(name1, name2) {
 
 async function resolveVenue({ lat, lng, name, address, source }) {
   // 1. Search for candidates within 100m
-  //    Distance is a NECESSARY but INSUFFICIENT condition.
   const candidates = await venuesModel.findNearbyVenues({ lat, lng, radiusMeters: 100 })
-  
-  // 2. Evaluate Candidates with STRICT RULES to avoid incorrect merges
+
+  // 2a. Single candidate within radius → high-confidence coordinate match, use it
+  if (candidates.length === 1) {
+    return candidates[0].id
+  }
+
+  // 2b. Multiple candidates → use name similarity to disambiguate
   for (const venue of candidates) {
     if (isNameSimilar(venue.name_display, name)) {
-      // High confidence match
-      // TODO: Check aliases here when implemented
       return venue.id
     }
   }
-  
-  // 3. No match found -> Create New Venue
-  //    Default status is 'unclaimed'. 'source' is tracked in the Event/Session, not the Venue itself.
+
+  // 3. No candidates at all → create new venue
   const newVenue = await venuesModel.createVenue({
     name,
     lat,
@@ -63,7 +65,7 @@ async function resolveVenue({ lat, lng, name, address, source }) {
     address,
     status: 'unclaimed'
   })
-  
+
   return newVenue.id
 }
 
@@ -71,8 +73,8 @@ async function listVenues(params) {
   return venuesModel.listVenues(params)
 }
 
-async function getVenue(id) {
-  return venuesModel.getVenueById(id)
+async function getVenue(id, userId = null) {
+  return venuesModel.getVenueById(id, userId)
 }
 
 async function requestVenueClaim(venueId, userId, claimData) {
@@ -80,15 +82,45 @@ async function requestVenueClaim(venueId, userId, claimData) {
   if (!venue) throw new Error('Venue not found')
   if (venue.status === 'claimed') throw new Error('Venue already claimed')
 
+  const normalizedClaim = {
+    contact_name: String(claimData?.contact_name || '').trim(),
+    contact_person: String(claimData?.contact_person || '').trim(),
+    contact_title: String(claimData?.contact_title || '').trim(),
+    contact_phone: String(claimData?.contact_phone || '').trim(),
+    contact_email: String(claimData?.contact_email || '').trim(),
+    note: claimData?.note ? String(claimData.note).trim() : undefined,
+  }
+
+  if (userId) {
+    const user = await usersModel.getUserById(userId)
+    const fallbackName = String(user?.display_name || '').trim()
+    const fallbackEmail = String(user?.email || '').trim()
+
+    if (!normalizedClaim.contact_name && fallbackName) {
+      normalizedClaim.contact_name = fallbackName
+    }
+    if (!normalizedClaim.contact_email && fallbackEmail) {
+      normalizedClaim.contact_email = fallbackEmail
+    }
+  }
+
+  if (!normalizedClaim.contact_person && normalizedClaim.contact_name) {
+    normalizedClaim.contact_person = normalizedClaim.contact_name
+  }
+
+  if (!normalizedClaim.contact_name || !normalizedClaim.contact_person || !normalizedClaim.contact_title || !normalizedClaim.contact_phone || !normalizedClaim.contact_email) {
+    throw new Error('Claim form is incomplete')
+  }
+
   // Check if there is already a pending claim for this venue with this email
-  const existingClaim = await venuesModel.getPendingClaimByEmail(venueId, claimData.contact_email)
+  const existingClaim = await venuesModel.getPendingClaimByEmail(venueId, normalizedClaim.contact_email)
   if (existingClaim) throw new Error('Claim already pending')
 
   // Check if there's already an approved claim for this venue
   const approvedClaim = await venuesModel.getApprovedClaim(venueId)
   if (approvedClaim) throw new Error('Venue already claimed')
 
-  return venuesModel.createVenueClaim(venueId, userId, claimData)
+  return venuesModel.createVenueClaim(venueId, userId, normalizedClaim)
 }
 
 // Check if user is the official owner of a venue
@@ -110,6 +142,7 @@ async function reviewVenueClaim(claimId, status) {
 
   if (status === 'approved') {
     await venuesModel.updateVenueStatus(claim.venue_id, 'claimed')
+    await venuesModel.updateVenueType(claim.venue_id, 'official')
   }
 
   return updatedClaim
@@ -119,6 +152,24 @@ async function reviewVenueClaim(claimId, status) {
 
 async function getAdminVenues(filters) {
   return venuesModel.getAdminVenues(filters)
+}
+
+async function getAdminClaims(filters) {
+  return venuesModel.getAdminClaims(filters)
+}
+
+async function rejectVenueClaim(claimId, adminId, reason) {
+  const result = await reviewVenueClaim(claimId, 'rejected')
+
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'reject_claim',
+    targetId: claimId,
+    targetType: 'venue_claim',
+    note: reason,
+  })
+
+  return result
 }
 
 async function revokeVenueClaim(claimId, adminId, reason) {
@@ -137,7 +188,20 @@ async function revokeVenueClaim(claimId, adminId, reason) {
 }
 
 async function patchVenueDisplay(venueId, adminId, data) {
-  const result = await venuesModel.patchVenueDisplay(venueId, data)
+  const patchData = { ...data }
+
+  const nextAddress = typeof data.address_display === 'string' ? data.address_display.trim() : ''
+  if (nextAddress) {
+    const geocoded = await geocodeAddress(nextAddress)
+    if (!geocoded) {
+      throw new Error('Unable to geocode venue address. Check MAPBOX_TOKEN and address format.')
+    }
+
+    patchData.lat = geocoded.lat
+    patchData.lng = geocoded.lng
+  }
+
+  const result = await venuesModel.patchVenueDisplay(venueId, patchData)
   
   // Audit log is mandatory
   await venuesModel.writeAuditLog({
@@ -145,13 +209,54 @@ async function patchVenueDisplay(venueId, adminId, data) {
     action: 'patch_venue',
     targetId: venueId,
     targetType: 'venue',
-    note: `Updated name/address: ${data.name_display || ''}`
+    note: `Updated display/operator fields: ${[
+      data.name_display ? 'name' : null,
+      data.address_display ? 'address' : null,
+      data.operator_name !== undefined ? 'operator_name' : null,
+      data.operator_email !== undefined ? 'operator_email' : null,
+      data.operator_role !== undefined ? 'operator_role' : null,
+      data.operator_phone !== undefined ? 'operator_phone' : null,
+      patchData.lat !== undefined && patchData.lng !== undefined ? 'lat_lng' : null,
+    ].filter(Boolean).join(', ')}`
   })
   
   return result
 }
 
+async function suspendVenue(venueId, adminId, reason) {
+  const result = await venuesModel.suspendVenue(venueId)
+
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'suspend_venue',
+    targetId: venueId,
+    targetType: 'venue',
+    note: reason,
+  })
+
+  return result
+}
+
+async function unsuspendVenue(venueId, adminId) {
+  const result = await venuesModel.unsuspendVenue(venueId)
+
+  await venuesModel.writeAuditLog({
+    adminId,
+    action: 'unsuspend_venue',
+    targetId: venueId,
+    targetType: 'venue',
+    note: 'Venue access restored by admin',
+  })
+
+  return result
+}
+
 async function approveVenueClaim(claimId, adminId, officialEmail) {
+  const claim = await venuesModel.getVenueClaimById(claimId)
+  if (!claim) {
+    throw new Error('Claim not found')
+  }
+
   // 1. Validate Official Email User Exists (Invite Flow Mock)
   // Use shared model for consistency
   const user = await usersModel.findUserByEmail(officialEmail)
@@ -169,8 +274,28 @@ async function approveVenueClaim(claimId, adminId, officialEmail) {
   // 3. Approve Claim (Standard Flow)
   // This updates claim status and venue status
   const result = await reviewVenueClaim(claimId, 'approved')
+
+  // 3.1 Re-geocode official venue address on approval to avoid stale coordinates
+  // from older player-originated venue records.
+  const venue = await venuesModel.getVenueById(claim.venue_id)
+  const venueAddress = String(venue?.address || '').trim()
+  if (venueAddress) {
+    const geocoded = await geocodeAddress(venueAddress)
+    if (!geocoded) {
+      throw new Error('Unable to geocode venue address during claim approval. Check MAPBOX_TOKEN and address format.')
+    }
+
+    await venuesModel.patchVenueDisplay(claim.venue_id, {
+      lat: geocoded.lat,
+      lng: geocoded.lng,
+    })
+  }
   
-  // 4. Audit Log
+  // 4. Grant 'venue' role to the official account owner
+  // They keep 'player' and gain 'venue': ['player', 'venue']
+  await usersModel.addRoleToUser(officialUserId, 'venue')
+
+  // 5. Audit Log
   await venuesModel.writeAuditLog({
     adminId,
     action: 'approve_claim_invite',
@@ -189,9 +314,12 @@ module.exports = {
   requestVenueClaim,
   reviewVenueClaim,
   isVenueOwner,
-  // C0 Governance
   getAdminVenues,
+  getAdminClaims,
+  rejectVenueClaim,
   revokeVenueClaim,
   patchVenueDisplay,
+  suspendVenue,
+  unsuspendVenue,
   approveVenueClaim
 }

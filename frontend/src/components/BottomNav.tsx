@@ -1,5 +1,5 @@
 import { ComponentType } from 'react'
-import { Compass, DoorClosed, PersonStanding, House, UsersRound, Building2 } from 'lucide-react'
+import { Compass, PersonStanding, House, Building2 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { useAuthStore } from '@/hooks'
@@ -24,23 +24,23 @@ export function BottomNav() {
 
   const navItems: NavItem[] = [
     {
-      label: '首頁',
+      label: 'Home',
       icon: House,
       path: '/',
       matchPaths: ['/'],
     },
     {
-      label: '活動',
+      label: 'Events',
       icon: Compass,
       path: '/events',
       matchPaths: ['/events', '/event', '/create-event'],
     },
-    // {
-    //   label: '場館',
-    //   icon: Building2,
-    //   path: '/venues',
-    //   matchPaths: ['/venues', '/venue'],
-    // },
+    {
+      label: 'Venues',
+      icon: Building2,
+      path: '/venues',
+      matchPaths: ['/venues', '/venue'],
+    },
     // {
     //   label: '夥伴圈',
     //   icon: UsersRound,
@@ -50,7 +50,7 @@ export function BottomNav() {
     ...(isAuthenticated
       ? [
           {
-            label: '我',
+            label: 'Profile',
             icon: PersonStanding,
             path: '/profile',
             matchPaths: ['/profile', '/settings'],
@@ -78,9 +78,7 @@ export function BottomNav() {
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              {Icon && (
-                <Icon className={clsx('h-6 w-6', isActive ? 'text-blue-600' : 'text-slate-400')} />
-              )}
+              {Icon && <Icon className={clsx('h-6 w-6', isActive ? 'text-blue-600' : 'text-slate-400')} />}
               <span className="text-[11px] sm:text-xs">{label}</span>
             </button>
           )
