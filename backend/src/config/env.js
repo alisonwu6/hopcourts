@@ -13,10 +13,18 @@ if (process.env.NODE_ENV !== 'production') {
   })
 }
 
+function parseCorsOrigin(raw) {
+  if (!raw) return '*'
+  const list = raw.split(',').map((s) => s.trim()).filter(Boolean)
+  if (list.length === 0) return '*'
+  if (list.length === 1) return list[0]
+  return list
+}
+
 const env = {
   port: Number(process.env.PORT || 3000),
   apiBasePath: process.env.API_BASE_PATH || '/api/v1',
-  corsOrigin: process.env.CORS_ORIGIN || '*',
+  corsOrigin: parseCorsOrigin(process.env.CORS_ORIGIN),
   supabase: {
     url: process.env.SUPABASE_URL || '',
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
