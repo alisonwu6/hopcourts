@@ -44,8 +44,8 @@ export function PushNotificationBanner() {
         <div className="flex-1">
           <p className="text-sm font-bold text-slate-900">Get court alerts instantly</p>
           <p className="mt-0.5 text-xs text-slate-500">
-            Stay up to date with events you join. Tap <strong>Share → Add to Home Screen</strong> to enable push
-            notifications on your phone.
+            Stay up to date with events you join. Tap <strong>Share</strong> in your browser, then{' '}
+            <strong>Add to Home Screen</strong> to enable push notifications on your phone.
           </p>
         </div>
         <button type="button" onClick={handleDismiss} className="text-slate-400">
