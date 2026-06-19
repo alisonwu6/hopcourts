@@ -3,8 +3,8 @@ import clsx from 'clsx'
 import { BottomSheet } from './BottomSheet'
 import { AlertDialog } from './AlertDialog'
 import GoogleLoginButton from './button/GoogleLoginButton'
-import { signInWithGoogle, signInWithApple } from '@/services/authService'
-import { detectInAppBrowserName, isInAppBrowser } from '@/lib/browser'
+import { signInWithGoogle } from '@/services/authService'
+import { detectInAppBrowserName, getExternalBrowserDeepLink, isInAppBrowser } from '@/lib/browser'
 
 type LoginPromptSheetProps = {
   open: boolean
@@ -23,10 +23,15 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
 
   const inApp = useMemo(() => isInAppBrowser(), [])
   const inAppName = useMemo(() => detectInAppBrowserName(), [])
+  const deepLink = useMemo(
+    () => (typeof window !== 'undefined' ? getExternalBrowserDeepLink(window.location.href) : null),
+    []
+  )
 
   const loginGoogle = async () => {
     if (inApp) {
       setShowInAppDialog(true)
+      onClose()
       return
     }
     const { data, error } = await signInWithGoogle()
@@ -85,37 +90,43 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
       <AlertDialog
         open={showInAppDialog}
         onClose={() => setShowInAppDialog(false)}
-        title="請改用外部瀏覽器登入"
+        title="Open in your browser to sign in"
         description={
           <>
-            你目前在{inAppName || 'App 內建瀏覽器'}中，Google 登入會被封鎖。
+            You're in {inAppName || 'an in-app browser'}, where Google sign-in is blocked.
             <br />
-            請點右上角「⋯」選單，接續選「使用外部瀏覽器開啟」，開啟後再進行登入。
+            {deepLink
+              ? 'Tap the button below to open this page in your browser.'
+              : 'Tap the "⋯" menu in the top-right, choose "Open in browser", then sign in from there.'}
           </>
         }
         type="warning"
-        actionLabel="複製此頁連結"
+        actionLabel={deepLink ? 'Open in browser' : 'Copy link'}
         onAction={() => {
+          if (deepLink) {
+            window.location.href = deepLink
+            return
+          }
           navigator.clipboard
             .writeText(window.location.href)
             .then(() =>
               setCopyFeedback({
                 open: true,
-                title: '已複製連結',
-                description: '請貼到 Safari 或 Chrome 開啟。',
+                title: 'Link copied',
+                description: 'Paste it into Safari or Chrome to open.',
                 type: 'success',
               })
             )
             .catch(() =>
               setCopyFeedback({
                 open: true,
-                title: '複製失敗',
-                description: `請手動複製此連結：${window.location.href}`,
+                title: 'Copy failed',
+                description: `Please copy this link manually: ${window.location.href}`,
                 type: 'warning',
               })
             )
         }}
-        cancelLabel="知道了"
+        cancelLabel="Got it"
       />
 
       <AlertDialog

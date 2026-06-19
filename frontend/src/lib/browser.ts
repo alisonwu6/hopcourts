@@ -32,3 +32,24 @@ export function detectInAppBrowserName(userAgent?: string): string | null {
   const hit = IN_APP_UA_PATTERNS.find(([, pattern]) => pattern.test(ua))
   return hit ? hit[0] : null
 }
+
+// Returns a URL that, when navigated to, asks the in-app browser to hand the
+// page off to the system browser. Null for cases the platform blocks (iOS Meta apps).
+export function getExternalBrowserDeepLink(url: string, userAgent?: string): string | null {
+  const ua = getUserAgent(userAgent)
+  const name = detectInAppBrowserName(ua)
+  if (!name) return null
+
+  // LINE supports a documented scheme on both iOS and Android
+  if (name === 'LINE') {
+    return `line://nv/openurl?url=${encodeURIComponent(url)}`
+  }
+
+  // Android in-app WebViews can be escaped via Chrome intent URLs
+  if (/Android/i.test(ua)) {
+    const stripped = url.replace(/^https?:\/\//, '')
+    return `intent://${stripped}#Intent;scheme=https;package=com.android.chrome;end`
+  }
+
+  return null
+}
