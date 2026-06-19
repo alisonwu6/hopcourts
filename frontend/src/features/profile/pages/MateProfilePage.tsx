@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Frown, List, CalendarDays, Share2 } from 'lucide-react'
+import { ArrowLeft, Frown, List, CalendarDays, Share } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
@@ -246,7 +246,7 @@ export function MateProfilePage() {
                 }}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
               >
-                <Share2 className="h-5 w-5" />
+                <Share className="h-5 w-5" />
               </button>
             )}
           </div>
