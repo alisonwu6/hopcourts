@@ -78,17 +78,27 @@ export function MyMatesPage() {
             <p className="mt-1 text-xs">Anyone who's joined the same event will appear here</p>
           </div>
         ) : (
-          list.map((item) => (
+          list.map((item) => {
+            const isGuest = item.is_anonymous === true
+            const displayLabel = isGuest
+              ? `${item.display_name || 'Guest'} (Guest)`
+              : item.display_name
+            return (
             <div
               key={item.id}
-              onClick={() => navigate(`/mate/${item.username}`, { state: { from: 'app' } })}
-              className="flex cursor-pointer items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition active:scale-[0.98]"
+              onClick={() => {
+                if (isGuest || !item.username) return
+                navigate(`/mate/${item.username}`, { state: { from: 'app' } })
+              }}
+              className={`flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition ${
+                isGuest ? 'cursor-default' : 'cursor-pointer active:scale-[0.98]'
+              }`}
             >
               <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
                 {item.avatar_url ? (
                   <img
                     src={item.avatar_url}
-                    alt={item.display_name}
+                    alt={displayLabel}
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -99,7 +109,7 @@ export function MyMatesPage() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="truncate font-bold text-slate-900">{item.display_name}</div>
+                <div className="truncate font-bold text-slate-900">{displayLabel}</div>
                 <div className="flex items-center gap-1 text-xs text-slate-500">
                   <MapPin className="h-3 w-3" />
                   <span>{getCityLabel(item.city_key)}</span>
@@ -113,7 +123,8 @@ export function MyMatesPage() {
                 </div>
               </div>
             </div>
-          ))
+            )
+          })
         )}
         <div ref={sentinelRef} className="h-4" />
         {loadingMore && (

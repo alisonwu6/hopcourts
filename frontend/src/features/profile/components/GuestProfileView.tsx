@@ -46,7 +46,8 @@ export function GuestProfileView() {
     } catch {}
   }
 
-  const guestName = (user as any)?.name || 'Guest player'
+  const userName = (user as any)?.name
+  const guestName = userName ? `${userName} (Guest)` : 'Guest'
 
   const guestProfile: MateCardProps = {
     name: guestName,

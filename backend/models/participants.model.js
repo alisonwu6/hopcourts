@@ -130,12 +130,13 @@ module.exports = {
 
 async function listTeammates(userId, { limit = 50, offset = 0 } = {}) {
   const sql = `
-    select 
-      u.id, 
-      u.display_name, 
-      u.username, 
-      u.avatar_url, 
+    select
+      u.id,
+      u.display_name,
+      u.username,
+      u.avatar_url,
       u.city_key,
+      u.is_anonymous,
       count(distinct s.id)::int as sessions_count,
       max(s.starts_at) as last_played_at,
       array_agg(distinct s.sport_key) as shared_sports
