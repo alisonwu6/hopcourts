@@ -78,7 +78,7 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue }: VenueMapPro
           position="bottom-right"
           trackUserLocation
           showUserHeading
-          style={{ marginBottom: 10 }}
+          style={{ marginBottom: 30 }}
         />
 
         {validVenues.map((venue) => (

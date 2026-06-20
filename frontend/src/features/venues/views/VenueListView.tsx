@@ -48,7 +48,7 @@ export function VenueListView({
   const sentinelRef = useInfiniteScroll(onLoadMore, hasMore && !loadingMore)
 
   return (
-    <div className="relative min-h-[100dvh] bg-white">
+    <div className="min-h-[100dvh] bg-white">
       <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md p-4 pointer-events-none">
         {!showMap && <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur" />}
 
@@ -97,7 +97,7 @@ export function VenueListView({
       </div>
 
       {showMap ? (
-        <div className="h-screen w-full">
+        <div className="h-[100dvh] w-full">
           <VenueMap
             venues={mapVenues}
             selectedVenueId={selectedVenueId}
