@@ -6,7 +6,7 @@ export function AboutPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-[100dvh] bg-white text-slate-900">
       <ActionToolbar
         onBack={() => navigate('/settings')}
         showShare={false}

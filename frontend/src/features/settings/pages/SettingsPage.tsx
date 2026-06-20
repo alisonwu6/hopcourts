@@ -29,7 +29,7 @@ export function ProfileSettingsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-white text-slate-900">
+    <div className="flex min-h-[100dvh] flex-col bg-white text-slate-900">
       <ActionToolbar
         onBack={() => navigate('/profile')}
         showShare={false}

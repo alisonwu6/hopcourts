@@ -118,7 +118,7 @@ export function EventDetailView({
         : (error ?? 'This event may have been deleted or unpublished.')
 
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-[100dvh] bg-white">
         <ActionToolbar
           onBack={onBack}
           title="Event Details"
@@ -207,7 +207,7 @@ export function EventDetailView({
   const isHost = event.host.id === currentUserId
 
   return (
-    <div className="min-h-screen pb-40">
+    <div className="min-h-[100dvh] pb-40">
       <ActionToolbar
         onBack={onBack}
         onShare={onShare}

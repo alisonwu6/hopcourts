@@ -74,7 +74,7 @@ function AppChrome({
 
   return (
     <div
-      className="mx-auto min-h-screen w-full max-w-md bg-white shadow-2xl"
+      className="mx-auto min-h-[100dvh] w-full max-w-md bg-white shadow-2xl"
       style={{
         paddingBottom: navVisible ? 'calc(68px + env(safe-area-inset-bottom, 0px))' : 0,
       }}

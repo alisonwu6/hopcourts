@@ -5,7 +5,7 @@ export function UsageRulesPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-white pb-[120px] text-slate-900">
+    <div className="min-h-[100dvh] bg-white pb-[120px] text-slate-900">
       <ActionToolbar
         onBack={() => navigate('/settings')}
         showShare={false}

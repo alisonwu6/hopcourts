@@ -21,7 +21,7 @@ export function EventsPageShell({
   const handleBack = onBack ?? (() => navigate(-1))
 
   return (
-    <div className="min-h-screen bg-white pb-20">
+    <div className="min-h-[100dvh] bg-white pb-20">
       <div className="sticky top-0 z-10 flex items-center justify-center border-b border-slate-200 bg-white px-4 py-3">
         <button
           type="button"

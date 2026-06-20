@@ -149,7 +149,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
     )
 
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-screen-md bg-slate-50 pb-20 font-sans text-slate-700">
+    <div className="relative mx-auto min-h-[100dvh] w-full max-w-screen-md bg-slate-50 pb-20 font-sans text-slate-700">
       <VenuePortalHeader
         title="Venue Profile"
         subtitle={formData.name_display}

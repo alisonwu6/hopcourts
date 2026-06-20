@@ -88,7 +88,7 @@ export function VenueDetailsView({
   const typedEvents = upcomingEvents as PlayerEvent[]
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 text-slate-900">
+    <div className="min-h-[100dvh] bg-slate-50 pb-20 text-slate-900">
       <ActionToolbar
         title=""
         onBack={onBack}

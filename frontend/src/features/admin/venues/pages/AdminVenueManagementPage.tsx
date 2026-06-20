@@ -206,7 +206,7 @@ export function AdminVenueManagementPage() {
   const venueToSuspend = suspendingVenue
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-[100dvh] bg-slate-50 font-sans">
       <header className="border-b border-slate-200 bg-white px-6 py-5">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-start justify-between">

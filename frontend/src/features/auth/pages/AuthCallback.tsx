@@ -105,7 +105,7 @@ export function AuthCallback() {
 
   if (queryType === 'recovery' && ready) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-gray-50 p-4">
         <form
           onSubmit={handleSubmit}
           className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg"
@@ -136,7 +136,7 @@ export function AuthCallback() {
 
   if (err && ready) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-6 text-center">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-gray-50 px-6 text-center">
         <h1 className="text-xl font-semibold text-slate-900">Sign-in didn't complete</h1>
         <p className="mt-2 max-w-sm text-sm text-slate-600">{err}</p>
         <p className="mt-2 max-w-sm text-xs text-slate-500">

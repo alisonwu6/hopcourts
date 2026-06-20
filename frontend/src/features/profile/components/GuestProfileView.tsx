@@ -69,7 +69,7 @@ export function GuestProfileView() {
   }
 
   return (
-    <div className="min-h-screen overflow-y-auto pb-[120px]">
+    <div className="min-h-[100dvh] overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
         <div className="relative flex items-center justify-between bg-white px-4 py-4">
           <div className="flex items-center gap-1">
