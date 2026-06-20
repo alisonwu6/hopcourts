@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useRef, useState } from 'react'
-import Map, { Marker, NavigationControl, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
+import Map, { Marker, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
 import { Building2 } from 'lucide-react'
 import clsx from 'clsx'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -80,15 +80,11 @@ export function EventMap({
         onMove={(evt) => setMapZoom(evt.viewState.zoom)}
         onClick={() => onSelectEvent(null)}
       >
-        <NavigationControl
-          position="bottom-right"
-          style={{ marginBottom: 100 }}
-        />
         <GeolocateControl
           position="bottom-right"
           trackUserLocation
           showUserHeading
-          style={{ marginBottom: 10 }}
+          style={{ marginBottom: 30 }}
         />
 
         {validEvents.map((event) => {
@@ -148,9 +144,7 @@ export function EventMap({
                   <span
                     className={clsx(
                       'whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-bold shadow-sm',
-                      isFull
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-[#aaee44] text-slate-900'
+                      isFull ? 'bg-orange-500 text-white' : 'bg-[#aaee44] text-slate-900'
                     )}
                   >
                     {isFull ? 'Full' : spotsLeft === 1 ? '1 spot' : `${spotsLeft} spots`}

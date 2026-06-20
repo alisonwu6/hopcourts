@@ -95,16 +95,18 @@ export function DiscoverEventsPageView({
       />
 
       {showMap ? (
-        <EventMap
-          events={filteredEvents}
-          sports={sportsCatalog}
-          mode="events"
-          selectedEventId={selectedEventId}
-          onSelectEvent={onSelectMapEvent}
-          onClickDetail={(event) => {
-            onClickEventDetail(event.id)
-          }}
-        />
+        <div className="h-[100dvh] w-full">
+          <EventMap
+            events={filteredEvents}
+            sports={sportsCatalog}
+            mode="events"
+            selectedEventId={selectedEventId}
+            onSelectEvent={onSelectMapEvent}
+            onClickDetail={(event) => {
+              onClickEventDetail(event.id)
+            }}
+          />
+        </div>
       ) : (
         <DiscoverEventsBody
           isAuthenticated={isAuthenticated}
