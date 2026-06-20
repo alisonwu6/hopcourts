@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, MapPin, Smile } from 'lucide-react'
+import { ArrowLeft, MapPin, Smile, Users } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { api } from '@/api/client'
+import { EmptyStateCard } from '@/components'
 import { useCities } from '@/features/dictionaries/hooks'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
@@ -73,68 +74,68 @@ export function MyMatesPage() {
         {loading ? (
           <div className="py-10 text-center text-sm text-slate-400">Loading...</div>
         ) : list.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
-            <p>No teammates yet</p>
-            <p className="mt-1 text-xs">Anyone who's joined the same event will appear here</p>
-          </div>
+          <EmptyStateCard
+            icon={<Users className="h-8 w-8 text-slate-400" />}
+            title="No mates yet"
+            description="Jump into a game to start building your sports crew."
+          />
         ) : (
           list.map((item) => {
             const isGuest = item.is_anonymous === true
-            const displayLabel = isGuest
-              ? `${item.display_name || 'Guest'} (Guest)`
-              : item.display_name
+            const displayLabel = isGuest ? `${item.display_name || 'Guest'} (Guest)` : item.display_name
             const cityLabel = item.city_key ? getCityLabel(item.city_key) : ''
             const playedAt = item.last_played_at ? new Date(item.last_played_at) : null
             const playedLabel =
-              playedAt && playedAt.getTime() <= Date.now()
-                ? formatDistanceToNow(playedAt, { addSuffix: true })
-                : ''
+              playedAt && playedAt.getTime() <= Date.now() ? formatDistanceToNow(playedAt, { addSuffix: true }) : ''
             return (
-            <div
-              key={item.id}
-              onClick={() => {
-                if (isGuest || !item.username) return
-                navigate(`/mate/${item.username}`, { state: { from: 'app' } })
-              }}
-              className={`flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition ${
-                isGuest ? 'cursor-default' : 'cursor-pointer active:scale-[0.98]'
-              }`}
-            >
-              <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
-                {item.avatar_url ? (
-                  <img
-                    src={item.avatar_url}
-                    alt={displayLabel}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-slate-300">
-                    <Smile className="h-6 w-6" />
-                  </div>
-                )}
-              </div>
+              <div
+                key={item.id}
+                onClick={() => {
+                  if (isGuest || !item.username) return
+                  navigate(`/mate/${item.username}`, { state: { from: 'app' } })
+                }}
+                className={`flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition ${
+                  isGuest ? 'cursor-default' : 'cursor-pointer active:scale-[0.98]'
+                }`}
+              >
+                <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
+                  {item.avatar_url ? (
+                    <img
+                      src={item.avatar_url}
+                      alt={displayLabel}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-slate-300">
+                      <Smile className="h-6 w-6" />
+                    </div>
+                  )}
+                </div>
 
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-bold text-slate-900">{displayLabel}</div>
-                <div className="flex h-4 items-center gap-1 text-xs text-slate-500">
-                  {cityLabel ? (
-                    <>
-                      <MapPin className="h-3 w-3" />
-                      <span>{cityLabel}</span>
-                    </>
-                  ) : null}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-bold text-slate-900">{displayLabel}</div>
+                  <div className="flex h-4 items-center gap-1 text-xs text-slate-500">
+                    {cityLabel ? (
+                      <>
+                        <MapPin className="h-3 w-3" />
+                        <span>{cityLabel}</span>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-sm font-bold text-slate-900">{item.sessions_count} shared events</div>
+                  <div className="h-4 text-xs text-slate-400">{playedLabel}</div>
                 </div>
               </div>
-
-              <div className="flex-shrink-0 text-right">
-                <div className="text-sm font-bold text-slate-900">{item.sessions_count} shared events</div>
-                <div className="h-4 text-xs text-slate-400">{playedLabel}</div>
-              </div>
-            </div>
             )
           })
         )}
-        <div ref={sentinelRef} className="h-4" />
+        <div
+          ref={sentinelRef}
+          className="h-4"
+        />
         {loadingMore && (
           <div className="flex justify-center py-4">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />

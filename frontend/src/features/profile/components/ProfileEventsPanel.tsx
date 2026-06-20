@@ -26,6 +26,8 @@ import { Bike, BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
 type TabKey = 'upcoming' | 'history'
 type PanelMode = 'all' | 'hosted' | 'joined'
 
+import { EmptyStateCard } from '@/components'
+
 function EmptyState({
   icon,
   title,
@@ -38,20 +40,12 @@ function EmptyState({
   onExplore?: () => void
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-      <div className="p-2 text-4xl">{icon}</div>
-      <h3 className="text-lg font-bold text-slate-900">{title}</h3>
-      <p className="mt-1 px-10 text-sm text-slate-500">{description}</p>
-      {onExplore && (
-        <button
-          type="button"
-          onClick={onExplore}
-          className="mt-5 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition"
-        >
-          Explore Events
-        </button>
-      )}
-    </div>
+    <EmptyStateCard
+      icon={icon}
+      title={title}
+      description={description}
+      action={onExplore ? { label: 'Explore Events', onClick: onExplore } : undefined}
+    />
   )
 }
 
