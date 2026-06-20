@@ -94,8 +94,16 @@ async function verifyToken(req, res, next) {
     req.supabaseUser = supabaseUser
     return next()
   } catch (err) {
-    console.error('[verifyToken] Supabase verification error:', err.message)
-    return res.status(401).json({ message: 'Invalid or expired token' })
+    console.error('[verifyToken]', err)
+    const msg = err?.message || ''
+    const isTokenError = /jwt|token|signature|expired|aud|iss/i.test(msg)
+    if (isTokenError) {
+      return res.status(401).json({ message: 'Invalid or expired token' })
+    }
+    return res.status(500).json({
+      message: 'Authentication middleware error',
+      detail: process.env.NODE_ENV === 'production' ? undefined : msg,
+    })
   }
 }
 
