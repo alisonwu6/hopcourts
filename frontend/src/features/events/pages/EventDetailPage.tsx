@@ -1,5 +1,6 @@
 import { EventDetailView } from '@/features/events/components/EventDetailView'
 import { useEventDetailLogic } from '@/features/events/hooks/useEventDetailLogic'
+import { GuestJoinModal } from '@/components/GuestJoinModal'
 
 export function EventDetailPage() {
   const {
@@ -14,6 +15,9 @@ export function EventDetailPage() {
     setIsFavorite,
     showLoginPrompt,
     setShowLoginPrompt,
+    showGuestJoinModal,
+    setShowGuestJoinModal,
+    handleGuestReady,
     isJoinSubmitting,
     isCheckingIn,
     showProfileRequired,
@@ -34,6 +38,7 @@ export function EventDetailPage() {
   } = useEventDetailLogic()
 
   return (
+    <>
     <EventDetailView
       id={id}
       event={event}
@@ -69,5 +74,12 @@ export function EventDetailPage() {
       onNavigateMate={(username) => navigate(`/mate/${username}`, { state: { from: 'app' } })}
       onNavigateVenue={(venueId) => navigate(`/venues/${venueId}`)}
     />
+    <GuestJoinModal
+      open={showGuestJoinModal}
+      onClose={() => setShowGuestJoinModal(false)}
+      onGuestReady={handleGuestReady}
+      onSignInInstead={() => setShowLoginPrompt(true)}
+    />
+    </>
   )
 }

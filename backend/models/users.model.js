@@ -75,10 +75,11 @@ async function createUserFromSupabaseProfile(profile) {
     )
     returning *
   `
+  const fallbackName = profile.email ? profile.email.split('@')[0] : 'Guest'
   const params = [
     profile.id, // Must provide Supabase Auth UUID
-    profile.email,
-    profile.fullName || profile.email.split('@')[0],
+    profile.email || null,
+    profile.fullName || fallbackName,
     profile.username || null,
     profile.city || null,
     profile.nationalityKey || null,

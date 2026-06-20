@@ -23,6 +23,7 @@ export interface User {
 
   role?: string[]
   onboarding_completed_at?: Date | string | null
+  is_anonymous?: boolean
   createdAt: Date
   updatedAt: Date
 }

@@ -58,3 +58,13 @@ export async function signOut() {
   const client = ensureSupabase()
   return client.auth.signOut()
 }
+
+// Anonymous sign-in for guest "tap-in" flow. Stores display name in user_metadata
+// so the backend (verifyToken middleware) can mirror it into public.users.
+export async function signInAnonymouslyAsGuest(displayName: string) {
+  const client = ensureSupabase()
+  const trimmed = displayName.trim().slice(0, 40)
+  return client.auth.signInAnonymously({
+    options: { data: { display_name: trimmed } },
+  })
+}

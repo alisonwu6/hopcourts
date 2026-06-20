@@ -25,13 +25,15 @@ async function getSupabaseUserFromToken(token) {
 
 async function resolveUserFromSupabase(user) {
   if (!user?.id) return null
-  
+
   // 1. Try to find by ID (Primary Source of Truth)
   let dbUser = await getUserById(user.id)
   if (dbUser) return dbUser
 
-  // 2. Try to find by Email (Fallback/Legacy Sync)
-  if (user.email) {
+  const isAnonymous = user.is_anonymous === true
+
+  // 2. Try to find by Email (Fallback/Legacy Sync) — skip for anonymous users
+  if (!isAnonymous && user.email) {
     dbUser = await findUserByEmail(user.email)
     if (dbUser) {
       // TODO: Handle ID mismatch migration (e.g. update DB ID to match Supabase ID)
@@ -42,19 +44,23 @@ async function resolveUserFromSupabase(user) {
 
   // 3. Create new user with Supabase ID
   try {
-    dbUser = await createUserFromSupabaseProfile({
-      id: user.id, // Pass the UUID!
-      email: user.email,
-      fullName:
-        user.user_metadata?.full_name ||
+    const fullName = isAnonymous
+      ? user.user_metadata?.display_name || 'Guest'
+      : user.user_metadata?.full_name ||
         user.user_metadata?.fullName ||
         user.user_metadata?.name ||
-        user.email,
+        user.email
+    dbUser = await createUserFromSupabaseProfile({
+      id: user.id,
+      email: isAnonymous ? null : user.email,
+      fullName,
       username: user.user_metadata?.username,
       role: user.user_metadata?.role || 'player',
       city: user.user_metadata?.city,
       gender: user.user_metadata?.gender,
-      avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || user.user_metadata?.avatar || null,
+      avatarUrl: isAnonymous
+        ? null
+        : user.user_metadata?.avatar_url || user.user_metadata?.picture || user.user_metadata?.avatar || null,
     })
     return dbUser
   } catch (err) {

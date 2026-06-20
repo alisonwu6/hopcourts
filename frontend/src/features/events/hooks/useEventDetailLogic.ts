@@ -16,6 +16,7 @@ export function useEventDetailLogic() {
 
   const [isFavorite, setIsFavorite] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showGuestJoinModal, setShowGuestJoinModal] = useState(false)
   const [isJoinSubmitting, setIsJoinSubmitting] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
   const [hasCheckedIn, setHasCheckedIn] = useState(false)
@@ -124,6 +125,16 @@ export function useEventDetailLogic() {
   const effectiveCheckedIn = isAuthenticated ? hasCheckedIn || isCheckedInFromServer : false
   const effectiveOnTheWay = isAuthenticated ? hasSignaledOnTheWay || isOnTheWayFromServer : false
 
+  const submitJoin = async () => {
+    if (!id) return
+    setIsJoinSubmitting(true)
+    try {
+      await joinEvent(id)
+    } finally {
+      setIsJoinSubmitting(false)
+    }
+  }
+
   const handleJoinClick = async () => {
     if (isJoinSubmitting) return
     if (!isAuthenticated) {
@@ -133,7 +144,8 @@ export function useEventDetailLogic() {
       } catch (error) {
         console.warn('Failed to persist post-login redirect path:', error)
       }
-      setShowLoginPrompt(true)
+      // Frictionless guest tap-in: ask for a display name only, no email.
+      setShowGuestJoinModal(true)
       return
     }
     if (!event || !id) return
@@ -141,12 +153,15 @@ export function useEventDetailLogic() {
       showAlert('Host Required', 'As the organizer, you must be a participant of this event.', 'warning')
       return
     }
-    if (!isJoined && !user?.onboarding_completed_at) {
+    // Guest (anonymous) users skip onboarding + gender gates — they have no profile
+    // data yet, and the intent is a one-tap join.
+    const isGuest = !!user?.is_anonymous
+    if (!isJoined && !isGuest && !user?.onboarding_completed_at) {
       setShowProfileRequired(true)
       return
     }
 
-    if (!isJoined && event.gender && event.gender !== 'mixed') {
+    if (!isJoined && !isGuest && event.gender && event.gender !== 'mixed') {
       const currentUser = useAuthStore.getState().user
       const userGender = currentUser?.gender
 
@@ -169,13 +184,13 @@ export function useEventDetailLogic() {
         setIsJoinSubmitting(false)
       }
     } else {
-      setIsJoinSubmitting(true)
-      try {
-        await joinEvent(id)
-      } finally {
-        setIsJoinSubmitting(false)
-      }
+      await submitJoin()
     }
+  }
+
+  // Fired by GuestJoinModal once the anonymous Supabase session is live.
+  const handleGuestReady = async () => {
+    await submitJoin()
   }
 
   const handleCheckIn = async () => {
@@ -309,6 +324,9 @@ export function useEventDetailLogic() {
     setIsFavorite,
     showLoginPrompt,
     setShowLoginPrompt,
+    showGuestJoinModal,
+    setShowGuestJoinModal,
+    handleGuestReady,
     isJoinSubmitting,
     isCheckingIn,
     showProfileRequired,
