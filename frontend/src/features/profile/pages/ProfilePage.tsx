@@ -614,8 +614,8 @@ export function ProfilePage() {
           setFieldError('Username can only include letters, numbers, underscores, and periods')
           return
         }
-        if (value.length < 3 || value.length > 10) {
-          setFieldError('Username must be 3 to 10 characters')
+        if (value.length < 3 || value.length > 20) {
+          setFieldError('Username must be 3 to 20 characters')
           return
         }
         {
