@@ -30,12 +30,12 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
           </div>
           {venue.venue_type === 'official' && (
             <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
-              <ShieldCheck size={8} className="text-white" />
+              <ShieldCheck size={10} className="text-white" />
             </div>
           )}
           {venue.venue_type === 'public' && (
             <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
-              <Trees size={8} className="text-white" />
+              <Trees size={10} className="text-white" />
             </div>
           )}
         </div>
