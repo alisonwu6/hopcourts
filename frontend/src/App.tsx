@@ -254,11 +254,9 @@ export default function App() {
       <Route
         path="/profile"
         element={
-          <RequireAuth>
-            <AppChrome showHeader={false}>
-              <ProfilePage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome showHeader={false}>
+            <ProfilePage />
+          </AppChrome>
         }
       />
       <Route

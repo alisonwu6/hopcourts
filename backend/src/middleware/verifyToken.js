@@ -60,7 +60,7 @@ async function resolveUserFromSupabase(user) {
       gender: user.user_metadata?.gender,
       avatarUrl: isAnonymous
         ? null
-        : user.user_metadata?.avatar_url || user.user_metadata?.picture || user.user_metadata?.avatar || null,
+        : user.user_metadata?.avatar_url || user.user_metadata?.picture || user.user_metadata?.avatar || null, isAnonymous,
     })
     return dbUser
   } catch (err) {

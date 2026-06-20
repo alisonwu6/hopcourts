@@ -48,6 +48,7 @@ async function listParticipantsWithDetails(sessionId) {
         u.display_name,
         u.avatar_url,
         u.username,
+        u.is_anonymous,
         c.checked_in_at
       from public.session_participants sp
       join public.users u on u.id = sp.user_id

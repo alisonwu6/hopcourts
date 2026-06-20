@@ -34,6 +34,7 @@ export type MateCardProps = {
   onHostedClick?: () => void
   onJoinedClick?: () => void
   onTeammatesClick?: () => void
+  placeholderMode?: boolean
 }
 
 export function MateCard({
@@ -55,7 +56,13 @@ export function MateCard({
   onHostedClick,
   onJoinedClick,
   onTeammatesClick,
+  placeholderMode = false,
 }: MateCardProps) {
+  const dash = (
+    <span className="text-muted">—</span>
+  )
+  const renderStat = (n: number) =>
+    placeholderMode && n === 0 ? dash : <span className="text-slate-900">{n}</span>
   const vibeColors = (vibe ? vibeTokens[vibe] : undefined) ?? {
     bg: 'linear-gradient(135deg, #EEF2F6 0%, #E2E8F0 100%)',
     text: '#1E293B',
@@ -80,7 +87,7 @@ export function MateCard({
               loading="lazy"
             />
           ) : (
-            <Smile className="h-12 w-12 text-slate-300" />
+            <Smile className="text-muted h-12 w-12" />
           )}
         </div>
 
@@ -99,7 +106,7 @@ export function MateCard({
                   </span>
                 )}
               </div>
-              {location && (
+              {location ? (
                 <div className="flex items-center gap-1 text-[12px] font-medium text-slate-600">
                   <MapPin
                     className="h-3.5 w-3.5 text-slate-400"
@@ -108,10 +115,19 @@ export function MateCard({
                   />
                   <span className="truncate">{location}</span>
                 </div>
-              )}
+              ) : placeholderMode ? (
+                <div className="text-muted flex items-center gap-1 text-[12px] font-medium">
+                  <MapPin
+                    className="text-muted h-3.5 w-3.5"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                  <span>—</span>
+                </div>
+              ) : null}
             </div>
 
-            {vibe && (
+            {vibe ? (
               <span
                 className="inline-flex flex-shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold"
                 style={{
@@ -121,11 +137,14 @@ export function MateCard({
               >
                 {vibeLabel ?? vibe}
               </span>
-            )}
+            ) : placeholderMode ? (
+              <span
+                className="bg-muted/70 inline-flex h-[26px] w-16 flex-shrink-0 rounded-full"
+                aria-hidden="true"
+              />
+            ) : null}
           </div>
 
-          {/* Stats Bar */}
-          {/* Stats Bar */}
           <div className="flex w-full divide-x divide-slate-300/50 border-y border-slate-300/50 py-2">
             <button
               type="button"
@@ -135,9 +154,7 @@ export function MateCard({
               )}
               onClick={onHostedClick}
             >
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold leading-none text-slate-900">{hostedCount}</span>
-              </div>
+              <div className="flex items-baseline gap-1 text-xl font-bold leading-none">{renderStat(hostedCount)}</div>
               <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Hosted</span>
             </button>
 
@@ -149,9 +166,7 @@ export function MateCard({
               )}
               onClick={onJoinedClick}
             >
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold leading-none text-slate-900">{joinedCount}</span>
-              </div>
+              <div className="flex items-baseline gap-1 text-xl font-bold leading-none">{renderStat(joinedCount)}</div>
               <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Joined</span>
             </button>
 
@@ -162,9 +177,7 @@ export function MateCard({
               )}
               onClick={onTeammatesClick}
             >
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold leading-none text-slate-900">{friendCount}</span>
-              </div>
+              <div className="flex items-baseline gap-1 text-xl font-bold leading-none">{renderStat(friendCount)}</div>
               <span className="mt-0.5 block whitespace-nowrap text-[10px] font-medium text-slate-500">Mates</span>
             </div>
           </div>
@@ -190,9 +203,18 @@ export function MateCard({
               ))
             ) : (
               <>
-                <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
-                <div className="h-[22px] w-20 animate-pulse rounded-full bg-slate-100/50" />
-                <div className="h-[22px] w-14 animate-pulse rounded-full bg-slate-100/50" />
+                <div
+                  className="bg-muted/70 h-[22px] w-16 rounded-full"
+                  aria-hidden="true"
+                />
+                <div
+                  className="bg-muted/70 h-[22px] w-16 rounded-full"
+                  aria-hidden="true"
+                />
+                <div
+                  className="bg-muted/70 h-[22px] w-16 rounded-full"
+                  aria-hidden="true"
+                />
               </>
             )}
           </div>
@@ -215,8 +237,14 @@ export function MateCard({
               ))
             ) : (
               <>
-                <div className="h-[22px] w-16 animate-pulse rounded-full bg-slate-100/50" />
-                <div className="h-[22px] w-14 animate-pulse rounded-full bg-slate-100/50" />
+                <div
+                  className="bg-muted/70 h-[22px] w-16 rounded-full"
+                  aria-hidden="true"
+                />
+                <div
+                  className="bg-muted/70 h-[22px] w-16 rounded-full"
+                  aria-hidden="true"
+                />
               </>
             )}
           </div>
@@ -230,8 +258,12 @@ export function MateCard({
           />
           {blurb?.trim() ? (
             <span className="whitespace-pre-wrap">{blurb}</span>
+          ) : placeholderMode ? (
+            <span className="text-muted not-italic">
+              Hop in? Activate your profile to kick-start your journey.
+            </span>
           ) : (
-            <span className="not-italic text-slate-400">Waiting for this mate to update their bio...</span>
+            <span className="text-muted not-italic">No bio yet... Too busy on the court!</span>
           )}
         </div>
       </div>

@@ -7,14 +7,26 @@ import { sessionService } from '@/services/sessionService'
 type GuestJoinModalProps = {
   open: boolean
   onClose: () => void
-  // Fired after the anonymous session is established. The parent should call
-  // the actual join API here — auth is guaranteed to be live by this point.
   onGuestReady: () => Promise<void> | void
-  // Optional fallback: switch to the full sign-in sheet (Google etc).
   onSignInInstead?: () => void
 }
 
 const MAX_NAME_LEN = 40
+
+function friendlyAuthError(err: any): string {
+  const status = err?.status ?? err?.response?.status
+  const code = err?.code ?? err?.response?.data?.code ?? ''
+  const raw = (err?.message || '').toLowerCase()
+  if (
+    status === 429 ||
+    code === 'over_request_rate_limit' ||
+    raw.includes('rate limit') ||
+    raw.includes('too many')
+  ) {
+    return "Whoa, slow down — too many guests this hour. Please wait a minute and try again, or sign in instead."
+  }
+  return err?.message || 'Could not start a guest session. Please try again.'
+}
 
 export function GuestJoinModal({ open, onClose, onGuestReady, onSignInInstead }: GuestJoinModalProps) {
   const [name, setName] = useState('')
@@ -27,7 +39,6 @@ export function GuestJoinModal({ open, onClose, onGuestReady, onSignInInstead }:
     if (open) {
       setName('')
       setError(null)
-      // Defer focus so the BottomSheet entry animation finishes first.
       const t = setTimeout(() => inputRef.current?.focus(), 200)
       return () => clearTimeout(t)
     }
@@ -45,16 +56,12 @@ export function GuestJoinModal({ open, onClose, onGuestReady, onSignInInstead }:
       if (signInError) throw signInError
       const accessToken = data?.session?.access_token
       if (!accessToken) throw new Error('Sign-in succeeded but no session was returned.')
-      // Mirror the auth flow used by AuthCallback: bootstrap the backend user,
-      // then commit to the auth store. This persists the token so subsequent
-      // API calls (joinEvent below) carry the new anonymous session.
       const context = await sessionService.bootstrap(accessToken)
       setAuthData({ ...context.user, is_anonymous: true }, context.token, { remember: true })
       await onGuestReady()
       onClose()
     } catch (err: any) {
-      const msg = err?.message || 'Could not start a guest session. Please try again.'
-      setError(msg)
+      setError(friendlyAuthError(err))
     } finally {
       setSubmitting(false)
     }
@@ -104,10 +111,9 @@ export function GuestJoinModal({ open, onClose, onGuestReady, onSignInInstead }:
             onKeyDown={(e) => {
               if (e.key === 'Enter' && canSubmit) handleSubmit()
             }}
-            placeholder="e.g. Alison"
+            placeholder="Tell us your name"
             maxLength={MAX_NAME_LEN}
             disabled={submitting}
-            autoComplete="given-name"
             className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none disabled:bg-slate-50"
           />
           {error && <p className="text-xs text-red-600">{error}</p>}

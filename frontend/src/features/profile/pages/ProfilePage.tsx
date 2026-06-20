@@ -13,6 +13,7 @@ import { profileService } from '@/features/profile/services/profileService'
 import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
+import { GuestProfileView } from '@/features/profile/components/GuestProfileView'
 import { supabase } from '@/lib/supabase'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { ProfileCompletionSheet } from '@/features/profile/components/ProfileCompletionSheet'
@@ -392,7 +393,7 @@ export function ProfilePage() {
   }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar])
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || (user as any)?.is_anonymous) {
       hasBootstrappedRef.current = false
       return
     }
@@ -796,10 +797,15 @@ export function ProfilePage() {
     }
   }
 
-  if (isLoading || !isProfileLoaded) {
+  if (isLoading) {
     return <PageLoading />
   }
-  if (!isAuthenticated) return null
+  if (!isAuthenticated || (user as any)?.is_anonymous) {
+    return <GuestProfileView />
+  }
+  if (!isProfileLoaded) {
+    return <PageLoading />
+  }
 
   const pageContent = (
     <div className="min-h-screen overflow-y-auto pb-[120px]">

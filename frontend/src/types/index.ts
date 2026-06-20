@@ -300,6 +300,7 @@ export interface PlayerEvent {
     username?: string
     checkedInAt?: string | Date
     onTheWayAt?: string | Date
+    isAnonymous?: boolean
   }>
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date

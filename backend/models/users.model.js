@@ -2,7 +2,7 @@ const { query } = require('../src/lib/db')
 
 async function getUserById(id) {
   const { rows } = await query(
-    `select id, email, username, display_name, city_key, nationality_key, age_range_key, gender, vibe_key, bio, avatar_url, role, created_at, updated_at, onboarding_completed_at
+    `select id, email, username, display_name, city_key, nationality_key, age_range_key, gender, vibe_key, bio, avatar_url, role, created_at, updated_at, onboarding_completed_at, is_anonymous
      from public.users where id = $1`,
     [id]
   )
@@ -69,9 +69,9 @@ async function findUserByEmail(email) {
 async function createUserFromSupabaseProfile(profile) {
   const sql = `
     insert into public.users (
-      id, email, display_name, username, city_key, nationality_key, gender, avatar_url
+      id, email, display_name, username, city_key, nationality_key, gender, avatar_url, is_anonymous
     ) values (
-      $1, $2, $3, $4, $5, $6, $7, $8
+      $1, $2, $3, $4, $5, $6, $7, $8, $9
     )
     returning *
   `
@@ -85,6 +85,7 @@ async function createUserFromSupabaseProfile(profile) {
     profile.nationalityKey || null,
     profile.gender || null,
     profile.avatarUrl || null,
+    profile.isAnonymous === true,
   ]
   const { rows } = await query(sql, params)
   return rows[0]

@@ -2,7 +2,6 @@ import { ComponentType } from 'react'
 import { Compass, PersonStanding, House, Building2 } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
-import { useAuthStore } from '@/hooks'
 
 type NavItem = {
   label: string
@@ -14,7 +13,6 @@ type NavItem = {
 export function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const matchesPath = (segment: string) => {
     if (segment === '/') {
       return location.pathname === '/'
@@ -41,22 +39,12 @@ export function BottomNav() {
       path: '/venues',
       matchPaths: ['/venues', '/venue'],
     },
-    // {
-    //   label: '夥伴圈',
-    //   icon: UsersRound,
-    //   path: '/circle',
-    //   matchPaths: ['/circle'],
-    // },
-    ...(isAuthenticated
-      ? [
-          {
-            label: 'Profile',
-            icon: PersonStanding,
-            path: '/profile',
-            matchPaths: ['/profile', '/settings'],
-          },
-        ]
-      : []),
+    {
+      label: 'Profile',
+      icon: PersonStanding,
+      path: '/profile',
+      matchPaths: ['/profile', '/settings'],
+    },
   ]
 
   return (

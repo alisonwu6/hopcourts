@@ -59,7 +59,7 @@ export function HomePage() {
           {/* Call to Action */}
           <section className="mt-6 flex justify-center">
             <button
-              className="flex items-center justify-center rounded-full bg-emerald-600 px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
+              className="bg-hop flex items-center justify-center rounded-full px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
               type="button"
               onClick={isAuthenticated ? () => navigate('/events') : handleIdentityClick}
             >
@@ -121,13 +121,13 @@ export function HomePage() {
           </section>
 
           {/* Manifesto */}
-          <section className="mt-8 rounded-2xl bg-slate-900 px-3 py-4 text-center">
+          <section className="mt-8 rounded-2xl bg-courts px-3 py-4 text-center">
             <blockquote className="text-md font-semibold italic leading-relaxed text-white">
               "Sport is the oldest social network.
               <br />
               We just built the app for it."
             </blockquote>
-            <p className="mt-3 text-xs font-semibold text-slate-400">— HopCourts</p>
+            <p className="mt-3 text-xs font-semibold text-slate-400">HopCourts Team</p>
           </section>
         </main>
       </div>

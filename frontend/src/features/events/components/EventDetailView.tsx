@@ -402,7 +402,7 @@ export function EventDetailView({
                       key={participant.id}
                       className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition"
                       onClick={() => {
-                        if (participant.username) {
+                        if (participant.username && !participant.isAnonymous) {
                           onNavigateMate(participant.username)
                         }
                       }}
@@ -412,8 +412,13 @@ export function EventDetailView({
                           name={participant.name}
                           src={participant.avatarUrl}
                         />
-                        <div>
+                        <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-slate-900">{participant.name}</p>
+                          {participant.isAnonymous && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                              Guest
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="pr-1">

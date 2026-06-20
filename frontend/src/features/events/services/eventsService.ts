@@ -351,6 +351,7 @@ export const eventsService = {
             username: p.username || undefined,
             checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
             onTheWayAt: p.on_the_way_at ? new Date(p.on_the_way_at) : undefined,
+            isAnonymous: p.is_anonymous === true,
           }))
         }
 
