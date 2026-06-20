@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Menu,
@@ -16,7 +16,6 @@ import {
 import { useAuthStore } from '@/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { ProfileEventsPanel } from '@/features/profile/components/ProfileEventsPanel'
-import { eventsService } from '@/features/events/services/eventsService'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import type { MateCardProps } from '@/features/mates/components/MateCard'
 import logo from '@/assets/main-logo.png'
@@ -34,7 +33,6 @@ export function GuestProfileView() {
       return false
     }
   })
-  const [joinedCount, setJoinedCount] = useState(0)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   const handleUpgrade = () => {
@@ -47,23 +45,6 @@ export function GuestProfileView() {
       localStorage.setItem(CTA_DISMISSED_KEY, '1')
     } catch {}
   }
-
-  useEffect(() => {
-    let cancelled = false
-    eventsService
-      .getMyEvents('joined')
-      .then((res) => {
-        if (cancelled) return
-        // Runtime payload is { data: { items: [...] } }; PaginatedResponse type is wrong.
-        const data = res.data as any
-        const items = (data?.items ?? data ?? []) as unknown[]
-        setJoinedCount(Array.isArray(items) ? items.length : 0)
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   const guestName = (user as any)?.name || 'Guest player'
 
@@ -82,7 +63,7 @@ export function GuestProfileView() {
     gender: null,
     ageRangeKey: null,
     friendCount: 0,
-    joinedCount,
+    joinedCount: 0,
     hostedCount: 0,
   }
 
