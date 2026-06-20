@@ -89,13 +89,16 @@ async function countParticipantsBySession(sessionId) {
 }
 
 async function countTeammates(userId) {
+  // Mirrors listTeammates: both parties checked in, session has finished.
   const sql = `
     select count(distinct ci.user_id)::int as count
     from public.check_ins ci
+    join public.sessions s on s.id = ci.session_id
     where ci.session_id in (
       select session_id from public.check_ins where user_id = $1
     )
-    and ci.user_id != $1
+      and ci.user_id != $1
+      and coalesce(s.ends_at, s.starts_at) <= now()
   `
   const { rows } = await query(sql, [userId])
   return rows[0]?.count ?? 0
@@ -129,6 +132,8 @@ module.exports = {
 }
 
 async function listTeammates(userId, { limit = 50, offset = 0 } = {}) {
+  // A "mate" is someone we actually played with — same session, both checked in,
+  // and the session has finished (ends_at in the past, or starts_at if ends_at is null).
   const sql = `
     select
       u.id,
@@ -141,11 +146,17 @@ async function listTeammates(userId, { limit = 50, offset = 0 } = {}) {
       max(s.starts_at) as last_played_at,
       array_agg(distinct s.sport_key) as shared_sports
     from public.session_participants me
-    join public.session_participants other on me.session_id = other.session_id
+    join public.check_ins me_ci
+      on me_ci.session_id = me.session_id and me_ci.user_id = me.user_id
+    join public.session_participants other
+      on me.session_id = other.session_id
+    join public.check_ins other_ci
+      on other_ci.session_id = other.session_id and other_ci.user_id = other.user_id
     join public.users u on u.id = other.user_id
     join public.sessions s on s.id = me.session_id
-    where me.user_id = $1 
+    where me.user_id = $1
       and other.user_id != $1
+      and coalesce(s.ends_at, s.starts_at) <= now()
     group by u.id
     order by last_played_at desc
     limit $2 offset $3

@@ -83,6 +83,12 @@ export function MyMatesPage() {
             const displayLabel = isGuest
               ? `${item.display_name || 'Guest'} (Guest)`
               : item.display_name
+            const cityLabel = item.city_key ? getCityLabel(item.city_key) : ''
+            const playedAt = item.last_played_at ? new Date(item.last_played_at) : null
+            const playedLabel =
+              playedAt && playedAt.getTime() <= Date.now()
+                ? formatDistanceToNow(playedAt, { addSuffix: true })
+                : ''
             return (
             <div
               key={item.id}
@@ -110,17 +116,19 @@ export function MyMatesPage() {
 
               <div className="min-w-0 flex-1">
                 <div className="truncate font-bold text-slate-900">{displayLabel}</div>
-                <div className="flex items-center gap-1 text-xs text-slate-500">
-                  <MapPin className="h-3 w-3" />
-                  <span>{getCityLabel(item.city_key)}</span>
+                <div className="flex h-4 items-center gap-1 text-xs text-slate-500">
+                  {cityLabel ? (
+                    <>
+                      <MapPin className="h-3 w-3" />
+                      <span>{cityLabel}</span>
+                    </>
+                  ) : null}
                 </div>
               </div>
 
               <div className="flex-shrink-0 text-right">
                 <div className="text-sm font-bold text-slate-900">{item.sessions_count} shared events</div>
-                <div className="text-xs text-slate-400">
-                  {item.last_played_at ? formatDistanceToNow(new Date(item.last_played_at), { addSuffix: true }) : ''}
-                </div>
+                <div className="h-4 text-xs text-slate-400">{playedLabel}</div>
               </div>
             </div>
             )
