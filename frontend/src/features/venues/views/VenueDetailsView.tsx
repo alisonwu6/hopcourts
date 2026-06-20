@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays } from 'lucide-react'
+import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays, Zap } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { EmptyStateCard } from '@/components'
 import { EventCard } from '@/features/events/components/EventCard'
 import { CalendarView } from '@/features/profile/components/ProfileEventsPanel'
 import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton'
@@ -88,7 +89,7 @@ export function VenueDetailsView({
   const typedEvents = upcomingEvents as PlayerEvent[]
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20 text-slate-900">
+    <div className="min-h-[100dvh] bg-slate-50 pb-20 text-slate-900">
       <ActionToolbar
         title=""
         onBack={onBack}
@@ -103,19 +104,29 @@ export function VenueDetailsView({
           <div className="relative h-16 w-16 flex-none">
             <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-sm">
               {venue.logo_url ? (
-                <img src={venue.logo_url} alt="Logo" className="h-full w-full object-cover" />
+                <img
+                  src={venue.logo_url}
+                  alt="Logo"
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <Building2 className="h-8 w-8 text-slate-300" />
               )}
             </div>
             {venue.venue_type === 'official' && (
               <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
-                <ShieldCheck size={10} className="text-white" />
+                <ShieldCheck
+                  size={10}
+                  className="text-white"
+                />
               </div>
             )}
             {venue.venue_type === 'public' && (
               <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
-                <Trees size={10} className="text-white" />
+                <Trees
+                  size={12}
+                  className="text-white"
+                />
               </div>
             )}
           </div>
@@ -124,9 +135,12 @@ export function VenueDetailsView({
             <h1 className="truncate text-xl font-black leading-tight tracking-tight text-slate-900">
               {venue.name_display}
             </h1>
-            <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-400">
-              <MapPin size={11} className="shrink-0" />
-              {venue.address_display || 'Address not listed'}
+            <p className="mt-0.5 flex items-start gap-1 text-xs font-medium text-slate-400">
+              <MapPin
+                size={12}
+                className="mt-[2px] shrink-0"
+              />
+              {venue.address_display}
             </p>
           </div>
         </div>
@@ -161,7 +175,6 @@ export function VenueDetailsView({
           </div>
         </div>
 
-
         {/* Description */}
         {venue.description && (
           <div className="mt-5">
@@ -179,7 +192,10 @@ export function VenueDetailsView({
                   key={item}
                   className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2"
                 >
-                  <CheckCircle size={12} className="shrink-0 text-emerald-500" />
+                  <CheckCircle
+                    size={12}
+                    className="shrink-0 text-emerald-500"
+                  />
                   <span className="text-xs font-semibold text-slate-700">{item}</span>
                 </div>
               ))}
@@ -192,11 +208,17 @@ export function VenueDetailsView({
           <div className="mt-6">
             <div className="mb-3 flex items-center gap-2">
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Hours</h2>
-              <Clock size={11} className="text-slate-300" />
+              <Clock
+                size={11}
+                className="text-slate-300"
+              />
             </div>
             <div className="space-y-2 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
               {venue.operating_hours.map((hour) => (
-                <div key={hour.day} className="flex items-center justify-between text-xs">
+                <div
+                  key={hour.day}
+                  className="flex items-center justify-between text-xs"
+                >
                   <span className="w-20 text-[9px] font-black uppercase tracking-widest text-slate-500">
                     {hour.day}
                   </span>
@@ -250,14 +272,16 @@ export function VenueDetailsView({
       {venue.status !== 'claimed' && (
         <div className="mx-4 mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-3">
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${venue.has_pending_claim ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${venue.has_pending_claim ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
+            >
               <Sparkles size={18} />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-black tracking-tight text-slate-900">Own this venue?</h3>
               <p className="mt-0.5 text-sm leading-relaxed text-slate-500">
                 {venue.has_pending_claim
-                  ? 'Your application is under review. We\'ll get back to you shortly.'
+                  ? "Your application is under review. We'll get back to you shortly."
                   : 'Claim it to get an official badge and manage your events.'}
               </p>
             </div>
@@ -286,14 +310,14 @@ export function VenueDetailsView({
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
               >
                 <List className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('calendar')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
               >
                 <CalendarDays className="h-4 w-4" />
               </button>
@@ -316,13 +340,11 @@ export function VenueDetailsView({
             />
           )
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white py-12 text-center">
-            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50">
-              <span className="text-2xl">⚡</span>
-            </div>
-            <p className="text-sm font-black uppercase tracking-widest text-slate-400">Nothing scheduled yet</p>
-            <p className="mt-1 text-xs font-bold uppercase tracking-widest text-slate-300">Check back soon</p>
-          </div>
+          <EmptyStateCard
+            icon={<Zap className="h-8 w-8 text-slate-400" />}
+            title="No games on the radar yet"
+            description="Host a game and invite your mates!"
+          />
         )}
       </div>
     </div>

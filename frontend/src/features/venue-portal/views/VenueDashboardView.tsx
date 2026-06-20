@@ -24,7 +24,7 @@ export function VenueDashboardView({
 
   if (loading && venues.length === 0) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 pb-20">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-slate-50 pb-20">
         <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-venue-500 border-t-transparent"></div>
         <div className="text-sm font-medium text-slate-500">Loading your venue...</div>
       </div>
@@ -62,7 +62,7 @@ export function VenueDashboardView({
     ) : null
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-screen-md border-x border-slate-100 bg-slate-50 pb-20 text-slate-900">
+    <div className="mx-auto min-h-[100dvh] w-full max-w-screen-md border-x border-slate-100 bg-slate-50 pb-20 text-slate-900">
       <VenuePortalHeader
         title="Venue Dashboard"
         subtitle={venueName}

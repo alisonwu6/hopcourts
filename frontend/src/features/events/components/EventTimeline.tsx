@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bike } from 'lucide-react'
+import { EmptyStateCard } from '@/components'
 import type { PlayerEvent } from '@/types'
 import { EventCard } from './EventCard'
 
@@ -60,13 +61,11 @@ export function EventTimeline({
   if (groups.length === 0) {
     return (
       emptyState ?? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-          <div className="p-2">
-            <Bike className="h-8 w-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">No events yet</h3>
-          <p className="mt-1 px-10 text-sm text-slate-500">Events will appear here.</p>
-        </div>
+        <EmptyStateCard
+          icon={<Bike className="h-8 w-8 text-slate-400" />}
+          title="No events yet"
+          description="Events will appear here."
+        />
       )
     )
   }

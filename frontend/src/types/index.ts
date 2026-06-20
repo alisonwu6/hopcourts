@@ -23,6 +23,7 @@ export interface User {
 
   role?: string[]
   onboarding_completed_at?: Date | string | null
+  is_anonymous?: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -299,6 +300,7 @@ export interface PlayerEvent {
     username?: string
     checkedInAt?: string | Date
     onTheWayAt?: string | Date
+    isAnonymous?: boolean
   }>
   status?: 'draft' | 'published' | 'cancelled' | 'completed'
   completedDate?: Date

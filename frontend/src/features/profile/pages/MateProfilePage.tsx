@@ -209,7 +209,7 @@ export function MateProfilePage() {
   }, [targetProfileUsername])
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <div className="mx-auto w-full max-w-4xl pb-6">
         <div className="relative flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
           <div className="flex w-10 items-center">

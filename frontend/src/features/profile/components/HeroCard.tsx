@@ -13,6 +13,7 @@ type Props = {
   onHostedClick?: () => void
   onJoinedClick?: () => void
   onTeammatesClick?: () => void
+  placeholderMode?: boolean
 }
 
 export function HeroCard({
@@ -27,6 +28,7 @@ export function HeroCard({
   onHostedClick,
   onJoinedClick,
   onTeammatesClick,
+  placeholderMode = false,
 }: Props) {
   const safeProfile: MateCardProps = profile ?? {
     name: '',
@@ -48,6 +50,7 @@ export function HeroCard({
         onHostedClick={onHostedClick}
         onJoinedClick={onJoinedClick}
         onTeammatesClick={onTeammatesClick}
+        placeholderMode={placeholderMode}
       />
       <div className="flex justify-center gap-4 py-2">
         {onEdit && (

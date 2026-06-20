@@ -12,6 +12,9 @@
   --color-venue-700: #486318;
   --color-venue-800: #324510;
   --color-venue-900: #1e2b0b;
+  --color-muted: #cbd5e1;
+  --color-hop: #E85D04;
+  --color-courts: #1A3A0A;
 }
 
 @layer base {

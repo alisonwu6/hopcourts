@@ -32,10 +32,13 @@ export function AppProviders({ children }: PropsWithChildren) {
 
       useAuthStore.getState().clearAuthState()
 
-      if (window.location.pathname !== '/login') {
+      const path = window.location.pathname
+      const onPublicProfileSurface = path === '/profile' || path.startsWith('/profile/')
+
+      if (path !== '/login' && !onPublicProfileSurface) {
         navigate('/login', {
           replace: true,
-          state: { from: `${window.location.pathname}${window.location.search}` },
+          state: { from: `${path}${window.location.search}` },
         })
       }
     })

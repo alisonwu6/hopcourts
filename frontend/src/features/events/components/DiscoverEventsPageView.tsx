@@ -82,7 +82,7 @@ export function DiscoverEventsPageView({
   onSignup,
 }: DiscoverEventsPageViewProps) {
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-[100dvh] pb-24">
       <DiscoverEventsHeader
         showMap={showMap}
         hasFilter={hasFilter}

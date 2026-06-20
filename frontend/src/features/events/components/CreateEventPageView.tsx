@@ -87,7 +87,7 @@ export function CreateEventPageView({
 }: CreateEventPageViewProps) {
   return (
     <>
-      <div className="min-h-screen bg-white pb-24">
+      <div className="min-h-[100dvh] bg-white pb-24">
         <ActionToolbar
           showBack={false}
           onBack={handleCancel}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Bell, X } from 'lucide-react'
+import { BellRing, X, Share, SquarePlus } from 'lucide-react'
 import { isPushSupported, isRunningAsPWA, subscribeToPush, savePushSubscription } from '@/services/pushService'
 import { useAuthStore } from '@/hooks'
 
@@ -22,7 +22,10 @@ export function PushNotificationBanner() {
     setStatus('loading')
     try {
       const sub = await subscribeToPush()
-      if (!sub) { setStatus('hidden'); return }
+      if (!sub) {
+        setStatus('hidden')
+        return
+      }
       await savePushSubscription(sub)
       setStatus('granted')
     } catch {
@@ -39,16 +42,31 @@ export function PushNotificationBanner() {
 
   if (!isRunningAsPWA()) {
     return (
-      <div className="mx-4 mb-4 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-        <Bell className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+      <div className="mx-4 mb-4 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-100 p-4">
+        <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-slate-900" />
         <div className="flex-1">
-          <p className="text-sm font-bold text-slate-900">Get court alerts instantly</p>
-          <p className="mt-0.5 text-xs text-slate-500">
-            Stay up to date with events you join. Tap <strong>Share</strong> in your browser, then{' '}
-            <strong>Add to Home Screen</strong> to enable push notifications on your phone.
-          </p>
+          <p className="text-sm font-bold text-slate-900">No App Store required</p>
+          <div className="mt-0.5 text-xs text-slate-500">
+            Get full app features instantly:
+            <ul className="mt-1 list-disc space-y-1 marker:text-slate-400">
+              <li>
+                Tap
+                <Share className="mx-1 inline-block h-3 w-3" />
+                <strong>Share</strong> in your browser
+              </li>
+              <li>
+                Select
+                <SquarePlus className="mx-1 inline-block h-3 w-3" />
+                <strong>Add to Home Screen</strong> to get instant notifications on your phone.
+              </li>
+            </ul>
+          </div>
         </div>
-        <button type="button" onClick={handleDismiss} className="text-slate-400">
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="text-slate-400"
+        >
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -56,11 +74,11 @@ export function PushNotificationBanner() {
   }
 
   return (
-    <div className="mx-4 mb-4 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4">
-      <Bell className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+    <div className="mx-4 mb-4 flex items-start gap-3 rounded-2xl border border-blue-100 bg-blue-100 p-4">
+      <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-slate-900" />
       <div className="flex-1">
-        <p className="text-sm font-bold text-slate-900">Stay in the loop</p>
-        <p className="mt-0.5 text-xs text-slate-500">Get notified when mates join or events go live near you.</p>
+        <p className="text-sm font-bold text-slate-900">Never miss a court buzz</p>
+        <p className="mt-0.5 text-xs text-slate-500">Stay updated to events you join.</p>
         <button
           type="button"
           onClick={handleEnable}
@@ -70,7 +88,11 @@ export function PushNotificationBanner() {
           {status === 'loading' ? 'Enabling…' : 'Enable notifications'}
         </button>
       </div>
-      <button type="button" onClick={handleDismiss} className="text-slate-400">
+      <button
+        type="button"
+        onClick={handleDismiss}
+        className="text-slate-400"
+      >
         <X className="h-4 w-4" />
       </button>
     </div>

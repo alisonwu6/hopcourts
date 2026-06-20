@@ -38,7 +38,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
   if (loading && !venueData) return <PageLoading />
 
   return (
-    <div className="relative mx-auto min-h-screen w-full max-w-screen-md bg-slate-50 pb-20 font-sans text-slate-700">
+    <div className="relative mx-auto min-h-[100dvh] w-full max-w-screen-md bg-slate-50 pb-20 font-sans text-slate-700">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
         <div className="flex w-full items-center justify-between">
           <button

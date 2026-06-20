@@ -97,7 +97,7 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
             <br />
             {deepLink
               ? 'Tap the button below to open this page in your browser.'
-              : 'Tap the "⋯" menu in the top-right, choose "Open in browser", then sign in from there.'}
+              : 'Open the menu (⋯ or the share icon) and choose "Open in browser", then sign in from there.'}
           </>
         }
         type="warning"

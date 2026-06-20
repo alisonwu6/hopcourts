@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { Bike } from 'lucide-react'
+import { EmptyStateCard } from '@/components'
 import { EventCard } from '@/features/events/components/EventCard'
 import { PageLoading } from '@/components/PageLoading'
 import type { PlayerEvent } from '@/types'
@@ -153,20 +154,12 @@ export function DiscoverEventsBody({
           className="py-20"
         />
       ) : filteredEvents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-          <div className="p-2">
-            <Bike className="h-8 w-8" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900">No events yet</h3>
-          <p className="mt-1 px-10 text-sm text-slate-500">Browse games happening around you and join the action.</p>
-          <button
-            type="button"
-            onClick={onCreateClick}
-            className="mt-5 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition"
-          >
-            Create event
-          </button>
-        </div>
+        <EmptyStateCard
+          icon={<Bike className="h-8 w-8 text-slate-400" />}
+          title="No events yet"
+          description="Browse games happening around you and join the action."
+          action={{ label: 'Create event', onClick: onCreateClick }}
+        />
       ) : (
         <>
           {visibleEvents.map((event) => (

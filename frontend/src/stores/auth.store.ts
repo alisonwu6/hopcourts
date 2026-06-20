@@ -180,7 +180,13 @@ export const useAuthStore = create<AuthState>((set) => ({
           const context = await sessionService.bootstrap(accessToken)
           persistToken(context.token, true)
           persistUserId(context.user.id, true)
-          set({ user: context.user, token: context.token, isAuthenticated: true, isLoading: false })
+          const isAnonymous = !!data.session?.user?.is_anonymous
+          set({
+            user: { ...context.user, is_anonymous: isAnonymous },
+            token: context.token,
+            isAuthenticated: true,
+            isLoading: false,
+          })
           hydrateBookmarks()
           if (context.rawProfile) useProfileStore.getState().seedFromBootstrap(context.rawProfile)
         } catch (err: any) {

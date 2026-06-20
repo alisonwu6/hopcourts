@@ -102,7 +102,7 @@ export function VenueDashboardPage() {
 
   if (unauthorized) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-6 text-center">
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-slate-50 px-6 text-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50">
           <ShieldX className="h-7 w-7 text-red-400" />
         </div>
