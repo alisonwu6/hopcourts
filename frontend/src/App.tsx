@@ -8,6 +8,9 @@ import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { VenueListPage } from '@/features/venues/pages/VenueListPage'
 import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
+import { SubmitVenuePage } from '@/features/venues/pages/SubmitVenuePage'
+import { SubmitVenueChooserPage } from '@/features/venues/pages/SubmitVenueChooserPage'
+import { SubmitPublicVenuePage } from '@/features/venues/pages/SubmitPublicVenuePage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { SavedEventsPage } from '@/features/profile/pages/SavedEventsPage'
 import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage'
@@ -201,6 +204,39 @@ export default function App() {
         element={
           <AppChrome showHeader={false}>
             <VenueListPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues/submit"
+        element={
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <SubmitVenueChooserPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues/submit/public"
+        element={
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <SubmitPublicVenuePage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues/submit/official"
+        element={
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <SubmitVenuePage />
           </AppChrome>
         }
       />

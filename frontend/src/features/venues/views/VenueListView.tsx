@@ -1,4 +1,4 @@
-import { Search, List as ListIcon, Map as MapIcon, X, Building2 } from 'lucide-react'
+import { Search, List as ListIcon, Map as MapIcon, X, Building2, BuildingIcon, ChevronRight } from 'lucide-react'
 import { VenueMap } from '../components/VenueMap'
 import { VenueMapFilters, VenueMapFilterType } from '../components/VenueMapFilters'
 import { ApiVenue } from '../services/venuesService'
@@ -14,6 +14,7 @@ interface VenueListViewProps {
   showMap: boolean
   onToggleView: () => void
   onVenueClick: (id: string) => void
+  onSubmitVenueClick: () => void
   // Map-specific
   mapVenues: ApiVenue[]
   selectedVenueId: string | null
@@ -36,6 +37,7 @@ export function VenueListView({
   showMap,
   onToggleView,
   onVenueClick,
+  onSubmitVenueClick,
   mapVenues,
   selectedVenueId,
   onSelectVenue,
@@ -140,6 +142,7 @@ export function VenueListView({
             </div>
           ) : (
             <div className="space-y-4">
+              <SubmitVenueCTA onClick={onSubmitVenueClick} />
               {venues.map((v) => (
                 <VenueCard
                   key={v.id}
@@ -161,5 +164,32 @@ export function VenueListView({
         </div>
       )}
     </div>
+  )
+}
+
+function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-4 rounded-3xl bg-[#2d3818] p-4 text-left shadow-sm transition active:scale-[0.99]"
+    >
+      <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1A3A0A]">
+        <BuildingIcon
+          className="h-7 w-7 text-[#cce15f]"
+          strokeWidth={1.8}
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your court?</p>
+        <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
+          Submit it free, 14-day official trial included.
+        </p>
+      </div>
+      <ChevronRight
+        className="h-5 w-5 flex-none text-white/70"
+        strokeWidth={2}
+      />
+    </button>
   )
 }

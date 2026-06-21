@@ -50,6 +50,43 @@ export interface VenueClaimRequest {
   note?: string
 }
 
+export type OwnershipRole =
+  | 'owner'
+  | 'manager'
+  | 'official_representative'
+  | 'community_organizer'
+
+export interface SubmitOfficialVenueRequest {
+  venue_type: 'official'
+  name: string
+  address: string
+  lat: number
+  lng: number
+  sport_keys: string[]
+  ownership_role: OwnershipRole
+  other_sport_label?: string
+}
+
+export interface SubmitPublicVenueRequest {
+  venue_type: 'public'
+  name: string
+  address: string
+  lat: number
+  lng: number
+  sport_keys: string[]
+  other_sport_label?: string
+}
+
+export type SubmitVenueRequest = SubmitOfficialVenueRequest | SubmitPublicVenueRequest
+
+export interface SubmitVenueResponse {
+  venue_id: string
+  name_display: string
+  venue_type: VenueType
+  // Present only for Official submissions
+  trial_ends_at?: string
+}
+
 const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   success: true,
   data,
@@ -189,6 +226,32 @@ export const venuesService = {
         timestamp: new Date(),
       } as any
     }
+  },
+
+  async submitVenue(payload: SubmitVenueRequest): Promise<ApiResponse<SubmitVenueResponse>> {
+    // TODO(backend): replace mock with `httpPost<{ data: SubmitVenueResponse }>('/venues/submit', { body: payload })`
+    // Backend responsibilities:
+    //   - Geocode `address`
+    //   - Persist `submitted_by_user_id` from req.userId (auth-derived, never client-supplied)
+    //   - venue_type='public' → status='unclaimed' (no trial, no claim record)
+    //   - venue_type='official' → status='claimed' + approved claim record + 14-day trial + grant 'venue' role
+    await new Promise((resolve) => setTimeout(resolve, 700))
+
+    const trialEndsAt =
+      payload.venue_type === 'official'
+        ? (() => {
+            const d = new Date()
+            d.setDate(d.getDate() + 14)
+            return d.toISOString()
+          })()
+        : undefined
+
+    return wrapSuccess({
+      venue_id: `mock-${Date.now()}`,
+      name_display: payload.name,
+      venue_type: payload.venue_type,
+      trial_ends_at: trialEndsAt,
+    })
   },
 
   async requestVenueClaim(venueId: string, claimData: VenueClaimRequest): Promise<ApiResponse<any>> {
