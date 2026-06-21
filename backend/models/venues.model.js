@@ -28,6 +28,134 @@ async function createVenue(input) {
   return rows[0]
 }
 
+async function submitVenue(input) {
+  const pool = getPool()
+  const client = await pool.connect()
+
+  try {
+    await client.query('BEGIN')
+
+    const sportKeys = Array.from(new Set(input.sportKeys || []))
+    const { rows: sportRows } = await client.query(
+      `
+        SELECT key
+        FROM public.sports
+        WHERE key = ANY($1::text[])
+          AND COALESCE(is_active, true) = true
+      `,
+      [sportKeys]
+    )
+    const validSportKeys = sportRows.map((row) => row.key)
+    if (validSportKeys.length !== sportKeys.length) {
+      const invalidKeys = sportKeys.filter((key) => !validSportKeys.includes(key))
+      const error = new Error(`Invalid sport keys: ${invalidKeys.join(', ')}`)
+      error.code = 'INVALID_SPORT'
+      throw error
+    }
+
+    const isOfficial = input.venueType === 'official'
+    const trialStartsAt = isOfficial ? new Date() : null
+    const trialEndsAt = isOfficial ? new Date(trialStartsAt.getTime() + 14 * 24 * 60 * 60 * 1000) : null
+
+    const venueSql = `
+      INSERT INTO public.venues (
+        name,
+        name_display,
+        address,
+        lat,
+        lng,
+        status,
+        venue_type,
+        owner_user_id,
+        created_by,
+        trial_starts_at,
+        trial_ends_at,
+        subscription_status
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $8, $9, $10, $11
+      )
+      RETURNING *
+    `
+    const { rows: venueRows } = await client.query(venueSql, [
+      input.name,
+      input.name,
+      input.address,
+      input.lat,
+      input.lng,
+      isOfficial ? 'claimed' : 'unclaimed',
+      input.venueType,
+      input.userId,
+      trialStartsAt,
+      trialEndsAt,
+      isOfficial ? 'trialing' : null,
+    ])
+    const venue = venueRows[0]
+
+    if (sportKeys.length) {
+      await client.query(
+        `
+          INSERT INTO public.venue_sports (venue_id, sport_key)
+          SELECT $1::uuid, unnest($2::text[])
+          ON CONFLICT (venue_id, sport_key) DO NOTHING
+        `,
+        [venue.id, sportKeys]
+      )
+    }
+
+    let claim = null
+    if (isOfficial) {
+      const claimSql = `
+        INSERT INTO public.venue_claims (
+          venue_id,
+          owner_id,
+          contact_name,
+          contact_person,
+          contact_title,
+          contact_phone,
+          contact_email,
+          note,
+          status,
+          ownership_role,
+          auto_approved,
+          reviewed_at
+        ) VALUES (
+          $1, $2, $3, $3, $4, $5, $6, $7, 'approved', $8, true, NOW()
+        )
+        RETURNING *
+      `
+      const { rows: claimRows } = await client.query(claimSql, [
+        venue.id,
+        input.userId,
+        input.contactName || null,
+        input.ownershipRole || null,
+        input.contactPhone || null,
+        input.contactEmail || null,
+        'Official venue submission auto-approved',
+        input.ownershipRole,
+      ])
+      claim = claimRows[0]
+
+      await client.query(
+        `
+          UPDATE public.users
+          SET role = array_append(role, 'venue'), updated_at = NOW()
+          WHERE id = $1
+            AND NOT (role @> ARRAY['venue']::text[])
+        `,
+        [input.userId]
+      )
+    }
+
+    await client.query('COMMIT')
+    return { venue, claim, sportKeys, trialEndsAt }
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
 async function findNearbyVenues({ lat, lng, radiusMeters = 100 }) {
   // Simple bounding box for MVP
   // 1 deg lat ~= 111km -> 1m ~= 1/111000 deg
@@ -80,6 +208,10 @@ async function getVenueById(id, userId = null) {
          AND s.ends_at < NOW()
          AND s.status = 'published') as past_sessions_count,
       COALESCE((
+        SELECT array_agg(DISTINCT vs.sport_key ORDER BY vs.sport_key)
+        FROM public.venue_sports vs
+        WHERE vs.venue_id = v.id
+      ), (
         SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
         FROM public.sessions s
         WHERE s.venue_id = v.id
@@ -141,6 +273,10 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm, venueTyp
          AND s.ends_at < NOW()
          AND s.status = 'published') as past_sessions_count,
       COALESCE((
+        SELECT array_agg(DISTINCT vs.sport_key ORDER BY vs.sport_key)
+        FROM public.venue_sports vs
+        WHERE vs.venue_id = v.id
+      ), (
         SELECT array_agg(DISTINCT s.sport_key ORDER BY s.sport_key)
         FROM public.sessions s
         WHERE s.venue_id = v.id
@@ -573,6 +709,7 @@ async function getVenueStats(venueId) {
 
 module.exports = {
   createVenue,
+  submitVenue,
   findNearbyVenues,
   getVenueById,
   listVenues,

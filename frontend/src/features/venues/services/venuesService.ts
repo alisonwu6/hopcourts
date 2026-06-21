@@ -229,29 +229,16 @@ export const venuesService = {
   },
 
   async submitVenue(payload: SubmitVenueRequest): Promise<ApiResponse<SubmitVenueResponse>> {
-    // TODO(backend): replace mock with `httpPost<{ data: SubmitVenueResponse }>('/venues/submit', { body: payload })`
-    // Backend responsibilities:
-    //   - Geocode `address`
-    //   - Persist `submitted_by_user_id` from req.userId (auth-derived, never client-supplied)
-    //   - venue_type='public' → status='unclaimed' (no trial, no claim record)
-    //   - venue_type='official' → status='claimed' + approved claim record + 14-day trial + grant 'venue' role
-    await new Promise((resolve) => setTimeout(resolve, 700))
-
-    const trialEndsAt =
-      payload.venue_type === 'official'
-        ? (() => {
-            const d = new Date()
-            d.setDate(d.getDate() + 14)
-            return d.toISOString()
-          })()
-        : undefined
-
-    return wrapSuccess({
-      venue_id: `mock-${Date.now()}`,
-      name_display: payload.name,
-      venue_type: payload.venue_type,
-      trial_ends_at: trialEndsAt,
-    })
+    try {
+      const response = await httpPost<any>('/venues/submit', { body: payload })
+      return wrapSuccess(response?.data)
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'SUBMIT_VENUE_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
   },
 
   async requestVenueClaim(venueId: string, claimData: VenueClaimRequest): Promise<ApiResponse<any>> {
