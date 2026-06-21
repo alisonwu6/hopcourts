@@ -113,32 +113,35 @@ export function VenueListView({
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
             </div>
           ) : venues.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-              <div className="p-2">
-                <Building2 className="h-8 w-8 text-slate-400" />
+            <div className="space-y-4">
+              <SubmitVenueCTA onClick={onSubmitVenueClick} />
+              <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+                <div className="p-2">
+                  <Building2 className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {searchQuery
+                    ? 'No venues found'
+                    : activeFilter === 'official'
+                    ? 'No official venues yet'
+                    : activeFilter === 'public'
+                    ? 'No public venues yet'
+                    : activeFilter === 'has_events'
+                    ? 'No venues with events'
+                    : 'No venues yet'}
+                </h3>
+                <p className="mt-1 px-10 text-sm text-slate-500">
+                  {searchQuery
+                    ? 'Try a different name or address.'
+                    : activeFilter === 'official'
+                    ? 'Official partner venues will appear here.'
+                    : activeFilter === 'public'
+                    ? 'Public courts and parks will appear here.'
+                    : activeFilter === 'has_events'
+                    ? 'Check back later for upcoming events.'
+                    : 'Venues in your area will appear here.'}
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">
-                {searchQuery
-                  ? 'No venues found'
-                  : activeFilter === 'official'
-                  ? 'No official venues yet'
-                  : activeFilter === 'public'
-                  ? 'No public venues yet'
-                  : activeFilter === 'has_events'
-                  ? 'No venues with events'
-                  : 'No venues yet'}
-              </h3>
-              <p className="mt-1 px-10 text-sm text-slate-500">
-                {searchQuery
-                  ? 'Try a different name or address.'
-                  : activeFilter === 'official'
-                  ? 'Official partner venues will appear here.'
-                  : activeFilter === 'public'
-                  ? 'Public courts and parks will appear here.'
-                  : activeFilter === 'has_events'
-                  ? 'Check back later for upcoming events.'
-                  : 'Venues in your area will appear here.'}
-              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -181,7 +184,7 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your court?</p>
+        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your location?</p>
         <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
           Submit it free, 14-day official trial included.
         </p>
