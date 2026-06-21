@@ -43,6 +43,7 @@ export function SubmitVenuePage() {
         onApplySports={form.applySports}
         onSelectRole={form.selectRole}
         onConfirmLocation={form.confirmLocation}
+        setFieldRef={form.setFieldRef}
         onBack={() => navigate('/venues/submit')}
         onSubmit={form.submit}
       />

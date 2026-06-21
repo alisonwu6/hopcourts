@@ -21,6 +21,7 @@ interface SubmitPublicVenueViewProps {
   onChangeField: <K extends SubmitVenueField>(key: K, value: SubmitVenueFormState[K]) => void
   onApplySports: (keys: string[]) => void
   onConfirmLocation: (data: { address: string; lat: number; lng: number }) => void
+  setFieldRef: (field: SubmitVenueField) => (el: HTMLDivElement | null) => void
   onBack: () => void
   onSwitchToOfficial: () => void
   onSubmit: () => void
@@ -41,6 +42,7 @@ export function SubmitPublicVenueView({
   onChangeField,
   onApplySports,
   onConfirmLocation,
+  setFieldRef,
   onBack,
   onSwitchToOfficial,
   onSubmit,
@@ -91,18 +93,20 @@ export function SubmitPublicVenueView({
 
         <div className="rounded-3xl border border-slate-200 bg-white p-4">
           <FieldSection title="Venue details">
-            <FloatingField
-              label="Venue name"
-              name="name"
-              value={form.name}
-              onChange={(e) => onChangeField('name', e.target.value)}
-              autoComplete="new-password"
-              placeholder="e.g. QUT Sport Basketball and Netball Courts"
-              hasError={highlightField === 'name'}
-              supportingText={fieldErrors.name}
-              required
-            />
-            <div className="space-y-1">
+            <div ref={setFieldRef('name')}>
+              <FloatingField
+                label="Venue name"
+                name="name"
+                value={form.name}
+                onChange={(e) => onChangeField('name', e.target.value)}
+                autoComplete="new-password"
+                placeholder="e.g. QUT Sport Basketball and Netball Courts"
+                hasError={highlightField === 'name'}
+                supportingText={fieldErrors.name}
+                required
+              />
+            </div>
+            <div ref={setFieldRef('address')} className="space-y-1">
               <button
                 type="button"
                 onClick={() => setShowLocationSheet(true)}
@@ -132,7 +136,7 @@ export function SubmitPublicVenueView({
               {fieldErrors.address && (
                 <p
                   className={clsx(
-                    'px-4 text-xs',
+                    'px-4 text-xs transition-colors duration-500',
                     highlightField === 'address' ? 'text-red-500' : 'text-slate-500'
                   )}
                 >
@@ -145,7 +149,7 @@ export function SubmitPublicVenueView({
 
         <div className="rounded-3xl border border-slate-200 bg-white p-4">
           <FieldSection title="Sports happen here">
-            <div className="space-y-1">
+            <div ref={setFieldRef('sportKeys')} className="space-y-1">
               <button
                 type="button"
                 onClick={() => setShowSportSheet(true)}
@@ -176,7 +180,7 @@ export function SubmitPublicVenueView({
               {fieldErrors.sportKeys && (
                 <p
                   className={clsx(
-                    'px-4 text-xs',
+                    'px-4 text-xs transition-colors duration-500',
                     highlightField === 'sportKeys' ? 'text-red-500' : 'text-slate-500'
                   )}
                 >

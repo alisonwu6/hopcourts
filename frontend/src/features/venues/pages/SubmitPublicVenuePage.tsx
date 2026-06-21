@@ -32,6 +32,7 @@ export function SubmitPublicVenuePage() {
         onChangeField={form.changeField}
         onApplySports={form.applySports}
         onConfirmLocation={form.confirmLocation}
+        setFieldRef={form.setFieldRef}
         onBack={() => navigate('/venues/submit')}
         onSwitchToOfficial={() => navigate('/venues/submit/official', { replace: true })}
         onSubmit={form.submit}

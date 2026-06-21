@@ -36,6 +36,7 @@ interface SubmitVenueViewProps {
   onApplySports: (keys: string[]) => void
   onSelectRole: (role: OwnershipRole) => void
   onConfirmLocation: (data: { address: string; lat: number; lng: number }) => void
+  setFieldRef: (field: SubmitVenueField) => (el: HTMLDivElement | null) => void
   onBack: () => void
   onSubmit: () => void
 }
@@ -58,6 +59,7 @@ export function SubmitVenueView({
   onApplySports,
   onSelectRole,
   onConfirmLocation,
+  setFieldRef,
   onBack,
   onSubmit,
 }: SubmitVenueViewProps) {
@@ -110,18 +112,20 @@ export function SubmitVenueView({
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <FieldSection title="Venue details">
-              <FloatingField
-                label="Venue name"
-                name="name"
-                value={form.name}
-                onChange={(e) => onChangeField('name', e.target.value)}
-                autoComplete="new-password"
-                placeholder="e.g. QUT Sport Basketball and Netball Courts"
-                hasError={highlightField === 'name'}
-                supportingText={fieldErrors.name}
-                required
-              />
-              <div className="space-y-1">
+              <div ref={setFieldRef('name')}>
+                <FloatingField
+                  label="Venue name"
+                  name="name"
+                  value={form.name}
+                  onChange={(e) => onChangeField('name', e.target.value)}
+                  autoComplete="new-password"
+                  placeholder="e.g. QUT Sport Basketball and Netball Courts"
+                  hasError={highlightField === 'name'}
+                  supportingText={fieldErrors.name}
+                  required
+                />
+              </div>
+              <div ref={setFieldRef('address')} className="space-y-1">
                 <button
                   type="button"
                   onClick={() => setShowLocationSheet(true)}
@@ -155,7 +159,12 @@ export function SubmitVenueView({
                   />
                 </button>
                 {fieldErrors.address && (
-                  <p className={clsx('px-4 text-xs', highlightField === 'address' ? 'text-red-500' : 'text-slate-500')}>
+                  <p
+                    className={clsx(
+                      'px-4 text-xs transition-colors duration-500',
+                      highlightField === 'address' ? 'text-red-500' : 'text-slate-500'
+                    )}
+                  >
                     {fieldErrors.address}
                   </p>
                 )}
@@ -165,7 +174,7 @@ export function SubmitVenueView({
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
             <FieldSection title="Sports happen here">
-              <div className="space-y-1">
+              <div ref={setFieldRef('sportKeys')} className="space-y-1">
                 <button
                   type="button"
                   onClick={() => setShowSportSheet(true)}
@@ -197,7 +206,7 @@ export function SubmitVenueView({
                 {fieldErrors.sportKeys && (
                   <p
                     className={clsx(
-                      'px-4 text-xs',
+                      'px-4 text-xs transition-colors duration-500',
                       highlightField === 'sportKeys' ? 'text-red-500' : 'text-slate-500'
                     )}
                   >
@@ -213,7 +222,7 @@ export function SubmitVenueView({
               title="Your role"
               description="Select your relationship to this location."
             >
-              <div className="space-y-1">
+              <div ref={setFieldRef('ownershipRole')} className="space-y-1">
                 <button
                   type="button"
                   onClick={() => setShowRoleSheet(true)}
@@ -233,7 +242,7 @@ export function SubmitVenueView({
                 {fieldErrors.ownershipRole && (
                   <p
                     className={clsx(
-                      'px-4 text-xs',
+                      'px-4 text-xs transition-colors duration-500',
                       highlightField === 'ownershipRole' ? 'text-red-500' : 'text-slate-500'
                     )}
                   >

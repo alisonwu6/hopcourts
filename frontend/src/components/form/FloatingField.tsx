@@ -58,7 +58,16 @@ export function FloatingField(props: FloatingFieldProps) {
             {label}
           </label>
         </div>
-        {infoText && <p className={clsx('text-xs', hasError ? 'text-red-500' : 'text-slate-500')}>{infoText}</p>}
+        {infoText && (
+          <p
+            className={clsx(
+              'text-xs transition-colors duration-500',
+              hasError ? 'text-red-500' : 'text-slate-500'
+            )}
+          >
+            {infoText}
+          </p>
+        )}
       </div>
     )
   }
@@ -79,7 +88,16 @@ export function FloatingField(props: FloatingFieldProps) {
           {label}
         </label>
       </div>
-      {infoText && <p className={clsx('text-xs', hasError ? 'text-red-500' : 'text-slate-500')}>{infoText}</p>}
+      {infoText && (
+          <p
+            className={clsx(
+              'text-xs transition-colors duration-500',
+              hasError ? 'text-red-500' : 'text-slate-500'
+            )}
+          >
+            {infoText}
+          </p>
+        )}
     </div>
   )
 }

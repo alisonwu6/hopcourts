@@ -65,6 +65,13 @@ export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: 
   const [fieldErrors, setFieldErrors] = useState<SubmitVenueFieldErrors>({})
   const [error, setError] = useState<string | null>(null)
   const highlightTimerRef = useRef<number | null>(null)
+  const fieldRefs = useRef<Partial<Record<SubmitVenueField, HTMLDivElement | null>>>({})
+
+  const setFieldRef =
+    (field: SubmitVenueField) =>
+    (el: HTMLDivElement | null): void => {
+      fieldRefs.current[field] = el
+    }
 
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
@@ -141,6 +148,9 @@ export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: 
   }
 
   const flashFieldError = (field: SubmitVenueField, message: string) => {
+    const el = fieldRefs.current[field]
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
     setHighlightField(field)
     setFieldErrors({ [field]: message })
     setError(null)
@@ -152,7 +162,7 @@ export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: 
     highlightTimerRef.current = window.setTimeout(() => {
       setHighlightField((current) => (current === field ? null : current))
       highlightTimerRef.current = null
-    }, 3000)
+    }, 2000)
   }
 
   const buildPayload = (): SubmitOfficialVenueRequest | SubmitPublicVenueRequest => {
@@ -226,6 +236,7 @@ export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: 
     applySports,
     selectRole,
     confirmLocation,
+    setFieldRef,
     submit,
   }
 }
