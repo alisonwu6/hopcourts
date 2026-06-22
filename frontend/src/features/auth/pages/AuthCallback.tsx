@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
@@ -10,11 +10,12 @@ const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
 export function AuthCallback() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { setAuthData, isAuthenticated } = useAuthStore()
+  const setAuthData = useAuthStore((state) => state.setAuthData)
   const [ready, setReady] = useState(false)
   const [ok, setOk] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const hasFinalizedRef = useRef(false)
 
   const queryType = useMemo(() => new URLSearchParams(location.search).get('type'), [location.search])
 
@@ -23,6 +24,8 @@ export function AuthCallback() {
       setReady(true)
       return
     }
+    if (hasFinalizedRef.current) return
+    hasFinalizedRef.current = true
 
     const finalizeLogin = async () => {
       if (!supabase) {
@@ -40,11 +43,19 @@ export function AuthCallback() {
         const context = await sessionService.bootstrap(data.session.access_token)
         setAuthData(context.user, context.token)
         setOk('Signed in successfully! Redirecting...')
+
+        // Prefer URL query (?returnTo=) — it survives any session-storage
+        // wipe during the OAuth redirect chain. Fall back to sessionStorage.
         let redirectPath: string | null = null
         try {
-          const storedPath = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
-          if (storedPath && storedPath.startsWith('/')) {
-            redirectPath = storedPath
+          const urlReturnTo = new URLSearchParams(location.search).get('returnTo')
+          if (urlReturnTo && urlReturnTo.startsWith('/')) {
+            redirectPath = urlReturnTo
+          } else {
+            const storedPath = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY)
+            if (storedPath && storedPath.startsWith('/')) {
+              redirectPath = storedPath
+            }
           }
           sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY)
         } catch (storageError) {
@@ -52,7 +63,8 @@ export function AuthCallback() {
         }
 
         const isOnboarded = !!context.user?.onboarding_completed_at
-        if (isOnboarded && redirectPath) {
+        const allowsIncompleteProfile = !!redirectPath?.startsWith('/venues/submit')
+        if (redirectPath && (isOnboarded || allowsIncompleteProfile)) {
           navigate(redirectPath, { replace: true })
           return
         }
@@ -69,7 +81,7 @@ export function AuthCallback() {
     }
 
     void finalizeLogin()
-  }, [queryType, navigate, setAuthData, isAuthenticated])
+  }, [queryType, navigate, setAuthData, location.search])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

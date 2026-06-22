@@ -37,7 +37,7 @@ export function SubmitPublicVenuePage() {
         onSwitchToOfficial={() => navigate('/venues/submit/official', { replace: true })}
         onSubmit={form.submit}
       />
-      <LoginPromptSheet open={form.showLoginPrompt} onClose={form.closeLoginPrompt} />
+      <LoginPromptSheet open={form.showLoginPrompt} onClose={form.closeLoginPrompt} returnTo="/venues/submit/public" />
       <AlertDialog
         open={successDialog.open}
         onClose={() => {

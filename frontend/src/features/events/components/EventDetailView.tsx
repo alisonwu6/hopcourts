@@ -480,6 +480,7 @@ export function EventDetailView({
         open={showLoginPrompt}
         onClose={onCloseLoginPrompt}
         onSignup={onSignup}
+        returnTo={id ? `/event/${id}` : undefined}
       />
 
       <AlertDialog

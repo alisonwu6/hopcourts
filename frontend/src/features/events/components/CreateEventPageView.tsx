@@ -546,6 +546,7 @@ export function CreateEventPageView({
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
         onSignup={handleSignup}
+        returnTo={editId ? `/create-event?id=${editId}` : '/create-event'}
       />
 
       <BottomSheet

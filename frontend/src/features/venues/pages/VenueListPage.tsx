@@ -114,7 +114,11 @@ export function VenueListPage() {
         loadingMore={loadingMore}
         onLoadMore={loadMoreVenues}
       />
-      <LoginPromptSheet open={showLoginPrompt} onClose={() => setShowLoginPrompt(false)} />
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        returnTo="/venues/submit"
+      />
     </>
   )
 }

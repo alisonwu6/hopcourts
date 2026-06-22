@@ -47,7 +47,7 @@ export function SubmitVenuePage() {
         onBack={() => navigate('/venues/submit')}
         onSubmit={form.submit}
       />
-      <LoginPromptSheet open={form.showLoginPrompt} onClose={form.closeLoginPrompt} />
+      <LoginPromptSheet open={form.showLoginPrompt} onClose={form.closeLoginPrompt} returnTo="/venues/submit/official" />
       <AlertDialog
         open={successDialog.open}
         onClose={() => {

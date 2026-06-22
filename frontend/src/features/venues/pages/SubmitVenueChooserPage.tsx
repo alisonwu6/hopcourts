@@ -30,7 +30,7 @@ export function SubmitVenueChooserPage() {
         onPickPublic={() => navigate('/venues/submit/public')}
         onPickOfficial={() => navigate('/venues/submit/official')}
       />
-      <LoginPromptSheet open={showLoginPrompt} onClose={handleLoginSheetClose} />
+      <LoginPromptSheet open={showLoginPrompt} onClose={handleLoginSheetClose} returnTo="/venues/submit" />
     </>
   )
 }
