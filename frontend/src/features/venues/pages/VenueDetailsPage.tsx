@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react'
+import { Frown } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AlertDialog } from '@/components/AlertDialog'
 import { BottomSheet } from '@/components/BottomSheet'
@@ -44,6 +45,7 @@ export function VenueDetailsPage() {
   const [venue, setVenue] = useState<ApiVenue | null>(null)
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
   const [isClaimSheetOpen, setIsClaimSheetOpen] = useState(false)
   const [claimForm, setClaimForm] = useState<ClaimFormState>(EMPTY_CLAIM_FORM)
@@ -63,6 +65,8 @@ export function VenueDetailsPage() {
 
       if (venueRes.success && venueRes.data) {
         setVenue(venueRes.data)
+      } else {
+        setNotFound(true)
       }
       if (eventsRes.success && eventsRes.data) {
         setUpcomingEvents(eventsRes.data.data)
@@ -161,8 +165,25 @@ export function VenueDetailsPage() {
     navigate('/venues')
   }
 
-  if (isLoading || !venue) {
-    return <PageLoading />
+  if (isLoading) return <PageLoading />
+
+  if (notFound || !venue) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="mb-4 rounded-full bg-slate-100 p-4">
+          <Frown className="h-8 w-8 text-slate-400" />
+        </div>
+        <h1 className="text-xl font-bold text-slate-900">Location not found</h1>
+        <p className="text-sm text-slate-500">This location may have been removed or the link is incorrect.</p>
+        <button
+          type="button"
+          onClick={() => navigate('/venues')}
+          className="mt-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white"
+        >
+          Explore locations
+        </button>
+      </div>
+    )
   }
 
   return (

@@ -265,6 +265,13 @@ export function MateProfilePage() {
             </div>
             <h3 className="mb-2 text-lg font-semibold text-slate-900">Mate not found</h3>
             <p className="max-w-xs text-sm text-slate-500">{error}</p>
+            <button
+              type="button"
+              onClick={() => navigate('/events')}
+              className="mt-6 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white"
+            >
+              Explore events
+            </button>
           </div>
         ) : (
           profile && (
