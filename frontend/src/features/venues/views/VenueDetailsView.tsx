@@ -280,20 +280,17 @@ export function VenueDetailsView({
             <div className="min-w-0 flex-1">
               <h3 className="font-black tracking-tight text-slate-900">Manage this location?</h3>
               <p className="mt-0.5 text-sm leading-relaxed text-slate-500">
-                {venue.has_pending_claim
-                  ? "Your application is under review. We'll get back to you shortly."
-                  : 'Claim it to get an official badge, manage events, and start a free 14-day trial.'}
+                Get an official badge, manage your schedule, and start a free 14-day trial — instantly.
               </p>
             </div>
           </div>
           <VenueButton
             variant="secondary"
             className="mt-4 h-11 w-full rounded-2xl bg-[#2d3818] px-5 text-sm font-bold text-white hover:bg-[#1A3A0A] disabled:bg-slate-200 disabled:text-slate-500"
-            onClick={venue.has_pending_claim ? undefined : onClaim}
+            onClick={onClaim}
             isLoading={isClaiming}
-            disabled={venue.has_pending_claim}
           >
-            {venue.has_pending_claim ? 'Claim submitted' : 'Claim location'}
+            Claim & start free trial
           </VenueButton>
         </div>
       )}

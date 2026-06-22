@@ -50,6 +50,11 @@ export interface VenueClaimRequest {
   note?: string
 }
 
+export interface ClaimVenueResponse {
+  venue_id: string
+  trial_ends_at: string
+}
+
 export type OwnershipRole =
   | 'owner'
   | 'manager'
@@ -245,7 +250,7 @@ export const venuesService = {
     }
   },
 
-  async requestVenueClaim(venueId: string, claimData: VenueClaimRequest): Promise<ApiResponse<any>> {
+  async requestVenueClaim(venueId: string, claimData: VenueClaimRequest): Promise<ApiResponse<ClaimVenueResponse>> {
     try {
       const response = await httpPost<any>(`/venues/${venueId}/claim`, {
         body: claimData,

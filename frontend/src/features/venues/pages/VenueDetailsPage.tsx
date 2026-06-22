@@ -5,6 +5,8 @@ import { BottomSheet } from '@/components/BottomSheet'
 import { useAuthStore } from '@/hooks'
 import { venuesService, ApiVenue, VenueClaimRequest } from '../services/venuesService'
 import { eventsService } from '@/features/events/services/eventsService'
+import { sessionService } from '@/services/sessionService'
+import { supabase } from '@/lib/supabase'
 import { PageLoading } from '@/components/PageLoading'
 import { VenueDetailsView } from '../views/VenueDetailsView'
 
@@ -46,17 +48,6 @@ export function VenueDetailsPage() {
   const [isClaimSheetOpen, setIsClaimSheetOpen] = useState(false)
   const [claimForm, setClaimForm] = useState<ClaimFormState>(EMPTY_CLAIM_FORM)
   const [claimError, setClaimError] = useState('')
-  const [claimDialog, setClaimDialog] = useState<{
-    open: boolean
-    type: 'success' | 'error'
-    title: string
-    description: string
-  }>({
-    open: false,
-    type: 'success',
-    title: '',
-    description: '',
-  })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,45 +117,38 @@ export function VenueDetailsPage() {
     const claimRes = await venuesService.requestVenueClaim(venue.id, payload)
     setIsClaiming(false)
 
-    if (!claimRes.success) {
-      setClaimError(claimRes.error?.message || 'Claim request failed.')
+    if (!claimRes.success || !claimRes.data) {
+      setClaimError(claimRes.error?.message || 'Claim failed. Please try again.')
       return
     }
 
+    // Refresh session so the new 'venue' role is reflected in the auth store
+    // before navigating to the venue dashboard.
+    try {
+      const { data: sessionData } = await supabase!.auth.getSession()
+      if (sessionData?.session?.access_token) {
+        const context = await sessionService.bootstrap(sessionData.session.access_token)
+        useAuthStore.getState().setAuthData(context.user, context.token)
+      }
+    } catch {
+      // Non-fatal — dashboard will still load, role will sync on next page visit
+    }
+
     setIsClaimSheetOpen(false)
-    setClaimForm(EMPTY_CLAIM_FORM)
-    setClaimError('')
-    setVenue((v) => v ? { ...v, has_pending_claim: true } : v)
-    setClaimDialog({
-      open: true,
-      type: 'success',
-      title: 'Application submitted',
-      description: "We've got your claim. The team will review it shortly.",
-    })
+    navigate(`/admin/${claimRes.data.venue_id}`, { replace: true })
   }
 
   const handleShare = async () => {
     if (!venue) return
-
-    const shareData = {
-      title: venue.name_display,
-      text: `Check out ${venue.name_display} on HopCourts!`,
-      url: window.location.href,
-    }
-
+    const url = `${window.location.origin}/venues/${venue.id}`
     if (navigator.share) {
       try {
-        await navigator.share(shareData)
-      } catch (err) {
-        console.error('Share failed:', err)
+        await navigator.share({ title: venue.name_display, url })
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.error(err)
       }
     } else {
-      try {
-        await navigator.clipboard.writeText(window.location.href)
-        alert('Link copied to clipboard!')
-      } catch (err) {
-        console.error('Clipboard failed:', err)
-      }
+      await navigator.clipboard.writeText(url).catch(console.error)
     }
   }
 
@@ -196,8 +180,8 @@ export function VenueDetailsPage() {
       <BottomSheet
         open={isClaimSheetOpen}
         onClose={closeClaimSheet}
-        title="Claim this location"
-        description="Tell us who you are. Once approved, your official trial starts instantly."
+        title="Start your free trial"
+        description="Enter your details and your 14-day trial activates immediately — no card required."
         maxWidthClassName="max-w-xl"
         sheetClassName="max-h-[86vh]"
         footer={
@@ -216,7 +200,7 @@ export function VenueDetailsPage() {
               disabled={isClaiming}
               className="flex-1 rounded-[18px] bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              {isClaiming ? 'Submitting…' : 'Submit claim'}
+              {isClaiming ? 'Starting trial…' : 'Claim & start trial'}
             </button>
           </div>
         }
@@ -310,14 +294,6 @@ export function VenueDetailsPage() {
         </form>
       </BottomSheet>
 
-      <AlertDialog
-        open={claimDialog.open}
-        onClose={() => setClaimDialog((current) => ({ ...current, open: false }))}
-        title={claimDialog.title}
-        description={claimDialog.description}
-        type={claimDialog.type}
-        actionLabel="OK"
-      />
     </>
   )
 }
