@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { BottomSheet } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
 import {
@@ -17,6 +18,26 @@ type SportSelectionSheetProps = {
 
 export function SportSelectionSheet({ open, sports, selectedKeys, onClose, onApply }: SportSelectionSheetProps) {
   const { categories, groupedSports, pendingKeys, toggleSport } = useSportSelectionSheet({ open, sports, selectedKeys })
+  const contentRef = useRef<HTMLDivElement | null>(null)
+
+  const resetScroll = () => {
+    if (contentRef.current) contentRef.current.scrollTop = 0
+  }
+
+  useLayoutEffect(() => {
+    if (!open) return
+    resetScroll()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const raf = requestAnimationFrame(resetScroll)
+    const timer = window.setTimeout(resetScroll, 280)
+    return () => {
+      cancelAnimationFrame(raf)
+      window.clearTimeout(timer)
+    }
+  }, [open, categories.length])
 
   if (!open) return null
 
@@ -24,10 +45,10 @@ export function SportSelectionSheet({ open, sports, selectedKeys, onClose, onApp
     <BottomSheet
       open={open}
       onClose={onClose}
-      showHandle
+      showHandle={false}
       disableContainer
-      sheetClassName="flex h-[86vh] flex-col"
-      contentClassName="flex flex-1 flex-col"
+      sheetClassName="flex h-[86vh] max-h-[86vh] flex-col overflow-hidden"
+      contentClassName="flex min-h-0 flex-1 flex-col"
       maxWidthClassName="max-w-[480px]"
     >
       <SheetLayout
@@ -35,8 +56,10 @@ export function SportSelectionSheet({ open, sports, selectedKeys, onClose, onApp
         title="Choose sports"
         subtitle="Select all sports that apply."
         height="tall"
+        showHandle
         className="flex h-full w-full flex-col rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
-        contentClassName="flex-1 space-y-5 overflow-y-auto px-5 pb-6 pt-4"
+        contentClassName="flex-1 space-y-5 overflow-y-auto px-5 pb-6 pt-6"
+        contentRef={contentRef}
         primaryButton={{
           label: 'Apply',
           onClick: () => onApply(pendingKeys),

@@ -47,7 +47,7 @@ export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial 
 
       <div className="mx-auto mt-4 w-full max-w-md space-y-6 px-4">
         <div className="text-center">
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">What kind of venue is this?</h1>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">What kind of venue is this?</h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-500">
             You can always upgrade to Official later. <br/>
             Nothing here is permanent.
