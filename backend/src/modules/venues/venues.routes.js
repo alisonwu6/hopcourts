@@ -30,6 +30,30 @@ router.get('/', async (req, res, next) => {
   }
 })
 
+// POST /venues/submit - Create public listing or auto-approved official venue
+router.post('/submit', verifyToken, async (req, res, next) => {
+  try {
+    const userId = req.userId || req.authUser?.id || req.user?.id || null
+    const venue = await venuesService.submitVenue(userId, req.body)
+    res.status(201).json({ success: true, data: venue })
+  } catch (err) {
+    if (
+      err.message === 'Authentication required' ||
+      err.message === 'User not found' ||
+      err.message === 'Invalid venue type' ||
+      err.message === 'Venue name is required' ||
+      err.message === 'Venue address is required' ||
+      err.message === 'Venue coordinates are required' ||
+      err.message === 'At least one sport is required' ||
+      err.message === 'Invalid ownership role' ||
+      err.code === 'INVALID_SPORT'
+    ) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+    next(err)
+  }
+})
+
 // GET /venues/:id - Get single venue details (Entry point for Claim)
 router.get('/:id', optionalAuth, async (req, res, next) => {
   try {

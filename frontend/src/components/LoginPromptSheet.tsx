@@ -10,9 +10,12 @@ type LoginPromptSheetProps = {
   open: boolean
   onClose: () => void
   onSignup?: () => void
+  returnTo?: string
 }
 
-export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
+
+export function LoginPromptSheet({ open, onClose, returnTo }: LoginPromptSheetProps) {
   const [showInAppDialog, setShowInAppDialog] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState<{
     open: boolean
@@ -29,12 +32,29 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
   )
 
   const loginGoogle = async () => {
+    const path =
+      returnTo ||
+      (typeof window !== 'undefined'
+        ? `${window.location.pathname}${window.location.search}${window.location.hash}`
+        : '/')
+
+    // Belt-and-braces: persist in sessionStorage AND pipe through OAuth URL.
+    // sessionStorage can be wiped during PWA/cross-app OAuth redirects on some
+    // mobile browsers; the URL query is the reliable channel.
+    try {
+      if (path.startsWith('/')) {
+        sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, path)
+      }
+    } catch (error) {
+      console.warn('Failed to persist post-login redirect path:', error)
+    }
+
     if (inApp) {
       setShowInAppDialog(true)
       onClose()
       return
     }
-    const { data, error } = await signInWithGoogle()
+    const { data, error } = await signInWithGoogle(path.startsWith('/') ? path : undefined)
     if (error) {
       alert(error.message)
       return

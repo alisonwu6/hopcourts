@@ -50,6 +50,43 @@ export interface VenueClaimRequest {
   note?: string
 }
 
+export type OwnershipRole =
+  | 'owner'
+  | 'manager'
+  | 'official_representative'
+  | 'community_organizer'
+
+export interface SubmitOfficialVenueRequest {
+  venue_type: 'official'
+  name: string
+  address: string
+  lat: number
+  lng: number
+  sport_keys: string[]
+  ownership_role: OwnershipRole
+  other_sport_label?: string
+}
+
+export interface SubmitPublicVenueRequest {
+  venue_type: 'public'
+  name: string
+  address: string
+  lat: number
+  lng: number
+  sport_keys: string[]
+  other_sport_label?: string
+}
+
+export type SubmitVenueRequest = SubmitOfficialVenueRequest | SubmitPublicVenueRequest
+
+export interface SubmitVenueResponse {
+  venue_id: string
+  name_display: string
+  venue_type: VenueType
+  // Present only for Official submissions
+  trial_ends_at?: string
+}
+
 const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   success: true,
   data,
@@ -186,6 +223,19 @@ export const venuesService = {
       return {
         success: false,
         error: { code: 'FETCH_VENUE_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  async submitVenue(payload: SubmitVenueRequest): Promise<ApiResponse<SubmitVenueResponse>> {
+    try {
+      const response = await httpPost<any>('/venues/submit', { body: payload })
+      return wrapSuccess(response?.data)
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'SUBMIT_VENUE_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }

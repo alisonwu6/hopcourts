@@ -144,6 +144,7 @@ export function DiscoverEventsPageView({
         open={showLoginPrompt}
         onClose={onCloseLoginPrompt}
         onSignup={onSignup}
+        returnTo="/events"
       />
     </div>
   )

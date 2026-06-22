@@ -77,6 +77,65 @@ async function getVenue(id, userId = null) {
   return venuesModel.getVenueById(id, userId)
 }
 
+const OWNERSHIP_ROLES = new Set(['owner', 'manager', 'official_representative', 'community_organizer'])
+
+function normalizeSubmitVenuePayload(body = {}) {
+  const venueType = String(body.venue_type || '').trim()
+  const name = String(body.name || '').trim()
+  const address = String(body.address || '').trim()
+  const lat = Number(body.lat)
+  const lng = Number(body.lng)
+  const sportKeys = Array.isArray(body.sport_keys)
+    ? body.sport_keys.map((key) => String(key || '').trim().toUpperCase()).filter(Boolean)
+    : []
+  const ownershipRole = body.ownership_role ? String(body.ownership_role).trim() : ''
+
+  if (!['public', 'official'].includes(venueType)) {
+    throw new Error('Invalid venue type')
+  }
+  if (!name) throw new Error('Venue name is required')
+  if (!address) throw new Error('Venue address is required')
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Venue coordinates are required')
+  if (!sportKeys.length) throw new Error('At least one sport is required')
+  if (venueType === 'official' && !OWNERSHIP_ROLES.has(ownershipRole)) {
+    throw new Error('Invalid ownership role')
+  }
+
+  return {
+    venueType,
+    name,
+    address,
+    lat,
+    lng,
+    sportKeys,
+    ownershipRole: venueType === 'official' ? ownershipRole : null,
+  }
+}
+
+async function submitVenue(userId, body) {
+  if (!userId) throw new Error('Authentication required')
+
+  const payload = normalizeSubmitVenuePayload(body)
+  const user = await usersModel.getUserById(userId)
+  if (!user) throw new Error('User not found')
+
+  const result = await venuesModel.submitVenue({
+    ...payload,
+    userId,
+    contactName: user.display_name || user.username || user.email || null,
+    contactEmail: user.email || null,
+    contactPhone: null,
+  })
+
+  return {
+    venue_id: result.venue.id,
+    name_display: result.venue.name_display || result.venue.name,
+    venue_type: result.venue.venue_type,
+    status: result.venue.status,
+    trial_ends_at: result.venue.trial_ends_at,
+  }
+}
+
 async function requestVenueClaim(venueId, userId, claimData) {
   const venue = await venuesModel.getVenueById(venueId)
   if (!venue) throw new Error('Venue not found')
@@ -311,6 +370,7 @@ module.exports = {
   resolveVenue,
   listVenues,
   getVenue,
+  submitVenue,
   requestVenueClaim,
   reviewVenueClaim,
   isVenueOwner,

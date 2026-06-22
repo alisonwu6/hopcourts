@@ -88,17 +88,21 @@ export function useEventDetailLogic() {
     navigate(-1)
   }
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    const url = `${window.location.origin}/event/${id}`
     if (navigator.share) {
-      navigator
-        .share({
-          title: event?.title,
-          text: 'Come join this event!',
-          url: window.location.href,
-        })
-        .catch(console.error)
+      try {
+        await navigator.share({ title: event?.title, url })
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.error(err)
+      }
     } else {
-      window.alert('Share feature coming soon')
+      try {
+        await navigator.clipboard.writeText(url)
+        showAlert('Link copied', 'Share it with your mates!', 'success')
+      } catch {
+        showAlert('Copy failed', `Open this link: ${url}`, 'info')
+      }
     }
   }
 
