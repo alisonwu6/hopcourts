@@ -298,7 +298,7 @@ export function VenueDetailsPage() {
               onChange={(event) => updateClaimField('note', event.target.value)}
               rows={4}
               className="w-full resize-none rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              placeholder="Any details to help us verify your claim."
+              placeholder="Anything else you'd like to tell us?"
             />
           </label>
 
