@@ -269,16 +269,14 @@ export function VenueDetailsView({
       </div>
 
       {/* Claim CTA */}
-      {venue.status !== 'claimed' && (
+      {venue.status !== 'claimed' && !venue.has_pending_claim && (
         <div className="mx-4 mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-3">
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#e8f0c2] text-[#1A3A0A]"
-            >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#e8f0c2] text-[#1A3A0A]">
               <Sparkles size={18} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-black tracking-tight text-slate-900">Manage this location?</h3>
+              <h3 className="font-black tracking-tight text-slate-900">Manage this venue?</h3>
               <p className="mt-0.5 text-sm leading-relaxed text-slate-500">
                 Get an official badge, manage your schedule, and start a free 14-day trial — instantly.
               </p>
@@ -292,6 +290,13 @@ export function VenueDetailsView({
           >
             Claim & start free trial
           </VenueButton>
+        </div>
+      )}
+      {venue.has_pending_claim && venue.status !== 'claimed' && (
+        <div className="mx-4 mt-6 rounded-3xl border border-slate-100 bg-slate-50 p-5">
+          <p className="text-sm font-semibold text-slate-600">
+            Your application is under review. We'll be in touch shortly.
+          </p>
         </div>
       )}
 

@@ -50,6 +50,11 @@ export function VenueDetailsPage() {
   const [isClaimSheetOpen, setIsClaimSheetOpen] = useState(false)
   const [claimForm, setClaimForm] = useState<ClaimFormState>(EMPTY_CLAIM_FORM)
   const [claimError, setClaimError] = useState('')
+  const [claimSuccess, setClaimSuccess] = useState<{
+    open: boolean
+    venueName: string
+    venueId: string | null
+  }>({ open: false, venueName: '', venueId: null })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -121,13 +126,24 @@ export function VenueDetailsPage() {
     const claimRes = await venuesService.requestVenueClaim(venue.id, payload)
     setIsClaiming(false)
 
-    if (!claimRes.success || !claimRes.data) {
+    if (!claimRes.success) {
       setClaimError(claimRes.error?.message || 'Claim failed. Please try again.')
       return
     }
 
-    // Refresh session so the new 'venue' role is reflected in the auth store
-    // before navigating to the venue dashboard.
+    setIsClaimSheetOpen(false)
+    setClaimForm(EMPTY_CLAIM_FORM)
+    setClaimError('')
+
+    const activatedVenueId = claimRes.data?.venue_id ?? null
+
+    setClaimSuccess({ open: true, venueName: venue.name_display, venueId: activatedVenueId })
+    if (!activatedVenueId) {
+      setVenue((v) => (v ? { ...v, has_pending_claim: true } : v))
+    }
+  }
+
+  const handleGoToPortal = async (venueId: string) => {
     try {
       const { data: sessionData } = await supabase!.auth.getSession()
       if (sessionData?.session?.access_token) {
@@ -135,11 +151,9 @@ export function VenueDetailsPage() {
         useAuthStore.getState().setAuthData(context.user, context.token)
       }
     } catch {
-      // Non-fatal — dashboard will still load, role will sync on next page visit
+      // Non-fatal — role will sync on next visit
     }
-
-    setIsClaimSheetOpen(false)
-    navigate(`/admin/${claimRes.data.venue_id}`, { replace: true })
+    navigate(`/admin/${venueId}`, { replace: true })
   }
 
   const handleShare = async () => {
@@ -173,8 +187,8 @@ export function VenueDetailsPage() {
         <div className="mb-4 rounded-full bg-slate-100 p-4">
           <Frown className="h-8 w-8 text-slate-400" />
         </div>
-        <h1 className="text-xl font-bold text-slate-900">Location not found</h1>
-        <p className="text-sm text-slate-500">This location may have been removed or the link is incorrect.</p>
+        <h1 className="text-xl font-bold text-slate-900">Venue not found</h1>
+        <p className="text-sm text-slate-500">This venue may have been removed or the link is incorrect.</p>
         <button
           type="button"
           onClick={() => navigate('/venues')}
@@ -291,7 +305,7 @@ export function VenueDetailsPage() {
               value={claimForm.contact_email}
               onChange={(event) => updateClaimField('contact_email', event.target.value)}
               className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              placeholder="Email used for admin approval"
+              placeholder="Your business email"
               autoComplete="email"
             />
           </label>
@@ -315,6 +329,35 @@ export function VenueDetailsPage() {
         </form>
       </BottomSheet>
 
+      <AlertDialog
+        open={claimSuccess.open}
+        onClose={() => {
+          setClaimSuccess({ open: false, venueName: '', venueId: null })
+          if (!claimSuccess.venueId) return
+          navigate('/venues', { replace: true })
+        }}
+        title={claimSuccess.venueId ? 'Venue is live!' : 'Application submitted'}
+        description={
+          claimSuccess.venueId ? (
+            <>
+              <span className="font-semibold text-slate-700">{claimSuccess.venueName}</span> is now on the map. Your
+              14-day trial has started.
+            </>
+          ) : (
+            <>
+              Your claim for <span className="font-semibold text-slate-700">{claimSuccess.venueName}</span> is under
+              review. We'll be in touch shortly.
+            </>
+          )
+        }
+        type="success"
+        actionLabel={claimSuccess.venueId ? 'Go to your venue' : 'Got it'}
+        onAction={
+          claimSuccess.venueId
+            ? () => handleGoToPortal(claimSuccess.venueId!)
+            : undefined
+        }
+      />
     </>
   )
 }

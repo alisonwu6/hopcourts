@@ -184,7 +184,7 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your location?</p>
+        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your venue?</p>
         <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
           Submit it free, 14-day official trial included.
         </p>
