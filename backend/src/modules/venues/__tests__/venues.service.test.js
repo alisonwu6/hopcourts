@@ -40,6 +40,10 @@ describe('venues.service submitVenue', () => {
       lng: 153.0,
       sport_keys: ['basketball'],
       ownership_role: 'owner',
+      contact_person: 'Alison',
+      contact_phone: '0400000000',
+      contact_email: 'alison@example.com',
+      note: 'I manage the booking desk.',
     })
 
     expect(venuesModel.submitVenue).toHaveBeenCalledWith({
@@ -50,10 +54,14 @@ describe('venues.service submitVenue', () => {
       lng: 153.0,
       sportKeys: ['BASKETBALL'],
       ownershipRole: 'owner',
+      contactPerson: 'Alison',
+      contactPhone: '0400000000',
+      contactEmail: 'alison@example.com',
+      note: 'I manage the booking desk.',
       userId: 'user-1',
-      contactName: 'Owner Name',
-      contactEmail: 'owner@example.com',
-      contactPhone: null,
+      contactName: 'Alison',
+      contactEmail: 'alison@example.com',
+      contactPhone: '0400000000',
     })
     expect(result).toEqual({
       venue_id: 'venue-1',

@@ -114,7 +114,6 @@ export function DiscoverEventsPage() {
       }}
       onCloseProfileRequired={() => setShowProfileRequiredSheet(false)}
       onCloseLoginPrompt={() => setShowLoginPrompt(false)}
-      onSignup={() => navigate('/signup')}
     />
   )
 }

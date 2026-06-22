@@ -64,6 +64,10 @@ export interface SubmitOfficialVenueRequest {
   lng: number
   sport_keys: string[]
   ownership_role: OwnershipRole
+  contact_person: string
+  contact_phone: string
+  contact_email: string
+  note?: string
   other_sport_label?: string
 }
 

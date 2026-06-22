@@ -89,6 +89,10 @@ function normalizeSubmitVenuePayload(body = {}) {
     ? body.sport_keys.map((key) => String(key || '').trim().toUpperCase()).filter(Boolean)
     : []
   const ownershipRole = body.ownership_role ? String(body.ownership_role).trim() : ''
+  const contactPerson = body.contact_person ? String(body.contact_person).trim() : ''
+  const contactPhone = body.contact_phone ? String(body.contact_phone).trim() : ''
+  const contactEmail = body.contact_email ? String(body.contact_email).trim() : ''
+  const note = body.note ? String(body.note).trim() : ''
 
   if (!['public', 'official'].includes(venueType)) {
     throw new Error('Invalid venue type')
@@ -100,6 +104,9 @@ function normalizeSubmitVenuePayload(body = {}) {
   if (venueType === 'official' && !OWNERSHIP_ROLES.has(ownershipRole)) {
     throw new Error('Invalid ownership role')
   }
+  if (venueType === 'official' && !contactPerson) throw new Error('Contact person is required')
+  if (venueType === 'official' && !contactPhone) throw new Error('Contact phone is required')
+  if (venueType === 'official' && !contactEmail) throw new Error('Contact email is required')
 
   return {
     venueType,
@@ -109,6 +116,10 @@ function normalizeSubmitVenuePayload(body = {}) {
     lng,
     sportKeys,
     ownershipRole: venueType === 'official' ? ownershipRole : null,
+    contactPerson: venueType === 'official' ? contactPerson : null,
+    contactPhone: venueType === 'official' ? contactPhone : null,
+    contactEmail: venueType === 'official' ? contactEmail : null,
+    note: venueType === 'official' ? note : null,
   }
 }
 
@@ -122,9 +133,9 @@ async function submitVenue(userId, body) {
   const result = await venuesModel.submitVenue({
     ...payload,
     userId,
-    contactName: user.display_name || user.username || user.email || null,
-    contactEmail: user.email || null,
-    contactPhone: null,
+    contactName: payload.contactPerson || user.display_name || user.username || user.email || null,
+    contactEmail: payload.contactEmail || user.email || null,
+    contactPhone: payload.contactPhone || null,
   })
 
   return {
@@ -202,6 +213,7 @@ async function reviewVenueClaim(claimId, status) {
   if (status === 'approved') {
     await venuesModel.updateVenueStatus(claim.venue_id, 'claimed')
     await venuesModel.updateVenueType(claim.venue_id, 'official')
+    await venuesModel.startVenueTrial(claim.venue_id)
   }
 
   return updatedClaim

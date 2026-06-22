@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
@@ -17,7 +17,7 @@ export function AuthCallback() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const hasFinalizedRef = useRef(false)
 
-  const queryType = useMemo(() => new URLSearchParams(location.search).get('type'), [location.search])
+  const queryType = new URLSearchParams(location.search).get('type')
 
   useEffect(() => {
     if (queryType === 'recovery') {

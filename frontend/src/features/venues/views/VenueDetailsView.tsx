@@ -273,27 +273,27 @@ export function VenueDetailsView({
         <div className="mx-4 mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-3">
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${venue.has_pending_claim ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#e8f0c2] text-[#1A3A0A]"
             >
               <Sparkles size={18} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-black tracking-tight text-slate-900">Own this venue?</h3>
+              <h3 className="font-black tracking-tight text-slate-900">Manage this location?</h3>
               <p className="mt-0.5 text-sm leading-relaxed text-slate-500">
                 {venue.has_pending_claim
                   ? "Your application is under review. We'll get back to you shortly."
-                  : 'Claim it to get an official badge and manage your events.'}
+                  : 'Claim it to get an official badge, manage events, and start a free 14-day trial.'}
               </p>
             </div>
           </div>
           <VenueButton
             variant="secondary"
-            className="mt-4 h-11 w-full rounded-2xl px-5 text-[11px] font-black uppercase tracking-[0.18em]"
+            className="mt-4 h-11 w-full rounded-2xl bg-[#2d3818] px-5 text-sm font-bold text-white hover:bg-[#1A3A0A] disabled:bg-slate-200 disabled:text-slate-500"
             onClick={venue.has_pending_claim ? undefined : onClaim}
             isLoading={isClaiming}
             disabled={venue.has_pending_claim}
           >
-            {venue.has_pending_claim ? 'Claim Submitted' : 'Claim venue'}
+            {venue.has_pending_claim ? 'Claim submitted' : 'Claim location'}
           </VenueButton>
         </div>
       )}

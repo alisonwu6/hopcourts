@@ -22,6 +22,10 @@ export type SubmitVenueFormState = {
   sportKeys: string[]
   otherSportLabel: string
   ownershipRole: OwnershipRole | ''
+  contactPerson: string
+  contactPhone: string
+  contactEmail: string
+  note: string
 }
 
 export type SubmitVenueField = keyof SubmitVenueFormState
@@ -36,13 +40,23 @@ const initialState: SubmitVenueFormState = {
   sportKeys: [],
   otherSportLabel: '',
   ownershipRole: '',
+  contactPerson: '',
+  contactPhone: '',
+  contactEmail: '',
+  note: '',
 }
 
-const REQUIRED_MESSAGES: Record<Extract<SubmitVenueField, 'name' | 'address' | 'sportKeys' | 'ownershipRole'>, string> = {
+const REQUIRED_MESSAGES: Record<
+  Extract<SubmitVenueField, 'name' | 'address' | 'sportKeys' | 'ownershipRole' | 'contactPerson' | 'contactPhone' | 'contactEmail'>,
+  string
+> = {
   name: 'Please enter a venue name',
   address: 'Please choose a venue address',
   sportKeys: 'Please select at least one sport',
   ownershipRole: 'Please select your relationship to this venue',
+  contactPerson: 'Please enter a contact person',
+  contactPhone: 'Please enter a phone number',
+  contactEmail: 'Please enter an email address',
 }
 
 type UseSubmitVenueFormParams = {
@@ -54,6 +68,7 @@ type UseSubmitVenueFormParams = {
 export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: UseSubmitVenueFormParams) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const isAuthLoading = useAuthStore((state) => state.isLoading)
+  const user = useAuthStore((state) => state.user)
   const { items: sportsCatalog } = useSports('en')
   const [form, setForm] = useState<SubmitVenueFormState>(initialState)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -78,6 +93,15 @@ export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: 
       setShowLoginPrompt(true)
     }
   }, [isAuthLoading, isAuthenticated])
+
+  useEffect(() => {
+    if (!user) return
+    setForm((prev) => ({
+      ...prev,
+      contactPerson: prev.contactPerson || String(user.name || '').trim(),
+      contactEmail: prev.contactEmail || String(user.email || '').trim(),
+    }))
+  }, [user])
 
   useEffect(() => {
     return () => {
@@ -137,13 +161,18 @@ export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: 
 
   const validate = (): { field: SubmitVenueField; message: string } | null => {
     if (!form.name.trim()) return { field: 'name', message: REQUIRED_MESSAGES.name }
-    if (!form.address.trim() || form.lat == null || form.lng == null) {
+    if (!form.address.trim() || form.lat == null || form.lng == null)
       return { field: 'address', message: REQUIRED_MESSAGES.address }
-    }
     if (form.sportKeys.length === 0) return { field: 'sportKeys', message: REQUIRED_MESSAGES.sportKeys }
-    if (mode === 'official' && !form.ownershipRole) {
-      return { field: 'ownershipRole', message: REQUIRED_MESSAGES.ownershipRole }
+
+    if (mode === 'official') {
+      type OfficialField = 'ownershipRole' | 'contactPerson' | 'contactPhone' | 'contactEmail'
+      const required: OfficialField[] = ['ownershipRole', 'contactPerson', 'contactPhone', 'contactEmail']
+      for (const field of required) {
+        if (!String(form[field]).trim()) return { field, message: REQUIRED_MESSAGES[field] }
+      }
     }
+
     return null
   }
 
@@ -179,6 +208,10 @@ export function useSubmitVenueForm({ mode, onSuccess, onUnauthenticatedClose }: 
         ...base,
         venue_type: 'official',
         ownership_role: form.ownershipRole as OwnershipRole,
+        contact_person: form.contactPerson.trim(),
+        contact_phone: form.contactPhone.trim(),
+        contact_email: form.contactEmail.trim(),
+        note: form.note.trim() || undefined,
       }
     }
 

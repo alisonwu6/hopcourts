@@ -67,7 +67,6 @@ type EventDetailViewProps = {
   onCheckIn: () => void
 
   onCloseLoginPrompt: () => void
-  onSignup: () => void
   onCloseAlert: () => void
   onCloseProfileRequired: () => void
   onNavigateEvents: () => void
@@ -100,7 +99,6 @@ export function EventDetailView({
   onJoin,
   onCheckIn,
   onCloseLoginPrompt,
-  onSignup,
   onCloseAlert,
   onCloseProfileRequired,
   onNavigateEvents,
@@ -479,7 +477,6 @@ export function EventDetailView({
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={onCloseLoginPrompt}
-        onSignup={onSignup}
         returnTo={id ? `/event/${id}` : undefined}
       />
 

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import clsx from 'clsx'
 import { BottomSheet } from './BottomSheet'
 import { AlertDialog } from './AlertDialog'
 import GoogleLoginButton from './button/GoogleLoginButton'
@@ -9,7 +8,6 @@ import { detectInAppBrowserName, getExternalBrowserDeepLink, isInAppBrowser } fr
 type LoginPromptSheetProps = {
   open: boolean
   onClose: () => void
-  onSignup?: () => void
   returnTo?: string
 }
 
@@ -32,21 +30,17 @@ export function LoginPromptSheet({ open, onClose, returnTo }: LoginPromptSheetPr
   )
 
   const loginGoogle = async () => {
-    const path =
-      returnTo ||
-      (typeof window !== 'undefined'
-        ? `${window.location.pathname}${window.location.search}${window.location.hash}`
-        : '/')
+    const path = returnTo ?? `${window.location.pathname}${window.location.search}${window.location.hash}`
+    const isLocalPath = path.startsWith('/')
 
-    // Belt-and-braces: persist in sessionStorage AND pipe through OAuth URL.
-    // sessionStorage can be wiped during PWA/cross-app OAuth redirects on some
-    // mobile browsers; the URL query is the reliable channel.
-    try {
-      if (path.startsWith('/')) {
+    // Belt-and-braces: sessionStorage for same-tab flows, OAuth URL query for
+    // cross-app redirects where sessionStorage gets wiped (PWA, in-app browsers).
+    if (isLocalPath) {
+      try {
         sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, path)
+      } catch {
+        console.warn('Failed to persist post-login redirect path')
       }
-    } catch (error) {
-      console.warn('Failed to persist post-login redirect path:', error)
     }
 
     if (inApp) {
@@ -54,7 +48,7 @@ export function LoginPromptSheet({ open, onClose, returnTo }: LoginPromptSheetPr
       onClose()
       return
     }
-    const { data, error } = await signInWithGoogle(path.startsWith('/') ? path : undefined)
+    const { data, error } = await signInWithGoogle(isLocalPath ? path : undefined)
     if (error) {
       alert(error.message)
       return

@@ -7,6 +7,8 @@ import type { Sport } from '@/types/dictionary'
 import type { OwnershipRole, SelectedVenueSport, SubmitVenueField, SubmitVenueFormState } from '../hooks/useSubmitVenueForm'
 import { SportSelectionSheet } from '../components/SportSelectionSheet'
 
+const VENUE_SECTION_TITLE_CLASS = 'text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400'
+
 export const OWNERSHIP_ROLE_OPTIONS: { value: OwnershipRole; label: string; subtitle: string }[] = [
   { value: 'owner', label: 'Owner', subtitle: 'I own this location' },
   { value: 'manager', label: 'Manager', subtitle: 'I manage day-to-day operations' },
@@ -90,7 +92,7 @@ export function SubmitVenueView({
 
         <form
           id="submit-venue-form"
-          className="mx-auto mt-2 w-full max-w-md space-y-5 px-4"
+          className="mx-auto w-full max-w-md space-y-5 px-4"
           onSubmit={(e) => {
             e.preventDefault()
             onSubmit()
@@ -100,18 +102,18 @@ export function SubmitVenueView({
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
           )}
 
-          <div className="flex items-start gap-3 rounded-2xl bg-[#e8f0c2] p-4">
+          <div className="flex items-start gap-3 rounded-2xl bg-[#e8f0c2] my-4 p-4">
             <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-[#1A3A0A] text-[#cce15f]">
               <Gift className="h-5 w-5" />
             </div>
             <p className="text-sm leading-snug text-slate-700">
-              <span className="font-bold text-slate-900">Goes live instantly</span> as an Official venue with a free
-              14-day trial. No card needed, billing only starts if you choose to stay.
+              <span className="font-bold text-slate-900">Free 14-day trial included.</span> No card needed, billing
+              only starts if you choose to stay.
             </p>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
-            <FieldSection title="Venue details">
+            <FieldSection title="VENUE DETAILS" titleClassName={VENUE_SECTION_TITLE_CLASS}>
               <div ref={setFieldRef('name')}>
                 <FloatingField
                   label="Venue name"
@@ -173,7 +175,7 @@ export function SubmitVenueView({
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
-            <FieldSection title="Sports happen here">
+            <FieldSection title="SPORTS HAPPEN HERE" titleClassName={VENUE_SECTION_TITLE_CLASS}>
               <div ref={setFieldRef('sportKeys')} className="space-y-1">
                 <button
                   type="button"
@@ -218,21 +220,50 @@ export function SubmitVenueView({
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-4">
-            <FieldSection
-              title="Your role"
-              description="Select your relationship to this location."
-            >
+            <div className="space-y-4">
+              <div ref={setFieldRef('contactPerson')}>
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Contact person
+                  </span>
+                  <input
+                    type="text"
+                    value={form.contactPerson}
+                    onChange={(event) => onChangeField('contactPerson', event.target.value)}
+                    className={clsx(
+                      'w-full rounded-[18px] border bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400',
+                      highlightField === 'contactPerson' ? 'border-red-500' : 'border-slate-200'
+                    )}
+                    placeholder="Your name"
+                    autoComplete="name"
+                  />
+                </label>
+                {fieldErrors.contactPerson && (
+                  <p
+                    className={clsx(
+                      'mt-1.5 px-4 text-xs transition-colors duration-500',
+                      highlightField === 'contactPerson' ? 'text-red-500' : 'text-slate-500'
+                    )}
+                  >
+                    {fieldErrors.contactPerson}
+                  </p>
+                )}
+              </div>
+
               <div ref={setFieldRef('ownershipRole')} className="space-y-1">
+                <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  Your role
+                </span>
                 <button
                   type="button"
                   onClick={() => setShowRoleSheet(true)}
                   className={clsx(
-                    'flex w-full items-center justify-between rounded-2xl border-2 bg-white px-4 py-4 text-left transition',
-                    highlightField === 'ownershipRole' ? 'border-red-500' : 'border-slate-300 hover:border-slate-400'
+                    'flex w-full items-center justify-between rounded-[18px] border bg-white px-4 py-3 text-left text-sm outline-none transition focus:border-slate-400',
+                    highlightField === 'ownershipRole' ? 'border-red-500' : 'border-slate-200'
                   )}
                 >
-                  <span className={clsx('text-base', selectedRole ? 'font-semibold text-slate-900' : 'text-slate-400')}>
-                    {selectedRole ? selectedRole.label : 'Select your relationship...'}
+                  <span className={clsx(selectedRole ? 'font-medium text-slate-900' : 'text-slate-400')}>
+                    {selectedRole ? selectedRole.label : 'Manager, owner, operations lead'}
                   </span>
                   <ChevronRight
                     className="h-5 w-5 flex-none text-slate-400"
@@ -242,7 +273,7 @@ export function SubmitVenueView({
                 {fieldErrors.ownershipRole && (
                   <p
                     className={clsx(
-                      'px-4 text-xs transition-colors duration-500',
+                      'mt-1.5 px-4 text-xs transition-colors duration-500',
                       highlightField === 'ownershipRole' ? 'text-red-500' : 'text-slate-500'
                     )}
                   >
@@ -250,7 +281,78 @@ export function SubmitVenueView({
                   </p>
                 )}
               </div>
-            </FieldSection>
+
+              <div ref={setFieldRef('contactPhone')}>
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Phone
+                  </span>
+                  <input
+                    type="tel"
+                    value={form.contactPhone}
+                    onChange={(event) => onChangeField('contactPhone', event.target.value)}
+                    className={clsx(
+                      'w-full rounded-[18px] border bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400',
+                      highlightField === 'contactPhone' ? 'border-red-500' : 'border-slate-200'
+                    )}
+                    placeholder="Your phone number"
+                    autoComplete="tel"
+                  />
+                </label>
+                {fieldErrors.contactPhone && (
+                  <p
+                    className={clsx(
+                      'mt-1.5 px-4 text-xs transition-colors duration-500',
+                      highlightField === 'contactPhone' ? 'text-red-500' : 'text-slate-500'
+                    )}
+                  >
+                    {fieldErrors.contactPhone}
+                  </p>
+                )}
+              </div>
+
+              <div ref={setFieldRef('contactEmail')}>
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Email
+                  </span>
+                  <input
+                    type="email"
+                    value={form.contactEmail}
+                    onChange={(event) => onChangeField('contactEmail', event.target.value)}
+                    className={clsx(
+                      'w-full rounded-[18px] border bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400',
+                      highlightField === 'contactEmail' ? 'border-red-500' : 'border-slate-200'
+                    )}
+                    placeholder="Email used for admin approval"
+                    autoComplete="email"
+                  />
+                </label>
+                {fieldErrors.contactEmail && (
+                  <p
+                    className={clsx(
+                      'mt-1.5 px-4 text-xs transition-colors duration-500',
+                      highlightField === 'contactEmail' ? 'text-red-500' : 'text-slate-500'
+                    )}
+                  >
+                    {fieldErrors.contactEmail}
+                  </p>
+                )}
+              </div>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  Notes
+                </span>
+                <textarea
+                  value={form.note}
+                  onChange={(event) => onChangeField('note', event.target.value)}
+                  rows={4}
+                  className="w-full resize-none rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
+                  placeholder="Any details to help us verify your claim."
+                />
+              </label>
+            </div>
           </div>
         </form>
 

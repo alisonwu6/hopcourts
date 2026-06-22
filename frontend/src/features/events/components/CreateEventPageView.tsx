@@ -67,7 +67,6 @@ export function CreateEventPageView({
   handleImageChange,
   handleSportSelect,
   handleCancel,
-  handleSignup,
   handleSubmit,
   handleRemoveImage,
   setFieldRef,
@@ -545,7 +544,6 @@ export function CreateEventPageView({
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
-        onSignup={handleSignup}
         returnTo={editId ? `/create-event?id=${editId}` : '/create-event'}
       />
 

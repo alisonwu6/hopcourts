@@ -42,7 +42,6 @@ type DiscoverEventsPageViewProps = {
   onApplyFilters: (range: { start: Date | null; end: Date | null }, selected: string[]) => void
   onCloseProfileRequired: () => void
   onCloseLoginPrompt: () => void
-  onSignup: () => void
 }
 
 export function DiscoverEventsPageView({
@@ -79,7 +78,6 @@ export function DiscoverEventsPageView({
   onApplyFilters,
   onCloseProfileRequired,
   onCloseLoginPrompt,
-  onSignup,
 }: DiscoverEventsPageViewProps) {
   return (
     <div className="min-h-[100dvh] pb-24">
@@ -143,7 +141,6 @@ export function DiscoverEventsPageView({
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={onCloseLoginPrompt}
-        onSignup={onSignup}
         returnTo="/events"
       />
     </div>

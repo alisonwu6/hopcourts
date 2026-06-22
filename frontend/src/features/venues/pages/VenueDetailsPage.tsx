@@ -18,6 +18,23 @@ const EMPTY_CLAIM_FORM: ClaimFormState = {
   note: '',
 }
 
+const formatClaimLocationAddress = (address?: string | null) => {
+  if (!address) return 'Address not listed'
+
+  return address
+    .replace(/\bRoad\b/gi, 'Rd')
+    .replace(/\bStreet\b/gi, 'St')
+    .replace(/\bAvenue\b/gi, 'Ave')
+    .replace(/\bQueensland\b/gi, '')
+    .replace(/\bAustralia\b/gi, '')
+    .replace(/\b\d{4}\b/g, '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(', ')
+}
+
 export function VenueDetailsPage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
@@ -179,8 +196,8 @@ export function VenueDetailsPage() {
       <BottomSheet
         open={isClaimSheetOpen}
         onClose={closeClaimSheet}
-        title="Claim this venue"
-        description="Tell us who you are and we'll verify your connection to this venue."
+        title="Claim this location"
+        description="Tell us who you are. Once approved, your official trial starts instantly."
         maxWidthClassName="max-w-xl"
         sheetClassName="max-h-[86vh]"
         footer={
@@ -210,9 +227,14 @@ export function VenueDetailsPage() {
           onSubmit={handleClaimSubmit}
         >
           <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Venue</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Location</p>
             <p className="mt-2 text-base font-semibold text-slate-900">{venue.name_display}</p>
-            <p className="mt-1 text-sm text-slate-500">{venue.address_display || 'Address not listed'}</p>
+            <p className="mt-1 text-sm text-slate-500">{formatClaimLocationAddress(venue.address_display)}</p>
+          </div>
+
+          <div className="rounded-[22px] border border-[#dbe7a7] bg-[#e8f0c2] px-4 py-3 text-sm leading-relaxed text-slate-800">
+            <strong className="font-bold text-slate-950">Free 14-day trial included.</strong> No card needed,
+            billing only starts if you choose to stay.
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -231,7 +253,7 @@ export function VenueDetailsPage() {
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Role</span>
+              <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Your role</span>
               <input
                 type="text"
                 value={claimForm.contact_title}
@@ -276,7 +298,7 @@ export function VenueDetailsPage() {
               onChange={(event) => updateClaimField('note', event.target.value)}
               rows={4}
               className="w-full resize-none rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              placeholder="Anything that helps us verify your claim."
+              placeholder="Any details to help us verify your claim."
             />
           </label>
 

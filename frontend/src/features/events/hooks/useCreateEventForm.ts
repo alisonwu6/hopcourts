@@ -404,10 +404,6 @@ export function useCreateEventForm() {
     }
   }
 
-  const handleSignup = () => {
-    navigate('/signup')
-  }
-
   const handleSubmit = async (event?: FormEvent<HTMLFormElement>, status: 'draft' | 'published' = 'published') => {
     event?.preventDefault?.()
     if (isSubmitting) return
@@ -756,7 +752,6 @@ export function useCreateEventForm() {
     handleImageChange,
     handleSportSelect,
     handleCancel,
-    handleSignup,
     handleSubmit,
     handleRemoveImage,
     setFieldRef,

@@ -6,6 +6,8 @@ import type { Sport } from '@/types/dictionary'
 import type { SelectedVenueSport, SubmitVenueField, SubmitVenueFormState } from '../hooks/useSubmitVenueForm'
 import { SportSelectionSheet } from '../components/SportSelectionSheet'
 
+const VENUE_SECTION_TITLE_CLASS = 'text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400'
+
 interface SubmitPublicVenueViewProps {
   form: SubmitVenueFormState
   sports: Sport[]
@@ -92,7 +94,7 @@ export function SubmitPublicVenueView({
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-4">
-          <FieldSection title="Venue details">
+          <FieldSection title="VENUE DETAILS" titleClassName={VENUE_SECTION_TITLE_CLASS}>
             <div ref={setFieldRef('name')}>
               <FloatingField
                 label="Venue name"
@@ -148,7 +150,7 @@ export function SubmitPublicVenueView({
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-4">
-          <FieldSection title="Sports happen here">
+          <FieldSection title="SPORTS HAPPEN HERE" titleClassName={VENUE_SECTION_TITLE_CLASS}>
             <div ref={setFieldRef('sportKeys')} className="space-y-1">
               <button
                 type="button"

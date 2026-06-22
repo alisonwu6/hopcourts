@@ -119,7 +119,7 @@ async function submitVenue(input) {
           auto_approved,
           reviewed_at
         ) VALUES (
-          $1, $2, $3, $3, $4, $5, $6, $7, 'approved', $8, true, NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, 'approved', $9, true, NOW()
         )
         RETURNING *
       `
@@ -127,10 +127,11 @@ async function submitVenue(input) {
         venue.id,
         input.userId,
         input.contactName || null,
+        input.contactPerson || input.contactName || null,
         input.ownershipRole || null,
         input.contactPhone || null,
         input.contactEmail || null,
-        'Official venue submission auto-approved',
+        input.note || 'Official venue submission auto-approved',
         input.ownershipRole,
       ])
       claim = claimRows[0]
@@ -400,6 +401,21 @@ async function updateVenueStatus(venueId, status) {
 async function updateVenueType(venueId, venueType) {
   const sql = `UPDATE public.venues SET venue_type = $2, updated_at = NOW() WHERE id = $1 RETURNING *`
   const { rows } = await query(sql, [venueId, venueType])
+  return rows[0]
+}
+
+async function startVenueTrial(venueId) {
+  const sql = `
+    UPDATE public.venues
+    SET
+      trial_starts_at = COALESCE(trial_starts_at, NOW()),
+      trial_ends_at = COALESCE(trial_ends_at, NOW() + INTERVAL '14 days'),
+      subscription_status = COALESCE(subscription_status, 'trialing'),
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING *
+  `
+  const { rows } = await query(sql, [venueId])
   return rows[0]
 }
 
@@ -721,6 +737,7 @@ module.exports = {
   updateVenueClaimStatus,
   updateVenueStatus,
   updateVenueType,
+  startVenueTrial,
   // C0 Export
   writeAuditLog,
   getAdminVenues,
