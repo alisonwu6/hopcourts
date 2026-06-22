@@ -14,6 +14,7 @@ export interface ManagedVenue {
   status: string
   claim_status: string // 'approved'
   contact_email?: string
+  trial_ends_at?: string | null
 }
 
 export interface VenueDashboardData {
@@ -96,6 +97,7 @@ const toManagedVenue = (row: any): ManagedVenue => ({
   status: row?.status || 'claimed',
   claim_status: row?.claim_status || 'approved',
   contact_email: row?.contact_email,
+  trial_ends_at: row?.trial_ends_at ?? null,
 })
 
 const toManagedVenueFromMyVenue = (row: AdminMyVenue): ManagedVenue => ({
