@@ -333,6 +333,80 @@ async function createVenueClaim(venueId, userId, claimData = {}) {
   return rows[0]
 }
 
+/**
+ * Atomically activate a venue claim:
+ * 1. Insert venue_claims row (status=approved)
+ * 2. Set venue status=claimed, type=official, start trial
+ * 3. Add 'venue' role to the claiming user
+ *
+ * All writes are in a single transaction — if any step fails the whole
+ * thing rolls back, leaving the venue in its original state.
+ */
+async function activateVenueClaim(venueId, userId, claimData = {}) {
+  const pool = getPool()
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+
+    // Lock the venue row so concurrent claims on the same venue are serialised.
+    // If another transaction already holds the lock and sets status='claimed',
+    // our subsequent UPDATE will see status='claimed' and return 0 rows.
+    const { rows: lockRows } = await client.query(
+      `SELECT status FROM public.venues WHERE id = $1 FOR UPDATE`,
+      [venueId]
+    )
+    if (!lockRows[0]) throw new Error('Venue not found')
+    if (lockRows[0].status === 'claimed') throw new Error('Venue already claimed')
+
+    await client.query(
+      `INSERT INTO public.venue_claims (
+        venue_id, owner_id, contact_name, contact_person, contact_title,
+        contact_phone, contact_email, note, status
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'approved')`,
+      [
+        venueId, userId,
+        claimData.contact_name || null,
+        claimData.contact_person || null,
+        claimData.contact_title || null,
+        claimData.contact_phone || null,
+        claimData.contact_email || null,
+        claimData.note || null,
+      ]
+    )
+
+    const { rows } = await client.query(
+      `UPDATE public.venues
+       SET
+         status = 'claimed',
+         venue_type = 'official',
+         trial_starts_at = COALESCE(trial_starts_at, NOW()),
+         trial_ends_at   = COALESCE(trial_ends_at,   NOW() + INTERVAL '14 days'),
+         subscription_status = COALESCE(subscription_status, 'trialing'),
+         updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, name_display, name, trial_ends_at`,
+      [venueId]
+    )
+
+    if (userId) {
+      await client.query(
+        `UPDATE public.users
+         SET role = array_append(role, 'venue'), updated_at = NOW()
+         WHERE id = $1 AND NOT (role @> ARRAY['venue']::text[])`,
+        [userId]
+      )
+    }
+
+    await client.query('COMMIT')
+    return rows[0]
+  } catch (err) {
+    await client.query('ROLLBACK')
+    throw err
+  } finally {
+    client.release()
+  }
+}
+
 async function getApprovedClaim(venueId) {
   const sql = `
     SELECT * FROM public.venue_claims 
@@ -730,6 +804,7 @@ module.exports = {
   getVenueById,
   listVenues,
   createVenueClaim,
+  activateVenueClaim,
   getPendingClaimByEmail,
   getApprovedClaim,
   getApprovedClaimByUser,

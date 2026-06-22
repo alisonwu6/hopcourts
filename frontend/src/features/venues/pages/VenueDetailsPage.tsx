@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { Frown } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AlertDialog } from '@/components/AlertDialog'
@@ -55,6 +55,7 @@ export function VenueDetailsPage() {
     venueName: string
     venueId: string | null
   }>({ open: false, venueName: '', venueId: null })
+  const claimActionTakenRef = useRef(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -333,8 +334,10 @@ export function VenueDetailsPage() {
         open={claimSuccess.open}
         onClose={() => {
           setClaimSuccess({ open: false, venueName: '', venueId: null })
-          if (!claimSuccess.venueId) return
-          navigate('/venues', { replace: true })
+          if (!claimActionTakenRef.current && claimSuccess.venueId) {
+            navigate('/venues', { replace: true })
+          }
+          claimActionTakenRef.current = false
         }}
         title={claimSuccess.venueId ? 'Venue is live!' : 'Application submitted'}
         description={
@@ -354,7 +357,10 @@ export function VenueDetailsPage() {
         actionLabel={claimSuccess.venueId ? 'Go to your venue' : 'Got it'}
         onAction={
           claimSuccess.venueId
-            ? () => handleGoToPortal(claimSuccess.venueId!)
+            ? () => {
+                claimActionTakenRef.current = true
+                handleGoToPortal(claimSuccess.venueId!)
+              }
             : undefined
         }
       />

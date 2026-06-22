@@ -30,14 +30,32 @@ export function VenueDashboardPage() {
   const fetchMyVenues = async () => {
     setLoading(true)
     const res = await venuePortalService.getMyVenues()
+
     if (res.success && res.data && res.data.length > 0) {
       setVenues(res.data)
       if (!venueId) {
         navigate(`/admin/${res.data[0].id}`, { replace: true })
       }
+    } else if (venueId) {
+      // Role may not be propagated yet (e.g. just after claim).
+      // Try loading the venue profile directly by ID as a fallback.
+      const profileRes = await venuePortalService.getVenueProfile(venueId)
+      if (profileRes.success && profileRes.data) {
+        const fallbackVenue: ManagedVenue = {
+          id: venueId,
+          name_display: profileRes.data.name_display || 'My Venue',
+          address_display: profileRes.data.address_display || '',
+          status: 'claimed',
+          claim_status: 'approved',
+        }
+        setVenues([fallbackVenue])
+      } else {
+        navigate('/', { replace: true })
+      }
     } else {
       navigate('/', { replace: true })
     }
+
     setLoading(false)
   }
 

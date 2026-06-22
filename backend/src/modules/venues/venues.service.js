@@ -190,7 +190,14 @@ async function requestVenueClaim(venueId, userId, claimData) {
   const approvedClaim = await venuesModel.getApprovedClaim(venueId)
   if (approvedClaim) throw new Error('Venue already claimed')
 
-  return venuesModel.createVenueClaim(venueId, userId, normalizedClaim)
+  // Single atomic transaction: claim record + venue activation + user role
+  const activated = await venuesModel.activateVenueClaim(venueId, userId, normalizedClaim)
+
+  return {
+    venue_id: activated.id,
+    name_display: activated.name_display || activated.name,
+    trial_ends_at: activated.trial_ends_at,
+  }
 }
 
 // Check if user is the official owner of a venue

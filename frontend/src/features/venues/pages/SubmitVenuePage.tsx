@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertDialog, LoginPromptSheet } from '@/components'
 import { useSubmitVenueForm } from '../hooks/useSubmitVenueForm'
@@ -11,6 +11,7 @@ export function SubmitVenuePage() {
     venueName: string
     venueId: string | null
   }>({ open: false, venueName: '', venueId: null })
+  const actionTakenRef = useRef(false)
 
   const form = useSubmitVenueForm({
     mode: 'official',
@@ -53,7 +54,8 @@ export function SubmitVenuePage() {
         open={successDialog.open}
         onClose={() => {
           setSuccessDialog((prev) => ({ ...prev, open: false }))
-          navigate('/venues', { replace: true })
+          if (!actionTakenRef.current) navigate('/venues', { replace: true })
+          actionTakenRef.current = false
         }}
         title="Venue is live!"
         description={
@@ -65,6 +67,7 @@ export function SubmitVenuePage() {
         type="success"
         actionLabel="Go to your venue"
         onAction={() => {
+          actionTakenRef.current = true
           if (successDialog.venueId) navigate(`/admin/${successDialog.venueId}`, { replace: true })
         }}
       />

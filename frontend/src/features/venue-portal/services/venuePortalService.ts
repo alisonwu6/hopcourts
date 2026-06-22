@@ -235,12 +235,9 @@ export const venuePortalService = {
    */
   async getMyVenues(): Promise<ApiResponse<ManagedVenue[]>> {
     try {
-      const myVenueRes = await this.getMyVenue()
-      if (!myVenueRes.success || !myVenueRes.data) {
-        return myVenueRes as any
-      }
-
-      return wrapSuccess([toManagedVenueFromMyVenue(myVenueRes.data)])
+      const res = await httpGet<any[]>('/admin/me/venues')
+      const rows: any[] = Array.isArray((res as any)?.data) ? (res as any).data : []
+      return wrapSuccess(rows.map(toManagedVenue))
     } catch (err: any) {
       return {
         success: false,
