@@ -232,15 +232,16 @@ export function MateProfilePage() {
                 aria-label="Share profile"
                 onClick={async () => {
                   const url = `${window.location.origin}/mate/${targetProfileUsername}`
+                  const text = `Check out ${profile?.name || targetProfileUsername} on HopCourts`
                   try {
                     if (navigator.share) {
                       await navigator.share({
                         title: 'HopCourts',
-                        text: `Check out ${profile?.name || targetProfileUsername} on HopCourts`,
+                        text,
                         url,
                       })
                     } else {
-                      await navigator.clipboard.writeText(url)
+                      await navigator.clipboard.writeText(`${text}\n${url}`)
                     }
                   } catch {}
                 }}

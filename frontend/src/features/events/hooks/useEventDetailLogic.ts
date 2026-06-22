@@ -90,18 +90,21 @@ export function useEventDetailLogic() {
 
   const handleShare = async () => {
     const url = `${window.location.origin}/event/${id}`
+    const title = event?.title || 'this event'
+    const text = `Check out ${title} on HopCourts`
+    const message = `${text}\n${url}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: event?.title, url })
+        await navigator.share({ title, text, url })
       } catch (err: any) {
         if (err?.name !== 'AbortError') console.error(err)
       }
     } else {
       try {
-        await navigator.clipboard.writeText(url)
+        await navigator.clipboard.writeText(message)
         showAlert('Link copied', 'Share it with your mates!', 'success')
       } catch {
-        showAlert('Copy failed', `Open this link: ${url}`, 'info')
+        showAlert('Copy failed', message, 'info')
       }
     }
   }

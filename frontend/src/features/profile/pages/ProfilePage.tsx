@@ -464,9 +464,10 @@ export function ProfilePage() {
     if (!shareUsername) return
 
     const url = `${window.location.origin}/mate/${shareUsername}`
+    const text = `Check out ${draftProfile.name || shareUsername} on HopCourts`
     const shareData = {
       title: 'HopCourts',
-      text: `Check out ${draftProfile.name}'s profile`,
+      text,
       url,
     }
 
@@ -484,7 +485,7 @@ export function ProfilePage() {
   const handleShareToLine = () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`
+    const text = `Check out ${draftProfile.name || shareUsername} on HopCourts\n${url}`
     window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`
     setShowShareSheet(false)
   }
@@ -492,7 +493,7 @@ export function ProfilePage() {
   const handleCopyLink = async () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`
+    const text = `Check out ${draftProfile.name || shareUsername} on HopCourts\n${url}`
 
     try {
       await navigator.clipboard.writeText(text)
