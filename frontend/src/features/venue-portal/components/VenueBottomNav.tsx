@@ -65,7 +65,7 @@ export function VenueBottomNav({ venueId: propVenueId }: VenueBottomNavProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-screen-md border-t border-slate-200 bg-white/80 backdrop-blur-md"
+      className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-[1024px] border-t border-slate-200 bg-white/80 backdrop-blur-md"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex items-center justify-center gap-16 px-4 py-3">

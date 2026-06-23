@@ -107,7 +107,7 @@ export function VenueDetailsView({
                 <img
                   src={venue.logo_url}
                   alt="Logo"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain p-2"
                 />
               ) : (
                 <Building2 className="h-8 w-8 text-slate-300" />
@@ -236,36 +236,6 @@ export function VenueDetailsView({
           </div>
         )}
 
-        {/* Courts & Spaces */}
-        {venue.spaces && venue.spaces.length > 0 && (
-          <div className="mt-6">
-            <h2 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Courts & spaces</h2>
-            <div className="space-y-2">
-              {venue.spaces.map((space, idx) => (
-                <div
-                  key={`${space.name}-${idx}`}
-                  className="rounded-2xl border border-slate-100 bg-slate-50 p-3"
-                >
-                  <div className="mb-2 text-xs font-black uppercase tracking-tight text-slate-700">{space.name}</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {space.supported_sports.length > 0 ? (
-                      space.supported_sports.map((sport) => (
-                        <span
-                          key={sport}
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${getSportColor(sport.toUpperCase())}`}
-                        >
-                          {sport}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs italic text-slate-400">None listed</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Claim CTA */}

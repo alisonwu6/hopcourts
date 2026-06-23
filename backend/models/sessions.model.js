@@ -29,6 +29,8 @@ const BASE_FIELDS = [
   'price_per_person',
   'price_mode',
   'venue_id',
+  'court_id',
+  'court_name',
   'location_source',
   'price_note', // New Field
   'is_official', // New Field
@@ -259,6 +261,8 @@ async function createSession(input) {
       host_user_id,
       sport_key,
       venue_id,
+      court_id,
+      court_name,
       title,
       notes,
       starts_at,
@@ -285,7 +289,7 @@ async function createSession(input) {
       is_official,
       price_note
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30
     )
     returning ${BASE_FIELDS.join(', ')}
   `
@@ -293,6 +297,8 @@ async function createSession(input) {
     input.hostUserId,
     input.sportKey,
     input.venueId ?? null,
+    input.courtId ?? null,
+    input.courtName ?? null,
     input.title ?? null,
     input.description ?? null,
     input.startAt,
@@ -329,6 +335,8 @@ async function updateSession(sessionId, patch = {}) {
     sport_key: patch.sportKey,
     title: patch.title,
     venue_id: patch.venueId,
+    court_id: patch.courtId,
+    court_name: patch.courtName,
     notes: patch.description,
     starts_at: patch.startAt,
     ends_at: patch.endAt,
@@ -572,6 +580,7 @@ async function listVenueSessions(venueId, { from, to } = {}) {
 
   const sql = `
     SELECT s.id, s.sport_key, s.starts_at, s.ends_at, s.title, s.status, s.max_people,
+      s.court_id, s.court_name,
       (SELECT COUNT(*)::int FROM public.session_participants WHERE session_id = s.id) AS participant_count
     FROM public.sessions s
     WHERE ${conditions.join(' AND ')}
@@ -597,4 +606,23 @@ module.exports = {
   deleteSession,
   countHostedSessions,
   listVenueSessions,
+  listSessionParticipants,
+}
+
+async function listSessionParticipants(sessionId) {
+  const sql = `
+    SELECT
+      sp.user_id,
+      sp.role,
+      sp.joined_at,
+      u.display_name,
+      u.username,
+      u.avatar_url
+    FROM public.session_participants sp
+    JOIN public.users u ON u.id = sp.user_id
+    WHERE sp.session_id = $1
+    ORDER BY sp.joined_at ASC
+  `
+  const { rows } = await query(sql, [sessionId])
+  return rows
 }

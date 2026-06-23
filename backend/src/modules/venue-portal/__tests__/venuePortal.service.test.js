@@ -1,5 +1,8 @@
 'use strict'
 
+const { fromZonedTime } = require('date-fns-tz')
+const VENUE_TZ = 'Australia/Brisbane'
+
 jest.mock('../../../../models/venues.model')
 jest.mock('../../../../models/sessions.model')
 
@@ -228,6 +231,8 @@ describe('createVenueEvent', () => {
       date: '21/03/2026',
       start_at: '19:04',
       end_at: '21:06',
+      court_id: 'court-earth',
+      court_name: 'Earth',
       note: 'Bring your own ball',
       max_capacity: 4,
       pricing_model: 'free',
@@ -240,11 +245,13 @@ describe('createVenueEvent', () => {
       expect.objectContaining({
         hostUserId: 'user-1',
         venueId: 'venue-1',
+        courtId: 'court-earth',
+        courtName: 'Earth',
         sportKey: 'BASKETBALL',
         title: 'Friday Basketball',
         description: 'Bring your own ball',
-        startAt: new Date('2026-03-21T19:04:00.000Z'),
-        endAt: new Date('2026-03-21T21:06:00.000Z'),
+        startAt: fromZonedTime('2026-03-21T19:04:00', VENUE_TZ),
+        endAt: fromZonedTime('2026-03-21T21:06:00', VENUE_TZ),
         capacity: 4,
         skillLevel: 'beginner',
         gender: 'mixed',
@@ -253,7 +260,7 @@ describe('createVenueEvent', () => {
         isOfficial: true,
         status: 'published',
         visibility: 'public',
-        locationName: 'ABC Sports Center',
+        locationName: 'ABC Sports Center - Earth',
         address: '33 Brodie St, Brisbane QLD 4000',
         lat: -27.47,
         lng: 153.02,
@@ -267,6 +274,8 @@ describe('createVenueEvent', () => {
       date: '21/03/2026',
       start_at: '19:00',
       end_at: '21:00',
+      court_id: 'court-earth',
+      court_name: 'Earth',
       max_capacity: 4,
       pricing_model: 'paid',
       fee: 15,
@@ -290,6 +299,18 @@ describe('createVenueEvent', () => {
         end_at: '21:00',
       })
     ).rejects.toMatchObject({ status: 422 })
+  })
+
+  it('throws validation error when court_id is missing', async () => {
+    await expect(
+      service.createVenueEvent('venue-1', 'user-1', {
+        sport_key: 'BASKETBALL',
+        date: '21/03/2026',
+        start_at: '19:00',
+      })
+    ).rejects.toMatchObject({
+      status: 422,
+    })
   })
 
   it('throws validation error when date is missing', async () => {
@@ -328,6 +349,8 @@ describe('createRecurringEvents', () => {
       sport_key: 'BASKETBALL',
       start_at: '19:04',
       end_at: '21:06',
+      court_id: 'court-earth',
+      court_name: 'Earth',
       skill_level: 'beginner',
       gender_rule: 'mixed',
       max_capacity: 4,
@@ -348,11 +371,23 @@ describe('createRecurringEvents', () => {
     }
   })
 
+  it('throws validation error when court_id is missing', async () => {
+    await expect(
+      service.createRecurringEvents('venue-1', 'user-1', {
+        sport_key: 'BASKETBALL',
+        start_at: '19:00',
+        end_at: '21:00',
+      })
+    ).rejects.toMatchObject({ status: 422 })
+  })
+
   it('all sessions have is_official=true', async () => {
     await service.createRecurringEvents('venue-1', 'user-1', {
       sport_key: 'BASKETBALL',
       start_at: '19:00',
       end_at: '21:00',
+      court_id: 'court-earth',
+      court_name: 'Earth',
       skill_level: 'beginner',
       gender_rule: 'mixed',
       max_capacity: 4,
@@ -375,19 +410,28 @@ describe('listVenueEvents', () => {
       {
         id: 'session-1',
         sport_key: 'BASKETBALL',
-        starts_at: '2026-04-06T18:12:00.000Z',
+        starts_at: '2026-04-06T08:12:00.000Z',
+        court_id: 'court-earth',
+        court_name: 'Earth',
+        max_people: 4,
         participant_count: 3,
       },
       {
         id: 'session-2',
         sport_key: 'BADMINTON',
-        starts_at: '2026-04-06T20:00:00.000Z',
+        starts_at: '2026-04-06T10:00:00.000Z',
+        court_id: 'court-venus',
+        court_name: 'Venus',
+        max_people: 4,
         participant_count: 1,
       },
       {
         id: 'session-3',
         sport_key: 'BASKETBALL',
-        starts_at: '2026-04-13T18:12:00.000Z',
+        starts_at: '2026-04-13T08:12:00.000Z',
+        court_id: 'court-mercury',
+        court_name: 'Mercury',
+        max_people: 4,
         participant_count: 0,
       },
     ])
@@ -403,6 +447,9 @@ describe('listVenueEvents', () => {
       event_id: 'session-1',
       sport: 'BASKETBALL',
       start_at: '18:12',
+      court_id: 'court-earth',
+      court_name: 'Earth',
+      max_capacity: 4,
       participant_count: 3,
     })
   })

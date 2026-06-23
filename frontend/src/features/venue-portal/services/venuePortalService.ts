@@ -52,6 +52,9 @@ export type GroupedVenueEvents = Record<
     event_id: string
     sport: string
     start_at: string
+    court_id?: string | null
+    court_name?: string | null
+    max_capacity?: number
     participant_count: number
   }>
 >
@@ -409,6 +412,25 @@ export const venuePortalService = {
       return {
         success: false,
         error: { code: 'UPDATE_EVENT_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  async getEventParticipants(eventId: string): Promise<ApiResponse<{
+    user_id: string
+    display_name: string
+    avatar_url: string | null
+    role: string
+    joined_at: string
+  }[]>> {
+    try {
+      const res = await httpGet<any>(`/admin/events/${eventId}/participants`)
+      return wrapSuccess((res as any)?.data || (res as any))
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'FETCH_PARTICIPANTS_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }

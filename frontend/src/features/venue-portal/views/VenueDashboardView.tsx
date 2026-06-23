@@ -1,112 +1,27 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BadgeCheck, Calendar, CalendarClock, CheckCircle2, ChevronRight, Building2, Users, Zap, BarChart3 } from 'lucide-react'
-import { VenueBottomNav } from '../components/VenueBottomNav'
+import { Calendar, CalendarClock, CheckCircle2, ChevronRight, Building2, Users, Zap, BarChart3 } from 'lucide-react'
 import { ManagedVenue, VenueDashboardData } from '../services/venuePortalService'
 
 interface VenueDashboardViewProps {
-  loading: boolean
   venues: ManagedVenue[]
   selectedVenueId: string | null
-  setSelectedVenueId: (id: string) => void
   dashboardData: VenueDashboardData | null
-}
-
-function daysUntil(dateStr: string | null | undefined): number | null {
-  if (!dateStr) return null
-  const diff = new Date(dateStr).getTime() - Date.now()
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
-}
-
-function formatTrialEnd(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 type StatPeriod = '7d' | '30d' | 'all'
 
 export function VenueDashboardView({
-  loading,
   venues,
   selectedVenueId,
-  setSelectedVenueId,
   dashboardData,
 }: VenueDashboardViewProps) {
-  const navigate = useNavigate()
   const [period, setPeriod] = useState<StatPeriod>('7d')
 
-  if (loading && venues.length === 0) {
-    return (
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#f5f7f0] pb-20">
-        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-[#3c4a22] border-t-transparent" />
-        <p className="text-sm font-semibold text-slate-500">Loading your venue...</p>
-      </div>
-    )
-  }
-
-  const activeVenue = venues.find((v) => v.id === selectedVenueId) ?? venues[0]
-  const venueName = dashboardData?.venue.name_display ?? activeVenue?.name_display ?? 'My Venue'
-  const venueId = selectedVenueId ?? activeVenue?.id ?? null
-  const trialEndsAt = activeVenue?.trial_ends_at
-  const daysLeft = daysUntil(trialEndsAt)
+  const venueId = selectedVenueId ?? venues[0]?.id ?? null
 
   return (
-    <div className="mx-auto min-h-[100dvh] w-full max-w-screen-md bg-[#f5f7f0] pb-24 text-slate-900">
-
-      {/* Header */}
-      <div className="px-5 pb-4 pt-6">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            {venues.length > 1 ? (
-              <div className="relative inline-block">
-                <h1 className="text-2xl font-black leading-tight text-[#1A3A0A]">{venueName}</h1>
-                <select
-                  value={selectedVenueId || ''}
-                  onChange={(e) => setSelectedVenueId(e.target.value)}
-                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                >
-                  {venues.map((v) => (
-                    <option key={v.id} value={v.id}>{v.name_display}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <h1 className="text-2xl font-black leading-tight text-[#1A3A0A]">{venueName}</h1>
-            )}
-            <p className="mt-0.5 text-sm font-semibold text-[#5a7a2a]">Venue dashboard</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => venueId && window.open(`/venues/${venueId}`, '_blank')}
-            className="flex-none rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
-          >
-            Public page ↗
-          </button>
-        </div>
-
-        {/* Trial banner */}
-        {daysLeft !== null && (
-          <div className="mt-4 flex items-center justify-between rounded-2xl bg-[#1A3A0A] px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#2d5a1a]">
-                <BadgeCheck className="h-4 w-4 text-[#a8d060]" strokeWidth={2.5} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-white">Official trial active</p>
-                {trialEndsAt && (
-                  <p className="text-xs text-[#a8d060]/80">
-                    Ends {formatTrialEnd(trialEndsAt)} · reminder at 3 days
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-3xl font-black leading-none text-[#c8f060]">{daysLeft}</span>
-              <p className="text-[10px] font-bold uppercase tracking-wide text-[#a8d060]/80">days left</p>
-            </div>
-          </div>
-        )}
-      </div>
-
+    <div className="text-slate-900">
       {/* Insights */}
       <div className="px-5">
         <div className="flex items-center justify-between">
@@ -162,8 +77,6 @@ export function VenueDashboardView({
           <SetupChecklist venueId={venueId} stats={dashboardData.stats} />
         </div>
       )}
-
-      <VenueBottomNav venueId={selectedVenueId} />
     </div>
   )
 }

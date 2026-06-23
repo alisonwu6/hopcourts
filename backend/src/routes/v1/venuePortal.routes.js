@@ -222,6 +222,16 @@ router.get('/events/:eventId', async (req, res, next) => {
   }
 })
 
+// GET /events/:eventId/participants - List participants for a session
+router.get('/events/:eventId/participants', async (req, res, next) => {
+  try {
+    const data = await venuePortalService.getEventParticipants(req.params.eventId, req.userId)
+    return ok(res, data)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // PUT /events/:eventId - Update event (ownership checked in service)
 router.put('/events/:eventId', async (req, res, next) => {
   try {
