@@ -406,7 +406,7 @@ async function deleteSession(sessionId) {
 
 async function countHostedSessions(userId) {
   const { rows } = await query(
-    "select count(*)::int as count from public.sessions where host_user_id = $1 and status not in ('draft', 'cancelled')",
+    "select count(*)::int as count from public.sessions where host_user_id = $1 and is_official = false and status not in ('draft', 'cancelled')",
     [userId]
   )
   return rows[0]?.count ?? 0
