@@ -47,6 +47,7 @@ async function listUpcomingSessions({
   offset = 0,
 } = {}) {
   const conditions = ["status = 'published'", "visibility = 'public'"]
+  const rawConditions = []
   const params = []
   let idx = params.length
 
@@ -55,13 +56,8 @@ async function listUpcomingSessions({
     conditions.push(`venue_id = $${++idx}`)
   }
 
-  if (from) {
-    params.push(from)
-    conditions.push(`starts_at >= $${++idx}`)
-  } else {
-    params.push(new Date())
-    conditions.push(`starts_at >= $${++idx}`)
-  }
+  params.push(from || new Date())
+  rawConditions.push(`COALESCE(s.ends_at, s.starts_at) >= $${++idx}`)
 
   if (to) {
     params.push(to)
@@ -80,6 +76,7 @@ async function listUpcomingSessions({
   }
 
   params.push(limit, offset)
+  const allConditions = [...conditions.map(c => `s.${c}`), ...rawConditions]
   const sql = `
     select ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
       (select count(*) from public.session_participants where session_id = s.id) as participant_count,
@@ -97,7 +94,7 @@ async function listUpcomingSessions({
     left join public.cities c on h.city_key = c.key
     left join public.venues v on s.venue_id = v.id
     left join public.venue_profiles vp on v.id = vp.venue_id
-    where ${conditions.map(c => `s.${c}`).join(' AND ')}
+    where ${allConditions.join(' AND ')}
     order by s.starts_at asc
     limit $${idx + 1}
     offset $${idx + 2}

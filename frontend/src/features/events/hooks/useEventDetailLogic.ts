@@ -243,10 +243,10 @@ export function useEventDetailLogic() {
             setAlertDialog({
               open: true,
               title: 'Not at the court yet?',
-              description: `You’re still ${distStr}km away. Tap "On the way" to let your mates know you’re coming, then check in once you arrive!`,
+              description: `You’re still ${distStr} away. Tap on the way to let your mates know you’re coming, then check in once you arrive!`,
               type: 'info',
               cancelLabel: 'OK',
-              actionLabel: 'On the Way',
+              actionLabel: 'On the way',
               onAction: handleOnTheWay,
             })
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {

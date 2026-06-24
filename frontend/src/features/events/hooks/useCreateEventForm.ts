@@ -690,7 +690,7 @@ export function useCreateEventForm() {
     setIsCancellingEvent(true)
     try {
       const res = await eventsService.updateEvent(editId, { status: 'cancelled' } as any)
-      if (res.success) navigate(`/event/${editId}`, { replace: true })
+      if (res.success) navigate(`/event/${editId}`, { replace: true, state: { from: 'create-event' } })
     } catch (err) {
       console.error('Cancel failed', err)
     } finally {
