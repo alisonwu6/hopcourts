@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, Ref } from 'react'
 import { X } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -32,6 +32,7 @@ type SheetLayoutProps = {
   showCloseButton?: boolean
   className?: string
   contentClassName?: string
+  contentRef?: Ref<HTMLDivElement>
 }
 
 export function SheetLayout({
@@ -48,6 +49,7 @@ export function SheetLayout({
   showCloseButton = true,
   className,
   contentClassName,
+  contentRef,
 }: SheetLayoutProps) {
   const renderButton = (btn: ButtonConfig, fullWidth?: boolean) => {
     const base = 'h-12 rounded-2xl px-4 text-base font-semibold shadow-sm transition'
@@ -90,7 +92,7 @@ export function SheetLayout({
         className
       )}
     >
-      <div className="relative flex items-center justify-between border-b border-slate-200 px-5 pb-4 pt-5">
+      <div className="relative flex shrink-0 items-center justify-between border-b border-slate-200 px-5 pb-4 pt-5">
         <div className="space-y-1">
           {title && <p className="text-xl font-bold text-slate-900">{title}</p>}
           {subtitle && <p className="text-xs font-semibold text-slate-500">{subtitle}</p>}
@@ -117,10 +119,10 @@ export function SheetLayout({
         )}
       </div>
 
-      <div className={clsx('flex-1 overflow-y-auto px-5 py-4', contentClassName)}>{children}</div>
+      <div ref={contentRef} className={clsx('min-h-0 flex-1 overflow-y-auto px-5 py-4', contentClassName)}>{children}</div>
 
       {(primaryButton || secondaryButton) && (
-        <div className="sticky bottom-0 left-0 right-0 z-10 border-t border-slate-200 bg-white px-5 pb-5 pt-3">
+        <div className="sticky bottom-0 left-0 right-0 z-10 shrink-0 border-t border-slate-200 bg-white px-5 pb-5 pt-3">
           {primaryButton && secondaryButton ? (
             <div className="grid grid-cols-2 gap-3">
               {renderButton(secondaryButton)}

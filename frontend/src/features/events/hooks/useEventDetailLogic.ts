@@ -88,17 +88,24 @@ export function useEventDetailLogic() {
     navigate(-1)
   }
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    const url = `${window.location.origin}/event/${id}`
+    const title = event?.title || 'this event'
+    const text = `Check out ${title} on HopCourts`
+    const message = `${text}\n${url}`
     if (navigator.share) {
-      navigator
-        .share({
-          title: event?.title,
-          text: 'Come join this event!',
-          url: window.location.href,
-        })
-        .catch(console.error)
+      try {
+        await navigator.share({ title, text, url })
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.error(err)
+      }
     } else {
-      window.alert('Share feature coming soon')
+      try {
+        await navigator.clipboard.writeText(message)
+        showAlert('Link copied', 'Share it with your mates!', 'success')
+      } catch {
+        showAlert('Copy failed', message, 'info')
+      }
     }
   }
 
@@ -236,10 +243,10 @@ export function useEventDetailLogic() {
             setAlertDialog({
               open: true,
               title: 'Not at the court yet?',
-              description: `You’re still ${distStr}km away. Tap "On the way" to let your mates know you’re coming, then check in once you arrive!`,
+              description: `You’re still ${distStr} away. Tap on the way to let your mates know you’re coming, then check in once you arrive!`,
               type: 'info',
               cancelLabel: 'OK',
-              actionLabel: 'On the Way',
+              actionLabel: 'On the way',
               onAction: handleOnTheWay,
             })
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {

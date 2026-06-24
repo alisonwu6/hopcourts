@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Frown, List, CalendarDays, Share } from 'lucide-react'
+import { ChevronLeft, Frown, List, CalendarDays, Share } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
@@ -219,7 +219,7 @@ export function MateProfilePage() {
               onClick={() => state?.from === 'app' ? navigate(-1) : navigate('/events')}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
           </div>
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-[68%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
@@ -232,15 +232,16 @@ export function MateProfilePage() {
                 aria-label="Share profile"
                 onClick={async () => {
                   const url = `${window.location.origin}/mate/${targetProfileUsername}`
+                  const text = `Check out ${profile?.name || targetProfileUsername} on HopCourts`
                   try {
                     if (navigator.share) {
                       await navigator.share({
                         title: 'HopCourts',
-                        text: `Check out ${profile?.name || targetProfileUsername} on HopCourts`,
+                        text,
                         url,
                       })
                     } else {
-                      await navigator.clipboard.writeText(url)
+                      await navigator.clipboard.writeText(`${text}\n${url}`)
                     }
                   } catch {}
                 }}
@@ -264,6 +265,13 @@ export function MateProfilePage() {
             </div>
             <h3 className="mb-2 text-lg font-semibold text-slate-900">Mate not found</h3>
             <p className="max-w-xs text-sm text-slate-500">{error}</p>
+            <button
+              type="button"
+              onClick={() => navigate('/events')}
+              className="mt-6 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white"
+            >
+              Explore events
+            </button>
           </div>
         ) : (
           profile && (

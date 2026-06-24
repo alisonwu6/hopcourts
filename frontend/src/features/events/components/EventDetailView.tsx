@@ -67,7 +67,6 @@ type EventDetailViewProps = {
   onCheckIn: () => void
 
   onCloseLoginPrompt: () => void
-  onSignup: () => void
   onCloseAlert: () => void
   onCloseProfileRequired: () => void
   onNavigateEvents: () => void
@@ -100,7 +99,6 @@ export function EventDetailView({
   onJoin,
   onCheckIn,
   onCloseLoginPrompt,
-  onSignup,
   onCloseAlert,
   onCloseProfileRequired,
   onNavigateEvents,
@@ -291,15 +289,15 @@ export function EventDetailView({
                   <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
                 </div>
               </div>
-              {event.status === 'cancelled' ? (
-                <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-600">
-                  Cancelled
-                </span>
-              ) : event.maxAttendees > 0 && spotsRemaining === 0 ? (
-                <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-orange-600">
-                  Full
-                </span>
-              ) : null}
+              <EventStatusBadge
+                status={event.status}
+                attendeeCount={event.attendeeCount}
+                minPeople={event.minPeople ?? 1}
+                startTime={event.startTime}
+                endTime={event.endTime}
+                isFree={event.isFree}
+                isOfficial={event.isOfficial}
+              />
             </div>
 
             <hr className="my-3 border-slate-200" />
@@ -376,9 +374,14 @@ export function EventDetailView({
                     aria-hidden="true"
                   />
                 </span>
-                <span className="flex flex-col gap-1">
-                  <span>
-                    {event.attendeeCount} joined · {spotsRemaining} spots left
+                <span className="flex flex-1 flex-col gap-1">
+                  <span className="flex items-center justify-between">
+                    <span>{event.attendeeCount} joined · {spotsRemaining} spots left</span>
+                    {spotsRemaining === 0 && event.status !== 'cancelled' && (
+                      <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
+                        Full
+                      </span>
+                    )}
                   </span>
                   <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
                     {participantRule}
@@ -391,7 +394,7 @@ export function EventDetailView({
                   const isCheckedIn = !!participant.checkedInAt
                   const isOnTheWay =
                     !!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay)
-                  const endTime = new Date(event.endTime)
+                  const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
                   const closeMins = event.checkinCloseMinsAfter ?? 60
                   const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
                   const now = new Date()
@@ -463,7 +466,10 @@ export function EventDetailView({
         </div>
       </div>
 
-      {event.status !== 'cancelled' && (
+      {event.status !== 'cancelled' &&
+        event.status !== 'completed' &&
+        event.status !== 'draft' &&
+        new Date() <= (event.endTime ? new Date(event.endTime) : new Date(event.startTime)) && (
         <JoinBar
           isJoined={isJoined}
           event={event}
@@ -479,7 +485,7 @@ export function EventDetailView({
       <LoginPromptSheet
         open={showLoginPrompt}
         onClose={onCloseLoginPrompt}
-        onSignup={onSignup}
+        returnTo={id ? `/event/${id}` : undefined}
       />
 
       <AlertDialog
@@ -595,15 +601,20 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
   const isFull = event.maxAttendees > 0 && event.attendeeCount >= event.maxAttendees
   const now = new Date()
   const startTime = new Date(event.startTime)
-  const endTime = new Date(event.endTime)
+  const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
 
   const openMins = event.checkinOpenMinsBefore ?? 10
   const closeMins = event.checkinCloseMinsAfter ?? 5
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
-  const closeTime = new Date(startTime.getTime() + closeMins * 60 * 1000)
   const effectiveCloseTime = endTime
   const isCheckInOpen = now >= openTime && now <= endTime
+
+  // Free + non-official events (open courts, parks) stay open for walk-up joiners even mid-game.
+  // Paid or official events: 2h before start, leave is disabled (locked in). New joiners can still hop in but also can't leave.
+  const isPublicFree = event.isFree && !event.isOfficial
+  const lockTime = new Date(startTime.getTime() - 2 * 60 * 60 * 1000)
+  const isBookingsClosed = !isPublicFree && now >= lockTime
 
   const formatTime = (value: Date) => {
     const dateLabel = value.toLocaleDateString('en-AU', {
@@ -662,7 +673,17 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
     )
   } else if (isJoined) {
     if (isCheckInOpen) {
-      mainButton = (
+      mainButton = isBookingsClosed ? (
+        <Button
+          disabled
+          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <DoorClosed className="h-4 w-4" />
+            Leave
+          </span>
+        </Button>
+      ) : (
         <Button
           onClick={onJoin}
           disabled={isJoinSubmitting}
@@ -728,7 +749,17 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
         </Button>
       )
     } else {
-      mainButton = (
+      mainButton = isBookingsClosed ? (
+        <Button
+          disabled
+          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <DoorClosed className="h-4 w-4" />
+            Leave
+          </span>
+        </Button>
+      ) : (
         <Button
           onClick={onJoin}
           disabled={isJoinSubmitting}
@@ -758,13 +789,29 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
           </span>
         </Button>
       )
-      statusText = (
+      statusText = isBookingsClosed ? (
+        <p className="text-center text-xs font-medium text-slate-500">
+          Withdrawals are closed — you're locked in for this one.
+        </p>
+      ) : (
         <p className="text-center text-xs font-medium text-slate-500">
           Check-in opens {formatTime(openTime)}.<br />
           Let the host know you're there.
         </p>
       )
     }
+  } else if (!isPublicFree && now >= startTime && now <= endTime) {
+    mainButton = (
+      <Button
+        disabled
+        className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
+      >
+        <span className="flex items-center justify-center gap-2">
+          <LockKeyhole className="h-4 w-4" />
+          Bookings closed
+        </span>
+      </Button>
+    )
   } else if (isFull) {
     mainButton = (
       <Button
@@ -880,4 +927,68 @@ function ImageCarousel({ images }: { images: string[] }) {
       )}
     </div>
   )
+}
+
+function EventStatusBadge({
+  status,
+  startTime,
+  endTime,
+}: {
+  status?: string
+  attendeeCount: number
+  minPeople: number
+  startTime: Date | string
+  endTime: Date | string
+  isFree?: boolean
+  isOfficial?: boolean
+}) {
+  const now = new Date()
+  const start = new Date(startTime)
+  const end = endTime ? new Date(endTime) : new Date(startTime)
+  const isPast = now > end
+  const isInProgress = now >= start && now <= end
+
+  if (status === 'cancelled') {
+    return (
+      <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-600">
+        Cancelled
+      </span>
+    )
+  }
+  if (status === 'completed') {
+    return (
+      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-500">
+        Completed
+      </span>
+    )
+  }
+  if (status === 'draft') {
+    return (
+      <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-blue-500">
+        Draft
+      </span>
+    )
+  }
+  if (isPast) {
+    return (
+      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-slate-500">
+        Past
+      </span>
+    )
+  }
+  if (isInProgress) {
+    return (
+      <span className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-green-600">
+        In Progress
+      </span>
+    )
+  }
+  if (status === 'published') {
+    return (
+      <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-sky-600">
+        Open
+      </span>
+    )
+  }
+  return null
 }

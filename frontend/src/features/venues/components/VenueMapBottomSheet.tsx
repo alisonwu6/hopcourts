@@ -35,7 +35,7 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
               <img
                 src={venue.logo_url}
                 alt=""
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain p-2"
               />
             ) : (
               <Building2 className="h-8 w-8 text-slate-300" />

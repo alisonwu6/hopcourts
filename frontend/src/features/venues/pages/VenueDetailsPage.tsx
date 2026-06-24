@@ -1,10 +1,13 @@
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
+import { Frown } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AlertDialog } from '@/components/AlertDialog'
 import { BottomSheet } from '@/components/BottomSheet'
 import { useAuthStore } from '@/hooks'
 import { venuesService, ApiVenue, VenueClaimRequest } from '../services/venuesService'
 import { eventsService } from '@/features/events/services/eventsService'
+import { sessionService } from '@/services/sessionService'
+import { supabase } from '@/lib/supabase'
 import { PageLoading } from '@/components/PageLoading'
 import { VenueDetailsView } from '../views/VenueDetailsView'
 
@@ -18,6 +21,23 @@ const EMPTY_CLAIM_FORM: ClaimFormState = {
   note: '',
 }
 
+const formatClaimLocationAddress = (address?: string | null) => {
+  if (!address) return 'Address not listed'
+
+  return address
+    .replace(/\bRoad\b/gi, 'Rd')
+    .replace(/\bStreet\b/gi, 'St')
+    .replace(/\bAvenue\b/gi, 'Ave')
+    .replace(/\bQueensland\b/gi, '')
+    .replace(/\bAustralia\b/gi, '')
+    .replace(/\b\d{4}\b/g, '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(', ')
+}
+
 export function VenueDetailsPage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
@@ -25,21 +45,17 @@ export function VenueDetailsPage() {
   const [venue, setVenue] = useState<ApiVenue | null>(null)
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
   const [isClaimSheetOpen, setIsClaimSheetOpen] = useState(false)
   const [claimForm, setClaimForm] = useState<ClaimFormState>(EMPTY_CLAIM_FORM)
   const [claimError, setClaimError] = useState('')
-  const [claimDialog, setClaimDialog] = useState<{
+  const [claimSuccess, setClaimSuccess] = useState<{
     open: boolean
-    type: 'success' | 'error'
-    title: string
-    description: string
-  }>({
-    open: false,
-    type: 'success',
-    title: '',
-    description: '',
-  })
+    venueName: string
+    venueId: string | null
+  }>({ open: false, venueName: '', venueId: null })
+  const claimActionTakenRef = useRef(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,6 +71,8 @@ export function VenueDetailsPage() {
 
       if (venueRes.success && venueRes.data) {
         setVenue(venueRes.data)
+      } else {
+        setNotFound(true)
       }
       if (eventsRes.success && eventsRes.data) {
         setUpcomingEvents(eventsRes.data.data)
@@ -110,58 +128,72 @@ export function VenueDetailsPage() {
     setIsClaiming(false)
 
     if (!claimRes.success) {
-      setClaimError(claimRes.error?.message || 'Claim request failed.')
+      setClaimError(claimRes.error?.message || 'Claim failed. Please try again.')
       return
     }
 
     setIsClaimSheetOpen(false)
     setClaimForm(EMPTY_CLAIM_FORM)
     setClaimError('')
-    setVenue((v) => v ? { ...v, has_pending_claim: true } : v)
-    setClaimDialog({
-      open: true,
-      type: 'success',
-      title: 'Application submitted',
-      description: "We've got your claim. The team will review it shortly.",
-    })
+
+    const activatedVenueId = claimRes.data?.venue_id ?? null
+
+    setClaimSuccess({ open: true, venueName: venue.name_display, venueId: activatedVenueId })
+    if (!activatedVenueId) {
+      setVenue((v) => (v ? { ...v, has_pending_claim: true } : v))
+    }
+  }
+
+  const handleGoToPortal = async (venueId: string) => {
+    try {
+      const { data: sessionData } = await supabase!.auth.getSession()
+      if (sessionData?.session?.access_token) {
+        const context = await sessionService.bootstrap(sessionData.session.access_token)
+        useAuthStore.getState().setAuthData(context.user, context.token)
+      }
+    } catch {
+      // Non-fatal — role will sync on next visit
+    }
+    navigate(`/admin/${venueId}`, { replace: true })
   }
 
   const handleShare = async () => {
     if (!venue) return
-
-    const shareData = {
-      title: venue.name_display,
-      text: `Check out ${venue.name_display} on HopCourts!`,
-      url: window.location.href,
-    }
-
+    const url = `${window.location.origin}/venues/${venue.id}`
     if (navigator.share) {
       try {
-        await navigator.share(shareData)
-      } catch (err) {
-        console.error('Share failed:', err)
+        await navigator.share({ title: venue.name_display, url })
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.error(err)
       }
     } else {
-      try {
-        await navigator.clipboard.writeText(window.location.href)
-        alert('Link copied to clipboard!')
-      } catch (err) {
-        console.error('Clipboard failed:', err)
-      }
+      await navigator.clipboard.writeText(url).catch(console.error)
     }
   }
 
   const handleBack = () => {
-    const historyIndex = window.history.state?.idx
-    if (typeof historyIndex === 'number' && historyIndex > 0) {
-      navigate(-1)
-      return
-    }
     navigate('/venues')
   }
 
-  if (isLoading || !venue) {
-    return <PageLoading />
+  if (isLoading) return <PageLoading />
+
+  if (notFound || !venue) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="mb-4 rounded-full bg-slate-100 p-4">
+          <Frown className="h-8 w-8 text-slate-400" />
+        </div>
+        <h1 className="text-xl font-bold text-slate-900">Venue not found</h1>
+        <p className="text-sm text-slate-500">This venue may have been removed or the link is incorrect.</p>
+        <button
+          type="button"
+          onClick={() => navigate('/venues')}
+          className="mt-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white"
+        >
+          Explore locations
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -179,8 +211,8 @@ export function VenueDetailsPage() {
       <BottomSheet
         open={isClaimSheetOpen}
         onClose={closeClaimSheet}
-        title="Claim this venue"
-        description="Tell us who you are and we'll verify your connection to this venue."
+        title="Start your free trial"
+        description="Enter your details and your 14-day trial activates immediately — no card required."
         maxWidthClassName="max-w-xl"
         sheetClassName="max-h-[86vh]"
         footer={
@@ -199,7 +231,7 @@ export function VenueDetailsPage() {
               disabled={isClaiming}
               className="flex-1 rounded-[18px] bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
             >
-              {isClaiming ? 'Submitting…' : 'Submit claim'}
+              {isClaiming ? 'Starting trial…' : 'Claim & start trial'}
             </button>
           </div>
         }
@@ -210,9 +242,14 @@ export function VenueDetailsPage() {
           onSubmit={handleClaimSubmit}
         >
           <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Venue</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Location</p>
             <p className="mt-2 text-base font-semibold text-slate-900">{venue.name_display}</p>
-            <p className="mt-1 text-sm text-slate-500">{venue.address_display || 'Address not listed'}</p>
+            <p className="mt-1 text-sm text-slate-500">{formatClaimLocationAddress(venue.address_display)}</p>
+          </div>
+
+          <div className="rounded-[22px] border border-[#dbe7a7] bg-[#e8f0c2] px-4 py-3 text-sm leading-relaxed text-slate-800">
+            <strong className="font-bold text-slate-950">Free 14-day trial included.</strong> No card needed,
+            billing only starts if you choose to stay.
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -231,7 +268,7 @@ export function VenueDetailsPage() {
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Role</span>
+              <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">Your role</span>
               <input
                 type="text"
                 value={claimForm.contact_title}
@@ -264,7 +301,7 @@ export function VenueDetailsPage() {
               value={claimForm.contact_email}
               onChange={(event) => updateClaimField('contact_email', event.target.value)}
               className="w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              placeholder="Email used for admin approval"
+              placeholder="Your business email"
               autoComplete="email"
             />
           </label>
@@ -276,7 +313,7 @@ export function VenueDetailsPage() {
               onChange={(event) => updateClaimField('note', event.target.value)}
               rows={4}
               className="w-full resize-none rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400"
-              placeholder="Anything that helps us verify your claim."
+              placeholder="Anything else you'd like to tell us?"
             />
           </label>
 
@@ -289,12 +326,38 @@ export function VenueDetailsPage() {
       </BottomSheet>
 
       <AlertDialog
-        open={claimDialog.open}
-        onClose={() => setClaimDialog((current) => ({ ...current, open: false }))}
-        title={claimDialog.title}
-        description={claimDialog.description}
-        type={claimDialog.type}
-        actionLabel="OK"
+        open={claimSuccess.open}
+        onClose={() => {
+          setClaimSuccess({ open: false, venueName: '', venueId: null })
+          if (!claimActionTakenRef.current && claimSuccess.venueId) {
+            navigate('/venues', { replace: true })
+          }
+          claimActionTakenRef.current = false
+        }}
+        title={claimSuccess.venueId ? 'Venue is live!' : 'Application submitted'}
+        description={
+          claimSuccess.venueId ? (
+            <>
+              <span className="font-semibold text-slate-700">{claimSuccess.venueName}</span> is now on the map. Your
+              14-day trial has started.
+            </>
+          ) : (
+            <>
+              Your claim for <span className="font-semibold text-slate-700">{claimSuccess.venueName}</span> is under
+              review. We'll be in touch shortly.
+            </>
+          )
+        }
+        type="success"
+        actionLabel={claimSuccess.venueId ? 'Go to your venue' : 'Got it'}
+        onAction={
+          claimSuccess.venueId
+            ? () => {
+                claimActionTakenRef.current = true
+                handleGoToPortal(claimSuccess.venueId!)
+              }
+            : undefined
+        }
       />
     </>
   )

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PageLoading } from '@/components/PageLoading'
+import { LoginPromptSheet } from '@/components'
+import { useAuthStore } from '@/hooks'
 import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
 import { VenueListView } from '../views/VenueListView'
 import { VenueMapFilterType } from '../components/VenueMapFilters'
@@ -9,6 +11,8 @@ const PAGE_SIZE = 50
 
 export function VenueListPage() {
   const navigate = useNavigate()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const isAuthLoading = useAuthStore((state) => state.isLoading)
   const [searchParams, setSearchParams] = useSearchParams()
   const [venues, setVenues] = useState<ApiVenue[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -18,6 +22,7 @@ export function VenueListPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<VenueMapFilterType>('all')
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   const isMapView = searchParams.get('view') === 'map'
 
@@ -79,24 +84,41 @@ export function VenueListPage() {
     return result
   }, [venues, searchQuery, activeFilter])
 
+  const handleSubmitVenueClick = () => {
+    if (isAuthLoading) return
+    if (!isAuthenticated) {
+      setShowLoginPrompt(true)
+      return
+    }
+    navigate('/venues/submit')
+  }
+
   return (
-    <VenueListView
-      venues={filteredVenues}
-      isLoading={isLoading}
-      searchQuery={searchQuery}
-      onSearchChange={setSearchQuery}
-      onSearchClear={() => setSearchQuery('')}
-      showMap={isMapView}
-      onToggleView={handleToggleView}
-      onVenueClick={(id) => navigate(`/venues/${id}`)}
-      mapVenues={filteredVenues}
-      selectedVenueId={selectedVenueId}
-      onSelectVenue={setSelectedVenueId}
-      activeFilter={activeFilter}
-      onFilterChange={setActiveFilter}
-      hasMore={hasMore && !searchQuery}
-      loadingMore={loadingMore}
-      onLoadMore={loadMoreVenues}
-    />
+    <>
+      <VenueListView
+        venues={filteredVenues}
+        isLoading={isLoading}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchClear={() => setSearchQuery('')}
+        showMap={isMapView}
+        onToggleView={handleToggleView}
+        onVenueClick={(id) => navigate(`/venues/${id}`)}
+        onSubmitVenueClick={handleSubmitVenueClick}
+        mapVenues={filteredVenues}
+        selectedVenueId={selectedVenueId}
+        onSelectVenue={setSelectedVenueId}
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        hasMore={hasMore && !searchQuery}
+        loadingMore={loadingMore}
+        onLoadMore={loadMoreVenues}
+      />
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        returnTo="/venues/submit"
+      />
+    </>
   )
 }

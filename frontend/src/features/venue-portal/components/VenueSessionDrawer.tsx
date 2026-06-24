@@ -1,19 +1,8 @@
-import React from 'react'
-import {
-  X,
-  ChevronLeft,
-  Calendar as CalendarIcon,
-  Clock,
-  Award,
-  User,
-  DollarSign,
-  Edit3,
-  Check,
-  Users,
-} from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { X, Users } from 'lucide-react'
 import { format } from 'date-fns'
-import { VenueButton } from './ui/VenueButton'
-import { VenueBadge } from './ui/VenueBadge'
+import { venuePortalService } from '../services/venuePortalService'
+import { cacheGet, cacheSet } from '../services/venuePortalCache'
 
 interface GeneratedSession {
   id: string
@@ -27,352 +16,231 @@ interface GeneratedSession {
   level: string
   gender: string
   price: number
+  court_name?: string | null
 }
 
-interface Participant {
-  id: string
-  name: string
-  level_rating: string
-  has_paid: boolean
+interface RealParticipant {
+  user_id: string
+  display_name: string
+  avatar_url: string | null
+  role: string
+  joined_at: string
 }
 
 interface VenueSessionDrawerProps {
   session: GeneratedSession
   onClose: () => void
-  showParticipants: boolean
-  setShowParticipants: (show: boolean) => void
-  isEditing: boolean
-  setIsEditing: (editing: boolean) => void
   onUpdate: (updates: Partial<GeneratedSession>) => void
   onCancel: () => void
-  mockParticipants: Participant[]
   SPORTS: string[]
 }
 
 export const VenueSessionDrawer: React.FC<VenueSessionDrawerProps> = ({
   session,
   onClose,
-  showParticipants,
-  setShowParticipants,
-  isEditing,
-  setIsEditing,
   onUpdate,
   onCancel,
-  mockParticipants,
   SPORTS,
 }) => {
-  const getStatusVariant = (status: GeneratedSession['status']) => {
-    switch (status) {
-      case 'published':
-        return 'emerald'
-      case 'full':
-        return 'amber'
-      case 'completed':
-        return 'slate'
-      case 'cancelled':
-        return 'red'
-      default:
-        return 'default'
-    }
+  const [sport, setSport] = useState(session.sport)
+  const [maxCap, setMaxCap] = useState(session.max_participants)
+  const [rate, setRate] = useState(session.price)
+  const [participants, setParticipants] = useState<RealParticipant[]>([])
+
+  useEffect(() => {
+    if (!session.id) return
+    const cacheKey = `participants:${session.id}`
+    const cached = cacheGet<RealParticipant[]>(cacheKey)
+    if (cached) { setParticipants(cached); return }
+    venuePortalService.getEventParticipants(session.id).then((res) => {
+      if (res.success && res.data) {
+        setParticipants(res.data)
+        cacheSet(cacheKey, res.data)
+      }
+    })
+  }, [session.id])
+
+  const isDirty =
+    sport !== session.sport ||
+    maxCap !== session.max_participants ||
+    rate !== session.price
+
+  const handleCommit = () => {
+    onUpdate({ sport, max_participants: maxCap, price: rate })
   }
+
+  const h = Number(session.start_time.split(':')[0]) || 0
+  const h12 = h % 12 || 12
+  const ampm = h < 12 ? 'am' : 'pm'
+  const timeLabel = `${h12}:00 ${ampm}`
+  const courtLabel = session.court_name
+    ? `${session.court_name} · ${timeLabel}`
+    : timeLabel
+
+  const pct = session.max_participants > 0
+    ? (session.participants_count / session.max_participants) * 100
+    : 0
+
+  const isCancelled = session.status === 'cancelled'
 
   return (
     <div className="fixed inset-0 z-[100] flex justify-center bg-slate-900/10 font-sans backdrop-blur-[2px]">
-      <div className="relative h-full w-full max-w-screen-md">
-        <div className="absolute bottom-0 right-0 top-0 z-[110] flex w-full flex-col bg-white p-0 shadow-2xl duration-300 animate-in slide-in-from-right md:w-[420px]">
-          {/* Drawer Header */}
-          <div className="flex items-center justify-between border-b border-slate-50 bg-slate-50/20 p-6 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              {showParticipants && (
-                <button
-                  onClick={() => setShowParticipants(false)}
-                  className="rounded-xl border border-slate-100 p-2 shadow-sm transition-all hover:bg-white active:scale-90"
-                >
-                  <ChevronLeft className="h-4 w-4 text-slate-400" />
-                </button>
-              )}
-              <div>
-                <h3 className="mb-0.5 text-sm font-black uppercase leading-none tracking-tight text-slate-900">
-                  {showParticipants ? 'Live Roster' : isEditing ? 'Edit Instance' : 'Instance Dashboard'}
-                </h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  {format(session.date, 'EEEE, MMM d, yyyy')}
-                </p>
-              </div>
+      <div className="relative h-full w-full max-w-[1024px]">
+        <div className="absolute bottom-0 right-0 top-0 z-[110] flex w-full flex-col bg-white shadow-2xl duration-300 animate-in slide-in-from-right md:w-[420px]">
+
+          {/* ── Header ── */}
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-5">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                {format(session.date, 'EEE, MMM d, yyyy')}
+              </p>
+              <h2 className="mt-0.5 text-lg font-black leading-tight text-slate-900">
+                {courtLabel}
+              </h2>
             </div>
             <button
               onClick={onClose}
-              className="rounded-2xl border border-transparent p-2.5 shadow-sm transition-all hover:border-red-100 hover:bg-white hover:text-red-500 active:scale-95"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent transition hover:border-slate-200 hover:bg-slate-50 active:scale-90"
             >
-              <X className="h-5 w-5 text-slate-300" />
+              <X className="h-4 w-4 text-slate-400" />
             </button>
           </div>
 
-          <div className="flex-1 space-y-6 overflow-y-auto p-7">
-            {showParticipants ? (
-              <div className="space-y-6 duration-300 animate-in fade-in slide-in-from-right-2">
-                <div className="rounded-[1.5rem] bg-slate-900 p-5 text-white shadow-xl shadow-slate-200">
-                  <div className="mb-2 flex items-center justify-between">
-                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
-                      Summary Status
-                    </div>
-                    <VenueBadge
-                      variant="emerald"
-                      size="xs"
-                    >
-                      Live Inventory
-                    </VenueBadge>
-                  </div>
-                  <div className="text-2xl font-black">
-                    {session.participants_count}{' '}
-                    <span className="text-lg text-slate-500">/ {session.max_participants}</span>
-                  </div>
-                  <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-800 shadow-inner">
-                    <div
-                      className="h-full rounded-full bg-venue-500 transition-all duration-1000"
-                      style={{
-                        width: `${(session.participants_count / session.max_participants) * 100}%`,
-                      }}
-                    ></div>
-                  </div>
+          {/* ── Scrollable body ── */}
+          <div className="flex-1 overflow-y-auto">
+
+            {/* 1 ── Live Roster ── */}
+            <div className="p-5 pb-0">
+              <div className="rounded-2xl bg-slate-900 p-5 text-white">
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    Summary Status
+                  </span>
+                  <span className="rounded-full bg-[#3cba6e] px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-slate-900">
+                    Live Inventory
+                  </span>
+                </div>
+                <div className="mt-2 text-3xl font-black tabular-nums">
+                  {session.participants_count}
+                  <span className="ml-1 text-xl text-slate-500">/ {session.max_participants}</span>
+                </div>
+                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className="h-full rounded-full bg-[#3cba6e] transition-all duration-700"
+                    style={{ width: `${pct}%` }}
+                  />
                 </div>
 
-                <div className="space-y-3">
-                  {mockParticipants.slice(0, session.participants_count).map((p) => (
-                    <div
-                      key={p.id}
-                      className="group flex items-center gap-4 rounded-[1.25rem] border border-slate-100 bg-white p-4 transition-all hover:border-venue-100 hover:shadow-lg hover:shadow-venue-50/50"
-                    >
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-xs font-black uppercase text-slate-400 shadow-inner transition-colors group-hover:bg-venue-50 group-hover:text-venue-400">
-                        {p.name.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-black uppercase tracking-tight text-slate-800">{p.name}</div>
-                        <div className="text-[10px] font-black tracking-widest text-slate-400">{p.level_rating}</div>
-                      </div>
-                      <div className="flex items-center gap-2 rounded-xl border border-emerald-100/50 bg-emerald-50 px-3 py-1.5 transition-all group-hover:shadow-sm">
-                        <Check className="h-3.5 w-3.5 stroke-[3] text-emerald-600" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600">Paid</span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {session.participants_count === 0 && (
-                    <div className="group py-24 text-center">
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl border border-slate-100 bg-slate-50 opacity-20 transition-all group-hover:opacity-100">
-                        <Users className="h-8 w-8 text-slate-300" />
-                      </div>
-                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                {/* Player list */}
+                <div className="mt-4 border-t border-slate-800 pt-4">
+                  {participants.length === 0 ? (
+                    <div className="flex flex-col items-center gap-2 py-6 text-center">
+                      <Users className="h-6 w-6 text-slate-600" />
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                         Waiting for registrations
                       </p>
                     </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {participants.map((p) => (
+                        <div key={p.user_id} className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-black text-slate-300">
+                            {p.avatar_url
+                              ? <img src={p.avatar_url} className="h-8 w-8 rounded-full object-cover" alt="" />
+                              : (p.display_name.charAt(0).toUpperCase())}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate text-sm font-bold text-white">{p.display_name}</p>
+                            <p className="text-[10px] text-slate-500">{p.role}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
-            ) : !isEditing ? (
-              <div className="space-y-6 duration-300 animate-in slide-in-from-right-4">
-                <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-7 shadow-xl shadow-slate-200/40">
-                  <div className="pointer-events-none absolute right-0 top-0 p-4 opacity-5 transition-transform group-hover:scale-110">
-                    <CalendarIcon className="-mr-16 -mt-16 h-32 w-32" />
-                  </div>
+            </div>
 
-                  <div className="mb-6 flex items-center justify-between">
-                    <VenueBadge
-                      variant="indigo"
-                      size="sm"
-                    >
-                      {session.sport}
-                    </VenueBadge>
-                    <VenueBadge
-                      variant={getStatusVariant(session.status)}
-                      size="sm"
-                    >
-                      {session.status}
-                    </VenueBadge>
-                  </div>
-                  <h4 className="mb-2 text-2xl font-black uppercase tracking-tighter text-slate-900">
-                    {format(session.date, 'MMMM do')}
-                  </h4>
-                  <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-slate-400">
-                    <div className="h-1.5 w-1.5 rounded-full bg-slate-200"></div>
-                    <Clock className="h-3.5 w-3.5 text-venue-400" />
-                    {session.start_time} — {session.end_time}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="group rounded-2xl border border-slate-100/50 bg-slate-50 p-5 text-center shadow-inner">
-                    <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-slate-400 transition-colors group-hover:text-venue-400">
-                      Max Capacity
-                    </div>
-                    <div className="text-2xl font-black tabular-nums text-slate-900">{session.max_participants}</div>
-                  </div>
-                  <div className="group rounded-2xl border border-venue-100/50 bg-venue-50/30 p-5 text-center shadow-inner">
-                    <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-venue-300 transition-colors group-hover:text-amber-500">
-                      Registered
-                    </div>
-                    <div className="text-2xl font-black tabular-nums text-venue-600">{session.participants_count}</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4 rounded-[1.5rem] border border-slate-100 bg-white p-6 shadow-sm">
-                  <div className="group flex items-center gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 transition-colors group-hover:bg-venue-50">
-                      <Award className="h-4 w-4 text-slate-400 group-hover:text-venue-400" />
-                    </div>
-                    <div className="text-xs font-black uppercase tracking-widest text-slate-400">
-                      Skill Tier <span className="ml-2 text-slate-900">{session.level}</span>
-                    </div>
-                  </div>
-                  <div className="group flex items-center gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 transition-colors group-hover:bg-venue-50">
-                      <User className="h-4 w-4 text-slate-400 group-hover:text-venue-400" />
-                    </div>
-                    <div className="text-xs font-black uppercase tracking-widest text-slate-400">
-                      Gender Rule <span className="ml-2 text-slate-900">{session.gender}</span>
-                    </div>
-                  </div>
-                  <div className="group flex items-center gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 transition-colors group-hover:bg-amber-50">
-                      <DollarSign className="h-4 w-4 text-amber-300 group-hover:text-amber-500" />
-                    </div>
-                    <div className="text-xs font-black uppercase tracking-widest text-slate-400">
-                      Slot Fee <span className="ml-2 text-venue-600">A${session.price}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2.5 pt-4">
-                  {session.status !== 'completed' && (
-                    <>
-                      <VenueButton
-                        variant="secondary"
-                        size="lg"
-                        className="w-full"
-                        onClick={() => setIsEditing(true)}
-                        icon={<Edit3 className="h-4 w-4" />}
-                      >
-                        Modify Instance
-                      </VenueButton>
-
-                      {session.status !== 'cancelled' ? (
-                        <VenueButton
-                          variant="danger"
-                          size="lg"
-                          className="w-full"
-                          onClick={onCancel}
-                        >
-                          Force Cancel Session
-                        </VenueButton>
-                      ) : (
-                        <VenueButton
-                          variant="success"
-                          size="lg"
-                          className="w-full"
-                          onClick={() => onUpdate({ status: 'published' })}
-                        >
-                          Reactivate Session
-                        </VenueButton>
-                      )}
-                    </>
-                  )}
-                  <VenueButton
-                    variant="outline"
-                    size="lg"
-                    className="w-full border-2"
-                    onClick={() => setShowParticipants(true)}
-                    icon={<Users className="h-4 w-4" />}
-                  >
-                    View Player List
-                  </VenueButton>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6 duration-200 animate-in zoom-in-95">
-                <h4 className="text-sm font-black uppercase tracking-tight text-slate-900">Modify Instance Data</h4>
-                <div className="space-y-5 rounded-[1.5rem] border border-slate-100 bg-slate-50 p-6">
+            {/* 2 ── Modify fields ── */}
+            {!isCancelled && (
+              <div className="p-5 pt-4">
+                <p className="mb-3 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                  Modify constraints
+                </p>
+                <div className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
                   <div>
-                    <label className="mb-1.5 ml-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
-                      Instance Sport
+                    <label className="mb-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      Sport
                     </label>
                     <select
-                      value={session.sport}
-                      onChange={(e) => onUpdate({ sport: e.target.value })}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-700 shadow-sm outline-none transition-all focus:border-venue-500"
+                      value={sport}
+                      onChange={(e) => setSport(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-800 outline-none focus:border-[#2f6d16]"
                     >
                       {SPORTS.map((s) => (
                         <option key={s}>{s}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1.5 ml-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
-                        Start
-                      </label>
-                      <input
-                        type="time"
-                        value={session.start_time}
-                        onChange={(e) => onUpdate({ start_time: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-700 shadow-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 ml-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
-                        End
-                      </label>
-                      <input
-                        type="time"
-                        value={session.end_time}
-                        onChange={(e) => onUpdate({ end_time: e.target.value })}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-700 shadow-sm"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="mb-1.5 ml-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
-                        Max Cap.
+                      <label className="mb-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
+                        Max cap.
                       </label>
                       <input
                         type="number"
-                        value={session.max_participants}
-                        onChange={(e) => onUpdate({ max_participants: parseInt(e.target.value) })}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-700 shadow-sm"
+                        min={1}
+                        value={maxCap}
+                        onChange={(e) => setMaxCap(Number(e.target.value))}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center text-sm font-black text-slate-800 outline-none focus:border-[#2f6d16]"
                       />
                     </div>
                     <div>
-                      <label className="mb-1.5 ml-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
+                      <label className="mb-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
                         Rate (A$)
                       </label>
                       <input
                         type="number"
-                        value={session.price}
-                        onChange={(e) => onUpdate({ price: parseFloat(e.target.value) })}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-venue-600 shadow-sm"
+                        min={0}
+                        value={rate}
+                        onChange={(e) => setRate(Number(e.target.value))}
+                        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-center text-sm font-black text-slate-800 outline-none focus:border-[#2f6d16]"
                       />
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-3 pt-4">
-                  <VenueButton
-                    variant="ghost"
-                    size="lg"
-                    className="flex-1"
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Discard Changes
-                  </VenueButton>
-                  <VenueButton
-                    variant="primary"
-                    size="lg"
-                    className="flex-1 shadow-lg shadow-venue-100"
-                    onClick={() => onUpdate({})}
-                  >
-                    Commit Changes
-                  </VenueButton>
-                </div>
               </div>
+            )}
+          </div>
+
+          {/* ── Sticky footer actions ── */}
+          <div className="shrink-0 space-y-2.5 border-t border-slate-100 px-5 py-4">
+            {!isCancelled ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCommit}
+                  disabled={!isDirty}
+                  className="w-full rounded-2xl bg-slate-900 py-3.5 text-sm font-black text-white transition hover:bg-slate-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  Commit Changes
+                </button>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="w-full rounded-2xl bg-rose-50 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-100 active:scale-[0.99]"
+                >
+                  Force Cancel Session
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onUpdate({ status: 'published' })}
+                className="w-full rounded-2xl bg-[#1A3A0A] py-3.5 text-sm font-black text-white transition hover:bg-[#244d10] active:scale-[0.99]"
+              >
+                Reactivate Session
+              </button>
             )}
           </div>
         </div>

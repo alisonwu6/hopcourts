@@ -77,6 +77,76 @@ async function getVenue(id, userId = null) {
   return venuesModel.getVenueById(id, userId)
 }
 
+const OWNERSHIP_ROLES = new Set(['owner', 'manager', 'official_representative', 'community_organizer'])
+
+function normalizeSubmitVenuePayload(body = {}) {
+  const venueType = String(body.venue_type || '').trim()
+  const name = String(body.name || '').trim()
+  const address = String(body.address || '').trim()
+  const lat = Number(body.lat)
+  const lng = Number(body.lng)
+  const sportKeys = Array.isArray(body.sport_keys)
+    ? body.sport_keys.map((key) => String(key || '').trim().toUpperCase()).filter(Boolean)
+    : []
+  const ownershipRole = body.ownership_role ? String(body.ownership_role).trim() : ''
+  const contactPerson = body.contact_person ? String(body.contact_person).trim() : ''
+  const contactPhone = body.contact_phone ? String(body.contact_phone).trim() : ''
+  const contactEmail = body.contact_email ? String(body.contact_email).trim() : ''
+  const note = body.note ? String(body.note).trim() : ''
+
+  if (!['public', 'official'].includes(venueType)) {
+    throw new Error('Invalid venue type')
+  }
+  if (!name) throw new Error('Venue name is required')
+  if (!address) throw new Error('Venue address is required')
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('Venue coordinates are required')
+  if (!sportKeys.length) throw new Error('At least one sport is required')
+  if (venueType === 'official' && !OWNERSHIP_ROLES.has(ownershipRole)) {
+    throw new Error('Invalid ownership role')
+  }
+  if (venueType === 'official' && !contactPerson) throw new Error('Contact person is required')
+  if (venueType === 'official' && !contactPhone) throw new Error('Contact phone is required')
+  if (venueType === 'official' && !contactEmail) throw new Error('Contact email is required')
+
+  return {
+    venueType,
+    name,
+    address,
+    lat,
+    lng,
+    sportKeys,
+    ownershipRole: venueType === 'official' ? ownershipRole : null,
+    contactPerson: venueType === 'official' ? contactPerson : null,
+    contactPhone: venueType === 'official' ? contactPhone : null,
+    contactEmail: venueType === 'official' ? contactEmail : null,
+    note: venueType === 'official' ? note : null,
+  }
+}
+
+async function submitVenue(userId, body) {
+  if (!userId) throw new Error('Authentication required')
+
+  const payload = normalizeSubmitVenuePayload(body)
+  const user = await usersModel.getUserById(userId)
+  if (!user) throw new Error('User not found')
+
+  const result = await venuesModel.submitVenue({
+    ...payload,
+    userId,
+    contactName: payload.contactPerson || user.display_name || user.username || user.email || null,
+    contactEmail: payload.contactEmail || user.email || null,
+    contactPhone: payload.contactPhone || null,
+  })
+
+  return {
+    venue_id: result.venue.id,
+    name_display: result.venue.name_display || result.venue.name,
+    venue_type: result.venue.venue_type,
+    status: result.venue.status,
+    trial_ends_at: result.venue.trial_ends_at,
+  }
+}
+
 async function requestVenueClaim(venueId, userId, claimData) {
   const venue = await venuesModel.getVenueById(venueId)
   if (!venue) throw new Error('Venue not found')
@@ -120,7 +190,14 @@ async function requestVenueClaim(venueId, userId, claimData) {
   const approvedClaim = await venuesModel.getApprovedClaim(venueId)
   if (approvedClaim) throw new Error('Venue already claimed')
 
-  return venuesModel.createVenueClaim(venueId, userId, normalizedClaim)
+  // Single atomic transaction: claim record + venue activation + user role
+  const activated = await venuesModel.activateVenueClaim(venueId, userId, normalizedClaim)
+
+  return {
+    venue_id: activated.id,
+    name_display: activated.name_display || activated.name,
+    trial_ends_at: activated.trial_ends_at,
+  }
 }
 
 // Check if user is the official owner of a venue
@@ -143,6 +220,7 @@ async function reviewVenueClaim(claimId, status) {
   if (status === 'approved') {
     await venuesModel.updateVenueStatus(claim.venue_id, 'claimed')
     await venuesModel.updateVenueType(claim.venue_id, 'official')
+    await venuesModel.startVenueTrial(claim.venue_id)
   }
 
   return updatedClaim
@@ -307,10 +385,19 @@ async function approveVenueClaim(claimId, adminId, officialEmail) {
   return result
 }
 
+async function joinOfficialWaitlist({ email, userId }) {
+  await query(
+    `INSERT INTO venue_official_waitlist (email, user_id) VALUES ($1, $2)
+     ON CONFLICT (email) DO UPDATE SET user_id = COALESCE(venue_official_waitlist.user_id, EXCLUDED.user_id)`,
+    [email, userId]
+  )
+}
+
 module.exports = {
   resolveVenue,
   listVenues,
   getVenue,
+  submitVenue,
   requestVenueClaim,
   reviewVenueClaim,
   isVenueOwner,
@@ -321,5 +408,6 @@ module.exports = {
   patchVenueDisplay,
   suspendVenue,
   unsuspendVenue,
-  approveVenueClaim
+  approveVenueClaim,
+  joinOfficialWaitlist,
 }

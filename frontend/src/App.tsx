@@ -8,6 +8,9 @@ import { DiscoverEventsPage } from '@/features/events/pages/DiscoverEventsPage'
 import { EventDetailPage } from '@/features/events/pages/EventDetailPage'
 import { VenueListPage } from '@/features/venues/pages/VenueListPage'
 import { VenueDetailsPage } from '@/features/venues/pages/VenueDetailsPage'
+import { SubmitVenuePage } from '@/features/venues/pages/SubmitVenuePage'
+import { SubmitVenueChooserPage } from '@/features/venues/pages/SubmitVenueChooserPage'
+import { SubmitPublicVenuePage } from '@/features/venues/pages/SubmitPublicVenuePage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { SavedEventsPage } from '@/features/profile/pages/SavedEventsPage'
 import { HostedEventsPage } from '@/features/profile/pages/HostedEventsPage'
@@ -25,6 +28,7 @@ import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
 import { MyMatesPage } from '@/features/profile/pages/MyMatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
+import { VenuePortalLayout } from '@/features/venue-portal/layouts/VenuePortalLayout'
 import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
 import { VenueProfilePage } from '@/features/venue-portal/pages/VenueProfilePage'
 import { VenueSessionCreatePage } from '@/features/venue-portal/pages/VenueSessionCreatePage'
@@ -128,7 +132,7 @@ export default function App() {
         }
       />
 
-      {/* Admin */}
+      {/* Admin superuser — must be defined before the portal layout to prevent /:venueId matching "venues" */}
       <Route
         path="/admin/venues"
         element={
@@ -137,38 +141,22 @@ export default function App() {
           </RequireAdmin>
         }
       />
+
+      {/* Venue portal — shared layout keeps header + bottom nav persistent across tab switches */}
       <Route
-        path="/admin/:venueId/schedule"
+        path="/admin"
         element={
           <RequireAuth>
-            <VenueSchedulePage />
+            <VenuePortalLayout />
           </RequireAuth>
         }
-      />
-      <Route
-        path="/admin/:venueId/profile"
-        element={
-          <RequireAuth>
-            <VenueProfilePage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/:venueId/sessions/create"
-        element={
-          <RequireAuth>
-            <VenueSessionCreatePage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/:venueId?"
-        element={
-          <RequireAuth>
-            <VenueDashboardPage />
-          </RequireAuth>
-        }
-      />
+      >
+        <Route index element={<VenueDashboardPage />} />
+        <Route path=":venueId" element={<VenueDashboardPage />} />
+        <Route path=":venueId/schedule" element={<VenueSchedulePage />} />
+        <Route path=":venueId/profile" element={<VenueProfilePage />} />
+        <Route path=":venueId/sessions/create" element={<VenueSessionCreatePage />} />
+      </Route>
 
       {/* Public app routes */}
       <Route
@@ -203,6 +191,33 @@ export default function App() {
             <VenueListPage />
           </AppChrome>
         }
+      />
+      <Route
+        path="/venues/submit"
+        element={
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <SubmitVenueChooserPage />
+          </AppChrome>
+        }
+      />
+      <Route
+        path="/venues/submit/public"
+        element={
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <SubmitPublicVenuePage />
+          </AppChrome>
+        }
+      />
+      {/* Official venue submission is coming soon — redirect to chooser */}
+      <Route
+        path="/venues/submit/official"
+        element={<Navigate to="/venues/submit" replace />}
       />
       <Route
         path="/venues/:venueId"

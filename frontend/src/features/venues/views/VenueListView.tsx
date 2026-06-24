@@ -1,4 +1,4 @@
-import { Search, List as ListIcon, Map as MapIcon, X, Building2 } from 'lucide-react'
+import { Search, List as ListIcon, Map as MapIcon, X, Building2, ChevronRight, Trees } from 'lucide-react'
 import { VenueMap } from '../components/VenueMap'
 import { VenueMapFilters, VenueMapFilterType } from '../components/VenueMapFilters'
 import { ApiVenue } from '../services/venuesService'
@@ -14,6 +14,7 @@ interface VenueListViewProps {
   showMap: boolean
   onToggleView: () => void
   onVenueClick: (id: string) => void
+  onSubmitVenueClick: () => void
   // Map-specific
   mapVenues: ApiVenue[]
   selectedVenueId: string | null
@@ -36,6 +37,7 @@ export function VenueListView({
   showMap,
   onToggleView,
   onVenueClick,
+  onSubmitVenueClick,
   mapVenues,
   selectedVenueId,
   onSelectVenue,
@@ -49,7 +51,7 @@ export function VenueListView({
 
   return (
     <div className="min-h-[100dvh] bg-white">
-      <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md p-4 pointer-events-none">
+      <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md px-4 pt-4 pb-0 pointer-events-none">
         {!showMap && <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur" />}
 
         <div className="relative z-10 flex w-full items-center gap-3">
@@ -63,7 +65,7 @@ export function VenueListView({
             <input
               type="text"
               placeholder="Search by name or address"
-              className="h-[58px] w-full rounded-full border border-slate-200 bg-white pl-12 pr-12 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-slate-300 focus:bg-slate-50/50"
+              className="h-[58px] w-full rounded-full border border-slate-200 bg-white pl-12 pr-12 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-slate-300 focus:bg-slate-50"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -105,41 +107,45 @@ export function VenueListView({
           />
         </div>
       ) : (
-        <div className="mx-auto max-w-md px-4 pb-[100px] pt-36">
+        <div className="mx-auto max-w-md px-4 pb-[100px] pt-33">
           {isLoading ? (
             <div className="flex justify-center py-16">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
             </div>
           ) : venues.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-              <div className="p-2">
-                <Building2 className="h-8 w-8 text-slate-400" />
+            <div className="space-y-4">
+              <SubmitVenueCTA onClick={onSubmitVenueClick} />
+              <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+                <div className="p-2">
+                  <Building2 className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  {searchQuery
+                    ? 'No venues found'
+                    : activeFilter === 'official'
+                    ? 'Coming Soon'
+                    : activeFilter === 'public'
+                    ? 'No public venues yet'
+                    : activeFilter === 'has_events'
+                    ? 'No venues with events'
+                    : 'No venues yet'}
+                </h3>
+                <p className="mt-1 px-10 text-sm text-slate-500">
+                  {searchQuery
+                    ? 'Try a different name or address.'
+                    : activeFilter === 'official'
+                    ? 'Official partner venues will appear here.'
+                    : activeFilter === 'public'
+                    ? 'Public courts and parks will appear here.'
+                    : activeFilter === 'has_events'
+                    ? 'Check back later for upcoming events.'
+                    : 'Venues in your area will appear here.'}
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-slate-900">
-                {searchQuery
-                  ? 'No venues found'
-                  : activeFilter === 'official'
-                  ? 'No official venues yet'
-                  : activeFilter === 'public'
-                  ? 'No public venues yet'
-                  : activeFilter === 'has_events'
-                  ? 'No venues with events'
-                  : 'No venues yet'}
-              </h3>
-              <p className="mt-1 px-10 text-sm text-slate-500">
-                {searchQuery
-                  ? 'Try a different name or address.'
-                  : activeFilter === 'official'
-                  ? 'Official partner venues will appear here.'
-                  : activeFilter === 'public'
-                  ? 'Public courts and parks will appear here.'
-                  : activeFilter === 'has_events'
-                  ? 'Check back later for upcoming events.'
-                  : 'Venues in your area will appear here.'}
-              </p>
             </div>
           ) : (
             <div className="space-y-4">
+              <SubmitVenueCTA onClick={onSubmitVenueClick} />
               {venues.map((v) => (
                 <VenueCard
                   key={v.id}
@@ -161,5 +167,37 @@ export function VenueListView({
         </div>
       )}
     </div>
+  )
+}
+
+function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-2 rounded-3xl bg-[#2d3818] p-2 text-left shadow-sm transition active:scale-[0.99]"
+    >
+      <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1A3A0A]">
+        <Trees
+          className="h-10 w-10 text-[#cce15f]"
+          strokeWidth={2}
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        {/* for official venue promotion */}
+        {/* <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your venue?</p>
+        <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
+          Submit it free, 14-day official trial included.
+        </p> */}
+        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your local court?</p>
+        <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
+          Put it on the map instantly. Free, always.
+        </p>
+      </div>
+      <ChevronRight
+        className="h-5 w-5 flex-none text-white/70"
+        strokeWidth={2}
+      />
+    </button>
   )
 }

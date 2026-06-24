@@ -65,8 +65,8 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
       <div className="rounded-3xl border border-slate-100 bg-white p-7 shadow-xl shadow-slate-200/50">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-venue-100/50 bg-venue-50 shadow-inner">
-              <Settings className="h-5 w-5 text-venue-500" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#e8f0d7] bg-[#f0f7e4] shadow-inner">
+              <Settings className="h-5 w-5 text-[#2f6d16]" />
             </div>
             <div>
               <h3 className="text-sm font-black uppercase tracking-tight text-slate-900">Quick Prep Rules</h3>
@@ -78,7 +78,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
 
           <div className="hidden flex-col items-end text-right md:flex">
             <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-slate-300">System Mode</div>
-            <div className="rounded-full border border-venue-100/30 bg-venue-50/50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-tight text-venue-500">
+            <div className="rounded-full border border-[#e8f0d7]/50 bg-[#f0f7e4]/50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-tight text-[#2f6d16]">
               B2B Auto-Cluster Active
             </div>
           </div>
@@ -92,7 +92,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
             <select
               value={venueDefaults.sport}
               onChange={(e) => setVenueDefaults({ ...venueDefaults, sport: e.target.value })}
-              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-venue-500"
+              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-[#2f6d16]"
             >
               {SPORTS.map((s) => (
                 <option key={s}>{s}</option>
@@ -106,7 +106,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
             <select
               value={venueDefaults.court_id}
               onChange={(e) => setVenueDefaults({ ...venueDefaults, court_id: e.target.value })}
-              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-venue-500"
+              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-[#2f6d16]"
             >
               <option value="">No Default</option>
               {courts.map((c) => (
@@ -126,7 +126,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
             <select
               value={venueDefaults.level}
               onChange={(e) => setVenueDefaults({ ...venueDefaults, level: e.target.value })}
-              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-venue-500"
+              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-[#2f6d16]"
             >
               {LEVELS.map((l) => (
                 <option key={l}>{l}</option>
@@ -140,7 +140,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
             <select
               value={venueDefaults.gender}
               onChange={(e) => setVenueDefaults({ ...venueDefaults, gender: e.target.value })}
-              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-venue-500"
+              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 outline-none transition-all hover:border-slate-300 focus:border-[#2f6d16]"
             >
               {GENDERS.map((g) => (
                 <option key={g}>{g}</option>
@@ -155,7 +155,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
               type="number"
               value={venueDefaults.max_participants}
               onChange={(e) => setVenueDefaults({ ...venueDefaults, max_participants: parseInt(e.target.value) })}
-              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 focus:border-venue-500"
+              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 focus:border-[#2f6d16]"
             />
           </div>
           <div>
@@ -166,14 +166,14 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
               type="number"
               value={venueDefaults.price}
               onChange={(e) => setVenueDefaults({ ...venueDefaults, price: parseFloat(e.target.value) })}
-              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 focus:border-venue-500"
+              className="w-full rounded-xl border border-slate-200/50 bg-slate-50 px-3 py-2 text-xs font-black tracking-tight text-slate-700 focus:border-[#2f6d16]"
             />
           </div>
         </div>
 
         <div className="mt-6 border-t border-slate-50 pt-6">
           <p className="max-w-2xl text-[11px] font-semibold leading-relaxed text-slate-400">
-            <span className="mr-2 text-[9px] font-bold uppercase tracking-widest text-venue-600">
+            <span className="mr-2 text-[9px] font-bold uppercase tracking-widest text-[#2f6d16]">
               Smart Generation:
             </span>
             Syncing will auto-generate session instances for the next 28 days based on your recurring rules.
@@ -188,7 +188,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
             <button
               key={day.key}
               onClick={() => setActiveDay(day.key)}
-              className={`flex-1 rounded-2xl py-3 text-[10px] font-black uppercase tracking-widest transition-all ${activeDay === day.key ? 'bg-white text-venue-600 shadow-lg shadow-venue-100 ring-1 ring-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`flex-1 rounded-2xl py-3 text-[10px] font-black uppercase tracking-widest transition-all ${activeDay === day.key ? 'bg-white text-[#2f6d16] shadow-lg shadow-[#e8f0d7] ring-1 ring-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
             >
               {day.label}
             </button>
@@ -220,7 +220,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
               .map((slot) => (
                 <div
                   key={slot.id}
-                  className="rounded-[1.5rem] border border-slate-100 bg-slate-50/50 p-6 transition-all duration-300 hover:border-venue-100 hover:bg-white hover:shadow-xl hover:shadow-venue-50/50"
+                  className="rounded-[1.5rem] border border-slate-100 bg-slate-50/50 p-6 transition-all duration-300 hover:border-[#e8f0d7] hover:bg-white hover:shadow-md"
                 >
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -231,7 +231,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                         <select
                           value={slot.sport}
                           onChange={(e) => handleUpdateSlot(slot.id, { sport: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition-colors focus:border-venue-500"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition-colors focus:border-[#2f6d16]"
                         >
                           {SPORTS.map((s) => (
                             <option key={s}>{s}</option>
@@ -291,7 +291,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                         <select
                           value={slot.court_id}
                           onChange={(e) => handleUpdateSlot(slot.id, { court_id: e.target.value })}
-                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition-colors focus:border-venue-500"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-slate-700 shadow-sm transition-colors focus:border-[#2f6d16]"
                         >
                           <option value="">No Spot Assigned</option>
                           {courts.map((c) => (
@@ -340,7 +340,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                           type="number"
                           value={slot.price}
                           onChange={(e) => handleUpdateSlot(slot.id, { price: parseFloat(e.target.value) })}
-                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-venue-600 shadow-sm"
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-black text-[#2f6d16] shadow-sm"
                         />
                       </div>
                     </div>
@@ -357,7 +357,7 @@ export const VenueRulesEditor: React.FC<RulesEditorProps> = ({
                 </p>
                 <button
                   onClick={handleAddSlot}
-                  className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-venue-600 hover:underline"
+                  className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#2f6d16] hover:underline"
                 >
                   {' '}
                   Create First Slot{' '}

@@ -1,8 +1,11 @@
 'use strict'
 
+const { fromZonedTime, toZonedTime } = require('date-fns-tz')
 const venuesModel = require('../../../models/venues.model')
 const sessionsModel = require('../../../models/sessions.model')
 const { Errors } = require('../../lib/errors')
+
+const VENUE_TZ = 'Australia/Brisbane'
 
 async function getMyVenue(userId) {
   const venues = await venuesModel.getManagedVenues(userId)
@@ -78,8 +81,10 @@ async function getVenueStats(venueId) {
 
 function parseDateAndTime(dateStr, timeStr) {
   // dateStr: "DD/MM/YYYY", timeStr: "HH:mm"
+  // Interpret the operator's input as Brisbane local time and convert to UTC
+  // so the stored timestamp is correct regardless of server timezone.
   const [day, month, year] = dateStr.split('/')
-  return new Date(`${year}-${month}-${day}T${timeStr}:00.000Z`)
+  return fromZonedTime(`${year}-${month}-${day}T${timeStr}:00`, VENUE_TZ)
 }
 
 function buildVenuePlaceName(venue, eventData) {
@@ -94,6 +99,10 @@ function normalizeGenderRule(genderRule) {
   if (value === 'men' || value === 'male') return 'male'
   if (value === 'women' || value === 'female') return 'female'
   return 'mixed'
+}
+
+function normalizeSportKey(value) {
+  return String(value || '').trim().replace(/[\s-]+/g, '_').toUpperCase()
 }
 
 async function validateCourtSupportsSport(venueId, courtId, sportKey) {
@@ -117,7 +126,7 @@ async function validateCourtSupportsSport(venueId, courtId, sportKey) {
   // If the court has a non-empty supported_sports list, we MUST check it.
   if (supportedSports.length > 0) {
     const isSupported = supportedSports.some(
-      (s) => String(s).toUpperCase() === String(sportKey).toUpperCase()
+      (s) => normalizeSportKey(s) === normalizeSportKey(sportKey)
     )
     if (!isSupported) {
       throw Errors.validation(`Court "${court.name}" does not support ${sportKey}.`)
@@ -135,6 +144,9 @@ async function createVenueEvent(venueId, userId, eventData) {
   if (!eventData.start_at) {
     throw Errors.validation('start_at is required')
   }
+  if (!eventData.court_id) {
+    throw Errors.validation('court_id is required')
+  }
 
   // Guard: Court must support the sport
   await validateCourtSupportsSport(venueId, eventData.court_id, eventData.sport_key)
@@ -145,6 +157,8 @@ async function createVenueEvent(venueId, userId, eventData) {
   const payload = {
     hostUserId: userId,
     venueId,
+    courtId: eventData.court_id,
+    courtName: eventData.court_name || null,
     sportKey: eventData.sport_key,
     title: eventData.title || null,
     description: eventData.note || null,
@@ -171,12 +185,12 @@ async function createVenueEvent(venueId, userId, eventData) {
 }
 
 function getNextDayOfWeek(dayOfWeek) {
-  const now = new Date()
-  const currentDay = now.getUTCDay()
+  const now = toZonedTime(new Date(), VENUE_TZ)
+  const currentDay = now.getDay()
   let daysUntil = dayOfWeek - currentDay
   if (daysUntil <= 0) daysUntil += 7
   const next = new Date(now)
-  next.setUTCDate(now.getUTCDate() + daysUntil)
+  next.setDate(now.getDate() + daysUntil)
   return next
 }
 
@@ -187,6 +201,9 @@ async function createRecurringEvents(venueId, userId, eventData) {
   if (!eventData.start_at) {
     throw Errors.validation('start_at is required')
   }
+  if (!eventData.court_id) {
+    throw Errors.validation('court_id is required')
+  }
 
   // Guard: Court must support the sport
   await validateCourtSupportsSport(venueId, eventData.court_id, eventData.sport_key)
@@ -196,7 +213,8 @@ async function createRecurringEvents(venueId, userId, eventData) {
 
   // Determine base day — use current weekday, generate next 4 occurrences
   const now = new Date()
-  const baseDay = now.getUTCDay()
+  const nowZoned = toZonedTime(now, VENUE_TZ)
+  const baseDay = nowZoned.getDay()
   const nextOccurrence = getNextDayOfWeek(baseDay)
 
   const created = []
@@ -204,13 +222,15 @@ async function createRecurringEvents(venueId, userId, eventData) {
 
   for (let i = 0; i < 4; i++) {
     const eventDate = new Date(nextOccurrence)
-    eventDate.setUTCDate(nextOccurrence.getUTCDate() + 7 * i)
+    eventDate.setDate(nextOccurrence.getDate() + 7 * i)
 
-    const dateStr = `${String(eventDate.getUTCDate()).padStart(2, '0')}/${String(eventDate.getUTCMonth() + 1).padStart(2, '0')}/${eventDate.getUTCFullYear()}`
+    const dateStr = `${String(eventDate.getDate()).padStart(2, '0')}/${String(eventDate.getMonth() + 1).padStart(2, '0')}/${eventDate.getFullYear()}`
 
     const payload = {
       hostUserId: userId,
       venueId,
+      courtId: eventData.court_id || null,
+      courtName: eventData.court_name || null,
       sportKey: eventData.sport_key,
       title: eventData.title || null,
       description: eventData.note || null,
@@ -249,15 +269,18 @@ async function listVenueEvents(venueId, { from, to } = {}) {
 
   const grouped = {}
   for (const session of sessions) {
-    const date = new Date(session.starts_at)
-    const dateKey = `${String(date.getUTCDate()).padStart(2, '0')}/${String(date.getUTCMonth() + 1).padStart(2, '0')}/${date.getUTCFullYear()}`
-    const timeStr = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`
+    const zoned = toZonedTime(new Date(session.starts_at), VENUE_TZ)
+    const dateKey = `${String(zoned.getDate()).padStart(2, '0')}/${String(zoned.getMonth() + 1).padStart(2, '0')}/${zoned.getFullYear()}`
+    const timeStr = `${String(zoned.getHours()).padStart(2, '0')}:${String(zoned.getMinutes()).padStart(2, '0')}`
 
     if (!grouped[dateKey]) grouped[dateKey] = []
     grouped[dateKey].push({
       event_id: session.id,
       sport: session.sport_key,
       start_at: timeStr,
+      court_id: session.court_id || null,
+      court_name: session.court_name || null,
+      max_capacity: session.max_people,
       participant_count: session.participant_count,
     })
   }
@@ -323,6 +346,8 @@ async function updateVenueEvent(eventId, userId, eventData) {
     maxPeople: eventData.max_capacity,
     title: eventData.title,
     description: eventData.note,
+    courtId: eventData.court_id,
+    courtName: eventData.court_name,
     locationName: hasCourtNameField ? buildVenuePlaceName(venue, eventData) : undefined,
     isFree,
     pricePerPerson: isFree === undefined
@@ -333,6 +358,23 @@ async function updateVenueEvent(eventId, userId, eventData) {
   }
 
   return sessionsModel.updateSession(eventId, patch)
+}
+
+async function getEventParticipants(eventId, userId) {
+  const session = await sessionsModel.getSessionById(eventId)
+  if (!session) throw Errors.notFound('Event not found')
+
+  const claim = await venuesModel.getApprovedClaimByUser(session.venue_id, userId)
+  if (!claim) throw Errors.forbidden('You do not manage this venue')
+
+  const rows = await sessionsModel.listSessionParticipants(eventId)
+  return rows.map((r) => ({
+    user_id: r.user_id,
+    display_name: r.display_name || r.username || 'Player',
+    avatar_url: r.avatar_url || null,
+    role: r.role,
+    joined_at: r.joined_at,
+  }))
 }
 
 module.exports = {
@@ -346,4 +388,5 @@ module.exports = {
   listVenueEvents,
   getEventDetail,
   updateVenueEvent,
+  getEventParticipants,
 }

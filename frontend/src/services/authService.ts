@@ -34,23 +34,31 @@ export async function resetPassword(email: string) {
   return client.auth.resetPasswordForEmail(email, { redirectTo: resetRedirect })
 }
 
-export async function signInWithGoogle() {
+function buildRedirectUrl(returnTo?: string): string | undefined {
+  if (!authRedirect) return undefined
+  if (!returnTo || !returnTo.startsWith('/')) return authRedirect
+  const url = new URL(authRedirect)
+  url.searchParams.set('returnTo', returnTo)
+  return url.toString()
+}
+
+export async function signInWithGoogle(returnTo?: string) {
   const client = ensureSupabase()
   const isDev = import.meta.env.DEV
   return client.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: authRedirect,
+      redirectTo: buildRedirectUrl(returnTo),
       queryParams: isDev ? { prompt: 'select_account' } : undefined,
     },
   })
 }
 
-export async function signInWithApple() {
+export async function signInWithApple(returnTo?: string) {
   const client = ensureSupabase()
   return client.auth.signInWithOAuth({
     provider: 'apple',
-    options: { redirectTo: authRedirect },
+    options: { redirectTo: buildRedirectUrl(returnTo) },
   })
 }
 

@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import clsx from 'clsx'
 import { BottomSheet } from './BottomSheet'
 import { AlertDialog } from './AlertDialog'
 import GoogleLoginButton from './button/GoogleLoginButton'
@@ -9,10 +8,12 @@ import { detectInAppBrowserName, getExternalBrowserDeepLink, isInAppBrowser } fr
 type LoginPromptSheetProps = {
   open: boolean
   onClose: () => void
-  onSignup?: () => void
+  returnTo?: string
 }
 
-export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
+const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
+
+export function LoginPromptSheet({ open, onClose, returnTo }: LoginPromptSheetProps) {
   const [showInAppDialog, setShowInAppDialog] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState<{
     open: boolean
@@ -29,12 +30,25 @@ export function LoginPromptSheet({ open, onClose }: LoginPromptSheetProps) {
   )
 
   const loginGoogle = async () => {
+    const path = returnTo ?? `${window.location.pathname}${window.location.search}${window.location.hash}`
+    const isLocalPath = path.startsWith('/')
+
+    // Belt-and-braces: sessionStorage for same-tab flows, OAuth URL query for
+    // cross-app redirects where sessionStorage gets wiped (PWA, in-app browsers).
+    if (isLocalPath) {
+      try {
+        sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, path)
+      } catch {
+        console.warn('Failed to persist post-login redirect path')
+      }
+    }
+
     if (inApp) {
       setShowInAppDialog(true)
       onClose()
       return
     }
-    const { data, error } = await signInWithGoogle()
+    const { data, error } = await signInWithGoogle(isLocalPath ? path : undefined)
     if (error) {
       alert(error.message)
       return

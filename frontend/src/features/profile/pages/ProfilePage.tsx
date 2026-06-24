@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Menu, PlusSquare, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
+import { Menu, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
@@ -464,9 +464,10 @@ export function ProfilePage() {
     if (!shareUsername) return
 
     const url = `${window.location.origin}/mate/${shareUsername}`
+    const text = `Check out ${draftProfile.name || shareUsername} on HopCourts`
     const shareData = {
-      title: 'HopCourts Activity Card',
-      text: `Check out ${draftProfile.name}'s activity profile`,
+      title: 'HopCourts',
+      text,
       url,
     }
 
@@ -484,7 +485,7 @@ export function ProfilePage() {
   const handleShareToLine = () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`
+    const text = `Check out ${draftProfile.name || shareUsername} on HopCourts\n${url}`
     window.location.href = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`
     setShowShareSheet(false)
   }
@@ -492,7 +493,7 @@ export function ProfilePage() {
   const handleCopyLink = async () => {
     const shareUsername = username || draftUsername
     const url = `${window.location.origin}/mate/${shareUsername}`
-    const text = `Check out ${draftProfile.name}'s activity profile\n${url}`
+    const text = `Check out ${draftProfile.name || shareUsername} on HopCourts\n${url}`
 
     try {
       await navigator.clipboard.writeText(text)
@@ -810,42 +811,8 @@ export function ProfilePage() {
   const pageContent = (
     <div className="min-h-[100dvh] overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
-        <div className="relative flex items-center justify-between bg-white px-4 py-4">
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              aria-label="Add game"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800 hover:bg-slate-50 active:bg-slate-100"
-              onClick={() => {
-                const isProfileComplete = !!(user as any)?.onboarding_completed_at
-
-                if (!isProfileComplete) {
-                  setShowProfileRequiredSheet(true)
-                } else {
-                  navigate('/create-event')
-                }
-              }}
-            >
-              <PlusSquare className="h-6 w-6" />
-            </button>
-
-            <button
-              type="button"
-              aria-label="Saved events"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800"
-              onClick={() => {
-                navigate('/profile/saved-events')
-              }}
-            >
-              <Bookmark className="h-6 w-6" />
-            </button>
-          </div>
-
-          <div className="pointer-events-none absolute left-1/2 top-1/2 w-[60%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
-            <span className="block truncate text-xl font-bold text-slate-900">{username}</span>
-          </div>
-
-          <div className="flex items-center gap-1">
+        <div className="relative flex items-center justify-between bg-white px-2 py-4">
+          <div className="flex items-center">
             <Link
               to="/notifications"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-800 hover:bg-slate-50 active:bg-slate-100"
@@ -857,6 +824,20 @@ export function ProfilePage() {
                 )}
               </div>
             </Link>
+            <Link
+              to="/profile/saved-events"
+              aria-label="Saved events"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-slate-800 hover:bg-slate-50 active:bg-slate-100"
+            >
+              <Bookmark className="h-6 w-6" />
+            </Link>
+          </div>
+
+          <div className="pointer-events-none absolute left-1/2 top-1/2 w-[60%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
+            <span className="block truncate text-xl font-bold text-slate-900">{username}</span>
+          </div>
+
+          <div className="flex items-center">
             <Link
               to="/settings"
               aria-label="Menu"
@@ -913,14 +894,14 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setActivityViewMode('list')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
               >
                 <List className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setActivityViewMode('calendar')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
               >
                 <CalendarDays className="h-4 w-4" />
               </button>

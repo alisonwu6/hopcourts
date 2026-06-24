@@ -67,7 +67,6 @@ export function EventDetailPage() {
         setShowLoginPrompt(false)
         clearPostLoginRedirect()
       }}
-      onSignup={() => navigate('/signup')}
       onCloseAlert={() => setAlertDialog((previous) => ({ ...previous, open: false }))}
       onCloseProfileRequired={() => setShowProfileRequired(false)}
       onNavigateEvents={() => navigate('/events')}

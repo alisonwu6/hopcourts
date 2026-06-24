@@ -21,7 +21,6 @@ type EventCardProps = {
   sportLabel?: string
   cityLabel?: string
   disableVenueHostNavigation?: boolean
-  showStatus?: boolean
   showBookmark?: boolean
 }
 
@@ -37,7 +36,6 @@ export function EventCard({
   sportLabel: sportLabelProp,
   cityLabel: cityLabelProp,
   disableVenueHostNavigation = false,
-  showStatus = false,
   showBookmark = false,
 }: EventCardProps) {
   const navigate = useNavigate()
@@ -113,7 +111,7 @@ export function EventCard({
       )}
     >
       {showBookmark && (
-        <div className="absolute right-4 top-0 z-10">
+        <div className="absolute right-2 top-0 z-10">
           <BookmarkButton eventId={event.id} className="px-2 pb-2 pt-0 text-blue-600" />
         </div>
       )}
@@ -148,7 +146,7 @@ export function EventCard({
             <p className="flex items-center gap-1.5 text-sm font-medium text-slate-900">
               {displayHost.name}
               {/* {displayHost.isOfficial && (
-                <BadgeCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
+                <ShieldCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
               )} */}
               {event.host.countryKey && (
                 <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
@@ -162,7 +160,17 @@ export function EventCard({
         </div>
 
         <div className="flex flex-col items-end justify-end gap-1">
-          {showStatus && event.status && <StatusBadge status={event.status} />}
+          <StatusBadge
+            status={event.status}
+            startTime={event.startTime}
+            endTime={event.endTime}
+            attendeeCount={event.attendeeCount}
+            minPeople={event.minPeople ?? 1}
+            maxAttendees={event.maxAttendees}
+            spotsRemaining={remaining}
+            isFree={event.isFree}
+            isOfficial={event.isOfficial}
+          />
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
               <ShieldCheck
@@ -254,7 +262,12 @@ export function EventCard({
               />
             )}
           </div>
-          {remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled' && (
+          {(() => {
+            const now = new Date()
+            const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+            const isPast = now > end
+            return remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled' && !isPast
+          })() && (
             <span className="shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
               Full
             </span>
@@ -265,11 +278,53 @@ export function EventCard({
   )
 }
 
-function StatusBadge({ status }: { status: NonNullable<PlayerEvent['status']> }) {
-  if (status !== 'cancelled') return null
+function StatusBadge({
+  status,
+  startTime,
+  endTime,
+  maxAttendees,
+  spotsRemaining,
+}: {
+  status?: PlayerEvent['status']
+  startTime: Date | string
+  endTime: Date | string
+  attendeeCount: number
+  minPeople: number
+  maxAttendees: number
+  spotsRemaining: number
+  isFree?: boolean
+  isOfficial?: boolean
+}) {
+  const now = new Date()
+  const start = new Date(startTime)
+  const end = endTime ? new Date(endTime) : new Date(startTime)
+  const isPast = now > end
+  const isInProgress = now >= start && now <= end
+
+  let label: string
+  let className: string
+
+  if (status === 'cancelled') {
+    label = 'Cancelled'; className = 'border-red-200 bg-red-50 text-red-600'
+  } else if (status === 'completed') {
+    label = 'Completed'; className = 'border-slate-200 bg-slate-100 text-slate-500'
+  } else if (status === 'draft') {
+    label = 'Draft'; className = 'border-blue-200 bg-blue-50 text-blue-500'
+  } else if (isPast) {
+    label = 'Past'; className = 'border-slate-200 bg-slate-100 text-slate-500'
+  } else if (isInProgress) {
+    label = 'In Progress'; className = 'border-green-200 bg-green-50 text-green-600'
+  } else if (maxAttendees > 0 && spotsRemaining === 0) {
+    label = 'Full'; className = 'border-orange-200 bg-orange-50 text-orange-600'
+  } else if (status === 'published') {
+    label = 'Open'; className = 'border-sky-200 bg-sky-50 text-sky-600'
+  } else {
+    return null
+  }
+
   return (
-    <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-600">
-      Cancelled
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest ${className}`}>
+      {label}
     </span>
   )
 }

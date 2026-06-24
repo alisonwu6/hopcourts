@@ -67,7 +67,7 @@ export function FoundersLetterPage() {
           </div>
 
           <footer className="mt-3 pt-6">
-            <p className="text-sm font-semibold text-slate-900">Team HopCourts</p>
+            <p className="text-sm font-semibold text-slate-900">HopCourts Team</p>
           </footer>
         </article>
       </main>

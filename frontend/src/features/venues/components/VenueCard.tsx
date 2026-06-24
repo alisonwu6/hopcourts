@@ -23,7 +23,7 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
         <div className="relative h-12 w-12 flex-none">
           <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
             {venue.logo_url ? (
-              <img src={venue.logo_url} alt="" className="h-full w-full object-cover" />
+              <img src={venue.logo_url} alt="" className="h-full w-full object-contain p-1.5" />
             ) : (
               <Building2 className="h-6 w-6 text-slate-300" />
             )}

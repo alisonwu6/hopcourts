@@ -1,157 +1,181 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, PersonStanding, Calendar, Building2, Sparkles, Users } from 'lucide-react'
-import { VenueBottomNav } from '../components/VenueBottomNav'
+import { Calendar, CalendarClock, CheckCircle2, ChevronRight, Building2, Users, Zap, BarChart3 } from 'lucide-react'
 import { ManagedVenue, VenueDashboardData } from '../services/venuePortalService'
-import { VenuePortalHeader } from '../components/VenuePortalHeader'
 
 interface VenueDashboardViewProps {
-  loading: boolean
   venues: ManagedVenue[]
   selectedVenueId: string | null
-  setSelectedVenueId: (id: string) => void
   dashboardData: VenueDashboardData | null
 }
 
+type StatPeriod = '7d' | '30d' | 'all'
+
 export function VenueDashboardView({
-  loading,
   venues,
   selectedVenueId,
-  setSelectedVenueId,
   dashboardData,
 }: VenueDashboardViewProps) {
-  const navigate = useNavigate()
+  const [period, setPeriod] = useState<StatPeriod>('7d')
 
-  if (loading && venues.length === 0) {
-    return (
-      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-slate-50 pb-20">
-        <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-venue-500 border-t-transparent"></div>
-        <div className="text-sm font-medium text-slate-500">Loading your venue...</div>
-      </div>
-    )
-  }
-
-  const venueName = dashboardData
-    ? dashboardData.venue.name_display
-    : venues.length > 0
-      ? venues[0].name_display
-      : 'My Venue'
-
-  const leftAction =
-    venues.length > 1 ? (
-      <div className="relative">
-        <select
-          value={selectedVenueId || ''}
-          onChange={(e) => setSelectedVenueId(e.target.value)}
-          className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-          title="Switch Venue"
-        >
-          {venues.map((v) => (
-            <option
-              key={v.id}
-              value={v.id}
-            >
-              {v.name_display}
-            </option>
-          ))}
-        </select>
-        <button className="pointer-events-none flex h-[26px] w-[26px] items-center justify-center rounded-[6px] border-[1.5px] border-slate-900 text-slate-900">
-          <Plus className="h-[18px] w-[18px] stroke-[2.5]" />
-        </button>
-      </div>
-    ) : null
+  const venueId = selectedVenueId ?? venues[0]?.id ?? null
 
   return (
-    <div className="mx-auto min-h-[100dvh] w-full max-w-screen-md border-x border-slate-100 bg-slate-50 pb-20 text-slate-900">
-      <VenuePortalHeader
-        title="Venue Dashboard"
-        subtitle={venueName}
-        leftAction={
-          <button
-            onClick={() => navigate('/profile')}
-            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-venue-500"
-          >
-            <PersonStanding className="h-5 w-5" /> Profile
-          </button>
-        }
-        rightAction={
-          <button
-            onClick={() => dashboardData && window.open(`/venues/${dashboardData.venue.id}`, '_blank')}
-            className="flex min-w-[48px] flex-col items-center justify-center gap-0.5 text-center text-[8px] font-black uppercase tracking-widest text-venue-500"
-          >
-            <Building2 className="h-5 w-5" />
-            Public ↗
-          </button>
-        }
-      />
-
-      <div className="px-6 py-8">
-        {dashboardData ? (
-          <div className="space-y-6">
-            {/* Main Insights Header */}
-            <div className="mt-2 flex items-center justify-between px-1">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Venue Insights</h2>
-              <span className="rounded-full bg-venue-50 px-2 py-0.5 text-[9px] font-black uppercase text-venue-500">
-                Last 7 Days
-              </span>
-            </div>
-
-            {/* Stats Grid 2x2 */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Row 1: Lifetime Stats */}
-              <div className="group relative flex flex-col items-start overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-                <div className="absolute right-0 top-0 p-3 opacity-10 transition-opacity group-hover:opacity-20">
-                  <Calendar className="h-8 w-8 text-slate-900" />
-                </div>
-                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-slate-900">
-                  {dashboardData.stats.sessions_completed}
-                </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Events Completed</div>
-              </div>
-
-              <div className="group relative flex flex-col items-start overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-                <div className="absolute right-0 top-0 p-3 opacity-10 transition-opacity group-hover:opacity-20">
-                  <Building2 className="h-8 w-8 text-venue-600" />
-                </div>
-                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-venue-600">
-                  {dashboardData.stats.players_played_here}
-                </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Players</div>
-              </div>
-
-              {/* Row 2: Current Status */}
-              <div className="group relative flex flex-col items-start overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-                <div className="absolute right-0 top-0 p-3 opacity-10 transition-opacity group-hover:opacity-20">
-                  <Sparkles className="h-8 w-8 text-emerald-500" />
-                </div>
-                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-emerald-600">
-                  {dashboardData.stats.active_events}
-                </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Events Active</div>
-              </div>
-
-              <div className="group relative flex flex-col items-start overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
-                <div className="absolute right-0 top-0 p-3 opacity-10 transition-opacity group-hover:opacity-20">
-                  <Users className="h-8 w-8 text-venue-600" />
-                </div>
-                <div className="mb-1 text-3xl font-black leading-none tracking-tighter text-venue-600">
-                  {dashboardData.stats.participants_this_week}
-                </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Players Weekly</div>
-              </div>
-            </div>
+    <div className="text-slate-900">
+      {/* Insights */}
+      <div className="px-5">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Insights</p>
+          <div className="flex gap-1 rounded-full bg-slate-200/70 p-0.5">
+            {(['7d', '30d', 'all'] as StatPeriod[]).map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPeriod(p)}
+                className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                  period === p ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                }`}
+              >
+                {p === 'all' ? 'All' : p}
+              </button>
+            ))}
           </div>
-        ) : (
-          <div className="mt-4 flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-slate-200 bg-white p-12">
-            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-venue-400"></div>
-            <p className="text-center text-sm font-black uppercase tracking-widest text-slate-400">
-              Preparing dashboard
-            </p>
-          </div>
-        )}
+        </div>
+
+        {/* Stats grid */}
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <StatCard
+            label="Events completed"
+            value={dashboardData?.stats.sessions_completed ?? 0}
+            emptyLabel="No events yet"
+            icon={<Calendar className="h-6 w-6" />}
+          />
+          <StatCard
+            label="Total players"
+            value={dashboardData?.stats.players_played_here ?? 0}
+            emptyLabel="Getting started"
+            icon={<Users className="h-6 w-6" />}
+          />
+          <StatCard
+            label="Active now"
+            value={dashboardData?.stats.active_events ?? 0}
+            emptyLabel="—"
+            icon={<Zap className="h-6 w-6" />}
+          />
+          <StatCard
+            label="Weekly avg"
+            value={dashboardData?.stats.participants_this_week ?? 0}
+            emptyLabel="—"
+            icon={<BarChart3 className="h-6 w-6" />}
+          />
+        </div>
       </div>
 
-      <VenueBottomNav venueId={selectedVenueId} />
+      {/* Setup checklist */}
+      {dashboardData && (
+        <div className="px-5 pt-4">
+          <SetupChecklist venueId={venueId} stats={dashboardData.stats} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function StatCard({ label, value, emptyLabel, icon }: {
+  label: string
+  value: number
+  emptyLabel: string
+  icon: React.ReactNode
+}) {
+  const isEmpty = value === 0
+  return (
+    <div className="relative overflow-hidden rounded-3xl bg-white p-4 shadow-sm">
+      <div className="absolute right-2 top-2 opacity-[0.07]">{icon}</div>
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+      {isEmpty ? (
+        <>
+          <div className="my-2 h-6 w-6 rounded-full bg-slate-100" />
+          <p className="text-xs font-semibold text-slate-400">{emptyLabel}</p>
+        </>
+      ) : (
+        <p className="mt-1 text-3xl font-black leading-none tracking-tighter text-[#1A3A0A]">{value}</p>
+      )}
+    </div>
+  )
+}
+
+type SetupStats = VenueDashboardData['stats']
+
+function SetupChecklist({ venueId, stats }: { venueId: string | null; stats: SetupStats }) {
+  const navigate = useNavigate()
+  const hasEvents = stats.active_events + stats.sessions_completed > 0
+
+  const steps = [
+    {
+      label: 'Setup your venue',
+      description: 'Add logo, description and facilities',
+      icon: <Building2 className="h-5 w-5" />,
+      iconBg: 'bg-[#e8f0c2] text-[#1A3A0A]',
+      done: false,
+      path: `/admin/${venueId}/profile`,
+    },
+    {
+      label: 'Set weekly schedule',
+      description: 'Auto-generate recurring sessions',
+      icon: <CalendarClock className="h-5 w-5" />,
+      iconBg: 'bg-amber-50 text-amber-600',
+      done: hasEvents,
+      path: `/admin/${venueId}/schedule`,
+    },
+  ]
+
+  const doneCount = steps.filter((s) => s.done).length
+  if (doneCount === steps.length) return null
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <div className="border-b border-slate-100 p-5">
+        <h3 className="text-lg font-black leading-tight text-[#1A3A0A]">
+          Finish setup to fill your courts
+        </h3>
+        <p className="mt-1 text-sm text-slate-500">
+          Players can't find or join your sessions until these are done.
+        </p>
+        <div className="mt-3">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-[#3c4a22] transition-all duration-500"
+              style={{ width: `${(doneCount / steps.length) * 100}%` }}
+            />
+          </div>
+          <p className="mt-1.5 text-xs font-semibold text-slate-400">
+            {doneCount} of {steps.length} required steps done
+          </p>
+        </div>
+      </div>
+
+      {steps.map((step, i) => (
+        <button
+          key={step.label}
+          type="button"
+          onClick={() => venueId && navigate(step.path)}
+          className="flex w-full items-center gap-4 border-b border-slate-100 px-5 py-4 text-left transition last:border-0 active:bg-slate-50"
+        >
+          <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-slate-100 text-xs font-black text-slate-400">
+            {step.done ? <CheckCircle2 className="h-5 w-5 text-[#3c4a22]" /> : i + 1}
+          </span>
+          <span className={`flex h-10 w-10 flex-none items-center justify-center rounded-2xl ${step.iconBg}`}>
+            {step.icon}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className={`block text-sm font-bold ${step.done ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+              {step.label}
+            </span>
+            <span className="block text-xs text-slate-400">{step.description}</span>
+          </span>
+          {!step.done && <ChevronRight className="h-4 w-4 flex-none text-slate-300" />}
+        </button>
+      ))}
     </div>
   )
 }
