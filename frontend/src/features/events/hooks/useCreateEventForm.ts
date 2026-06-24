@@ -497,6 +497,10 @@ export function useCreateEventForm() {
       flashFieldError('startTime', 'Please select a valid start time')
       return
     }
+    if (status === 'published' && startDate < new Date()) {
+      flashFieldError('startTime', 'Start time cannot be in the past')
+      return
+    }
     if (Number.isNaN(endDate.getTime())) {
       flashFieldError('endTime', 'Please select a valid end time')
       return
