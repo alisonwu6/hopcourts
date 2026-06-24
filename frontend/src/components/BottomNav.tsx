@@ -1,8 +1,9 @@
-import { ComponentType } from 'react'
-import { Compass, PersonStanding, House, Building2 } from 'lucide-react'
+import { ComponentType, useState } from 'react'
+import { Compass, PersonStanding, House, Building2, Plus } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { useAuthStore } from '@/hooks'
+import { LoginPromptSheet } from './LoginPromptSheet'
 
 type NavItem = {
   label: string
@@ -15,6 +16,7 @@ export function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const matchesPath = (segment: string) => {
     if (segment === '/') {
       return location.pathname === '/'
@@ -22,7 +24,7 @@ export function BottomNav() {
     return location.pathname.startsWith(segment)
   }
 
-  const navItems: NavItem[] = [
+  const leftItems: NavItem[] = [
     {
       label: 'Home',
       icon: House,
@@ -33,8 +35,11 @@ export function BottomNav() {
       label: 'Events',
       icon: Compass,
       path: '/events',
-      matchPaths: ['/events', '/event', '/create-event'],
+      matchPaths: ['/events', '/event'],
     },
+  ]
+
+  const rightItems: NavItem[] = [
     {
       label: 'Venues',
       icon: Building2,
@@ -49,31 +54,56 @@ export function BottomNav() {
     },
   ]
 
+  const renderNavItem = ({ label, icon: Icon, path, matchPaths }: NavItem) => {
+    const isActive = matchPaths ? matchPaths.some(matchesPath) : matchesPath(path)
+    return (
+      <button
+        key={label}
+        onClick={() => navigate(path)}
+        className={clsx(
+          'flex flex-col items-center gap-1 rounded-md px-2 text-[10px] font-medium transition-colors',
+          isActive ? 'text-blue-600' : 'text-slate-500'
+        )}
+        aria-current={isActive ? 'page' : undefined}
+      >
+        {Icon && <Icon className={clsx('h-6 w-6', isActive ? 'text-blue-600' : 'text-slate-400')} />}
+        <span className="text-[11px] sm:text-xs">{label}</span>
+      </button>
+    )
+  }
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md border-t border-slate-200 bg-white backdrop-blur"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="mx-auto flex items-center justify-center gap-10 px-4 py-2">
-        {navItems.map(({ label, icon: Icon, path, matchPaths }) => {
-          const isActive = matchPaths ? matchPaths.some(matchesPath) : matchesPath(path)
+      <div className="mx-auto flex items-center justify-center gap-6 px-4 py-2">
+        {leftItems.map(renderNavItem)}
 
-          return (
-            <button
-              key={label}
-              onClick={() => navigate(path)}
-              className={clsx(
-                'flex flex-col items-center gap-1 rounded-md px-2 text-[10px] font-medium transition-colors',
-                isActive ? 'text-blue-600' : 'text-slate-500'
-              )}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              {Icon && <Icon className={clsx('h-6 w-6', isActive ? 'text-blue-600' : 'text-slate-400')} />}
-              <span className="text-[11px] sm:text-xs">{label}</span>
-            </button>
-          )
-        })}
+        <button
+          onClick={() => {
+            if (user) {
+              navigate('/create-event', { state: { backTo: location.pathname } })
+            } else {
+              try {
+                sessionStorage.setItem('create_event_back_to', location.pathname)
+              } catch {}
+              setShowLoginPrompt(true)
+            }
+          }}
+          className="flex h-14 w-14 flex-none items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-600/30 transition active:scale-95"
+          aria-label="Create event"
+        >
+          <Plus className="h-7 w-7 text-white" strokeWidth={2.5} />
+        </button>
+
+        {rightItems.map(renderNavItem)}
       </div>
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        returnTo="/create-event"
+      />
     </nav>
   )
 }

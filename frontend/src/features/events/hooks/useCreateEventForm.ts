@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { addHours, format } from 'date-fns'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useAuthStore } from '@/hooks'
@@ -75,6 +75,7 @@ const getTodayMidnightLocalValue = () => format(new Date(), "yyyy-MM-dd'T'00:00"
 
 export function useCreateEventForm() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('id')
 
@@ -397,7 +398,10 @@ export function useCreateEventForm() {
   }
 
   const handleCancel = () => {
-    if (window.history.length > 1) {
+    const state = location.state as any
+    if (state?.backTo) {
+      navigate(state.backTo)
+    } else if (!state?.fromAuth && window.history.length > 1) {
       navigate(-1)
     } else {
       navigate('/')

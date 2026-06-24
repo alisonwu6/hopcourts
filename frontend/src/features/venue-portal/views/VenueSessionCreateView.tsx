@@ -316,7 +316,7 @@ export const VenueSessionCreateView: React.FC<VenueSessionCreateViewProps> = ({
 
                     <div className="relative">
                       <label className="mb-2 block px-1 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                        {formData.priceMode === 'total' ? 'Total Cost (TWD)' : 'Per Person (TWD)'}
+                        {formData.priceMode === 'total' ? 'Total Cost (AUD)' : 'Per Person (AUD)'}
                       </label>
                       <input
                         type="number"
