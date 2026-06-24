@@ -51,7 +51,7 @@ export function VenueListView({
 
   return (
     <div className="min-h-[100dvh] bg-white">
-      <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md p-4 pointer-events-none">
+      <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md px-4 pt-4 pb-0 pointer-events-none">
         {!showMap && <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur" />}
 
         <div className="relative z-10 flex w-full items-center gap-3">
@@ -65,7 +65,7 @@ export function VenueListView({
             <input
               type="text"
               placeholder="Search by name or address"
-              className="h-[58px] w-full rounded-full border border-slate-200 bg-white pl-12 pr-12 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-slate-300 focus:bg-slate-50/50"
+              className="h-[58px] w-full rounded-full border border-slate-200 bg-white pl-12 pr-12 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-slate-300 focus:bg-slate-50"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -107,7 +107,7 @@ export function VenueListView({
           />
         </div>
       ) : (
-        <div className="mx-auto max-w-md px-4 pb-[100px] pt-36">
+        <div className="mx-auto max-w-md px-4 pb-[100px] pt-33">
           {isLoading ? (
             <div className="flex justify-center py-16">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />

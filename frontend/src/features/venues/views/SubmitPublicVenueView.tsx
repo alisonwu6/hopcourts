@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ChevronLeft, ChevronRight, MapPin, ArrowRight } from 'lucide-react'
+import { ChevronRight, MapPin, ArrowRight } from 'lucide-react'
 import { FieldSection, FloatingField, LocationPickerSheet } from '@/components'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import type { Sport } from '@/types/dictionary'
@@ -52,23 +52,11 @@ export function SubmitPublicVenueView({
   return (
     <div className="min-h-[100dvh] bg-slate-50/60 pb-32">
       <ActionToolbar
-        showBack={false}
+        showBack
+        onBack={onBack}
         title="Public listing"
         contentClassName="w-full max-w-md px-3"
-        leftContent={
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex h-10 items-center gap-1 px-2 text-sm font-semibold text-[#1A3A0A] transition active:text-[#2d3818]"
-            aria-label="Back"
-          >
-            <ChevronLeft
-              className="h-5 w-5"
-              strokeWidth={2.5}
-            />
-            <span className="hidden sm:inline">Back</span>
-          </button>
-        }
+        borderBottom
       />
 
       <form

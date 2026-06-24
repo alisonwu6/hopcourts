@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { ChevronLeft, Gift, ChevronRight, MapPin, ArrowRight, Check } from 'lucide-react'
+import { Gift, ChevronRight, MapPin, ArrowRight, Check } from 'lucide-react'
 import { FieldSection, FloatingField, BottomSheet, LocationPickerSheet } from '@/components'
 import { SheetLayout } from '@/components/SheetLayout'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -71,23 +71,11 @@ export function SubmitVenueView({
     <>
       <div className="min-h-[100dvh] bg-slate-50/60 pb-32">
         <ActionToolbar
-          showBack={false}
+          showBack
+          onBack={onBack}
           title="Official venue"
           contentClassName="w-full max-w-md px-3"
-          leftContent={
-            <button
-              type="button"
-              onClick={onBack}
-              className="flex h-10 items-center gap-1 px-2 text-sm font-semibold text-[#1A3A0A] transition active:text-[#2d3818]"
-              aria-label="Back"
-            >
-              <ChevronLeft
-                className="h-5 w-5"
-                strokeWidth={2.5}
-              />
-              <span className="hidden sm:inline">Back</span>
-            </button>
-          }
+          borderBottom
         />
 
         <form

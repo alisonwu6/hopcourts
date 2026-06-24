@@ -95,6 +95,7 @@ export function VenueDetailsView({
         onBack={onBack}
         showShare
         onShare={onShare}
+        borderBottom
       />
 
       {/* Hero */}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, MapPin, ShieldCheck, Check } from 'lucide-react'
+import { MapPin, ShieldCheck, Check, X } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
 import { httpPost } from '@/api/http'
@@ -29,25 +29,11 @@ export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial 
   return (
     <div className="min-h-[100dvh] bg-slate-50/60 pb-12">
       <ActionToolbar
-        showBack={false}
+        showBack
+        onBack={onCancel}
         title="Submit venue"
         contentClassName="w-full max-w-md px-3"
-        leftContent={
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex h-10 items-center justify-center px-2 text-sm font-semibold text-slate-500 transition active:text-slate-700"
-            aria-label="Cancel"
-          >
-            <span className="md:hidden">
-              <X
-                className="h-5 w-5"
-                strokeWidth={2}
-              />
-            </span>
-            <span className="hidden md:inline">Cancel</span>
-          </button>
-        }
+        borderBottom
       />
 
       <div className="mx-auto mt-4 w-full max-w-md space-y-6 px-4">
