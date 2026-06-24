@@ -200,16 +200,9 @@ export function VenuePortalLayout() {
         )}
       </header>
 
-      {/* Content — only this area changes on navigation */}
+      {/* Content — render immediately; child pages handle their own empty states */}
       <div className="pb-24">
-        {loading && venues.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="mb-3 h-7 w-7 animate-spin rounded-full border-4 border-[#3c4a22] border-t-transparent" />
-            <p className="text-sm font-semibold text-slate-400">Loading your venue…</p>
-          </div>
-        ) : (
-          <Outlet context={{ venues, activeVenue, setActiveVenueId } satisfies VenuePortalOutletCtx} />
-        )}
+        <Outlet context={{ venues, activeVenue, setActiveVenueId } satisfies VenuePortalOutletCtx} />
       </div>
 
       <VenueBottomNav venueId={venueId ?? activeVenue?.id ?? null} />
