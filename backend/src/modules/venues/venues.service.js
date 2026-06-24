@@ -190,7 +190,14 @@ async function requestVenueClaim(venueId, userId, claimData) {
   const approvedClaim = await venuesModel.getApprovedClaim(venueId)
   if (approvedClaim) throw new Error('Venue already claimed')
 
-  return venuesModel.createVenueClaim(venueId, userId, normalizedClaim)
+  // Single atomic transaction: claim record + venue activation + user role
+  const activated = await venuesModel.activateVenueClaim(venueId, userId, normalizedClaim)
+
+  return {
+    venue_id: activated.id,
+    name_display: activated.name_display || activated.name,
+    trial_ends_at: activated.trial_ends_at,
+  }
 }
 
 // Check if user is the official owner of a venue
@@ -378,6 +385,14 @@ async function approveVenueClaim(claimId, adminId, officialEmail) {
   return result
 }
 
+async function joinOfficialWaitlist({ email, userId }) {
+  await query(
+    `INSERT INTO venue_official_waitlist (email, user_id) VALUES ($1, $2)
+     ON CONFLICT (email) DO UPDATE SET user_id = COALESCE(venue_official_waitlist.user_id, EXCLUDED.user_id)`,
+    [email, userId]
+  )
+}
+
 module.exports = {
   resolveVenue,
   listVenues,
@@ -393,5 +408,6 @@ module.exports = {
   patchVenueDisplay,
   suspendVenue,
   unsuspendVenue,
-  approveVenueClaim
+  approveVenueClaim,
+  joinOfficialWaitlist,
 }

@@ -92,4 +92,22 @@ router.post('/:id/claim', verifyToken, async (req, res, next) => {
   }
 })
 
+// POST /venues/waitlist - Record interest in Official venue (no auth required)
+router.post('/waitlist', optionalAuth, async (req, res, next) => {
+  try {
+    const email = (req.body.email || '').trim().toLowerCase()
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, error: 'Valid email is required' })
+    }
+    const userId = req.userId || null
+    await venuesService.joinOfficialWaitlist({ email, userId })
+    res.json({ success: true })
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.json({ success: true })
+    }
+    next(err)
+  }
+})
+
 module.exports = { venuesRouter: router }

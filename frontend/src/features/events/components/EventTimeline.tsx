@@ -90,7 +90,6 @@ export function EventTimeline({
                   <EventCard
                     event={event}
                     sportLabel={sportLabel}
-                    showStatus={mode === 'hosted' || event.status === 'cancelled'}
                     showBookmark={showBookmark}
                     onViewDetails={(id) => {
                       if (mode === 'hosted' && event.status === 'draft') {

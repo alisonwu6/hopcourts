@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { startOfMonth, endOfMonth } from 'date-fns'
-import { venuePortalService, ManagedVenue } from '../services/venuePortalService'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import { useOutletContext } from 'react-router-dom'
+import { format, startOfMonth, endOfMonth } from 'date-fns'
+import { venuePortalService } from '../services/venuePortalService'
+import { cacheGet, cacheSet } from '../services/venuePortalCache'
+import { VenueProfileData } from '../views/VenueProfileView'
+import { VenuePortalOutletCtx } from '../layouts/VenuePortalLayout'
 import { VenueScheduleView } from '../views/VenueScheduleView'
 import { useVenueScheduleData } from '../hooks/useVenueScheduleData'
 
@@ -25,56 +29,74 @@ const MOCK_PARTICIPANTS = [
   { id: '3', name: 'Casey Smith', level_rating: 'Advanced', has_paid: true },
 ]
 
+type Court = { id: string; name: string }
+
 export function VenueSchedulePage() {
-  // 1. Container orchestration (Route & Params)
   const { venueId } = useParams<{ venueId: string }>()
+  const { activeVenue } = useOutletContext<VenuePortalOutletCtx>()
+  const location = useLocation()
+  const navigate = useNavigate()
 
-  // 2. Logic & State Hook (Round 2 Design)
   const scheduleData = useVenueScheduleData()
-  const { slots, setGeneratedSessions, currentMonth, generateMockSessions, setViewMode, setSelectedSession } =
-    scheduleData
+  const { slots, setGeneratedSessions, currentMonth, setViewMode, setSelectedSession } = scheduleData
 
-  // 3. Page-level UI states (Container owns these)
-  const [venue, setVenue] = useState<ManagedVenue | null>(null)
-  const [courts, setCourts] = useState<{ id: string; name: string }[]>([])
-  const [loading, setLoading] = useState(true)
+  // Initialise courts from cache so the page renders immediately on revisit.
+  const [courts, setCourts] = useState<Court[]>(() => cacheGet<Court[]>(`courts:${venueId}`) ?? [])
+
+  // Read operating hours from the profile cache (populated when Profile tab is visited).
+  const operatingHours = cacheGet<VenueProfileData>(`profile:${venueId}`)?.operating_hours ?? []
   const [saving, setSaving] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  // 4. Data Fetching (Container orchestration)
+  // Dedup refs — prevent StrictMode double-invocation from firing duplicate requests.
+  const courtsFetchedFor = useRef<string | null>(null)
+  const eventsFetchedFor = useRef<string | null>(null)
+
   useEffect(() => {
-    if (venueId) fetchData()
+    if (!venueId || courtsFetchedFor.current === venueId) return
+    courtsFetchedFor.current = venueId
+    fetchCourts(venueId)
   }, [venueId])
 
   useEffect(() => {
-    if (venueId) fetchEvents(venueId, currentMonth)
+    if (!venueId) return
+    const key = `${venueId}:${format(currentMonth, 'yyyy-MM')}`
+    if (eventsFetchedFor.current === key) return
+    eventsFetchedFor.current = key
+    fetchEvents(venueId, currentMonth)
   }, [venueId, currentMonth])
 
-  const fetchData = async () => {
-    setLoading(true)
-    const [venuesRes, courtsRes] = await Promise.all([
-      venuePortalService.getMyVenues(),
-      venuePortalService.getVenueCourts(venueId!),
-    ])
+  // Refetch events when returning from the create page after a successful submit.
+  // Immediately clear the state so a StrictMode double-invocation or back-navigation
+  // cannot fire a second fetch.
+  useEffect(() => {
+    if (!location.state?.refresh || !venueId) return
+    navigate(location.pathname, { replace: true, state: {} })
+    eventsFetchedFor.current = null
+    fetchEvents(venueId, currentMonth)
+  }, [location.state?.refresh])
 
-    if (venuesRes.success && venuesRes.data) {
-      const current = venuesRes.data.find((v) => v.id === venueId) || venuesRes.data[0] || null
-      setVenue(current)
+  const fetchCourts = async (id: string) => {
+    const res = await venuePortalService.getVenueCourts(id)
+    if (res.success && res.data) {
+      setCourts(res.data)
+      cacheSet(`courts:${id}`, res.data)
     }
-    if (courtsRes.success && courtsRes.data) {
-      setCourts(courtsRes.data)
-    }
-    setLoading(false)
   }
 
   const fetchEvents = async (id: string, month: Date) => {
-    const from = startOfMonth(month).toISOString()
-    const to = endOfMonth(month).toISOString()
+    // Pad by 14 h (UTC+14, the world's maximum UTC offset) so sessions near
+    // month boundaries are never cut off regardless of the venue's timezone.
+    const fromDate = startOfMonth(month)
+    fromDate.setHours(fromDate.getHours() - 14)
+    const toDate = endOfMonth(month)
+    toDate.setHours(toDate.getHours() + 14)
+    const from = fromDate.toISOString()
+    const to = toDate.toISOString()
     const res = await venuePortalService.listVenueEvents(id, { from, to })
     if (!res.success || !res.data) return
 
     const sessions = Object.entries(res.data).flatMap(([dateKey, events]) => {
-      // dateKey is "DD/MM/YYYY"
       const [day, month, year] = dateKey.split('/').map(Number)
       return (events as any[]).map((ev) => {
         const [hour, minute] = (ev.start_at || '00:00').split(':').map(Number)
@@ -88,6 +110,8 @@ export function VenueSchedulePage() {
           status: 'published' as const,
           max_participants: ev.max_capacity ?? 0,
           participants_count: ev.participant_count ?? 0,
+          court_id: ev.court_id ?? null,
+          court_name: ev.court_name ?? null,
           level: '',
           gender: '',
           price: 0,
@@ -98,40 +122,27 @@ export function VenueSchedulePage() {
     setGeneratedSessions(sessions)
   }
 
-  // 5. Flow Control (Container orchestration)
   const handleSaveAndGenerate = async () => {
-    if (!venueId) return
-    if (slots.length === 0) {
-      return
-    }
+    if (!venueId || slots.length === 0) return
 
     setSaving(true)
     try {
       const payloads = slots
         .filter((slot) => slot.start_time && slot.end_time)
         .map((slot) => {
-          const courtName = slot.court_id ? (courts.find((c) => c.id === slot.court_id)?.name ?? slot.court_name) : null
+          const courtName = slot.court_id
+            ? (courts.find((c) => c.id === slot.court_id)?.name ?? slot.court_name)
+            : null
           const isFree = slot.price === 0
+          const genderStr = String(slot.gender || 'mixed').toLowerCase()
           return {
-            sport_key: String(slot.sport || '')
-              .toUpperCase()
-              .replace(/\s+/g, '_'),
+            sport_key: String(slot.sport || '').toUpperCase().replace(/\s+/g, '_'),
             start_at: slot.start_time,
             end_at: slot.end_time,
             court_id: slot.court_id || null,
             court_name: courtName || null,
-            skill_level: String(slot.level || 'any')
-              .toLowerCase()
-              .replace(/\s+/g, '_'),
-            gender_rule: String(slot.gender || 'mixed')
-              .toLowerCase()
-              .includes('men')
-              ? 'men'
-              : String(slot.gender || 'mixed')
-                    .toLowerCase()
-                    .includes('women')
-                ? 'women'
-                : 'mixed',
+            skill_level: String(slot.level || 'any').toLowerCase().replace(/\s+/g, '_'),
+            gender_rule: genderStr.includes('women') ? 'women' : genderStr.includes('men') ? 'men' : 'mixed',
             min_people: slot.min_participants || null,
             max_capacity: slot.max_participants,
             pricing_model: isFree ? 'free' : 'paid',
@@ -144,33 +155,26 @@ export function VenueSchedulePage() {
       const results = await Promise.all(
         payloads.map((payload) => venuePortalService.createRecurringEvents(venueId, payload))
       )
-
-      const hasFailure = results.some((r) => !r.success)
-      if (hasFailure) {
+      if (results.some((r) => !r.success)) {
         console.error('Some recurring events failed:', results)
       }
-
-      // Refresh calendar with real events from the API.
       await fetchEvents(venueId, currentMonth)
     } finally {
       setSaving(false)
     }
-    setShowSuccess(true)
 
-    // Flow: success -> redirect/switch view
+    setShowSuccess(true)
     setTimeout(() => {
       setShowSuccess(false)
       setViewMode('calendar')
     }, 2000)
   }
 
-  // 6. Assemble props for View
   return (
     <VenueScheduleView
       {...scheduleData}
-      loading={loading}
       saving={saving}
-      venueName={venue?.name_display}
+      venueName={activeVenue?.name_display}
       showSuccess={showSuccess}
       handleSaveAndGenerate={handleSaveAndGenerate}
       DAYS={DAYS}
@@ -178,11 +182,8 @@ export function VenueSchedulePage() {
       LEVELS={LEVELS}
       GENDERS={GENDERS}
       courts={courts}
-      MOCK_PARTICIPANTS={MOCK_PARTICIPANTS}
-      setSelectedSession={(session) => {
-        scheduleData.setSelectedSession(session)
-        // Potential flow addition here
-      }}
+      operatingHours={operatingHours}
+      setSelectedSession={(session) => scheduleData.setSelectedSession(session)}
       setViewMode={(mode) => {
         scheduleData.setViewMode(mode)
         scheduleData.setSelectedSession(null)

@@ -65,7 +65,15 @@ export function AuthCallback() {
         const isOnboarded = !!context.user?.onboarding_completed_at
         const allowsIncompleteProfile = !!redirectPath?.startsWith('/venues/submit')
         if (redirectPath && (isOnboarded || allowsIncompleteProfile)) {
-          navigate(redirectPath, { replace: true })
+          let backTo: string | undefined
+          try {
+            const stored = sessionStorage.getItem('create_event_back_to')
+            if (stored) {
+              backTo = stored
+              sessionStorage.removeItem('create_event_back_to')
+            }
+          } catch {}
+          navigate(redirectPath, { replace: true, state: { fromAuth: true, backTo } })
           return
         }
 

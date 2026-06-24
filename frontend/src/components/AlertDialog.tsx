@@ -55,10 +55,10 @@ export function AlertDialog({
           <div
             className={clsx(
               'mb-4 flex h-14 w-14 items-center justify-center rounded-full',
-              type === 'error' && 'bg-red-50 text-red-500',
-              type === 'success' && 'bg-emerald-50 text-emerald-500',
-              type === 'info' && 'bg-blue-50 text-blue-500',
-              type === 'warning' && 'bg-amber-50 text-amber-500'
+              type === 'error' && 'bg-red-100 text-red-500',
+              type === 'success' && 'bg-emerald-100 text-emerald-500',
+              type === 'info' && 'bg-blue-100 text-blue-500',
+              type === 'warning' && 'bg-amber-100 text-amber-500'
             )}
           >
             {type === 'error' && (

@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useOutletContext } from 'react-router-dom'
 import { venuePortalService } from '../services/venuePortalService'
-import { VenueProfileView, VenueProfileData } from '../views/VenueProfileView'
+import { cacheGet, cacheSet } from '../services/venuePortalCache'
+import { VenuePortalOutletCtx } from '../layouts/VenuePortalLayout'
+import { VenueProfileView, VenueProfileData, EditingSection } from '../views/VenueProfileView'
 import {
   Car,
   Bath,
@@ -65,60 +68,75 @@ interface OperatingDay {
   is_closed: boolean
 }
 
-/**
- * VenueProfilePage - Container for Venue Profile editing.
- * Orchestrates API calls and data flow for the VenueProfileView.
- */
+const EMPTY_FORM: VenueProfileData = {
+  name_display: '',
+  address_display: '',
+  logo_url: '',
+  description: '',
+  amenities: [],
+  spaces: [],
+  operating_hours: [],
+  social_links: {},
+}
+
 export function VenueProfilePage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
-  const [mode, setMode] = useState<'view' | 'edit'>('view')
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const { activeVenue } = useOutletContext<VenuePortalOutletCtx>()
 
-  const [formData, setFormData] = useState<VenueProfileData>({
-    name_display: '',
-    address_display: '',
-    logo_url: '',
-    description: '',
-    amenities: [] as string[],
-    spaces: [] as { name: string; supported_sports: string[] }[],
-    operating_hours: [] as OperatingDay[],
-    social_links: {},
-  })
+  const [editingSection, setEditingSection] = useState<EditingSection>(null)
+  const [saving, setSaving] = useState(false)
+  const savedDataRef = useRef<VenueProfileData | null>(null)
+
+  // Read from cache immediately — no spinner on revisit.
+  const cachedProfile = venueId ? cacheGet<VenueProfileData>(`profile:${venueId}`) : null
+  const [loading, setLoading] = useState(!cachedProfile)
+  const [formData, setFormData] = useState<VenueProfileData>(cachedProfile ?? EMPTY_FORM)
 
   useEffect(() => {
-    if (venueId) {
-      loadProfile()
-    }
+    if (venueId) loadProfile(venueId)
   }, [venueId])
 
-  const loadProfile = async () => {
-    if (!venueId) return
-    setLoading(true)
-    const [venuesRes, profileRes] = await Promise.all([
-      venuePortalService.getMyVenues(),
-      venuePortalService.getVenueProfile(venueId),
-    ])
+  // Sync venue name/address from layout once it resolves (may lag behind the profile fetch).
+  // Also backfills savedDataRef and cache so Cancel restores the correct name.
+  useEffect(() => {
+    if (!activeVenue) return
+    setFormData((prev) => {
+      if (prev.name_display === activeVenue.name_display) return prev
+      const updated = {
+        ...prev,
+        name_display: activeVenue.name_display || prev.name_display,
+        address_display: activeVenue.address_display || prev.address_display,
+      }
+      if (savedDataRef.current) {
+        savedDataRef.current = { ...savedDataRef.current, ...updated }
+        if (venueId) cacheSet(`profile:${venueId}`, savedDataRef.current)
+      }
+      return updated
+    })
+  }, [activeVenue])
 
-    const currentVenue =
-      venuesRes.success && venuesRes.data
-        ? venuesRes.data.find((v) => v.id === venueId) || venuesRes.data[0] || null
-        : null
+  const loadProfile = async (id: string) => {
+    if (!cachedProfile) setLoading(true)
+    const profileRes = await venuePortalService.getVenueProfile(id)
 
     if (profileRes.success && profileRes.data) {
-      const operatingHours = Array.isArray(profileRes.data.operating_hours) ? profileRes.data.operating_hours : []
-
-      setFormData({
-        name_display: currentVenue?.name_display || '',
-        address_display: currentVenue?.address_display || '',
+      const operatingHours = Array.isArray(profileRes.data.operating_hours)
+        ? profileRes.data.operating_hours
+        : []
+      const data: VenueProfileData = {
+        name_display: activeVenue?.name_display || formData.name_display || '',
+        address_display: activeVenue?.address_display || formData.address_display || '',
         logo_url: profileRes.data.logo_url || '',
         description: profileRes.data.description || '',
         amenities: profileRes.data.amenities || [],
         spaces: Array.isArray(profileRes.data.spaces) ? profileRes.data.spaces : [],
         operating_hours: operatingHours,
         social_links: profileRes.data.social_links || {},
-      })
+      }
+      setFormData(data)
+      savedDataRef.current = data
+      cacheSet(`profile:${id}`, data)
     }
     setLoading(false)
   }
@@ -135,15 +153,21 @@ export function VenueProfilePage() {
     })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCancelSection = () => {
+    if (savedDataRef.current) setFormData(savedDataRef.current)
+    setEditingSection(null)
+  }
+
+  const handleSaveSection = async (e?: React.FormEvent) => {
+    e?.preventDefault?.()
     if (!venueId) return
 
     setSaving(true)
     const res = await venuePortalService.updateVenueProfile(venueId, formData)
     if (res.success) {
-      await loadProfile()
-      setMode('view')
+      savedDataRef.current = formData
+      cacheSet(`profile:${venueId}`, formData)
+      setEditingSection(null)
     } else {
       console.error('Update failed:', res.error?.message)
     }
@@ -154,12 +178,13 @@ export function VenueProfilePage() {
     <VenueProfileView
       loading={loading}
       saving={saving}
-      mode={mode}
-      onToggleMode={setMode}
+      editingSection={editingSection}
+      onEditSection={setEditingSection}
       formData={formData}
       setFormData={setFormData}
-      onBack={() => navigate('/admin')}
-      onSubmit={handleSubmit}
+      onBack={() => navigate(-1)}
+      onSaveSection={handleSaveSection}
+      onCancelSection={handleCancelSection}
       onApplyAll={handleApplyAll}
       AMENITIES_CATEGORIES={AMENITIES_CATEGORIES}
     />

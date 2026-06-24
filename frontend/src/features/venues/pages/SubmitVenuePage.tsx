@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AlertDialog, LoginPromptSheet } from '@/components'
 import { useSubmitVenueForm } from '../hooks/useSubmitVenueForm'
@@ -6,11 +6,13 @@ import { SubmitVenueView } from '../views/SubmitVenueView'
 
 export function SubmitVenuePage() {
   const navigate = useNavigate()
-  const [successDialog, setSuccessDialog] = useState<{ open: boolean; venueName: string; trialEndsAt?: string | null }>({
-    open: false,
-    venueName: '',
-    trialEndsAt: null,
-  })
+  const [successDialog, setSuccessDialog] = useState<{
+    open: boolean
+    venueName: string
+    venueId: string | null
+  }>({ open: false, venueName: '', venueId: null })
+  const actionTakenRef = useRef(false)
+
   const form = useSubmitVenueForm({
     mode: 'official',
     onUnauthenticatedClose: () => navigate('/venues', { replace: true }),
@@ -18,7 +20,7 @@ export function SubmitVenuePage() {
       setSuccessDialog({
         open: true,
         venueName: venue.name_display,
-        trialEndsAt: venue.trial_ends_at,
+        venueId: venue.venue_id ?? null,
       })
     },
   })
@@ -52,17 +54,22 @@ export function SubmitVenuePage() {
         open={successDialog.open}
         onClose={() => {
           setSuccessDialog((prev) => ({ ...prev, open: false }))
-          navigate('/venues', { replace: true })
+          if (!actionTakenRef.current) navigate('/venues', { replace: true })
+          actionTakenRef.current = false
         }}
-        title="Official venue submitted"
+        title="Venue is live!"
         description={
           <>
-            <span className="font-semibold text-slate-700">{successDialog.venueName}</span> is live now. Your 14-day
-            trial has started.
+            <span className="font-semibold text-slate-700">{successDialog.venueName}</span> is now on the map. Your
+            14-day trial has started.
           </>
         }
         type="success"
-        actionLabel="Done"
+        actionLabel="Go to your venue"
+        onAction={() => {
+          actionTakenRef.current = true
+          if (successDialog.venueId) navigate(`/admin/${successDialog.venueId}`, { replace: true })
+        }}
       />
     </>
   )

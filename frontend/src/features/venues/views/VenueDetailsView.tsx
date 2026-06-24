@@ -95,6 +95,7 @@ export function VenueDetailsView({
         onBack={onBack}
         showShare
         onShare={onShare}
+        borderBottom
       />
 
       {/* Hero */}
@@ -107,7 +108,7 @@ export function VenueDetailsView({
                 <img
                   src={venue.logo_url}
                   alt="Logo"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain p-2"
                 />
               ) : (
                 <Building2 className="h-8 w-8 text-slate-300" />
@@ -236,67 +237,39 @@ export function VenueDetailsView({
           </div>
         )}
 
-        {/* Courts & Spaces */}
-        {venue.spaces && venue.spaces.length > 0 && (
-          <div className="mt-6">
-            <h2 className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Courts & spaces</h2>
-            <div className="space-y-2">
-              {venue.spaces.map((space, idx) => (
-                <div
-                  key={`${space.name}-${idx}`}
-                  className="rounded-2xl border border-slate-100 bg-slate-50 p-3"
-                >
-                  <div className="mb-2 text-xs font-black uppercase tracking-tight text-slate-700">{space.name}</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {space.supported_sports.length > 0 ? (
-                      space.supported_sports.map((sport) => (
-                        <span
-                          key={sport}
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${getSportColor(sport.toUpperCase())}`}
-                        >
-                          {sport}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs italic text-slate-400">None listed</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Claim CTA */}
-      {venue.status !== 'claimed' && (
+      {/* {venue.status !== 'claimed' && !venue.has_pending_claim && (
         <div className="mx-4 mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-3">
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#e8f0c2] text-[#1A3A0A]"
-            >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#e8f0c2] text-[#1A3A0A]">
               <Sparkles size={18} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-black tracking-tight text-slate-900">Manage this location?</h3>
+              <h3 className="font-black tracking-tight text-slate-900">Manage this venue?</h3>
               <p className="mt-0.5 text-sm leading-relaxed text-slate-500">
-                {venue.has_pending_claim
-                  ? "Your application is under review. We'll get back to you shortly."
-                  : 'Claim it to get an official badge, manage events, and start a free 14-day trial.'}
+                Get an official badge, manage your schedule, and start a free 14-day trial — instantly.
               </p>
             </div>
           </div>
           <VenueButton
             variant="secondary"
             className="mt-4 h-11 w-full rounded-2xl bg-[#2d3818] px-5 text-sm font-bold text-white hover:bg-[#1A3A0A] disabled:bg-slate-200 disabled:text-slate-500"
-            onClick={venue.has_pending_claim ? undefined : onClaim}
+            onClick={onClaim}
             isLoading={isClaiming}
-            disabled={venue.has_pending_claim}
           >
-            {venue.has_pending_claim ? 'Claim submitted' : 'Claim location'}
+            Claim & start free trial
           </VenueButton>
         </div>
       )}
+      {venue.has_pending_claim && venue.status !== 'claimed' && (
+        <div className="mx-4 mt-6 rounded-3xl border border-slate-100 bg-slate-50 p-5">
+          <p className="text-sm font-semibold text-slate-600">
+            Your application is under review. We'll be in touch shortly.
+          </p>
+        </div>
+      )} */}
 
       {/* Upcoming Events */}
       <div className="px-4 py-6">

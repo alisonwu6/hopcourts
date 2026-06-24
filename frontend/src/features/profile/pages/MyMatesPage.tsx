@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, MapPin, Smile, Users } from 'lucide-react'
+import { ChevronLeft, MapPin, Smile, Users } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { api } from '@/api/client'
 import { EmptyStateCard } from '@/components'
@@ -65,7 +65,7 @@ export function MyMatesPage() {
           onClick={() => navigate('/profile')}
           className="absolute left-2 rounded-full p-2 text-slate-600 hover:bg-slate-100"
         >
-          <ArrowLeft className="h-6 w-6" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="text-lg font-bold text-slate-900">My Mates</span>
       </div>

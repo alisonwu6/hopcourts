@@ -14,6 +14,7 @@ export interface ManagedVenue {
   status: string
   claim_status: string // 'approved'
   contact_email?: string
+  trial_ends_at?: string | null
 }
 
 export interface VenueDashboardData {
@@ -51,6 +52,9 @@ export type GroupedVenueEvents = Record<
     event_id: string
     sport: string
     start_at: string
+    court_id?: string | null
+    court_name?: string | null
+    max_capacity?: number
     participant_count: number
   }>
 >
@@ -96,6 +100,7 @@ const toManagedVenue = (row: any): ManagedVenue => ({
   status: row?.status || 'claimed',
   claim_status: row?.claim_status || 'approved',
   contact_email: row?.contact_email,
+  trial_ends_at: row?.trial_ends_at ?? null,
 })
 
 const toManagedVenueFromMyVenue = (row: AdminMyVenue): ManagedVenue => ({
@@ -235,12 +240,9 @@ export const venuePortalService = {
    */
   async getMyVenues(): Promise<ApiResponse<ManagedVenue[]>> {
     try {
-      const myVenueRes = await this.getMyVenue()
-      if (!myVenueRes.success || !myVenueRes.data) {
-        return myVenueRes as any
-      }
-
-      return wrapSuccess([toManagedVenueFromMyVenue(myVenueRes.data)])
+      const res = await httpGet<any[]>('/admin/me/venues')
+      const rows: any[] = Array.isArray((res as any)?.data) ? (res as any).data : []
+      return wrapSuccess(rows.map(toManagedVenue))
     } catch (err: any) {
       return {
         success: false,
@@ -410,6 +412,25 @@ export const venuePortalService = {
       return {
         success: false,
         error: { code: 'UPDATE_EVENT_FAILED', message: err?.details?.error || err.message },
+        timestamp: new Date(),
+      } as any
+    }
+  },
+
+  async getEventParticipants(eventId: string): Promise<ApiResponse<{
+    user_id: string
+    display_name: string
+    avatar_url: string | null
+    role: string
+    joined_at: string
+  }[]>> {
+    try {
+      const res = await httpGet<any>(`/admin/events/${eventId}/participants`)
+      return wrapSuccess((res as any)?.data || (res as any))
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'FETCH_PARTICIPANTS_FAILED', message: err?.details?.error || err.message },
         timestamp: new Date(),
       } as any
     }

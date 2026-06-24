@@ -18,12 +18,12 @@ export function VenueMapFilters({ activeFilter, onFilterChange }: VenueMapFilter
         onClick={() => onFilterChange('all')}
       />
       <Chip
-        label="Official"
-        isActive={activeFilter === 'official'}
+        label="Has events"
+        isActive={activeFilter === 'has_events'}
         activeClassName="text-white"
-        activeStyle={{ background: '#0067b6' }}
-        icon={<ShieldCheck size={14} />}
-        onClick={() => onFilterChange('official')}
+        activeStyle={{ background: '#df6c03' }}
+        icon={<CalendarCheck size={14} />}
+        onClick={() => onFilterChange('has_events')}
       />
       <Chip
         label="Public"
@@ -33,6 +33,14 @@ export function VenueMapFilters({ activeFilter, onFilterChange }: VenueMapFilter
         icon={<Trees size={14} />}
         onClick={() => onFilterChange('public')}
       />
+      <Chip
+        label="Official"
+        isActive={activeFilter === 'official'}
+        activeClassName="text-white"
+        activeStyle={{ background: '#0067b6' }}
+        icon={<ShieldCheck size={14} />}
+        onClick={() => onFilterChange('official')}
+      />
       {/* <Chip
         label="Private"
         isActive={activeFilter === 'private'}
@@ -41,14 +49,6 @@ export function VenueMapFilters({ activeFilter, onFilterChange }: VenueMapFilter
         icon={<Lock size={14} />}
         onClick={() => onFilterChange('private')}
       /> */}
-      <Chip
-        label="Has events"
-        isActive={activeFilter === 'has_events'}
-        activeClassName="text-white"
-        activeStyle={{ background: '#df6c03' }}
-        icon={<CalendarCheck size={14} />}
-        onClick={() => onFilterChange('has_events')}
-      />
     </div>
   )
 }

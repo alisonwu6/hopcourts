@@ -6,12 +6,17 @@ import { SubmitPublicVenueView } from '../views/SubmitPublicVenueView'
 
 export function SubmitPublicVenuePage() {
   const navigate = useNavigate()
-  const [successDialog, setSuccessDialog] = useState({ open: false, venueName: '' })
+  const [successDialog, setSuccessDialog] = useState<{
+    open: boolean
+    venueName: string
+    venueId: string | null
+  }>({ open: false, venueName: '', venueId: null })
+
   const form = useSubmitVenueForm({
     mode: 'public',
     onUnauthenticatedClose: () => navigate('/venues', { replace: true }),
     onSuccess: (venue) => {
-      setSuccessDialog({ open: true, venueName: venue.name_display })
+      setSuccessDialog({ open: true, venueName: venue.name_display, venueId: venue.venue_id ?? null })
     },
   })
 
@@ -42,12 +47,13 @@ export function SubmitPublicVenuePage() {
         open={successDialog.open}
         onClose={() => {
           setSuccessDialog((prev) => ({ ...prev, open: false }))
-          navigate('/venues', { replace: true })
+          navigate(successDialog.venueId ? `/venues/${successDialog.venueId}` : '/venues', { replace: true })
         }}
-        title="Venue added"
+        title="Good on ya!"
         description={
           <>
-            <span className="font-semibold text-slate-700">{successDialog.venueName}</span> is now on the map.
+            Thanks for putting{' '}
+            <span className="font-semibold text-slate-700">{successDialog.venueName}</span> on the map.
           </>
         }
         type="success"
