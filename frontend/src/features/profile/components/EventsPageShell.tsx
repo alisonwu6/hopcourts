@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ArrowLeft, List, CalendarDays } from 'lucide-react'
+import { ChevronLeft, List, CalendarDays } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface EventsPageShellProps {
@@ -28,7 +28,7 @@ export function EventsPageShell({
           onClick={handleBack}
           className="absolute left-2 rounded-full p-2 text-slate-600 hover:bg-slate-100"
         >
-          <ArrowLeft className="h-6 w-6" />
+          <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="text-lg font-bold text-slate-900">{title}</span>
         <div className="absolute right-4 flex items-center gap-1 rounded-full bg-slate-100 p-1">

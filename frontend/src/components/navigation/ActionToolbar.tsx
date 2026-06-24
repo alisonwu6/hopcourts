@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { type ReactNode } from 'react'
-import { ArrowLeft, Heart, Share } from 'lucide-react'
+import { ChevronLeft, Heart, Share } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 type ActionToolbarProps = {
@@ -54,7 +54,7 @@ export function ActionToolbar({
             className="flex h-10 w-10 items-center justify-center text-slate-600 transition hover:text-slate-900"
             aria-label="Go back"
           >
-            <ArrowLeft
+            <ChevronLeft
               className="h-5 w-5"
               strokeWidth={2}
               aria-hidden="true"

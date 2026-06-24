@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Frown, List, CalendarDays, Share } from 'lucide-react'
+import { ChevronLeft, Frown, List, CalendarDays, Share } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
@@ -219,7 +219,7 @@ export function MateProfilePage() {
               onClick={() => state?.from === 'app' ? navigate(-1) : navigate('/events')}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
           </div>
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-[68%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
