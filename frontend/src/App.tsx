@@ -214,16 +214,10 @@ export default function App() {
           </AppChrome>
         }
       />
+      {/* Official venue submission is coming soon — redirect to chooser */}
       <Route
         path="/venues/submit/official"
-        element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <SubmitVenuePage />
-          </AppChrome>
-        }
+        element={<Navigate to="/venues/submit" replace />}
       />
       <Route
         path="/venues/:venueId"

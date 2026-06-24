@@ -1,4 +1,4 @@
-import { Search, List as ListIcon, Map as MapIcon, X, Building2, BuildingIcon, ChevronRight } from 'lucide-react'
+import { Search, List as ListIcon, Map as MapIcon, X, Building2, ChevronRight, Trees } from 'lucide-react'
 import { VenueMap } from '../components/VenueMap'
 import { VenueMapFilters, VenueMapFilterType } from '../components/VenueMapFilters'
 import { ApiVenue } from '../services/venuesService'
@@ -175,18 +175,23 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-4 rounded-3xl bg-[#2d3818] p-4 text-left shadow-sm transition active:scale-[0.99]"
+      className="flex w-full items-center gap-2 rounded-3xl bg-[#2d3818] p-4 text-left shadow-sm transition active:scale-[0.99]"
     >
       <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1A3A0A]">
-        <BuildingIcon
-          className="h-7 w-7 text-[#cce15f]"
-          strokeWidth={1.8}
+        <Trees
+          className="h-10 w-10 text-[#cce15f]"
+          strokeWidth={2}
         />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your venue?</p>
+        {/* for official venue promotion */}
+        {/* <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your venue?</p>
         <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
           Submit it free, 14-day official trial included.
+        </p> */}
+        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your local court?</p>
+        <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
+          Put it on the map instantly. Free, always.
         </p>
       </div>
       <ChevronRight

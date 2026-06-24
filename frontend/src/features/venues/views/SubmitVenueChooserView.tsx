@@ -78,10 +78,10 @@ export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial 
               />
             }
             title="Official venue"
-            badge="14-day free trial"
+            badge="Coming Soon"
             description="For venue owners and managers. Fill your empty off-peak hours and streamline bookings."
             features={OFFICIAL_FEATURES}
-            onClick={onPickOfficial}
+            disabled
           />
         </div>
 
@@ -109,6 +109,7 @@ function OptionCard({
   description,
   features,
   onClick,
+  disabled = false,
 }: {
   tone: 'neutral' | 'official'
   icon: React.ReactNode
@@ -116,17 +117,20 @@ function OptionCard({
   badge: string
   description: string
   features: { included: boolean; label: string }[]
-  onClick: () => void
+  onClick?: () => void
+  disabled?: boolean
 }) {
   const isOfficial = tone === 'official'
   return (
     <button
       type="button"
-      onClick={onClick}
-      className={
-        'flex w-full flex-col items-start gap-4 rounded-3xl border-2 p-5 text-left transition active:scale-[0.99] ' +
-        (isOfficial ? 'border-[#a6c64a] bg-[#f3f7e1]' : 'border-slate-200 bg-white')
-      }
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={[
+        'flex w-full flex-col items-start gap-4 rounded-3xl border-2 p-5 text-left transition',
+        disabled ? 'cursor-default' : 'active:scale-[0.99]',
+        isOfficial ? 'border-[#a6c64a] bg-[#f3f7e1]' : 'border-slate-200 bg-white',
+      ].join(' ')}
     >
       <div className="flex items-start gap-3">
         <div
