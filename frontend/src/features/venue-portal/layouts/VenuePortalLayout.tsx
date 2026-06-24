@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BadgeCheck, Plus, ShieldX } from 'lucide-react'
+import { ShieldCheck, Plus, ShieldX } from 'lucide-react'
 import { venuePortalService, ManagedVenue } from '../services/venuePortalService'
 import { VenueBottomNav } from '../components/VenueBottomNav'
 
@@ -181,7 +181,7 @@ export function VenuePortalLayout() {
           <div className="mt-4 flex items-center justify-between rounded-2xl bg-[#1A3A0A] px-4 py-3">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#2d5a1a]">
-                <BadgeCheck className="h-4 w-4 text-[#a8d060]" strokeWidth={2.5} />
+                <ShieldCheck className="h-4 w-4 text-[#a8d060]" strokeWidth={2.5} />
               </div>
               <div>
                 <p className="text-sm font-bold text-white">Official trial active</p>

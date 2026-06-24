@@ -385,6 +385,14 @@ async function approveVenueClaim(claimId, adminId, officialEmail) {
   return result
 }
 
+async function joinOfficialWaitlist({ email, userId }) {
+  await query(
+    `INSERT INTO venue_official_waitlist (email, user_id) VALUES ($1, $2)
+     ON CONFLICT (email) DO UPDATE SET user_id = COALESCE(venue_official_waitlist.user_id, EXCLUDED.user_id)`,
+    [email, userId]
+  )
+}
+
 module.exports = {
   resolveVenue,
   listVenues,
@@ -400,5 +408,6 @@ module.exports = {
   patchVenueDisplay,
   suspendVenue,
   unsuspendVenue,
-  approveVenueClaim
+  approveVenueClaim,
+  joinOfficialWaitlist,
 }

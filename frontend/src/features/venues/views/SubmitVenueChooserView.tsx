@@ -1,5 +1,8 @@
-import { X, MapPin, BadgeCheck, Check } from 'lucide-react'
+import { useState } from 'react'
+import { X, MapPin, ShieldCheck, Check } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+import { useAuthStore } from '@/hooks'
+import { httpPost } from '@/api/http'
 
 interface SubmitVenueChooserViewProps {
   onCancel: () => void
@@ -21,6 +24,8 @@ const OFFICIAL_FEATURES = [
 ]
 
 export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial }: SubmitVenueChooserViewProps) {
+  const [waitlistOpen, setWaitlistOpen] = useState(false)
+
   return (
     <div className="min-h-[100dvh] bg-slate-50/60 pb-12">
       <ActionToolbar
@@ -72,7 +77,7 @@ export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial 
           <OptionCard
             tone="official"
             icon={
-              <BadgeCheck
+              <ShieldCheck
                 className="h-6 w-6 text-[#1A3A0A]"
                 strokeWidth={2}
               />
@@ -81,7 +86,7 @@ export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial 
             badge="Coming Soon"
             description="For venue owners and managers. Fill your empty off-peak hours and streamline bookings."
             features={OFFICIAL_FEATURES}
-            disabled
+            onClick={() => setWaitlistOpen(true)}
           />
         </div>
 
@@ -97,6 +102,115 @@ export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial 
           , you can claim it as Official anytime.
         </p>
       </div>
+
+      <OfficialWaitlistDialog
+        open={waitlistOpen}
+        onClose={() => setWaitlistOpen(false)}
+      />
+    </div>
+  )
+}
+
+function OfficialWaitlistDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const user = useAuthStore((s) => s.user)
+  const [email, setEmail] = useState(user?.email ?? '')
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  if (!open) return null
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await httpPost('/venues/waitlist', { body: { email } })
+      setSubmitted(true)
+    } catch {
+      setSubmitted(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleClose = () => {
+    onClose()
+    setTimeout(() => {
+      setSubmitted(false)
+      setEmail(user?.email ?? '')
+    }, 300)
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-in fade-in duration-200">
+      <div
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+      <div className="relative w-full max-w-xs overflow-hidden rounded-[28px] bg-white p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        {submitted ? (
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f0c2]">
+              <ShieldCheck
+                className="h-7 w-7 text-[#1A3A0A]"
+                strokeWidth={2}
+              />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900">You're on the list!</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+              We'll reach out as soon as Official venue features go live in your area.
+            </p>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="mt-6 w-full rounded-[20px] bg-[#1A3A0A] py-3 text-base font-bold text-white transition-transform active:scale-[0.98]"
+            >
+              Got it
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-center">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#e8f0c2]">
+              <ShieldCheck
+                className="h-7 w-7 text-[#1A3A0A]"
+                strokeWidth={2}
+              />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900">Official venue features are on the way!</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+              We're building verification tools and automated court booking for venue owners. Leave your email and we'll notify you first.
+            </p>
+            <form
+              onSubmit={handleSubmit}
+              className="mt-5 w-full space-y-3"
+            >
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Your email address"
+                required
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#a6c64a] focus:outline-none focus:ring-2 focus:ring-[#a6c64a]/20"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="w-full rounded-[20px] border border-slate-200 bg-white py-3 text-base font-bold text-slate-700 transition-transform active:scale-[0.98]"
+                >
+                  Maybe later
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-[20px] bg-[#1A3A0A] py-3 text-base font-bold text-white transition-transform active:scale-[0.98] disabled:opacity-60"
+                >
+                  {loading ? 'Joining…' : 'Notify me'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -109,7 +223,6 @@ function OptionCard({
   description,
   features,
   onClick,
-  disabled = false,
 }: {
   tone: 'neutral' | 'official'
   icon: React.ReactNode
@@ -117,18 +230,15 @@ function OptionCard({
   badge: string
   description: string
   features: { included: boolean; label: string }[]
-  onClick?: () => void
-  disabled?: boolean
+  onClick: () => void
 }) {
   const isOfficial = tone === 'official'
   return (
     <button
       type="button"
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
+      onClick={onClick}
       className={[
-        'flex w-full flex-col items-start gap-4 rounded-3xl border-2 p-5 text-left transition',
-        disabled ? 'cursor-default' : 'active:scale-[0.99]',
+        'flex w-full flex-col items-start gap-4 rounded-3xl border-2 p-5 text-left transition active:scale-[0.99]',
         isOfficial ? 'border-[#a6c64a] bg-[#f3f7e1]' : 'border-slate-200 bg-white',
       ].join(' ')}
     >

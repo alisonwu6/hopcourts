@@ -148,7 +148,7 @@ export function EventCard({
             <p className="flex items-center gap-1.5 text-sm font-medium text-slate-900">
               {displayHost.name}
               {/* {displayHost.isOfficial && (
-                <BadgeCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
+                <ShieldCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
               )} */}
               {event.host.countryKey && (
                 <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { PageLoading } from '@/components/PageLoading'
 import {
-  BadgeCheck,
+  ShieldCheck,
   Building2,
   Camera,
   Check,
@@ -287,7 +287,7 @@ export const VenueProfileView: React.FC<VenueProfileViewProps> = ({
 
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#b8da87] bg-[#eef8df] px-3 text-sm font-semibold text-[#2f6d16]">
-            <BadgeCheck className="h-3.5 w-3.5" /> Official
+            <ShieldCheck className="h-3.5 w-3.5" /> Official
           </span>
           {(formData.spaces?.[0]?.supported_sports || []).slice(0, 2).map((sport) => (
             <span key={sport} className="inline-flex h-8 items-center rounded-full bg-slate-100 px-3 text-sm font-semibold text-[#5a6954]">
