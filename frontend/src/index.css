@@ -120,6 +120,20 @@
   display: none !important;
 }
 @layer utilities {
+  @keyframes dribble {
+    0%, 100% {
+      transform: translateY(-5px);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    60% {
+      transform: translateY(8px);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+  .animate-dribble {
+    animation: dribble 1s infinite;
+  }
+
   @keyframes border-pulse {
     0%, 100% {
       box-shadow: 0 0 0 0px rgba(59, 130, 246, 0.7);

@@ -91,10 +91,10 @@ export function BottomNav() {
               setShowLoginPrompt(true)
             }
           }}
-          className="flex h-14 w-14 flex-none items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-600/30 transition active:scale-95"
+          className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-blue-600 animate-dribble active:scale-95"
           aria-label="Create event"
         >
-          <Plus className="h-7 w-7 text-white" strokeWidth={2.5} />
+          <Plus className="h-6 w-6 text-white" strokeWidth={2.5} />
         </button>
 
         {rightItems.map(renderNavItem)}
