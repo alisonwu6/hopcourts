@@ -121,17 +121,24 @@
 }
 @layer utilities {
   @keyframes dribble {
-    0%, 100% {
+    0% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    35% {
       transform: translateY(-5px);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }
-    60% {
+    65% {
       transform: translateY(8px);
       animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
     }
+    100% {
+      transform: translateY(0);
+    }
   }
   .animate-dribble {
-    animation: dribble 1s infinite;
+    animation: dribble 1s 3 forwards;
   }
 
   @keyframes border-pulse {
