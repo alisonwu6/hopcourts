@@ -239,7 +239,7 @@ export function VenueDetailsView({
       </div>
 
       {/* Claim CTA */}
-      {venue.status !== 'claimed' && !venue.has_pending_claim && (
+      {/* {venue.status !== 'claimed' && !venue.has_pending_claim && (
         <div className="mx-4 mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#e8f0c2] text-[#1A3A0A]">
@@ -268,7 +268,7 @@ export function VenueDetailsView({
             Your application is under review. We'll be in touch shortly.
           </p>
         </div>
-      )}
+      )} */}
 
       {/* Upcoming Events */}
       <div className="px-4 py-6">

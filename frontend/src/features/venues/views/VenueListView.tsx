@@ -123,7 +123,7 @@ export function VenueListView({
                   {searchQuery
                     ? 'No venues found'
                     : activeFilter === 'official'
-                    ? 'No official venues yet'
+                    ? 'Coming Soon'
                     : activeFilter === 'public'
                     ? 'No public venues yet'
                     : activeFilter === 'has_events'
@@ -175,7 +175,7 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-2 rounded-3xl bg-[#2d3818] p-4 text-left shadow-sm transition active:scale-[0.99]"
+      className="flex w-full items-center gap-2 rounded-3xl bg-[#2d3818] p-2 text-left shadow-sm transition active:scale-[0.99]"
     >
       <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1A3A0A]">
         <Trees
