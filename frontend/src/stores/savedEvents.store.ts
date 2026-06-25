@@ -3,6 +3,7 @@ import { eventsService } from '@/features/events/services/eventsService'
 
 interface SavedEventsStore {
   savedIds: string[]
+  isLoaded: boolean
   isSaving: Record<string, boolean>
   toggleSave: (eventId: string) => Promise<void>
   isSaved: (eventId: string) => boolean
@@ -10,8 +11,11 @@ interface SavedEventsStore {
   clearSavedEvents: () => void
 }
 
+let bookmarksInflight: Promise<void> | null = null
+
 export const useSavedEventsStore = create<SavedEventsStore>()((set, get) => ({
   savedIds: [],
+  isLoaded: false,
   isSaving: {},
 
   toggleSave: async (eventId) => {
@@ -45,12 +49,20 @@ export const useSavedEventsStore = create<SavedEventsStore>()((set, get) => ({
 
   isSaved: (eventId) => get().savedIds.includes(eventId),
 
-  fetchBookmarks: async () => {
-    const res = await eventsService.fetchBookmarkIds()
-    if (res.success && res.data) {
-      set({ savedIds: res.data.ids })
+  fetchBookmarks: () => {
+    if (!bookmarksInflight) {
+      bookmarksInflight = eventsService
+        .fetchBookmarkIds()
+        .then((res) => {
+          if (res.success && res.data) set({ savedIds: res.data.ids, isLoaded: true })
+          else set({ isLoaded: true })
+        })
+        .finally(() => {
+          bookmarksInflight = null
+        })
     }
+    return bookmarksInflight
   },
 
-  clearSavedEvents: () => set({ savedIds: [], isSaving: {} }),
+  clearSavedEvents: () => set({ savedIds: [], isLoaded: false, isSaving: {} }),
 }))

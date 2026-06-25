@@ -5,37 +5,31 @@ import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { notificationsService, NotificationItem } from '../services/notificationsService'
+import { useNotificationsListQuery, NOTIFICATIONS_PAGE_SIZE } from '../hooks/useNotificationsListQuery'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = NOTIFICATIONS_PAGE_SIZE
 
 export function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [seeded, setSeeded] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [offset, setOffset] = useState(0)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    void fetchNotifications()
-  }, [])
+  const listQuery = useNotificationsListQuery()
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true)
-      const res = await notificationsService.listNotifications({ limit: PAGE_SIZE, offset: 0 })
-      if (res.ok) {
-        setNotifications(res.data.items)
-        setHasMore(res.data.items.length === PAGE_SIZE)
-        setOffset(res.data.items.length)
-      }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }
+  useEffect(() => {
+    if (seeded || !listQuery.data?.ok) return
+    const items = listQuery.data.data.items
+    setNotifications(items)
+    setHasMore(items.length === PAGE_SIZE)
+    setOffset(items.length)
+    setSeeded(true)
+  }, [listQuery.data, seeded])
+
+  const loading = listQuery.isLoading && !seeded
 
   const loadMore = useCallback(async () => {
     if (loadingMore) return
@@ -58,11 +52,9 @@ export function NotificationsPage() {
 
   const handleClick = (n: NotificationItem) => {
     if (!n.is_read) {
-      // Optimistic UI update
       setNotifications((prev) => prev.map((p) => (p.id === n.id ? { ...p, is_read: true } : p)))
       notificationsService.markRead(n.id).catch(console.error)
     }
-
     if (n.metadata?.deep_link) {
       navigate(n.metadata.deep_link)
     }
@@ -75,23 +67,15 @@ export function NotificationsPage() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'session_joined':
-        return <UserPlus className="h-5 w-5" />
-      case 'session_left':
-        return <UserMinus className="h-5 w-5" />
-      case 'session_cancelled':
-        return <AlertCircle className="h-5 w-5" />
-      case 'session_updated':
-        return <Clock className="h-5 w-5" />
-      case 'check-in':
-        return <Clock className="h-5 w-5" />
+      case 'session_joined': return <UserPlus className="h-5 w-5" />
+      case 'session_left': return <UserMinus className="h-5 w-5" />
+      case 'session_cancelled': return <AlertCircle className="h-5 w-5" />
+      case 'session_updated': return <Clock className="h-5 w-5" />
+      case 'check-in': return <Clock className="h-5 w-5" />
       case 'ended':
-      case 'full':
-        return <CheckCircle2 className="h-5 w-5" />
-      case 'official_announcement':
-        return <MessageCircle className="h-5 w-5" />
-      default:
-        return <Bell className="h-5 w-5" />
+      case 'full': return <CheckCircle2 className="h-5 w-5" />
+      case 'official_announcement': return <MessageCircle className="h-5 w-5" />
+      default: return <Bell className="h-5 w-5" />
     }
   }
 
