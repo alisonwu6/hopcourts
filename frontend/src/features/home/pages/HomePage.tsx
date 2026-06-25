@@ -14,18 +14,14 @@ export function HomePage() {
   const navigate = useNavigate()
 
   const handleIdentityClick = () => {
-    if (!isAuthenticated) {
-      setShowLoginPrompt(true)
-      return
-    }
-    navigate('/profile')
+    setShowLoginPrompt(true)
   }
 
   return (
     <div className="relative min-h-[100dvh] bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4">
-        <div className="mb-6 flex w-full justify-center">
+        <div className="mb-4 flex w-full justify-center">
           <img
             src={logo}
             alt="HopCourts"
@@ -58,7 +54,7 @@ export function HomePage() {
 
           <section className="mt-6 flex justify-center gap-3">
             <button
-              className="flex w-36 items-center justify-center rounded-full bg-[#0095CF] px-6 py-4 text-base font-bold text-white"
+              className="flex w-36 items-center justify-center rounded-full bg-ocean px-6 py-4 text-base font-bold text-white"
               type="button"
               onClick={() => navigate('/events')}
             >
@@ -68,7 +64,7 @@ export function HomePage() {
               <button
                 className="bg-hop flex w-36 items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white shadow-xl shadow-emerald-200/50"
                 type="button"
-                onClick={isAuthenticated ? () => navigate('/events') : handleIdentityClick}
+                onClick={handleIdentityClick}
               >
                 Hop in
                 <ArrowRight className="ml-2 h-5 w-5" />
