@@ -14,18 +14,14 @@ export function HomePage() {
   const navigate = useNavigate()
 
   const handleIdentityClick = () => {
-    if (!isAuthenticated) {
-      setShowLoginPrompt(true)
-      return
-    }
-    navigate('/profile')
+    setShowLoginPrompt(true)
   }
 
   return (
     <div className="relative min-h-[100dvh] bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4">
-        <div className="mb-6 flex w-full justify-center">
+        <div className="mb-4 flex w-full justify-center">
           <img
             src={logo}
             alt="HopCourts"
@@ -56,16 +52,24 @@ export function HomePage() {
             </h2>
           </header>
 
-          {/* Call to Action */}
-          <section className="mt-6 flex justify-center">
+          <section className="mt-6 flex justify-center gap-3">
             <button
-              className="bg-blue-600 flex items-center justify-center rounded-full px-8 py-4 text-lg font-bold text-white shadow-xl shadow-emerald-200/50"
+              className="flex w-36 items-center justify-center rounded-full bg-ocean px-6 py-4 text-base font-bold text-white"
               type="button"
-              onClick={isAuthenticated ? () => navigate('/events') : handleIdentityClick}
+              onClick={() => navigate('/events')}
             >
-              {isAuthenticated ? 'Discover Events' : 'Hop in'}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              Discover
             </button>
+            {!isAuthenticated && (
+              <button
+                className="bg-hop flex w-36 items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white shadow-xl shadow-emerald-200/50"
+                type="button"
+                onClick={handleIdentityClick}
+              >
+                Hop in
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </button>
+            )}
           </section>
 
           {/* Why HopCourts */}
@@ -123,11 +127,11 @@ export function HomePage() {
           {/* Manifesto */}
           <section className="bg-courts mt-8 rounded-2xl px-3 py-4 text-center">
             <blockquote className="text-md font-semibold italic leading-relaxed text-white">
-              "Sport is the oldest social network.
+              Sport is the oldest social network.
               <br />
-              We just built the app for it."
+              We just built the app for it.
             </blockquote>
-            <p className="mt-3 text-xs font-semibold text-slate-400">HopCourts Team</p>
+            <p className="mt-3 text-xs font-semibold text-white">HopCourts Team</p>
           </section>
         </main>
       </div>
