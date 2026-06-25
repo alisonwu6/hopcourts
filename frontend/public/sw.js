@@ -1,3 +1,9 @@
+self.addEventListener('message', function (event) {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})
+
 self.addEventListener('push', function (event) {
   if (!event.data) return
   const payload = event.data.json()
@@ -15,12 +21,12 @@ self.addEventListener('push', function (event) {
 self.addEventListener('notificationclick', function (event) {
   event.notification.close()
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       const target = event.notification.data.url
       for (const client of clientList) {
         if (client.url === target && 'focus' in client) return client.focus()
       }
-      if (clients.openWindow) return clients.openWindow(target)
+      if (self.clients.openWindow) return self.clients.openWindow(target)
     })
   )
 })

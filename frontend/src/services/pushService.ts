@@ -7,9 +7,27 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)))
 }
 
-export async function registerServiceWorker() {
+export async function registerServiceWorker(onUpdate?: () => void) {
   if (!('serviceWorker' in navigator)) return null
-  return navigator.serviceWorker.register('/sw.js')
+  const registration = await navigator.serviceWorker.register('/sw.js')
+
+  const trackInstalling = (worker: ServiceWorker) => {
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+        onUpdate?.()
+      }
+    })
+  }
+
+  if (registration.installing) {
+    trackInstalling(registration.installing)
+  }
+
+  registration.addEventListener('updatefound', () => {
+    if (registration.installing) trackInstalling(registration.installing)
+  })
+
+  return registration
 }
 
 export async function getVapidPublicKey(): Promise<string> {

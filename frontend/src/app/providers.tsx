@@ -1,4 +1,4 @@
-import { PropsWithChildren, useEffect, useRef } from 'react'
+import { PropsWithChildren, useEffect, useRef, useState } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from '@/hooks'
 import { supabase } from '@/lib/supabase'
@@ -6,6 +6,7 @@ import { setOnUnauthorized } from '@/api/http'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { registerServiceWorker } from '@/services/pushService'
 import { queryClient } from '@/lib/queryClient'
+import { AppUpdateBanner } from '@/components/AppUpdateBanner'
 
 // Wrap global providers here (AuthProvider, ToastProvider, QueryClientProvider, etc.)
 export function AppProviders({ children }: PropsWithChildren) {
@@ -16,6 +17,8 @@ export function AppProviders({ children }: PropsWithChildren) {
   const navigate = useNavigate()
   const location = useLocation()
   const handledUnauthorizedRef = useRef(false)
+  const [updateReady, setUpdateReady] = useState(false)
+  const swRegistrationRef = useRef<ServiceWorkerRegistration | null>(null)
 
   useEffect(() => {
     if (location.pathname === '/login' || isAuthenticated) {
@@ -25,7 +28,9 @@ export function AppProviders({ children }: PropsWithChildren) {
 
   // Run exactly once on mount: bootstrap auth + register SW
   useEffect(() => {
-    void registerServiceWorker()
+    registerServiceWorker(() => setUpdateReady(true)).then((reg) => {
+      if (reg) swRegistrationRef.current = reg
+    })
     hydrate()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -68,5 +73,20 @@ export function AppProviders({ children }: PropsWithChildren) {
     return () => subscription.unsubscribe()
   }, [setAuthData, clearAuthState])
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  const handleUpdate = () => {
+    const reg = swRegistrationRef.current
+    if (reg?.waiting) {
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+      navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload())
+    } else {
+      window.location.reload()
+    }
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {updateReady && <AppUpdateBanner onUpdate={handleUpdate} />}
+      {children}
+    </QueryClientProvider>
+  )
 }
