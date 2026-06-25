@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { notificationsService } from '@/features/notifications/services/notificationsService'
 
 interface ProfileStore {
   rawProfile: any | null
@@ -20,12 +19,6 @@ export const useProfileStore = create<ProfileStore>((set) => ({
 
   seedFromBootstrap: (raw) => {
     set({ rawProfile: raw, fetchedAt: Date.now(), isLoaded: true })
-    notificationsService.listNotifications({ limit: 1 })
-      .then((res: any) => {
-        const unread = res?.data?.unread_count
-        if (typeof unread === 'number') set({ unreadCount: unread })
-      })
-      .catch(() => {})
   },
 
   setRawProfile: (raw) => set({ rawProfile: raw, fetchedAt: Date.now(), isLoaded: true }),

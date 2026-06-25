@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   addMonths,
@@ -18,7 +18,7 @@ import {
 import type { PlayerEvent } from '@/types'
 import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
-import { eventsService } from '@/features/events/services/eventsService'
+import { useMyEventsScopedQuery } from '@/features/events/hooks/useMyEventsScopedQuery'
 import { EventCard } from '@/features/events/components/EventCard'
 import { EventTimeline, groupEventsByDate, type SportsItem } from '@/features/events/components/EventTimeline'
 import { Bike, BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -269,9 +269,6 @@ export function ProfileEventsPanel({
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const tab = (searchParams.get('tab') as TabKey) || 'upcoming'
-  const [events, setEvents] = useState<PlayerEvent[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   const setTab = (newTab: TabKey) => {
     setSearchParams(
@@ -287,44 +284,13 @@ export function ProfileEventsPanel({
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const { items: sportsCatalog } = useSports('en')
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setEvents([])
-      setIsLoading(false)
-      setError(null)
-      return
-    }
+  const role = mode === 'all' ? 'all' : mode as 'hosted' | 'joined'
+  const time: 'upcoming' | 'history' = showTimeTabs ? tab : 'upcoming'
+  const eventsQuery = useMyEventsScopedQuery({ role, time, enabled: isAuthenticated })
 
-    let cancelled = false
-    const run = async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const role = mode === 'all' ? 'all' : mode
-        const time: 'upcoming' | 'history' = showTimeTabs ? tab : 'upcoming'
-        const res = await eventsService.getMyEventsScoped({ role, time }, { force: true })
-        if (cancelled) return
-        if (res.success && res.data) {
-          setEvents(res.data.data ?? [])
-        } else {
-          setEvents([])
-          setError(res.error?.message ?? 'Failed to load events')
-        }
-      } catch {
-        if (!cancelled) {
-          setEvents([])
-          setError('An error occurred')
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false)
-      }
-    }
-
-    void run()
-    return () => {
-      cancelled = true
-    }
-  }, [isAuthenticated, mode, showTimeTabs, tab])
+  const events = eventsQuery.data?.data?.data ?? []
+  const isLoading = eventsQuery.isLoading
+  const error = eventsQuery.isError ? 'Failed to load events' : null
 
   const upcomingEvents = useMemo(
     () =>

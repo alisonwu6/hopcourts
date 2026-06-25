@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { dictionaryService } from './dict.service'
 import type { Country, City, VibeItem, AgeRange, Sport } from '@/types/dictionary'
 
@@ -78,69 +79,46 @@ const useDictionary = <T>(
   type: DictType,
   lang: 'zh' | 'en',
   loader: () => Promise<T[]>,
-  deps: any[] = []
 ): Status<T> => {
-  const [items, setItems] = useState<T[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
-
-  useEffect(() => {
-    let active = true
-    const cachedItems = getCache<T>(type, lang)
-    if (cachedItems && cachedItems.length) {
-      setItems(cachedItems)
-      setIsLoading(false)
-    }
-
-    const bootstrap = async () => {
+  const query = useQuery({
+    queryKey: ['dict', type, lang] as const,
+    queryFn: async () => {
+      const cachedItems = getCache<T>(type, lang)
       const versionMap = getVersionCache()
+      const meta = await fetchMeta()
+      const remoteVersion = meta?.[type]?.version
+      const localVersion = versionMap[type]?.version
+      const shouldRefresh = !remoteVersion || remoteVersion !== localVersion || !cachedItems
+      if (!shouldRefresh && cachedItems?.length) return cachedItems
+      const data = await fetchData(`${type}.${lang}`, loader)
+      setCache(type, lang, data)
+      setVersionCache({ [type]: { version: remoteVersion || Date.now().toString() } })
+      return data
+    },
+    staleTime: 5 * 60 * 1000,
+    initialData: () => {
+      const cached = getCache<T>(type, lang)
+      return cached?.length ? cached : undefined
+    },
+  })
 
-      try {
-        const meta = await fetchMeta()
-        const remoteVersion = meta?.[type]?.version
-        const localVersion = versionMap[type]?.version
-
-        const shouldRefresh = !remoteVersion || remoteVersion !== localVersion || !cachedItems
-        if (shouldRefresh) {
-          const data = await fetchData(`${type}.${lang}`, loader)
-          if (!active) return
-          setItems(data)
-          setCache(type, lang, data)
-          setVersionCache({
-            [type]: { version: remoteVersion || Date.now().toString() },
-          })
-        }
-      } catch (err: any) {
-        // API 失敗：如果有舊快取就沿用，否則標記錯誤
-        if (!cachedItems) {
-          if (active) setError(err instanceof Error ? err : new Error('Failed to load dictionary'))
-        }
-      } finally {
-        if (active) setIsLoading(false)
-      }
-    }
-
-    bootstrap()
-
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
-
-  return { items, isLoading, error }
+  return {
+    items: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error as Error | null,
+  }
 }
 
 export function useCountries(lang: 'zh' | 'en' = 'en') {
-  return useDictionary<Country>('countries', lang, () => dictionaryService.listCountries(lang), [lang])
+  return useDictionary<Country>('countries', lang, () => dictionaryService.listCountries(lang))
 }
 
 export function useCities(country?: string, lang: 'zh' | 'en' = 'en') {
-  return useDictionary<City>('cities', lang, () => dictionaryService.listCities(country, lang), [country, lang])
+  return useDictionary<City>('cities', lang, () => dictionaryService.listCities(country, lang))
 }
 
 export function useVibes(lang: 'zh' | 'en' = 'en') {
-  return useDictionary<VibeItem>('vibes', lang, () => dictionaryService.listVibes(lang), [lang])
+  return useDictionary<VibeItem>('vibes', lang, () => dictionaryService.listVibes(lang))
 }
 
 export function useVibeUtils(lang: 'zh' | 'en' = 'en') {
@@ -182,9 +160,9 @@ export function useVibeUtils(lang: 'zh' | 'en' = 'en') {
 }
 
 export function useAgeRanges(lang: 'zh' | 'en' = 'en') {
-  return useDictionary<AgeRange>('age_ranges', lang, () => dictionaryService.listAgeRanges(lang), [lang])
+  return useDictionary<AgeRange>('age_ranges', lang, () => dictionaryService.listAgeRanges(lang))
 }
 
 export function useSports(lang: 'zh' | 'en' = 'en') {
-  return useDictionary<Sport>('sports', lang, () => dictionaryService.listSports(lang), [lang])
+  return useDictionary<Sport>('sports', lang, () => dictionaryService.listSports(lang))
 }

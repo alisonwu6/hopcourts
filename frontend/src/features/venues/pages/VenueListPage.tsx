@@ -4,6 +4,7 @@ import { PageLoading } from '@/components/PageLoading'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
+import { useVenuesQuery } from '@/features/venues/hooks/useVenuesQuery'
 import { VenueListView } from '../views/VenueListView'
 import { VenueMapFilterType } from '../components/VenueMapFilters'
 
@@ -14,8 +15,7 @@ export function VenueListPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const isAuthLoading = useAuthStore((state) => state.isLoading)
   const [searchParams, setSearchParams] = useSearchParams()
-  const [venues, setVenues] = useState<ApiVenue[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [extraVenues, setExtraVenues] = useState<ApiVenue[]>([])
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [offset, setOffset] = useState(0)
@@ -41,21 +41,23 @@ export function VenueListPage() {
     ? activeFilter
     : undefined
 
+  const venuesQuery = useVenuesQuery({ limit: PAGE_SIZE, offset: 0, type: venueTypeFilter })
+  const baseVenues = venuesQuery.data?.data?.data ?? []
+  const venues = [...baseVenues, ...extraVenues]
+  const isLoading = venuesQuery.isLoading
+
   useEffect(() => {
-    const fetchVenues = async () => {
-      setIsLoading(true)
-      setVenues([])
-      setOffset(0)
-      const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset: 0, type: venueTypeFilter })
-      if (res.success && res.data) {
-        setVenues(res.data.data)
-        setHasMore(res.data.hasMore)
-        setOffset(res.data.data.length)
-      }
-      setIsLoading(false)
-    }
-    void fetchVenues()
+    setExtraVenues([])
+    setOffset(0)
+    setHasMore(false)
   }, [activeFilter])
+
+  useEffect(() => {
+    if (venuesQuery.data?.data) {
+      setOffset(venuesQuery.data.data.data.length)
+      setHasMore(venuesQuery.data.data.hasMore)
+    }
+  }, [venuesQuery.data])
 
   const loadMoreVenues = useCallback(async () => {
     if (loadingMore) return
@@ -63,7 +65,7 @@ export function VenueListPage() {
     try {
       const res = await venuesService.listVenues({ limit: PAGE_SIZE, offset, type: venueTypeFilter })
       if (res.success && res.data) {
-        setVenues((prev) => [...prev, ...res.data!.data])
+        setExtraVenues((prev) => [...prev, ...res.data!.data])
         setHasMore(res.data.hasMore)
         setOffset((prev) => prev + res.data!.data.length)
       }

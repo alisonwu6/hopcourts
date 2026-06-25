@@ -1,15 +1,16 @@
 import clsx from 'clsx'
 import { Menu, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
-import { notificationsService } from '@/features/notifications/services/notificationsService'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { useProfileStore } from '@/stores/profile.store'
 import { profileService } from '@/features/profile/services/profileService'
+import { useProfileQuery } from '@/features/profile/hooks/useProfileQuery'
+import { useNotificationsUnreadQuery } from '@/features/notifications/hooks/useNotificationsUnreadQuery'
 import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
@@ -213,121 +214,80 @@ export function ProfilePage() {
 
   const [rawProfile, setRawProfile] = useState<any>(null)
   const hasVenueAccess = (rawProfile?.user?.role ?? []).includes('venue')
-  const hasBootstrappedRef = React.useRef(false)
+  // 1. Fetch profile + unread count via React Query (automatic dedup & caching)
+  const profileQuery = useProfileQuery(isAuthenticated)
+  const notificationsQuery = useNotificationsUnreadQuery(isAuthenticated)
 
-  // 1. Fetch Data Only (Stable dependencies)
-  const fetchProfileData = useCallback(async () => {
-    if (!isAuthenticated) return
+  // 1a. Side effects when profile data arrives or errors
+  useEffect(() => {
     const authUser = useAuthStore.getState().user as any
     const fallbackAvatar = authUser?.avatar || authUser?.avatar_url || authUser?.avatarUrl || ''
 
-    try {
-      // 1. Fetch Profile + notification summary in parallel
-      let payload: any = null
-      const [profileSettled, notificationsSettled] = await Promise.allSettled([
-        profileService.getProfile(),
-        notificationsService.listNotifications({ limit: 1 }),
-      ])
-
-      if (notificationsSettled.status === 'fulfilled') {
-        const unread = (notificationsSettled.value as any)?.data?.unread_count
-        if (typeof unread === 'number') {
-          setUnreadCount(unread)
-          useProfileStore.getState().setUnreadCount(unread)
-        }
-      }
-
-      if (profileSettled.status === 'fulfilled') {
-        payload = (profileSettled.value as any)?.data ?? profileSettled.value
-        useProfileStore.getState().setRawProfile(payload)
-      } else {
-        const err: any = profileSettled.reason
-        console.warn('Profile load failed (expected for new users):', err)
-        const status = err?.status || err?.response?.status
-        if (status === 404) {
-          setShowEditSheet(true)
-        }
-        setVm(null)
-        setRawProfile(null) // Clear raw
-
-        const prefill: MateCardProps = {
-          ...emptyProfile,
-          name: authUser?.name || '',
-          avatar: fallbackAvatar,
-        }
-        setDraftProfile(prefill)
-        setIsProfileLoaded(true)
-        return
-      }
-
-      // 2. Process Onboarding & Sync User
-      if (payload) {
-        const data = payload.user || payload
-        setRawProfile(payload)
-
-        const completedAt = data.onboarding_completed_at
-
-        if (completedAt) {
-          setShowProfileRequiredSheet(false)
-        } else {
-          setShowProfileRequiredSheet(true)
-        }
-
-        // Sync to AuthStore
-        const { user: authUser, token, setAuthData } = useAuthStore.getState()
-        if (authUser && token) {
-          const newName = data.display_name || authUser.name
-          const newAvatar = data.avatar_url || authUser.avatar
-          const newLocation = data.city_key || authUser.location
-          const newGender = data.gender || authUser.gender
-          const newBio = data.bio || authUser.bio
-
-          const isChanged =
-            authUser.name !== newName ||
-            authUser.avatar !== newAvatar ||
-            authUser.location !== newLocation ||
-            authUser.gender !== newGender ||
-            authUser.bio !== newBio ||
-            authUser.onboarding_completed_at !== data.onboarding_completed_at
-
-          if (isChanged) {
-            setAuthData(
-              {
-                ...authUser,
-                name: newName,
-                avatar: newAvatar,
-                location: newLocation,
-                gender: newGender,
-                bio: newBio,
-                onboarding_completed_at: data.onboarding_completed_at || authUser.onboarding_completed_at,
-              },
-              token
-            )
-          }
-        }
-
-        // 3. STOP if Onboarding
-        // 3. STOP if Onboarding
-        if (!completedAt) {
-          setIsProfileLoaded(true)
-          return
-        }
-      }
-
-      // Preferences API removed.
-    } catch (err) {
-      console.error('Core profile load failed', err)
+    if (profileQuery.isError) {
+      const err: any = profileQuery.error
+      console.warn('Profile load failed (expected for new users):', err)
+      const status = err?.status ?? err?.response?.status
+      if (status === 404) setShowEditSheet(true)
       setVm(null)
-      const prefill: MateCardProps = {
-        ...emptyProfile,
-        name: authUser?.name || '',
-        avatar: fallbackAvatar,
-      }
-      setDraftProfile(prefill)
-    } finally {
+      setRawProfile(null)
+      setDraftProfile({ ...emptyProfile, name: authUser?.name || '', avatar: fallbackAvatar })
       setIsProfileLoaded(true)
+      return
     }
-  }, [isAuthenticated])
+
+    if (!profileQuery.data) return
+
+    const payload: any = (profileQuery.data as any)?.data ?? profileQuery.data
+    const data = payload.user || payload
+
+    setRawProfile(payload)
+    useProfileStore.getState().setRawProfile(payload)
+
+    const completedAt = data.onboarding_completed_at
+    setShowProfileRequiredSheet(!completedAt)
+
+    // Sync to AuthStore
+    const { user: currentAuthUser, token, setAuthData } = useAuthStore.getState()
+    if (currentAuthUser && token) {
+      const newName = data.display_name || currentAuthUser.name
+      const newAvatar = data.avatar_url || currentAuthUser.avatar
+      const newLocation = data.city_key || currentAuthUser.location
+      const newGender = data.gender || currentAuthUser.gender
+      const newBio = data.bio || currentAuthUser.bio
+      const isChanged =
+        currentAuthUser.name !== newName ||
+        currentAuthUser.avatar !== newAvatar ||
+        currentAuthUser.location !== newLocation ||
+        currentAuthUser.gender !== newGender ||
+        currentAuthUser.bio !== newBio ||
+        currentAuthUser.onboarding_completed_at !== data.onboarding_completed_at
+      if (isChanged) {
+        setAuthData(
+          {
+            ...currentAuthUser,
+            name: newName,
+            avatar: newAvatar,
+            location: newLocation,
+            gender: newGender,
+            bio: newBio,
+            onboarding_completed_at: data.onboarding_completed_at || currentAuthUser.onboarding_completed_at,
+          },
+          token
+        )
+      }
+    }
+
+    setIsProfileLoaded(true)
+  }, [profileQuery.data, profileQuery.isError, profileQuery.error])
+
+  // 1b. Sync unread count from query into store
+  useEffect(() => {
+    const unread = (notificationsQuery.data as any)?.data?.unread_count
+    if (typeof unread === 'number') {
+      setUnreadCount(unread)
+      useProfileStore.getState().setUnreadCount(unread)
+    }
+  }, [notificationsQuery.data])
 
   // 2. Map Data to VM (Reactive to dictionary changes)
   useEffect(() => {
@@ -392,25 +352,15 @@ export function ProfilePage() {
     setDraftUsername(nextUsername)
   }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar])
 
+  // Seed local state from store on mount if already loaded (avoids flicker on re-navigation)
   useEffect(() => {
-    if (!isAuthenticated || (user as any)?.is_anonymous) {
-      hasBootstrappedRef.current = false
-      return
-    }
-    if (hasBootstrappedRef.current) return
-    hasBootstrappedRef.current = true
-
     const stored = useProfileStore.getState()
     if (stored.isLoaded && stored.rawProfile) {
       setRawProfile(stored.rawProfile)
       setUnreadCount(stored.unreadCount)
       setIsProfileLoaded(true)
-      const isStale = !stored.fetchedAt || Date.now() - stored.fetchedAt > 30_000
-      if (!isStale) return
     }
-
-    fetchProfileData()
-  }, [isAuthenticated, fetchProfileData])
+  }, [])
 
   // 1.5 Handle deep link from ProfileRequiredSheet (navigation from other pages)
   useEffect(() => {
@@ -422,7 +372,7 @@ export function ProfilePage() {
   }, [location.state])
 
   // Monitor first-time onboarding completion via global state
-  const prevOnboardedRef = React.useRef(!!(user as any)?.onboarding_completed_at)
+  const prevOnboardedRef = useRef(!!(user as any)?.onboarding_completed_at)
   useEffect(() => {
     const isNowOnboarded = !!(user as any)?.onboarding_completed_at
     if (!prevOnboardedRef.current && isNowOnboarded) {

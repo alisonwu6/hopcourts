@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import type { SetURLSearchParams } from 'react-router-dom'
 import { format, startOfDay } from 'date-fns'
 import type { EventFilter, PlayerEvent, User } from '@/types'
 import type { Sport } from '@/types/dictionary'
-import { eventsService } from '@/features/events/services/eventsService'
+import { useFeedEventsQuery } from '@/features/events/hooks/useFeedEventsQuery'
 
 export type DiscoverSportFilterOption = { key: string; label: string; icon?: string | null; category?: string }
 
@@ -21,16 +21,6 @@ type DiscoverEventsDataInput = {
 
 type FeedType = 'interests' | 'relations'
 
-type FeedState = {
-  items: PlayerEvent[]
-  isLoading: boolean
-}
-
-const EMPTY_FEED_STATE: Record<FeedType, FeedState> = {
-  interests: { items: [], isLoading: false },
-  relations: { items: [], isLoading: false },
-}
-
 export function useDiscoverEventsData({
   events,
   sportsCatalog,
@@ -41,73 +31,12 @@ export function useDiscoverEventsData({
   setSearchParams,
 }: DiscoverEventsDataInput) {
   const today = useMemo(() => startOfDay(new Date()), [])
-  const [feedByType, setFeedByType] = useState<Record<FeedType, FeedState>>(EMPTY_FEED_STATE)
-  const feedRequestSeq = useRef(0)
   const showMap = searchParams.get('view') === 'map'
   const selectedEventId = searchParams.get('event')
 
-  useEffect(() => {
-    let active = true
-    const feedType: FeedType = suggestionType === 'interests' ? 'interests' : 'relations'
-    const requestSeq = ++feedRequestSeq.current
-
-    if (!isAuthenticated) {
-      setFeedByType(EMPTY_FEED_STATE)
-      return () => {
-        active = false
-      }
-    }
-
-    setFeedByType((previous) => ({
-      ...previous,
-      [feedType]: {
-        ...previous[feedType],
-        isLoading: true,
-      },
-    }))
-
-    const loadFeed = async () => {
-      try {
-        const response = await eventsService.getEvents({ feedType }, { ttlMs: 10_000 })
-        if (!active || requestSeq !== feedRequestSeq.current) return
-
-        if (response.success && response.data?.data) {
-          setFeedByType((previous) => ({
-            ...previous,
-            [feedType]: {
-              items: response.data?.data ?? [],
-              isLoading: false,
-            },
-          }))
-          return
-        }
-
-        setFeedByType((previous) => ({
-          ...previous,
-          [feedType]: {
-            ...previous[feedType],
-            isLoading: false,
-          },
-        }))
-      } catch {
-        if (!active || requestSeq !== feedRequestSeq.current) return
-
-        setFeedByType((previous) => ({
-          ...previous,
-          [feedType]: {
-            ...previous[feedType],
-            isLoading: false,
-          },
-        }))
-      }
-    }
-
-    void loadFeed()
-
-    return () => {
-      active = false
-    }
-  }, [isAuthenticated, suggestionType])
+  const feedType: FeedType = suggestionType === 'interests' ? 'interests' : 'relations'
+  const feedQuery = useFeedEventsQuery(feedType, isAuthenticated)
+  const feedItems = feedQuery.data?.data?.data ?? []
 
   const sportsParam = searchParams.get('sports')
   const startParam = searchParams.get('startDate')
@@ -162,7 +91,6 @@ export function useDiscoverEventsData({
 
   const suggestedEvents = useMemo(() => {
     if (!isAuthenticated || !user) return []
-    const feedType: FeedType = suggestionType === 'interests' ? 'interests' : 'relations'
 
     let localMatched: PlayerEvent[] = []
     if (suggestionType === 'interests') {
@@ -181,11 +109,11 @@ export function useDiscoverEventsData({
       )
     }
 
-    const backendMatched = feedByType[feedType].items.filter(
+    const backendMatched = feedItems.filter(
       (event) => event.host.id !== user.id && new Date(event.startTime) >= today
     )
     return (backendMatched.length > 0 ? backendMatched : localMatched).slice(0, 6)
-  }, [events, feedByType, isAuthenticated, suggestionType, today, user])
+  }, [events, feedItems, isAuthenticated, suggestionType, today, user])
 
   const dateLabel = dateRange.start
     ? dateRange.end

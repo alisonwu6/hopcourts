@@ -1,15 +1,14 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronLeft, Frown, List, CalendarDays, Share } from 'lucide-react'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { HeroCard } from '@/features/profile/components/HeroCard'
 import { PageLoading } from '@/components/PageLoading'
 import { EventsViewPanel } from '@/features/events/components/EventsViewPanel'
-import { eventsService } from '@/features/events/services/eventsService'
 import type { PlayerEvent } from '@/types'
 
-import { api } from '@/api/client'
-import type { ApiResponse } from '@/api/types'
+import { useMateProfileQuery } from '@/features/profile/hooks/useMateProfileQuery'
+import { useMateHostedEventsQuery } from '@/features/profile/hooks/useMateHostedEventsQuery'
 import { useVibeUtils, useSports, useCities } from '@/features/dictionaries/hooks'
 
 export function MateProfilePage() {
@@ -52,14 +51,11 @@ export function MateProfilePage() {
     }
   }, [citiesDict])
 
-  const [profileData, setProfileData] = useState<MateCardProps | null>(null)
-  const [loading, setLoading] = useState(!mate)
-  const [error, setError] = useState<string | null>(null)
-  const [hostedUpcomingEvents, setHostedUpcomingEvents] = useState<PlayerEvent[]>([])
-  const [isHostedEventsLoading, setIsHostedEventsLoading] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar')
 
-  useEffect(() => {
+  const profileQuery = useMateProfileQuery(username)
+  const profileData = useMemo(() => {
+    if (!profileQuery.data) return null
     const normalizeSports = (list: any[]) => {
       const favorites: string[] = []
       const trying: string[] = []
@@ -67,73 +63,42 @@ export function MateProfilePage() {
         const kind = (item?.kind || '').toUpperCase()
         const key = item?.sport_key || item?.sportKey || item?.key || item?.label || item
         if (!key) return
-        if (kind === 'TRYING') {
-          trying.push(String(key))
-        } else {
-          favorites.push(String(key))
-        }
+        if (kind === 'TRYING') trying.push(String(key))
+        else favorites.push(String(key))
       })
       return { favorites, trying }
     }
+    const res = profileQuery.data
+    const data = res?.data ?? {}
+    const user = data.user || data
+    const sportsResp = Array.isArray(data.sports) ? data.sports : Array.isArray(user.sports) ? user.sports : []
+    const { favorites, trying } = normalizeSports(sportsResp)
+    const vibeKey = user.vibe_key || user.vibe || data.vibe || mate?.vibe
+    const unionVibe = vibeKeyToUnion(vibeKey)
+    return {
+      name: user.display_name || user.username || mate?.name || username,
+      username: user.username || mate?.name || username,
+      vibe: (unionVibe || mate?.vibe) as MateCardProps['vibe'],
+      vibeLabel: labelForVibe(vibeKey) || labelForVibe(mate?.vibe as string) || '',
+      sports: favorites.length ? favorites : asStringArray(mate?.sports) || [],
+      trying: trying.length ? trying : asStringArray(mate?.trying) || [],
+      location: user.city_key || user.location || data.location || mate?.location || '',
+      countryKey: user.nationality_key || (mate as any)?.countryKey || '',
+      blurb: user.bio || user.blurb || data.blurb || mate?.blurb || '',
+      friendCount: user.teammate_count || user.friend_count || 0,
+      joinedCount: user.joined_count || 0,
+      hostedCount: user.hosted_count || 0,
+      avatar: user.avatar_url || user.avatar || data.avatar || mate?.avatar || '',
+    } as MateCardProps
+  }, [profileQuery.data, mate, username, vibeKeyToUnion, labelForVibe])
 
-    const fetchProfile = async () => {
-      if (!username) return
-      setLoading(true)
-      setError(null)
-      try {
-        const res = (await api.profiles.getByUsername(username)) as ApiResponse<any>
-        const data = res?.data ?? {}
-        const user = data.user || data // Handle both nested and flat structures
-        const sportsResp = Array.isArray(data.sports) ? data.sports : Array.isArray(user.sports) ? user.sports : []
-        const { favorites, trying } = normalizeSports(sportsResp)
-
-        const vibeKey = user.vibe_key || user.vibe || data.vibe || mate?.vibe
-        const unionVibe = vibeKeyToUnion(vibeKey)
-
-        setProfileData({
-          name: user.display_name || user.username || mate?.name || username,
-          username: user.username || mate?.name || username,
-          vibe: (unionVibe || mate?.vibe) as MateCardProps['vibe'],
-          vibeLabel: labelForVibe(vibeKey) || labelForVibe(mate?.vibe as string) || '',
-          sports: favorites.length ? favorites : asStringArray(mate?.sports) || [],
-          trying: trying.length ? trying : asStringArray(mate?.trying) || [],
-          location: user.city_key || user.location || data.location || mate?.location || '',
-          countryKey: user.nationality_key || (mate as any)?.countryKey || '',
-          blurb: user.bio || user.blurb || data.blurb || mate?.blurb || '',
-          friendCount: user.teammate_count || user.friend_count || 0,
-          joinedCount: user.joined_count || 0,
-          hostedCount: user.hosted_count || 0,
-          avatar: user.avatar_url || user.avatar || data.avatar || mate?.avatar || '',
-        })
-      } catch (err: any) {
-        console.error('load mate failed', err)
-        const status = err?.status || err?.response?.status
-        if (status === 404) {
-          setError(`No one goes by that username.`)
-        } else {
-          setError("Couldn't load this profile. Try again.")
-        }
-        if (mate) {
-          setProfileData({
-            name: mate.name || username || 'Mate',
-            username: mate.name || username || 'Mate',
-            vibe: (mate.vibe as MateCardProps['vibe']) || 'Chill',
-            vibeLabel: labelForVibe(mate.vibe as string),
-            sports: asStringArray(mate.sports) || [],
-            trying: asStringArray(mate.trying) || [],
-            location: mate.location || '',
-            countryKey: (mate as any).countryKey || '',
-            blurb: mate.blurb || '',
-            avatar: mate.avatar || '',
-          })
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProfile()
-  }, [username, mate, labelForSport, labelForVibe, vibeKeyToUnion])
+  const loading = profileQuery.isLoading && !profileData && !mate
+  const error = useMemo(() => {
+    if (!profileQuery.isError) return null
+    const err = profileQuery.error as any
+    const status = err?.status || err?.response?.status
+    return status === 404 ? 'No one goes by that username.' : "Couldn't load this profile. Try again."
+  }, [profileQuery.isError, profileQuery.error])
 
   const profile: MateCardProps | null = useMemo(() => {
     if (!profileData && !mate) return null
@@ -169,44 +134,11 @@ export function MateProfilePage() {
   const headerName = profile?.username || profile?.name || username || ''
   const targetProfileUsername = (profile?.username || username || '').trim()
 
-  useEffect(() => {
-    if (!targetProfileUsername) {
-      setHostedUpcomingEvents([])
-      setIsHostedEventsLoading(false)
-      return
-    }
-
-    let cancelled = false
-
-    const loadHostedUpcomingEvents = async () => {
-      setIsHostedEventsLoading(true)
-      try {
-        const response = await eventsService.getProfileEventsByUsername(targetProfileUsername, {
-          role: 'hosted',
-          time: 'upcoming',
-          limit: 10,
-          offset: 0,
-        })
-        const filtered = response.success ? (response.data?.data ?? []) : []
-        if (!cancelled) {
-          setHostedUpcomingEvents(filtered)
-        }
-      } catch (err) {
-        console.error('Failed to load hosted upcoming events', err)
-        if (!cancelled) {
-          setHostedUpcomingEvents([])
-        }
-      } finally {
-        if (!cancelled) setIsHostedEventsLoading(false)
-      }
-    }
-
-    void loadHostedUpcomingEvents()
-
-    return () => {
-      cancelled = true
-    }
-  }, [targetProfileUsername])
+  const hostedEventsQuery = useMateHostedEventsQuery(targetProfileUsername || undefined)
+  const hostedUpcomingEvents: PlayerEvent[] = hostedEventsQuery.data?.success
+    ? (hostedEventsQuery.data.data?.data ?? [])
+    : []
+  const isHostedEventsLoading = hostedEventsQuery.isLoading
 
   return (
     <div className="min-h-[100dvh]">
@@ -258,7 +190,7 @@ export function MateProfilePage() {
             fullScreen={false}
             className="py-20"
           />
-        ) : error ? (
+        ) : error && !profile ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="mb-4 rounded-full bg-slate-100 p-4">
               <Frown className="h-8 w-8 text-slate-400" />
