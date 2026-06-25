@@ -26,7 +26,12 @@ export function SavedEventsPage() {
   useEffect(() => {
     const load = async () => {
       setIsLoading(true)
-      await Promise.all([fetchBookmarks(), events.length === 0 ? fetchEvents() : Promise.resolve()])
+      const { isLoaded } = useSavedEventsStore.getState()
+      const { events: currentEvents } = useEventsStore.getState()
+      await Promise.all([
+        isLoaded ? Promise.resolve() : fetchBookmarks(),
+        currentEvents.length === 0 ? fetchEvents() : Promise.resolve(),
+      ])
       setIsLoading(false)
     }
     void load()

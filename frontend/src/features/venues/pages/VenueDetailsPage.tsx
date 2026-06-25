@@ -1,11 +1,14 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { venueByIdKey } from '../hooks/useVenueByIdQuery'
 import { Frown } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AlertDialog } from '@/components/AlertDialog'
 import { BottomSheet } from '@/components/BottomSheet'
 import { useAuthStore } from '@/hooks'
 import { venuesService, ApiVenue, VenueClaimRequest } from '../services/venuesService'
-import { eventsService } from '@/features/events/services/eventsService'
+import { useVenueByIdQuery } from '../hooks/useVenueByIdQuery'
+import { useVenueUpcomingEventsQuery } from '../hooks/useVenueUpcomingEventsQuery'
 import { sessionService } from '@/services/sessionService'
 import { supabase } from '@/lib/supabase'
 import { PageLoading } from '@/components/PageLoading'
@@ -42,10 +45,24 @@ export function VenueDetailsPage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const queryClient = useQueryClient()
+  const venueQuery = useVenueByIdQuery(venueId)
+  const eventsQuery = useVenueUpcomingEventsQuery(venueId)
+
   const [venue, setVenue] = useState<ApiVenue | null>(null)
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const upcomingEvents = eventsQuery.data?.data?.data ?? []
+  const isLoading = venueQuery.isLoading && !venue
+
+  useEffect(() => {
+    if (!venueQuery.data) return
+    if (venueQuery.data.success && venueQuery.data.data) {
+      setVenue(venueQuery.data.data)
+    } else {
+      setNotFound(true)
+    }
+  }, [venueQuery.data])
+
   const [isClaiming, setIsClaiming] = useState(false)
   const [isClaimSheetOpen, setIsClaimSheetOpen] = useState(false)
   const [claimForm, setClaimForm] = useState<ClaimFormState>(EMPTY_CLAIM_FORM)
@@ -56,33 +73,6 @@ export function VenueDetailsPage() {
     venueId: string | null
   }>({ open: false, venueName: '', venueId: null })
   const claimActionTakenRef = useRef(false)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!venueId) {
-        setIsLoading(false)
-        return
-      }
-
-      const [venueRes, eventsRes] = await Promise.all([
-        venuesService.getVenueById(venueId),
-        eventsService.getEvents({ venueId }, { limit: 10 }),
-      ])
-
-      if (venueRes.success && venueRes.data) {
-        setVenue(venueRes.data)
-      } else {
-        setNotFound(true)
-      }
-      if (eventsRes.success && eventsRes.data) {
-        setUpcomingEvents(eventsRes.data.data)
-      }
-
-      setIsLoading(false)
-    }
-
-    fetchData()
-  }, [venueId])
 
   const openClaimSheet = () => {
     setClaimError('')
@@ -139,9 +129,7 @@ export function VenueDetailsPage() {
     const activatedVenueId = claimRes.data?.venue_id ?? null
 
     setClaimSuccess({ open: true, venueName: venue.name_display, venueId: activatedVenueId })
-    if (!activatedVenueId) {
-      setVenue((v) => (v ? { ...v, has_pending_claim: true } : v))
-    }
+    void queryClient.invalidateQueries({ queryKey: venueByIdKey(venue.id) })
   }
 
   const handleGoToPortal = async (venueId: string) => {
@@ -176,6 +164,25 @@ export function VenueDetailsPage() {
   }
 
   if (isLoading) return <PageLoading />
+
+  if (venueQuery.isError) {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="mb-4 rounded-full bg-slate-100 p-4">
+          <Frown className="h-8 w-8 text-slate-400" />
+        </div>
+        <h1 className="text-xl font-bold text-slate-900">Something went wrong</h1>
+        <p className="text-sm text-slate-500">We couldn't load this venue. Please try again.</p>
+        <button
+          type="button"
+          onClick={() => venueQuery.refetch()}
+          className="mt-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white"
+        >
+          Try again
+        </button>
+      </div>
+    )
+  }
 
   if (notFound || !venue) {
     return (

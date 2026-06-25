@@ -1,9 +1,11 @@
 import { PropsWithChildren, useEffect, useRef } from 'react'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { useAuthStore } from '@/hooks'
 import { supabase } from '@/lib/supabase'
 import { setOnUnauthorized } from '@/api/http'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { registerServiceWorker } from '@/services/pushService'
+import { queryClient } from '@/lib/queryClient'
 
 // Wrap global providers here (AuthProvider, ToastProvider, QueryClientProvider, etc.)
 export function AppProviders({ children }: PropsWithChildren) {
@@ -21,11 +23,15 @@ export function AppProviders({ children }: PropsWithChildren) {
     }
   }, [location.pathname, isAuthenticated])
 
+  // Run exactly once on mount: bootstrap auth + register SW
   useEffect(() => {
     void registerServiceWorker()
     hydrate()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-    // Handle 401 from backend API
+  // Update the 401 handler whenever navigate reference changes (route transitions)
+  useEffect(() => {
     setOnUnauthorized(() => {
       if (handledUnauthorizedRef.current) return
       handledUnauthorizedRef.current = true
@@ -42,7 +48,11 @@ export function AppProviders({ children }: PropsWithChildren) {
         })
       }
     })
+    return () => setOnUnauthorized(() => {})
+  }, [navigate])
 
+  // Subscribe to Supabase auth events for token refresh and sign-out
+  useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -55,12 +65,8 @@ export function AppProviders({ children }: PropsWithChildren) {
         clearAuthState()
       }
     })
+    return () => subscription.unsubscribe()
+  }, [setAuthData, clearAuthState])
 
-    return () => {
-      subscription.unsubscribe()
-      setOnUnauthorized(() => {}) // Cleanup? Or leave empty fn
-    }
-  }, [hydrate, setAuthData, clearAuthState, navigate])
-
-  return <>{children}</>
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 }

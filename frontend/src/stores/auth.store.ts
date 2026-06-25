@@ -4,6 +4,8 @@ import { signInWithEmail, signUpWithEmail, signOut as supabaseSignOut } from '@/
 import { sessionService } from '@/services/sessionService'
 import { useSavedEventsStore } from './savedEvents.store'
 import { useProfileStore } from './profile.store'
+import { queryClient } from '@/lib/queryClient'
+import { PROFILE_QUERY_KEY } from '@/features/profile/hooks/useProfileQuery'
 
 const hydrateBookmarks = () => void useSavedEventsStore.getState().fetchBookmarks()
 
@@ -76,7 +78,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       persistUserId(user.id, remember)
       set({ user, token, isAuthenticated: true, isLoading: false })
       hydrateBookmarks()
-      if (response.rawProfile) useProfileStore.getState().seedFromBootstrap(response.rawProfile)
+      if (response.rawProfile) {
+        useProfileStore.getState().seedFromBootstrap(response.rawProfile)
+        queryClient.setQueryData(PROFILE_QUERY_KEY, response.rawProfile)
+      }
     } catch (error: any) {
       set({
         error: error?.message ?? 'Login failed',
@@ -105,7 +110,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       persistUserId(response.user.id, remember)
       set({ user: response.user, token: response.token, isAuthenticated: true, isLoading: false })
       hydrateBookmarks()
-      if (response.rawProfile) useProfileStore.getState().seedFromBootstrap(response.rawProfile)
+      if (response.rawProfile) {
+        useProfileStore.getState().seedFromBootstrap(response.rawProfile)
+        queryClient.setQueryData(PROFILE_QUERY_KEY, response.rawProfile)
+      }
     } catch (error: any) {
       set({
         error: error?.message ?? 'Signup failed',
@@ -188,7 +196,10 @@ export const useAuthStore = create<AuthState>((set) => ({
             isLoading: false,
           })
           hydrateBookmarks()
-          if (context.rawProfile) useProfileStore.getState().seedFromBootstrap(context.rawProfile)
+          if (context.rawProfile) {
+            useProfileStore.getState().seedFromBootstrap(context.rawProfile)
+            queryClient.setQueryData(PROFILE_QUERY_KEY, context.rawProfile)
+          }
         } catch (err: any) {
           set({
             error: err?.message ?? 'Unable to load login status',
