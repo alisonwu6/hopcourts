@@ -16,6 +16,16 @@ const IN_APP_UA_PATTERNS: Array<[string, RegExp]> = [
   ['Android WebView', /; wv\)/i],
 ]
 
+export function isIOS(userAgent?: string): boolean {
+  const ua = getUserAgent(userAgent)
+  return /iPhone|iPad|iPod/i.test(ua)
+}
+
+export function isMobile(userAgent?: string): boolean {
+  const ua = getUserAgent(userAgent)
+  return /iPhone|iPad|iPod|Android/i.test(ua)
+}
+
 function getUserAgent(userAgent?: string): string {
   return userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : '') || ''
 }
