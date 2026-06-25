@@ -20,7 +20,7 @@ export function EmptyStateCard({ icon, title, description, action }: Props) {
         <button
           type="button"
           onClick={action.onClick}
-          className="mt-5 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition"
+          className="mt-5 rounded-full bg-ocean px-6 py-3 text-sm font-bold text-white shadow-sm transition"
         >
           {action.label}
         </button>

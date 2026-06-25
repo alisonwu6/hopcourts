@@ -8,7 +8,7 @@ import { LoginPromptSheet } from './LoginPromptSheet'
 type NavItem = {
   label: string
   path: string
-  icon?: ComponentType<{ className?: string }>
+  icon?: ComponentType<{ className?: string; strokeWidth?: number }>
   matchPaths?: string[]
 }
 
@@ -61,12 +61,12 @@ export function BottomNav() {
         key={label}
         onClick={() => navigate(path)}
         className={clsx(
-          'flex flex-col items-center gap-1 rounded-md px-2 text-[10px] font-medium transition-colors',
-          isActive ? 'text-blue-600' : 'text-slate-500'
+          'flex flex-col items-center gap-1 rounded-md px-2 text-[10px] font-bold transition-colors',
+          isActive ? 'text-ocean' : 'text-slate-300'
         )}
         aria-current={isActive ? 'page' : undefined}
       >
-        {Icon && <Icon className={clsx('h-6 w-6', isActive ? 'text-blue-600' : 'text-slate-400')} />}
+        {Icon && <Icon className={clsx('h-6 w-6', isActive ? 'text-ocean' : 'text-slate-300')} strokeWidth={2} />}
         <span className="text-[11px] sm:text-xs">{label}</span>
       </button>
     )
@@ -91,10 +91,10 @@ export function BottomNav() {
               setShowLoginPrompt(true)
             }
           }}
-          className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-blue-600 animate-dribble active:scale-95"
+          className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-ocean animate-dribble active:scale-95"
           aria-label="Create event"
         >
-          <Plus className="h-6 w-6 text-white" strokeWidth={2.5} />
+          <Plus className="h-6 w-6 text-white" strokeWidth={2} />
         </button>
 
         {rightItems.map(renderNavItem)}
