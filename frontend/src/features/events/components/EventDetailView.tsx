@@ -203,6 +203,7 @@ export function EventDetailView({
   }
 
   const isHost = event.host.id === currentUserId
+  const isPast = new Date() > (event.endTime ? new Date(event.endTime) : new Date(event.startTime))
 
   return (
     <div className="min-h-[100dvh] pb-40">
@@ -216,7 +217,7 @@ export function EventDetailView({
         contentClassName="w-full"
         rightContent={
           <>
-            {isHost && (
+            {isHost && !isPast && (
               <>
                 <button
                   type="button"
