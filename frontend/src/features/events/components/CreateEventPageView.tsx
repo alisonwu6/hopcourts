@@ -439,7 +439,7 @@ export function CreateEventPageView({
                         step={1}
                         value={form.price}
                         onChange={handleInputChange}
-                        placeholder={costMode === 'total' ? '100' : '15'}
+                        placeholder=""
                         required={!form.isFree}
                         hasError={highlightField === 'price'}
                       />

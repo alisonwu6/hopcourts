@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays, Zap } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EmptyStateCard } from '@/components'
@@ -10,19 +10,35 @@ import { getSportColor, getSportLabel } from '@/constants/sportTokens'
 import { useSports } from '@/features/dictionaries/hooks'
 import type { PlayerEvent } from '@/types'
 
-function groupEventsByDate(events: any[]) {
+const TODAY_KEY = 'TODAY'
+
+function getDayBoundaries() {
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const tomorrowStart = new Date(todayStart)
+  tomorrowStart.setDate(tomorrowStart.getDate() + 1)
+  return { todayStart, tomorrowStart }
+}
+
+function groupEventsByDate(events: any[]): [string, any[]][] {
   const formatter = new Intl.DateTimeFormat('en-AU', { weekday: 'short', month: 'short', day: 'numeric' })
-  const today = new Date()
-  const todayKey = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`
+  const { todayStart, tomorrowStart } = getDayBoundaries()
   const map = new Map<string, any[]>()
+
   events.forEach((event) => {
     const date = new Date(event.startTime ?? event.starts_at)
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
-    const base = formatter.format(date)
-    const label = dateKey === todayKey ? `Today · ${base}` : base
+    const isToday = date >= todayStart && date < tomorrowStart
+    const label = isToday ? TODAY_KEY : formatter.format(date)
     map.set(label, [...(map.get(label) ?? []), event])
   })
-  return Array.from(map.entries())
+
+  const result: [string, any[]][] = []
+  if (map.has(TODAY_KEY)) {
+    result.push([TODAY_KEY, map.get(TODAY_KEY)!])
+    map.delete(TODAY_KEY)
+  }
+  result.push(...map.entries())
+  return result
 }
 
 function getEventDotStyle(event: any) {
@@ -41,7 +57,15 @@ function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; 
     <div className="space-y-8">
       {groups.map(([dateLabel, events]) => (
         <div key={dateLabel}>
-          <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
+          {dateLabel === TODAY_KEY ? (
+            <div className="mb-4 flex items-center gap-2 pl-1">
+              <span className="rounded-full bg-orange-500 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-widest text-white">
+                Today
+              </span>
+            </div>
+          ) : (
+            <h3 className="mb-4 pl-1 text-xs font-bold uppercase tracking-wide text-gray-500">{dateLabel}</h3>
+          )}
           <div className="relative ml-3 space-y-6 border-l border-slate-200 pb-2">
             {events.map((event) => (
               <div key={event.id} className="relative pl-6">
@@ -81,12 +105,34 @@ export function VenueDetailsView({
   onViewSessionDetails,
 }: VenueDetailsViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
+  const [activeFilter, setActiveFilter] = useState<'today' | 'upcoming'>('upcoming')
+  const hasInitialized = useRef(false)
   const { items: sportsCatalog } = useSports('en')
   const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
-  const todayCount = (venue as any).today_sessions_count ?? 0
-  const upcomingCount = venue.active_sessions_count ?? 0
   const pastCount = (venue as any).past_sessions_count ?? 0
-  const typedEvents = upcomingEvents as PlayerEvent[]
+
+  const { todayStart, tomorrowStart } = getDayBoundaries()
+  const todayEvents = upcomingEvents.filter((e) => {
+    const d = new Date(e.startTime ?? e.starts_at)
+    return d >= todayStart && d < tomorrowStart
+  })
+  const futureEvents = upcomingEvents.filter((e) => {
+    const d = new Date(e.startTime ?? e.starts_at)
+    return d >= tomorrowStart
+  })
+  const todayCount = todayEvents.length
+  const futureCount = futureEvents.length
+
+  useEffect(() => {
+    if (!hasInitialized.current && upcomingEvents.length > 0) {
+      hasInitialized.current = true
+      setActiveFilter(todayCount > 0 ? 'today' : 'upcoming')
+    }
+  }, [upcomingEvents.length, todayCount])
+
+  const filteredEvents = activeFilter === 'today' ? todayEvents : futureEvents
+  const typedEvents = filteredEvents as PlayerEvent[]
+  const listTitle = activeFilter === 'today' ? 'Games Today' : 'Upcoming'
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 pb-20 text-slate-900">
@@ -99,7 +145,7 @@ export function VenueDetailsView({
       />
 
       {/* Hero */}
-      <div className="border-b border-slate-100 bg-white px-5 pb-6 pt-2 shadow-sm">
+      <div className="border-b border-slate-100 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-4">
           {/* Logo */}
           <div className="relative h-16 w-16 flex-none">
@@ -162,14 +208,22 @@ export function VenueDetailsView({
 
         {/* Row 2: Today + Upcoming + Past stats */}
         <div className="mt-3 flex gap-3">
-          <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
+          <button
+            type="button"
+            onClick={() => { setActiveFilter('today'); setViewMode('list') }}
+            className={`flex flex-col rounded-2xl px-4 py-2.5 transition ${activeFilter === 'today' ? 'bg-orange-50 ring-1 ring-orange-300' : 'bg-slate-50'}`}
+          >
             <span className="text-lg font-black leading-none text-orange-500">{todayCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Today</span>
-          </div>
-          <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
-            <span className="text-lg font-black leading-none text-emerald-600">{upcomingCount}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter('upcoming')}
+            className={`flex flex-col rounded-2xl px-4 py-2.5 transition ${activeFilter === 'upcoming' ? 'bg-emerald-50 ring-1 ring-emerald-300' : 'bg-slate-50'}`}
+          >
+            <span className="text-lg font-black leading-none text-emerald-600">{futureCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Upcoming</span>
-          </div>
+          </button>
           <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
             <span className="text-lg font-black leading-none text-slate-400">{pastCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Past</span>
@@ -274,34 +328,36 @@ export function VenueDetailsView({
       {/* Upcoming Events */}
       <div className="px-4 py-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-black tracking-tight text-slate-900">Upcoming events</h2>
+          <h2 className="text-lg font-black tracking-tight text-slate-900">{listTitle}</h2>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-              {upcomingEvents.length} events
+              {filteredEvents.length} events
             </span>
-            <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-              >
-                <List className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('calendar')}
-                className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-              >
-                <CalendarDays className="h-4 w-4" />
-              </button>
-            </div>
+            {activeFilter === 'upcoming' && (
+              <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                >
+                  <List className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('calendar')}
+                  className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                >
+                  <CalendarDays className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {typedEvents.length > 0 ? (
           viewMode === 'list' ? (
             <TimelineGroups
-              groups={groupEventsByDate(upcomingEvents)}
+              groups={groupEventsByDate(filteredEvents)}
               onViewDetails={onViewSessionDetails}
             />
           ) : (
