@@ -169,7 +169,6 @@ export function EventDetailView({
       return 'Paid event (per person)'
     }
     if (total != null) return `Total cost $${formatMoney(total)}`
-    if (perPerson) return `Total cost not provided (about $${formatMoney(perPerson)} per person)`
     return 'Paid event'
   })()
 

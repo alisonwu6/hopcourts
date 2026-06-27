@@ -9,7 +9,7 @@ import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { MapPicker } from '@/components/map/MapPicker'
 import { PageLoading } from '@/components/PageLoading'
-import { format } from 'date-fns'
+import { format, addHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { useCreateEventForm } from '@/features/events/hooks/useCreateEventForm'
 
@@ -166,6 +166,7 @@ export function CreateEventPageView({
                   value={form.title}
                   onChange={handleInputChange}
                   required
+                  characterLimit={70}
                   hasError={highlightField === 'title'}
                 />
                 {fieldHint?.field === 'title' && fieldHint.message && (
@@ -211,6 +212,7 @@ export function CreateEventPageView({
                     name="capacity"
                     type="number"
                     min={1}
+                    max={30}
                     value={form.capacity}
                     onChange={handleInputChange}
                     required
@@ -236,6 +238,7 @@ export function CreateEventPageView({
                     name="minPeople"
                     type="number"
                     min={1}
+                    max={Number(form.capacity) || 30}
                     value={form.minPeople}
                     onChange={handleInputChange}
                     required
@@ -324,6 +327,7 @@ export function CreateEventPageView({
                     onOpen={() => ensureDateTimeDefault('startTime')}
                     required
                     hasError={highlightField === 'startTime'}
+                    min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
                   />
                   {fieldHint?.field === 'startTime' && fieldHint.message && (
                     <p
@@ -345,6 +349,16 @@ export function CreateEventPageView({
                     onOpen={() => ensureDateTimeDefault('endTime')}
                     required
                     hasError={highlightField === 'endTime'}
+                    min={form.startTime || format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                    max={(() => {
+                      if (!form.startTime) return undefined
+                      const start = new Date(form.startTime)
+                      const eightHoursLater = addHours(start, 8)
+                      const endOfDay = new Date(start)
+                      endOfDay.setHours(23, 59, 0, 0)
+                      const cap = eightHoursLater < endOfDay ? eightHoursLater : endOfDay
+                      return format(cap, "yyyy-MM-dd'T'HH:mm")
+                    })()}
                   />
                   {fieldHint?.field === 'endTime' && fieldHint.message && (
                     <p
@@ -420,17 +434,13 @@ export function CreateEventPageView({
                         name="price"
                         type="number"
                         min={0}
+                        max={1000}
                         step={1}
                         value={form.price}
                         onChange={handleInputChange}
-                        placeholder={costMode === 'total' ? 'e.g. 2000' : 'e.g. 200'}
+                        placeholder=""
                         required={!form.isFree}
                         hasError={highlightField === 'price'}
-                        supportingText={
-                          form.price && Number(form.capacity) > 0 && costMode === 'total'
-                            ? `Est. per person: $${Math.round(Number(form.price) / Number(form.capacity))}`
-                            : undefined
-                        }
                       />
                       {fieldHint?.field === 'price' && fieldHint.message && (
                         <p
@@ -857,6 +867,8 @@ function DateTimeField({
   onOpen,
   required,
   hasError,
+  min,
+  max,
 }: {
   label: string
   value: string
@@ -865,6 +877,8 @@ function DateTimeField({
   onOpen?: () => void
   required?: boolean
   hasError?: boolean
+  min?: string
+  max?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -911,6 +925,8 @@ function DateTimeField({
         value={value}
         onChange={onChange}
         required={required}
+        min={min}
+        max={max}
         className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
         lang="en-US"
       />

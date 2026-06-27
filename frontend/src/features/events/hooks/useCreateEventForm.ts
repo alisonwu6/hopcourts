@@ -304,6 +304,7 @@ export function useCreateEventForm() {
   const canSubmit = useMemo(() => {
     return Boolean(
       form.title.trim() &&
+      form.title.length <= 70 &&
       form.sportKey.trim() &&
       form.startTime &&
       form.endTime &&
@@ -417,12 +418,13 @@ export function useCreateEventForm() {
       flashFieldError('title', 'Please enter an event title')
       return
     }
+    if (form.title.length > 70) return
     if (!form.sportKey) {
       flashFieldError('sport', 'Please select a sport')
       return
     }
-    if (!form.capacity || Number(form.capacity) <= 0) {
-      flashFieldError('capacity', 'Max participants must be greater than 0')
+    if (!form.capacity || Number(form.capacity) <= 0 || Number(form.capacity) > 30) {
+      flashFieldError('capacity', 'Max participants must be between 1 and 30')
       return
     }
     if (!form.minPeople || Number(form.minPeople) < 1) {
@@ -447,8 +449,8 @@ export function useCreateEventForm() {
     }
 
     if (!form.isFree) {
-      if (!form.price || Number(form.price) <= 0) {
-        flashFieldError('price', 'Please enter a valid fee')
+      if (form.price === '' || Number(form.price) < 0 || Number(form.price) > 1000) {
+        flashFieldError('price', 'Price must be between 0 and 1000')
         return
       }
       if (!form.priceNote.trim()) {
@@ -509,13 +511,21 @@ export function useCreateEventForm() {
       flashFieldError('endTime', 'End time must be after start time')
       return
     }
+    if (startDate.toDateString() !== endDate.toDateString()) {
+      flashFieldError('endTime', 'Event must start and end on the same day')
+      return
+    }
     const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000)
     if (Number.isNaN(durationMinutes) || durationMinutes <= 0) {
       setError('Unable to calculate event duration, please adjust times.')
       return
     }
-    if (Number.isNaN(capacity) || capacity <= 0) {
-      setError('Max participants must be greater than 0。')
+    if (durationMinutes > 480) {
+      flashFieldError('endTime', 'Event duration cannot exceed 8 hours')
+      return
+    }
+    if (Number.isNaN(capacity) || capacity <= 0 || capacity > 30) {
+      setError('Max participants must be between 1 and 30.')
       return
     }
 
