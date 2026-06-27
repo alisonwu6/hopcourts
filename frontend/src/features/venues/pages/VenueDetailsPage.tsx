@@ -212,7 +212,7 @@ export function VenueDetailsPage() {
         onShare={handleShare}
         onClaim={openClaimSheet}
         isClaiming={isClaiming}
-        onViewSessionDetails={(sessionId) => navigate(`/event/${sessionId}`)}
+        onViewSessionDetails={(sessionId) => navigate(`/event/${sessionId}`, { state: { from: 'venue', venueId } })}
       />
 
       <BottomSheet

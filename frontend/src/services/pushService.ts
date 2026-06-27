@@ -1,4 +1,4 @@
-import { httpGet, httpPost, httpDelete } from '@/api/http'
+import { httpGet, httpPost } from '@/api/http'
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
@@ -7,30 +7,12 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)))
 }
 
-export async function registerServiceWorker(onUpdate?: () => void) {
+export async function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return null
-  const registration = await navigator.serviceWorker.register('/sw.js')
-
-  const trackInstalling = (worker: ServiceWorker) => {
-    worker.addEventListener('statechange', () => {
-      if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-        onUpdate?.()
-      }
-    })
-  }
-
-  if (registration.installing) {
-    trackInstalling(registration.installing)
-  }
-
-  registration.addEventListener('updatefound', () => {
-    if (registration.installing) trackInstalling(registration.installing)
-  })
-
-  return registration
+  return navigator.serviceWorker.register('/sw.js')
 }
 
-export async function getVapidPublicKey(): Promise<string> {
+async function getVapidPublicKey(): Promise<string> {
   const res = await httpGet<{ publicKey: string }>('/push/vapid-public-key')
   return (res as any).publicKey
 }
@@ -50,14 +32,6 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
 
 export async function savePushSubscription(subscription: PushSubscription) {
   await httpPost('/push/subscribe', { body: subscription.toJSON() })
-}
-
-export async function unsubscribeFromPush() {
-  const reg = await navigator.serviceWorker.ready
-  const sub = await reg.pushManager.getSubscription()
-  if (!sub) return
-  await httpDelete('/push/subscribe', { body: { endpoint: sub.endpoint } })
-  await sub.unsubscribe()
 }
 
 export function isPushSupported(): boolean {

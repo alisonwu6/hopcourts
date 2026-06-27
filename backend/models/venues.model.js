@@ -202,7 +202,7 @@ async function getVenueById(id, userId = null) {
          AND s.status = 'published') as active_sessions_count,
       (SELECT COUNT(*)::int FROM public.sessions s
        WHERE s.venue_id = v.id
-         AND s.starts_at::date = CURRENT_DATE
+         AND (s.starts_at AT TIME ZONE 'Australia/Brisbane')::date = (NOW() AT TIME ZONE 'Australia/Brisbane')::date
          AND s.status = 'published') as today_sessions_count,
       (SELECT COUNT(*)::int FROM public.sessions s
        WHERE s.venue_id = v.id
@@ -267,7 +267,7 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm, venueTyp
          AND s.status = 'published') as active_sessions_count,
       (SELECT COUNT(*)::int FROM public.sessions s
        WHERE s.venue_id = v.id
-         AND s.starts_at::date = CURRENT_DATE
+         AND (s.starts_at AT TIME ZONE 'Australia/Brisbane')::date = (NOW() AT TIME ZONE 'Australia/Brisbane')::date
          AND s.status = 'published') as today_sessions_count,
       (SELECT COUNT(*)::int FROM public.sessions s
        WHERE s.venue_id = v.id

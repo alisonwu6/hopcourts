@@ -1,66 +1,63 @@
-# DATABASE_WORKFLOW.md
+# Database Workflow
 
-## 目標
-- 本機先驗證 schema 與 API 契約，再推到 Supabase remote。
-- `backend/supabase/migrations/` 是唯一 schema source of truth。
+## Principles
 
-## 為什麼這樣做
-- 快：日常用本機 Postgres 驗證，不必每次啟整套 Docker 服務。
-- 穩：remote 只走 `supabase db push`，避免手動 SQL 漏步。
-- 可檢驗：每次都跑 schema contract 檢查，防止 DB 與 OpenAPI 漂移。
+- `backend/supabase/migrations/` is the **only** schema source of truth
+- Never modify the remote DB directly — always go through `npm run db:remote:push`
+- Every schema change must pass `npm run db:verify` before being pushed to remote
 
-## 環境變數
-- `LOCAL_DATABASE_URL`：本機 Postgres 連線字串（預設 `postgresql://postgres:postgres@127.0.0.1:54322/postgres`）。
-- `SUPABASE_DB_URL`：remote Supabase Postgres 連線字串（必填，給上版用）。
+## Migration naming
 
-## 日常開發（本機）
-1. 套 migration
+```
+YYYYMMDDHHMMSS_description_of_change.sql
+```
+
+Example: `20260626120000_add_trial_ends_at_to_venues.sql`
+
+## Daily local development
+
 ```bash
 cd backend
+
+# Apply all pending migrations to local DB
 npm run db:local:migrate
-```
-2. 套 seed（如需要）
-```bash
-cd backend
+
+# Apply seed data (if needed)
 npm run db:local:push-seed
-```
-3. 一次跑完整本機資料庫流程
-```bash
-cd backend
+
+# Run both in one step
 npm run db:local:rebuild
-```
-4. 驗證 schema 與 OpenAPI
-```bash
-cd backend
+
+# Verify schema matches OpenAPI contract
 npm run db:verify
 ```
 
-## 發版前（Remote）
-1. 先確認本機已通過
+## Pushing schema changes to remote (pre-release)
+
 ```bash
 cd backend
+
+# 1. Verify locally first
 npm run db:verify
-```
-2. 推到 remote
-```bash
-cd backend
-SUPABASE_DB_URL='postgresql://...'
-npm run db:remote:push
+
+# 2. Push migrations + seed to remote
+SUPABASE_DB_URL='postgresql://...' npm run db:remote:push
 ```
 
-## 現有 scripts 對照
-- `npm run db:local:migrate`
-  - 用 local DB 套用 `supabase/migrations`。
-- `npm run db:local:push-seed`
-  - 用 local DB 套 seed 檔（`supabase/seed/*.sql`）。
-- `npm run db:local:rebuild`
-  - 連跑 migration + seed。
-- `npm run db:verify`
-  - 先檢查 DB schema vs OpenAPI，再 lint OpenAPI。
-- `npm run db:remote:push`
-  - 用 `SUPABASE_DB_URL` 推 migration + seed 到 remote。
+## Environment variables
 
-## 原則
-- 不直接改 remote DB 結構。
-- 結構變更一律改 migration 檔案，再跑流程驗證。
-- `verify:schema` fail 時先修契約差異，再推 remote。
+| Variable | Purpose |
+|---|---|
+| `LOCAL_DATABASE_URL` | Local Postgres connection string (default: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`) |
+| `SUPABASE_DB_URL` | Remote Supabase Postgres connection string — required for remote push |
+
+## Script reference
+
+| Script | What it does |
+|---|---|
+| `npm run db:local:migrate` | Apply `supabase/migrations/` to local DB |
+| `npm run db:local:push-seed` | Apply seed files (`supabase/seed/*.sql`) to local DB |
+| `npm run db:local:rebuild` | Migration + seed in one step |
+| `npm run db:verify` | Check DB schema vs OpenAPI contract, then lint OpenAPI |
+| `npm run db:remote:push` | Push migrations + seed to remote via `SUPABASE_DB_URL` |
+| `npm run db:diff` | Show diff between current schema and migrations |

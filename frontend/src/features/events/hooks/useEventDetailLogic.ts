@@ -78,6 +78,11 @@ export function useEventDetailLogic() {
       return
     }
 
+    if (location.state?.from === 'venue' && location.state?.venueId) {
+      navigate(`/venues/${location.state.venueId}`)
+      return
+    }
+
     const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
 
     if (!Number.isFinite(historyIdx) || historyIdx <= 0) {

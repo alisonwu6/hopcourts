@@ -18,7 +18,7 @@ export function HomePage() {
   }
 
   return (
-    <div className="relative min-h-[100dvh] bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
+    <div className="relative min-h-[100dvh] bg-gradient-to-b from-emerald-50 via-white to-white">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4">
         <div className="mb-4 flex w-full justify-center">
@@ -54,7 +54,7 @@ export function HomePage() {
 
           <section className="mt-6 flex justify-center gap-3">
             <button
-              className="flex w-36 items-center justify-center rounded-full bg-ocean px-6 py-4 text-base font-bold text-white"
+              className="bg-ocean flex w-36 items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white"
               type="button"
               onClick={() => navigate('/events')}
             >
@@ -133,6 +133,8 @@ export function HomePage() {
             </blockquote>
             <p className="mt-3 text-xs font-semibold text-white">HopCourts Team</p>
           </section>
+
+          <div className="mb-20" />
         </main>
       </div>
 
@@ -140,6 +142,14 @@ export function HomePage() {
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
       />
+
+      <div className="fixed bottom-20 left-0 right-0 z-[-10] flex flex-col items-center text-[9px]">
+        <p className="text-slate-400">
+          HopCourts v{__APP_VERSION__}
+          {import.meta.env.MODE !== 'production' && <span className="ml-1 opacity-75">({import.meta.env.MODE})</span>}
+        </p>
+        <p className="text-slate-300">Built for real-world connections</p>
+      </div>
     </div>
   )
 }

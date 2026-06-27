@@ -30,16 +30,21 @@ export function FloatingField(props: FloatingFieldProps) {
         ? value.length > 0
         : Boolean(value && String(value).trim().length > 0)
 
+  const overLimit = typeof value === 'string' && characterLimit ? value.length > characterLimit : false
+  const showError = hasError || overLimit
+  const infoText =
+    typeof value === 'string' && characterLimit
+      ? overLimit
+        ? `${value.length - characterLimit} characters over the limit`
+        : `${characterLimit - value.length} characters remaining`
+      : supportingText
+
   const baseClasses = clsx(
     'peer block w-full appearance-none min-h-[3.5rem] rounded-[14px] border-2 bg-white px-4 pt-7 pb-3 text-base text-slate-900 transition focus:shadow-[0_0_0_1px_rgba(0,0,0,0.2)] focus:outline-none disabled:opacity-60',
-    hasError ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-slate-900'
+    showError ? 'border-red-500 focus:border-red-500' : 'border-slate-300 focus:border-slate-900'
   )
   const labelClasses =
     'pointer-events-none absolute left-4 top-2 text-sm font-semibold text-slate-600 bg-white px-1'
-  const infoText =
-    typeof value === 'string' && characterLimit
-      ? `${Math.max(characterLimit - value.length, 0)} characters available`
-      : supportingText
 
   if (as === 'textarea') {
     const { as: _as, className, rows = 4, ...rest } = domProps as Extract<FloatingFieldProps, { as: 'textarea' }>
@@ -58,13 +63,8 @@ export function FloatingField(props: FloatingFieldProps) {
             {label}
           </label>
         </div>
-        {infoText && (
-          <p
-            className={clsx(
-              'text-xs transition-colors duration-500',
-              hasError ? 'text-red-500' : 'text-slate-500'
-            )}
-          >
+        {characterLimit != null && typeof value === 'string' && value.length > 0 && (
+          <p className={clsx('text-right text-xs transition-colors duration-500', showError ? 'text-red-500' : 'text-slate-500')}>
             {infoText}
           </p>
         )}
@@ -88,16 +88,11 @@ export function FloatingField(props: FloatingFieldProps) {
           {label}
         </label>
       </div>
-      {infoText && (
-          <p
-            className={clsx(
-              'text-xs transition-colors duration-500',
-              hasError ? 'text-red-500' : 'text-slate-500'
-            )}
-          >
-            {infoText}
-          </p>
-        )}
+      {characterLimit != null && typeof value === 'string' && value.length > 0 && (
+        <p className={clsx('text-right text-xs transition-colors duration-500', showError ? 'text-red-500' : 'text-slate-500')}>
+          {infoText}
+        </p>
+      )}
     </div>
   )
 }

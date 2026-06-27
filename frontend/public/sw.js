@@ -1,9 +1,3 @@
-self.addEventListener('message', function (event) {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting()
-  }
-})
-
 self.addEventListener('push', function (event) {
   if (!event.data) return
   const payload = event.data.json()

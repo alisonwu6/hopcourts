@@ -165,11 +165,16 @@ export function EventDetailView({
     const total = event.priceTotal
     const perPerson = event.pricePerPerson
     if (event.priceMode === 'person') {
-      if (perPerson) return `Per person $${formatMoney(perPerson)}`
-      return 'Paid event (per person)'
+      if (perPerson) return `$${formatMoney(perPerson)} / player`
+      return 'Paid event'
     }
-    if (total != null) return `Total cost $${formatMoney(total)}`
-    if (perPerson) return `Total cost not provided (about $${formatMoney(perPerson)} per person)`
+    if (total != null) {
+      const perFull = Math.ceil(total / maxPeople)
+      const perHigh = Math.ceil(total / minPeople)
+      return perHigh !== perFull
+        ? `Est. $${perFull} – $${perHigh} / player`
+        : `Est. $${perFull} / player`
+    }
     return 'Paid event'
   })()
 
@@ -203,6 +208,7 @@ export function EventDetailView({
   }
 
   const isHost = event.host.id === currentUserId
+  const isPast = new Date() > (event.endTime ? new Date(event.endTime) : new Date(event.startTime))
 
   return (
     <div className="min-h-[100dvh] pb-40">
@@ -216,7 +222,7 @@ export function EventDetailView({
         contentClassName="w-full"
         rightContent={
           <>
-            {isHost && (
+            {isHost && !isPast && (
               <>
                 <button
                   type="button"
