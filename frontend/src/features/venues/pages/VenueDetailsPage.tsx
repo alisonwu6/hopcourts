@@ -160,7 +160,12 @@ export function VenueDetailsPage() {
   }
 
   const handleBack = () => {
-    navigate('/venues')
+    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
+    if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
+      navigate('/venues', { replace: true })
+      return
+    }
+    navigate(-1)
   }
 
   if (isLoading) return <PageLoading />

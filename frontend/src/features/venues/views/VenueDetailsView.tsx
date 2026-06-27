@@ -5,7 +5,7 @@ import { EmptyStateCard } from '@/components'
 import { EventCard } from '@/features/events/components/EventCard'
 import { CalendarView } from '@/features/profile/components/ProfileEventsPanel'
 import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton'
-import { ApiVenue } from '../services/venuesService'
+import { ApiVenue, computeVenueCounts } from '../services/venuesService'
 import { getSportColor, getSportLabel } from '@/constants/sportTokens'
 import { useSports } from '@/features/dictionaries/hooks'
 import type { PlayerEvent } from '@/types'
@@ -105,11 +105,11 @@ export function VenueDetailsView({
   onViewSessionDetails,
 }: VenueDetailsViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
-  const [activeFilter, setActiveFilter] = useState<'today' | 'upcoming'>('upcoming')
+  const [activeFilter, setActiveFilter] = useState<'today' | 'upcoming'>('today')
   const hasInitialized = useRef(false)
   const { items: sportsCatalog } = useSports('en')
   const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
-  const pastCount = (venue as any).past_sessions_count ?? 0
+  const { today: todayCount, upcoming: futureCount, past: pastCount } = computeVenueCounts(venue)
 
   const { todayStart, tomorrowStart } = getDayBoundaries()
   const todayEvents = upcomingEvents.filter((e) => {
@@ -120,13 +120,11 @@ export function VenueDetailsView({
     const d = new Date(e.startTime ?? e.starts_at)
     return d >= tomorrowStart
   })
-  const todayCount = todayEvents.length
-  const futureCount = futureEvents.length
 
   useEffect(() => {
     if (!hasInitialized.current && upcomingEvents.length > 0) {
       hasInitialized.current = true
-      setActiveFilter(todayCount > 0 ? 'today' : 'upcoming')
+      if (todayCount === 0) setActiveFilter('upcoming')
     }
   }, [upcomingEvents.length, todayCount])
 
