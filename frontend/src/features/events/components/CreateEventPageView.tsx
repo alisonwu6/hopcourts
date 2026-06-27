@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import type { ChangeEvent, ReactNode } from 'react'
-import { useMemo, useRef } from 'react'
+import { useMemo, useState } from 'react'
 import { MapPin, ChevronRight, ImagePlus, X, Ban, Trash2 } from 'lucide-react'
 import { Button, AlertDialog, FieldSection, FloatingField } from '@/components'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -12,6 +12,7 @@ import { PageLoading } from '@/components/PageLoading'
 import { format, addHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { useCreateEventForm } from '@/features/events/hooks/useCreateEventForm'
+import { DateTimeWheelSheet } from '@/components/ui/DateTimeWheelSheet'
 
 const SKILL_LEVEL_LABELS = {
   any: 'All levels',
@@ -60,7 +61,6 @@ export function CreateEventPageView({
   minPeopleImmediateError,
   clearAddress,
   handleInputChange,
-  ensureDateTimeDefault,
   handleSkillSelect,
   handleGenderSelect,
   openLocationPicker,
@@ -321,13 +321,17 @@ export function CreateEventPageView({
                 <div ref={setFieldRef('startTime')}>
                   <DateTimeField
                     label="Start Time"
-                    name="startTime"
                     value={form.startTime}
-                    onChange={handleInputChange}
-                    onOpen={() => ensureDateTimeDefault('startTime')}
-                    required
+                    onValueChange={(v) => {
+                      const newEnd = addHours(new Date(v), 2)
+                      setForm((prev) => ({
+                        ...prev,
+                        startTime: v,
+                        endTime: format(newEnd, "yyyy-MM-dd'T'HH:mm"),
+                      }))
+                    }}
                     hasError={highlightField === 'startTime'}
-                    min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                    minValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
                   />
                   {fieldHint?.field === 'startTime' && fieldHint.message && (
                     <p
@@ -343,21 +347,18 @@ export function CreateEventPageView({
                 <div ref={setFieldRef('endTime')}>
                   <DateTimeField
                     label="End Time"
-                    name="endTime"
                     value={form.endTime}
-                    onChange={handleInputChange}
-                    onOpen={() => ensureDateTimeDefault('endTime')}
-                    required
+                    onValueChange={(v) => setForm((prev) => ({ ...prev, endTime: v }))}
                     hasError={highlightField === 'endTime'}
-                    min={form.startTime || format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                    max={(() => {
+                    hideDate
+                    minValue={form.startTime || format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                    maxDate={(() => {
                       if (!form.startTime) return undefined
                       const start = new Date(form.startTime)
                       const eightHoursLater = addHours(start, 8)
                       const endOfDay = new Date(start)
                       endOfDay.setHours(23, 59, 0, 0)
-                      const cap = eightHoursLater < endOfDay ? eightHoursLater : endOfDay
-                      return format(cap, "yyyy-MM-dd'T'HH:mm")
+                      return eightHoursLater < endOfDay ? eightHoursLater : endOfDay
                     })()}
                   />
                   {fieldHint?.field === 'endTime' && fieldHint.message && (
@@ -396,12 +397,12 @@ export function CreateEventPageView({
                 </div>
 
                 {!form.isFree && (
-                  <div className="grid gap-4 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
+                  <div className="grid gap-2 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
                     <div className="flex items-center gap-2 sm:col-span-2">
                       <div className="flex rounded-lg bg-slate-100 p-1">
                         {[
-                          { key: 'total', label: 'Total Cost' },
-                          { key: 'person', label: 'Per Person' },
+                          { key: 'total', label: 'Split Total' },
+                          { key: 'person', label: 'Fixed Fee' },
                         ].map((mode) => (
                           <button
                             key={mode.key}
@@ -421,16 +422,16 @@ export function CreateEventPageView({
                     </div>
 
                     <div>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-400 line-clamp-none px-2">
                         {costMode === 'total'
-                          ? 'Per-person cost is estimated from total capacity.'
-                          : 'Set the per-person fee directly.'}
+                          ? "We'll automatically calculate the cost per person based on max capacity."
+                          : 'Set a flat rate for each player joining this game.'}
                       </span>
                     </div>
 
                     <div ref={setFieldRef('price')}>
                       <FloatingField
-                        label={costMode === 'total' ? 'Total Cost (AUD)' : 'Per Person (AUD)'}
+                        label={costMode === 'total' ? 'Total Cost (AUD)' : 'Fee Per Person (AUD)'}
                         name="price"
                         type="number"
                         min={0}
@@ -438,7 +439,7 @@ export function CreateEventPageView({
                         step={1}
                         value={form.price}
                         onChange={handleInputChange}
-                        placeholder=""
+                        placeholder={costMode === 'total' ? '100' : '15'}
                         required={!form.isFree}
                         hasError={highlightField === 'price'}
                       />
@@ -862,74 +863,57 @@ function CoverUploader({
 function DateTimeField({
   label,
   value,
-  name,
-  onChange,
-  onOpen,
-  required,
+  onValueChange,
   hasError,
-  min,
-  max,
+  minValue,
+  maxDate,
+  hideDate,
 }: {
   label: string
   value: string
-  name: string
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void
-  onOpen?: () => void
-  required?: boolean
+  onValueChange: (value: string) => void
   hasError?: boolean
-  min?: string
-  max?: string
+  minValue?: string
+  maxDate?: Date
+  hideDate?: boolean
 }) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   const displayValue = useMemo(() => {
     if (!value) return ''
     try {
-      const date = new Date(value)
-      return format(date, 'yyyy/MM/dd HH:mm', { locale: enUS })
+      return format(new Date(value), 'EEE d MMM, h:mm a', { locale: enUS })
     } catch {
       return ''
     }
   }, [value])
 
-  const handleClick = () => {
-    onOpen?.()
-    const input = inputRef.current
-    if (!input) return
-
-    try {
-      input.showPicker()
-    } catch {
-      input.focus()
-    }
-  }
-
   return (
-    <div
-      onClick={handleClick}
-      className={clsx(
-        'relative w-full rounded-[14px] border-2 bg-white px-4 pb-3 pt-7 transition focus-within:shadow-[0_0_0_1px_rgba(0,0,0,0.2)]',
-        hasError ? 'border-red-500 focus-within:border-red-500' : 'border-slate-300 focus-within:border-slate-900'
-      )}
-    >
-      <label className="pointer-events-none absolute left-4 top-2 bg-white px-1 text-sm font-semibold text-slate-600">
-        {label}
-      </label>
-      <div className={clsx('min-h-[1.5rem] w-full text-base', !displayValue && 'text-slate-400')}>
-        {displayValue || 'Select a time'}
+    <>
+      <div
+        onClick={() => setSheetOpen(true)}
+        className={clsx(
+          'relative w-full cursor-pointer rounded-[14px] border-2 bg-white px-4 pb-3 pt-7 transition',
+          hasError ? 'border-red-500' : 'border-slate-300'
+        )}
+      >
+        <label className="pointer-events-none absolute left-4 top-2 bg-white px-1 text-sm font-semibold text-slate-600">
+          {label}
+        </label>
+        <div className={clsx('min-h-[1.5rem] w-full text-base', !displayValue && 'text-slate-400')}>
+          {displayValue || 'Select a time'}
+        </div>
       </div>
-      <input
-        ref={inputRef}
-        type="datetime-local"
-        name={name}
+      <DateTimeWheelSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title={label}
         value={value}
-        onChange={onChange}
-        required={required}
-        min={min}
-        max={max}
-        className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
-        lang="en-US"
+        minValue={minValue}
+        maxDate={maxDate}
+        hideDate={hideDate}
+        onChange={onValueChange}
       />
-    </div>
+    </>
   )
 }

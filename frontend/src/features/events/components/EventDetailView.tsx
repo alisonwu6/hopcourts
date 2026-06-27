@@ -165,10 +165,16 @@ export function EventDetailView({
     const total = event.priceTotal
     const perPerson = event.pricePerPerson
     if (event.priceMode === 'person') {
-      if (perPerson) return `Per person $${formatMoney(perPerson)}`
-      return 'Paid event (per person)'
+      if (perPerson) return `$${formatMoney(perPerson)} / player`
+      return 'Paid event'
     }
-    if (total != null) return `Total cost $${formatMoney(total)}`
+    if (total != null) {
+      const perFull = Math.ceil(total / maxPeople)
+      const perHigh = Math.ceil(total / minPeople)
+      return perHigh !== perFull
+        ? `Est. $${perFull} – $${perHigh} / player`
+        : `Est. $${perFull} / player`
+    }
     return 'Paid event'
   })()
 
