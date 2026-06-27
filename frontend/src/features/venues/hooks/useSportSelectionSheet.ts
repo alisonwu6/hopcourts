@@ -53,10 +53,13 @@ export function useSportSelectionSheet({
     })
   }
 
+  const clearPending = () => setPendingKeys([])
+
   return {
     categories,
     groupedSports,
     pendingKeys,
     toggleSport,
+    clearPending,
   }
 }

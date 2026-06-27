@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { PageLoading } from '@/components/PageLoading'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { venuesService, ApiVenue } from '@/features/venues/services/venuesService'
 import { useVenuesQuery } from '@/features/venues/hooks/useVenuesQuery'
 import { VenueListView } from '../views/VenueListView'
 import { VenueMapFilterType } from '../components/VenueMapFilters'
+import { SportSelectionSheet } from '../components/SportSelectionSheet'
+import { useSports } from '@/features/dictionaries/hooks'
 
 const PAGE_SIZE = 50
 
@@ -23,6 +24,10 @@ export function VenueListPage() {
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<VenueMapFilterType>('all')
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [selectedSports, setSelectedSports] = useState<string[]>([])
+  const [showSportSheet, setShowSportSheet] = useState(false)
+
+  const { items: sportsCatalog } = useSports()
 
   const isMapView = searchParams.get('view') === 'map'
 
@@ -37,9 +42,10 @@ export function VenueListPage() {
     )
   }
 
-  const venueTypeFilter = (activeFilter === 'official' || activeFilter === 'public' || activeFilter === 'private')
-    ? activeFilter
-    : undefined
+  const venueTypeFilter =
+    activeFilter === 'official' || activeFilter === 'public' || activeFilter === 'private'
+      ? activeFilter
+      : undefined
 
   const venuesQuery = useVenuesQuery({ limit: PAGE_SIZE, offset: 0, type: venueTypeFilter })
   const baseVenues = venuesQuery.data?.data?.data ?? []
@@ -82,9 +88,12 @@ export function VenueListPage() {
         (v) => v.name_display.toLowerCase().includes(q) || v.address_display.toLowerCase().includes(q)
       )
     }
-    if (activeFilter === 'has_events') return result.filter((v) => v.active_sessions_count > 0)
+    if (activeFilter === 'has_events') result = result.filter((v) => v.active_sessions_count > 0)
+    if (selectedSports.length > 0) {
+      result = result.filter((v) => v.sport_keys.some((k) => selectedSports.includes(k)))
+    }
     return result
-  }, [venues, searchQuery, activeFilter])
+  }, [venues, searchQuery, activeFilter, selectedSports])
 
   const handleSubmitVenueClick = () => {
     if (isAuthLoading) return
@@ -107,14 +116,25 @@ export function VenueListPage() {
         onToggleView={handleToggleView}
         onVenueClick={(id) => navigate(`/venues/${id}`)}
         onSubmitVenueClick={handleSubmitVenueClick}
-        mapVenues={filteredVenues}
         selectedVenueId={selectedVenueId}
         onSelectVenue={setSelectedVenueId}
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
+        selectedSportCount={selectedSports.length}
+        onOpenSportSheet={() => setShowSportSheet(true)}
         hasMore={hasMore && !searchQuery}
         loadingMore={loadingMore}
         onLoadMore={loadMoreVenues}
+      />
+      <SportSelectionSheet
+        open={showSportSheet}
+        sports={sportsCatalog}
+        selectedKeys={selectedSports}
+        onClose={() => setShowSportSheet(false)}
+        onApply={(keys) => {
+          setSelectedSports(keys)
+          setShowSportSheet(false)
+        }}
       />
       <LoginPromptSheet
         open={showLoginPrompt}

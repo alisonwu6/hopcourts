@@ -17,7 +17,7 @@ type SportSelectionSheetProps = {
 }
 
 export function SportSelectionSheet({ open, sports, selectedKeys, onClose, onApply }: SportSelectionSheetProps) {
-  const { categories, groupedSports, pendingKeys, toggleSport } = useSportSelectionSheet({ open, sports, selectedKeys })
+  const { categories, groupedSports, pendingKeys, toggleSport, clearPending } = useSportSelectionSheet({ open, sports, selectedKeys })
   const contentRef = useRef<HTMLDivElement | null>(null)
 
   const resetScroll = () => {
@@ -63,6 +63,11 @@ export function SportSelectionSheet({ open, sports, selectedKeys, onClose, onApp
         primaryButton={{
           label: 'Apply',
           onClick: () => onApply(pendingKeys),
+        }}
+        secondaryButton={{
+          label: 'Clear',
+          onClick: clearPending,
+          variant: 'ghost',
         }}
       >
         {categories.map((category) => {

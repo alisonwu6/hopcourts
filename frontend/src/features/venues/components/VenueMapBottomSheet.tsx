@@ -20,7 +20,7 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
   const venueType = venue.venue_type ?? 'public'
   const badge = VENUE_TYPE_BADGE[venueType] ?? VENUE_TYPE_BADGE.public
   const today = venue.today_sessions_count ?? 0
-  const upcoming = venue.active_sessions_count ?? 0
+  const upcoming = Math.max(0, (venue.active_sessions_count ?? 0) - today)
   const past = venue.past_sessions_count ?? 0
   const sports = (venue.sport_keys ?? []).slice(0, 2)
   const eventCount = today > 0 ? today : upcoming
@@ -43,19 +43,25 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
           </div>
           {venueType === 'official' && (
             <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
-              <ShieldCheck size={10} className="text-white" />
+              <ShieldCheck
+                size={10}
+                className="text-white"
+              />
             </div>
           )}
           {venueType === 'public' && (
             <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
-              <Trees size={10} className="text-white" />
+              <Trees
+                size={10}
+                className="text-white"
+              />
             </div>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-lg font-black tracking-tight text-slate-900">{venue.name_display}</h3>
-          <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-400">
+          <p className="flex items-start gap-1 text-xs font-medium text-slate-400">
             <MapPin
               size={10}
               className="shrink-0"
@@ -74,11 +80,6 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
             {getSportLabel(key)}
           </span>
         ))}
-        {today > 0 && (
-          <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-[11px] font-bold text-orange-600">
-            {today} events today
-          </span>
-        )}
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2">
@@ -105,13 +106,13 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
         </button>
         <button
           onClick={onNavigate}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition active:scale-95 hover:bg-slate-50"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 active:scale-95"
         >
           <Navigation size={18} />
         </button>
         <button
           onClick={onShare}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition active:scale-95 hover:bg-slate-50"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 active:scale-95"
         >
           <Share2 size={18} />
         </button>
