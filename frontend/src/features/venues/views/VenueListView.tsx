@@ -1,9 +1,11 @@
+import { useState, useMemo } from 'react'
 import { Search, X, ChevronRight, Trees, Filter, List as ListIcon, Map as MapIcon } from 'lucide-react'
 import { VenueMap } from '../components/VenueMap'
 import { VenueMapFilters, VenueMapFilterType } from '../components/VenueMapFilters'
 import { ApiVenue } from '../services/venuesService'
 import { VenueCard } from '../components/VenueCard'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+import { MapPickerSheet } from '@/components/MapPickerSheet'
 
 interface VenueListViewProps {
   venues: ApiVenue[]
@@ -47,6 +49,12 @@ export function VenueListView({
   onLoadMore,
 }: VenueListViewProps) {
   const sentinelRef = useInfiniteScroll(onLoadMore, hasMore && !loadingMore)
+  const [showMapPicker, setShowMapPicker] = useState(false)
+
+  const selectedVenue = useMemo(
+    () => (selectedVenueId ? (venues.find((v) => v.id === selectedVenueId) ?? null) : null),
+    [venues, selectedVenueId]
+  )
 
   return (
     <div className="min-h-[100dvh] bg-white">
@@ -114,6 +122,7 @@ export function VenueListView({
             venues={venues}
             selectedVenueId={selectedVenueId}
             onSelectVenue={onSelectVenue}
+            onNavigate={() => setShowMapPicker(true)}
           />
           {!selectedVenueId && (
             <div
@@ -158,6 +167,17 @@ export function VenueListView({
           )}
         </div>
       )}
+
+      <MapPickerSheet
+        open={showMapPicker}
+        onClose={() => setShowMapPicker(false)}
+        location={{
+          lat: selectedVenue?.lat != null ? Number(selectedVenue.lat) : null,
+          lng: selectedVenue?.lng != null ? Number(selectedVenue.lng) : null,
+          address: selectedVenue?.address_display,
+          name: selectedVenue?.name_display,
+        }}
+      />
     </div>
   )
 }
