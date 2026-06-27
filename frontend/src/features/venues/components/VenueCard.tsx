@@ -9,8 +9,8 @@ interface VenueCardProps {
 
 export function VenueCard({ venue, onClick }: VenueCardProps) {
   const sports = (venue.sport_keys ?? []).slice(0, 4)
-  const upcoming = venue.active_sessions_count ?? 0
   const today = venue.today_sessions_count ?? 0
+  const upcoming = Math.max(0, (venue.active_sessions_count ?? 0) - today)
   const past = venue.past_sessions_count ?? 0
 
   return (

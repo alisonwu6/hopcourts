@@ -134,13 +134,7 @@ export function HomePage() {
             <p className="mt-3 text-xs font-semibold text-white">HopCourts Team</p>
           </section>
 
-          <div className="mt-20 flex flex-col items-center text-[9px]">
-            <p className="text-slate-400">
-              HopCourts v{__APP_VERSION__}
-              {import.meta.env.MODE !== 'production' && <span className="ml-1 opacity-75">({import.meta.env.MODE})</span>}
-            </p>
-            <p className="text-slate-300">Built for real-world connections</p>
-          </div>
+          <div className="mb-20" />
         </main>
       </div>
 
@@ -148,6 +142,14 @@ export function HomePage() {
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
       />
+
+      <div className="fixed bottom-20 left-0 right-0 z-[-10] flex flex-col items-center text-[9px]">
+        <p className="text-slate-400">
+          HopCourts v{__APP_VERSION__}
+          {import.meta.env.MODE !== 'production' && <span className="ml-1 opacity-75">({import.meta.env.MODE})</span>}
+        </p>
+        <p className="text-slate-300">Built for real-world connections</p>
+      </div>
     </div>
   )
 }

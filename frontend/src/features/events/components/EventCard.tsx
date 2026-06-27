@@ -231,7 +231,19 @@ export function EventCard({
           <div className="flex items-center gap-2">
             <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
             <span className="text-[12px] text-slate-600">
-              {event.isFree ? 'Free' : `${event.priceRange || `$${event.pricePerPerson}`} per person`}
+              {event.isFree
+                ? 'Free'
+                : event.priceMode === 'person'
+                  ? `${event.priceRange || `$${event.pricePerPerson}`} / player`
+                  : event.priceTotal
+                    ? (() => {
+                        const perFull = Math.ceil(event.priceTotal / event.maxAttendees)
+                        const perHigh = Math.ceil(event.priceTotal / minPeople)
+                        return perHigh !== perFull
+                          ? `Est. $${perFull} – $${perHigh} / player`
+                          : `Est. $${perFull} / player`
+                      })()
+                    : 'Paid event'}
             </span>
           </div>
         </div>

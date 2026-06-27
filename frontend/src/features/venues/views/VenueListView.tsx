@@ -1,4 +1,4 @@
-import { Search, List as ListIcon, Map as MapIcon, X, Building2, ChevronRight, Trees } from 'lucide-react'
+import { Search, X, ChevronRight, Trees, Filter, List as ListIcon, Map as MapIcon } from 'lucide-react'
 import { VenueMap } from '../components/VenueMap'
 import { VenueMapFilters, VenueMapFilterType } from '../components/VenueMapFilters'
 import { ApiVenue } from '../services/venuesService'
@@ -15,14 +15,12 @@ interface VenueListViewProps {
   onToggleView: () => void
   onVenueClick: (id: string) => void
   onSubmitVenueClick: () => void
-  // Map-specific
-  mapVenues: ApiVenue[]
   selectedVenueId: string | null
   onSelectVenue: (id: string | null) => void
-  // Filters (map mode only)
   activeFilter: VenueMapFilterType
   onFilterChange: (filter: VenueMapFilterType) => void
-  // Pagination (list mode only)
+  selectedSportCount: number
+  onOpenSportSheet: () => void
   hasMore: boolean
   loadingMore: boolean
   onLoadMore: () => void
@@ -38,11 +36,12 @@ export function VenueListView({
   onToggleView,
   onVenueClick,
   onSubmitVenueClick,
-  mapVenues,
   selectedVenueId,
   onSelectVenue,
   activeFilter,
   onFilterChange,
+  selectedSportCount,
+  onOpenSportSheet,
   hasMore,
   loadingMore,
   onLoadMore,
@@ -54,18 +53,18 @@ export function VenueListView({
       <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md px-4 pt-4 pb-0 pointer-events-none">
         {!showMap && <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur" />}
 
-        <div className="relative z-10 flex w-full items-center gap-3">
+        <div className="relative z-10 flex w-full items-center gap-2">
           <div className="pointer-events-auto relative flex-1">
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
               <Search
-                className={`h-5 w-5 transition-colors ${searchQuery ? 'text-indigo-600' : 'text-slate-400'}`}
+                className={`h-4 w-4 transition-colors ${searchQuery ? 'text-indigo-600' : 'text-slate-400'}`}
                 strokeWidth={2.5}
               />
             </div>
             <input
               type="text"
               placeholder="Search by name or address"
-              className="h-[58px] w-full rounded-full border border-slate-200 bg-white pl-12 pr-12 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-slate-300 focus:bg-slate-50"
+              className="h-[58px] w-full rounded-full border border-slate-200 bg-white pl-9 pr-2 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-slate-300 focus:bg-slate-50"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -74,13 +73,24 @@ export function VenueListView({
                 onClick={onSearchClear}
                 className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 p-1 text-slate-500 transition-all hover:bg-slate-200"
               >
-                <X
-                  size={14}
-                  strokeWidth={3}
-                />
+                <X size={14} strokeWidth={3} />
               </button>
             )}
           </div>
+
+          <button
+            onClick={onOpenSportSheet}
+            className={`pointer-events-auto relative flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border shadow-sm transition hover:bg-slate-50 active:scale-95 ${
+              selectedSportCount > 0 ? 'border-blue-600 bg-blue-600' : 'border-slate-200 bg-white'
+            }`}
+          >
+            <Filter className={`h-6 w-6 ${selectedSportCount > 0 ? 'text-white' : 'text-slate-700'}`} />
+            {selectedSportCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-black text-blue-600 ring-2 ring-blue-600">
+                {selectedSportCount}
+              </span>
+            )}
+          </button>
 
           <button
             onClick={onToggleView}
@@ -99,12 +109,20 @@ export function VenueListView({
       </div>
 
       {showMap ? (
-        <div className="h-[100dvh] w-full">
+        <div className="relative h-[100dvh] w-full">
           <VenueMap
-            venues={mapVenues}
+            venues={venues}
             selectedVenueId={selectedVenueId}
             onSelectVenue={onSelectVenue}
           />
+          {!selectedVenueId && (
+            <div
+              className="pointer-events-auto fixed left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-4"
+              style={{ bottom: 'calc(68px + env(safe-area-inset-bottom, 0px) + 16px)' }}
+            >
+              <SubmitVenueCTA onClick={onSubmitVenueClick} />
+            </div>
+          )}
         </div>
       ) : (
         <div className="mx-auto max-w-md px-4 pb-[100px] pt-33">
@@ -116,30 +134,11 @@ export function VenueListView({
             <div className="space-y-4">
               <SubmitVenueCTA onClick={onSubmitVenueClick} />
               <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-                <div className="p-2">
-                  <Building2 className="h-8 w-8 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {searchQuery
-                    ? 'No venues found'
-                    : activeFilter === 'official'
-                    ? 'Coming Soon'
-                    : activeFilter === 'public'
-                    ? 'No public venues yet'
-                    : activeFilter === 'has_events'
-                    ? 'No venues with events'
-                    : 'No venues yet'}
-                </h3>
+                <p className="text-lg font-bold text-slate-900">
+                  {searchQuery ? 'No venues found' : 'No venues yet'}
+                </p>
                 <p className="mt-1 px-10 text-sm text-slate-500">
-                  {searchQuery
-                    ? 'Try a different name or address.'
-                    : activeFilter === 'official'
-                    ? 'Official partner venues will appear here.'
-                    : activeFilter === 'public'
-                    ? 'Public courts and parks will appear here.'
-                    : activeFilter === 'has_events'
-                    ? 'Check back later for upcoming events.'
-                    : 'Venues in your area will appear here.'}
+                  {searchQuery ? 'Try a different name or address.' : 'Venues in your area will appear here.'}
                 </p>
               </div>
             </div>
@@ -147,16 +146,9 @@ export function VenueListView({
             <div className="space-y-4">
               <SubmitVenueCTA onClick={onSubmitVenueClick} />
               {venues.map((v) => (
-                <VenueCard
-                  key={v.id}
-                  venue={v}
-                  onClick={onVenueClick}
-                />
+                <VenueCard key={v.id} venue={v} onClick={onVenueClick} />
               ))}
-              <div
-                ref={sentinelRef}
-                className="h-4"
-              />
+              <div ref={sentinelRef} className="h-4" />
               {loadingMore && (
                 <div className="flex justify-center py-4">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
@@ -178,26 +170,15 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
       className="flex w-full items-center gap-2 rounded-3xl bg-[#2d3818] p-2 text-left shadow-sm transition active:scale-[0.99]"
     >
       <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1A3A0A]">
-        <Trees
-          className="h-10 w-10 text-[#cce15f]"
-          strokeWidth={2}
-        />
+        <Trees className="h-10 w-10 text-[#cce15f]" strokeWidth={2} />
       </div>
       <div className="min-w-0 flex-1">
-        {/* for official venue promotion */}
-        {/* <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your venue?</p>
-        <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
-          Submit it free, 14-day official trial included.
-        </p> */}
         <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your local court?</p>
         <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
           Put it on the map instantly. Free, always.
         </p>
       </div>
-      <ChevronRight
-        className="h-5 w-5 flex-none text-white/70"
-        strokeWidth={2}
-      />
+      <ChevronRight className="h-5 w-5 flex-none text-white/70" strokeWidth={2} />
     </button>
   )
 }
