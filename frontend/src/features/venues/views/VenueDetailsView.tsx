@@ -88,6 +88,7 @@ function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; 
 interface VenueDetailsViewProps {
   venue: ApiVenue
   upcomingEvents: any[]
+  todayEvents: any[]
   onBack: () => void
   onShare: () => void
   onClaim: () => void
@@ -98,6 +99,7 @@ interface VenueDetailsViewProps {
 export function VenueDetailsView({
   venue,
   upcomingEvents,
+  todayEvents,
   onBack,
   onShare,
   onClaim,
@@ -111,22 +113,18 @@ export function VenueDetailsView({
   const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
   const { today: todayCount, upcoming: futureCount, past: pastCount } = computeVenueCounts(venue)
 
-  const { todayStart, tomorrowStart } = getDayBoundaries()
-  const todayEvents = upcomingEvents.filter((e) => {
-    const d = new Date(e.startTime ?? e.starts_at)
-    return d >= todayStart && d < tomorrowStart
-  })
+  const { tomorrowStart } = getDayBoundaries()
   const futureEvents = upcomingEvents.filter((e) => {
     const d = new Date(e.startTime ?? e.starts_at)
     return d >= tomorrowStart
   })
 
   useEffect(() => {
-    if (!hasInitialized.current && upcomingEvents.length > 0) {
+    if (!hasInitialized.current && (todayEvents.length > 0 || upcomingEvents.length > 0)) {
       hasInitialized.current = true
       if (todayCount === 0) setActiveFilter('upcoming')
     }
-  }, [upcomingEvents.length, todayCount])
+  }, [todayEvents.length, upcomingEvents.length, todayCount])
 
   const filteredEvents = activeFilter === 'today' ? todayEvents : futureEvents
   const typedEvents = filteredEvents as PlayerEvent[]
@@ -223,7 +221,7 @@ export function VenueDetailsView({
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Upcoming</span>
           </button>
           <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
-            <span className="text-lg font-black leading-none text-slate-400">{pastCount}</span>
+            <span className="text-lg font-black leading-none text-slate-400 text-center">{pastCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Past</span>
           </div>
         </div>
