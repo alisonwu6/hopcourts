@@ -100,6 +100,15 @@ async function deleteUser(id) {
  * addRoleToUser — appends a role to the user's TEXT[] role column.
  * Safe to call multiple times (idempotent: no-op if role already present).
  */
+async function markPwaInstalled(userId) {
+  await query(
+    `UPDATE public.users
+     SET pwa_installed_at = NOW()
+     WHERE id = $1 AND pwa_installed_at IS NULL`,
+    [userId]
+  )
+}
+
 async function addRoleToUser(userId, role) {
   const { rows } = await query(
     `UPDATE public.users
@@ -111,12 +120,13 @@ async function addRoleToUser(userId, role) {
   return rows[0] || null
 }
 
-module.exports = { 
-  getUserById, 
-  getUserByUsername, 
+module.exports = {
+  getUserById,
+  getUserByUsername,
   upsertUser,
   findUserByEmail,
   createUserFromSupabaseProfile,
   deleteUser,
   addRoleToUser,
+  markPwaInstalled,
 }

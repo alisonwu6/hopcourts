@@ -11,6 +11,7 @@ const {
   deleteAccount,
   getTeammates,
 } = require('./profile.service')
+const { markPwaInstalled } = require('../../../models/users.model')
 const { ok } = require('../../lib/respond')
 const { mapUserProfile } = require('./profile.mapper')
 
@@ -117,6 +118,16 @@ async function handleDeleteAccount(req, res, next) {
   }
 }
 
+async function handlePwaSignal(req, res, next) {
+  try {
+    const userId = resolveUserId(req)
+    await markPwaInstalled(userId)
+    return ok(res, { ok: true })
+  } catch (err) {
+    next(err)
+  }
+}
+
 async function handleGetTeammates(req, res, next) {
   try {
     const userId = resolveUserId(req)
@@ -140,4 +151,5 @@ module.exports = {
   handleGetStats,
   handleDeleteAccount,
   handleGetTeammates,
+  handlePwaSignal,
 }

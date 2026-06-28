@@ -9,6 +9,7 @@ const {
   handleGetProfileSessionsByUsername,
   handleDeleteAccount,
   handleGetTeammates,
+  handlePwaSignal,
 } = require('../../modules/profile/profile.controller')
 
 const { verifyToken } = require('../../middleware/verifyToken')
@@ -28,6 +29,7 @@ router.put('/me/preferences', verifyToken, handlePutPreferences)
 router.patch('/me/preferences', verifyToken, handlePutPreferences)
 router.get('/me/stats', verifyToken, handleGetStats)
 router.get('/me/teammates', verifyToken, handleGetTeammates)
+router.post('/me/pwa-signal', verifyToken, handlePwaSignal)
 
 
 module.exports = { profileRouter: router }
