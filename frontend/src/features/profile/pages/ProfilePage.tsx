@@ -33,7 +33,7 @@ type ProfileVM = {
   tryingSportKeys: string[]
 }
 
-type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying' | 'bio'
+type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying'
 
 const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
 
@@ -520,8 +520,6 @@ export function ProfilePage() {
             return !draftProfile.sports?.length
           case 'trying':
             return !draftProfile.trying?.length
-          case 'bio':
-            return !draftProfile.blurb?.trim()
           default:
             return false
         }
@@ -608,7 +606,6 @@ export function ProfilePage() {
         break
       case 'bio':
         next.blurb = value
-        clearProfileFieldError('bio')
         break
       case 'gender':
         next.gender = value
@@ -645,7 +642,6 @@ export function ProfilePage() {
     if (!draftProfile.gender) missingFields.push('gender')
     if (!draftProfile.sports?.length) missingFields.push('sports')
     if (!draftProfile.trying?.length) missingFields.push('trying')
-    if (!draftProfile.blurb?.trim()) missingFields.push('bio')
 
     if (missingFields.length > 0) {
       setInvalidProfileFields(missingFields)
@@ -1229,17 +1225,14 @@ export function ProfilePage() {
               <button
                 type="button"
                 onClick={() => openFieldSheet('bio', draftProfile.blurb || '')}
-                className={clsx(
-                  'flex w-full items-center justify-between px-4 py-4 text-left',
-                  hasProfileFieldError('bio') && 'bg-red-50'
-                )}
+                className="flex w-full items-center justify-between px-4 py-4 text-left"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-slate-700">
-                    Bio{hasProfileFieldError('bio') && <span className="ml-1 text-red-500">*</span>}
+                    Bio
                   </p>
                   <p className={`line-clamp-1 text-base font-semibold ${draftProfile.blurb ? 'text-slate-900' : 'text-slate-400'}`}>
-                    {draftProfile.blurb || 'Required'}
+                    {draftProfile.blurb || 'Something about yourself'}
                   </p>
                 </div>
                 <span className="text-slate-400">›</span>
