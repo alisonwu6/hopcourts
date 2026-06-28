@@ -9,9 +9,10 @@ async function createVenue(input) {
       lat,
       lng,
       status,
-      venue_type
+      venue_type,
+      is_active
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7
+      $1, $2, $3, $4, $5, $6, $7, $8
     )
     RETURNING *
   `
@@ -23,6 +24,7 @@ async function createVenue(input) {
     input.lng,
     input.status ?? 'unclaimed',
     input.venueType ?? 'public',
+    false,
   ]
   const { rows } = await query(sql, params)
   return rows[0]
@@ -232,9 +234,10 @@ async function listVenues({ limit = 50, offset = 0, lat, lng, radiusKm, venueTyp
   let conditions = []
   let params = []
 
-  // Public venues list should not expose suspended venues.
+  // Public venues list should not expose suspended or inactive venues.
   conditions.push(`v.status <> $${params.length + 1}`)
   params.push('suspended')
+  conditions.push(`v.is_active = true`)
 
   if (venueType) {
     conditions.push(`v.venue_type = $${params.length + 1}`)

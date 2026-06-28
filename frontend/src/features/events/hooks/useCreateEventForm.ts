@@ -64,11 +64,13 @@ const initialState: FormState = {
   placeName: '',
 }
 
-const normalizeTwdIntegerString = (value: unknown): string => {
+const normalizeAudString = (value: unknown): string => {
   if (value === null || value === undefined || value === '') return ''
-  const num = Number(value)
+  const str = String(value).trim()
+  if (/^\d+\.?\d{0,2}$/.test(str)) return str
+  const num = Number(str)
   if (!Number.isFinite(num)) return ''
-  return String(Math.round(num))
+  return String(Math.round(num * 100) / 100)
 }
 
 const getTodayMidnightLocalValue = () => format(new Date(), "yyyy-MM-dd'T'00:00")
@@ -190,10 +192,10 @@ export function useCreateEventForm() {
             isFree: draft.isFree ?? true,
             price: (draft.priceMode === 'person' ? draft.pricePerPerson : (draft.priceTotal ?? draft.pricePerPerson))
               ? draft.priceMode === 'person'
-                ? normalizeTwdIntegerString(draft.pricePerPerson)
+                ? normalizeAudString(draft.pricePerPerson)
                 : draft.maxAttendees
-                  ? normalizeTwdIntegerString(draft.priceTotal ?? (draft.pricePerPerson ?? 0) * draft.maxAttendees)
-                  : normalizeTwdIntegerString(draft.priceTotal ?? draft.pricePerPerson)
+                  ? normalizeAudString(draft.priceTotal ?? (draft.pricePerPerson ?? 0) * draft.maxAttendees)
+                  : normalizeAudString(draft.priceTotal ?? draft.pricePerPerson)
               : '',
             priceNote: (draft as any).priceNote || '',
             skillLevel: (draft.skillLevel as SkillLevelKey) || 'any',
@@ -333,7 +335,7 @@ export function useCreateEventForm() {
       }
     }
     if (name === 'price') {
-      setForm((prev) => ({ ...prev, price: normalizeTwdIntegerString(value) }))
+      setForm((prev) => ({ ...prev, price: normalizeAudString(value) }))
       return
     }
     setForm((prev) => ({ ...prev, [name]: value }))
@@ -449,8 +451,8 @@ export function useCreateEventForm() {
     }
 
     if (!form.isFree) {
-      if (form.price === '' || Number(form.price) < 0 || Number(form.price) > 1000) {
-        flashFieldError('price', 'Price must be between 0 and 1000')
+      if (form.price === '' || Number(form.price) < 0 || Number(form.price) > 9999.99) {
+        flashFieldError('price', 'Price must be between $0 and $9,999.99')
         return
       }
       if (!form.priceNote.trim()) {

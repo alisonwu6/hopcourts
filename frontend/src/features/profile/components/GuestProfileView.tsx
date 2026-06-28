@@ -128,23 +128,26 @@ export function GuestProfileView() {
         />
 
         {!ctaDismissed && (
-          <div className="relative mx-3 mt-4 rounded-3xl bg-courts p-6 text-white">
+          <div className="bg-courts relative mx-3 mt-4 mb-0 rounded-3xl p-6 text-white">
             <button
               type="button"
               onClick={handleDismissCta}
-              className="absolute right-4 top-4 text-xs font-medium text-emerald-100/70 transition hover:text-emerald-100"
+              className="absolute right-4 top-4 text-xs font-medium underline text-emerald-100/70 transition hover:text-emerald-100"
             >
               Maybe later
             </button>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-700/40">
-              <Rocket className="h-6 w-6 text-emerald-300" />
+            <div className="flex items-end">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-700/40">
+                <Rocket className="h-5 w-5 text-emerald-300" />
+              </div>
+              <h2 className="mb-1 ml-2 mt-4 text-lg font-bold leading-tight">Lock in your spot, every time</h2>
             </div>
-            <h2 className="mt-4 text-xl font-bold leading-tight">Lock in your spot, every time</h2>
+
             <p className="mt-2 text-sm text-emerald-100/80">
               Right now, your account only lives on this device. Sign up to sync your progress anywhere.
             </p>
 
-            <ul className="mt-5 space-y-3 text-sm">
+            <ul className="mt-5 space-y-2 text-sm">
               <CtaBullet
                 icon={<Flag className="h-4 w-4" />}
                 title="Host your own games"
@@ -162,11 +165,11 @@ export function GuestProfileView() {
               />
             </ul>
 
-            <section className="mt-6 flex justify-center">
+            <section className="mt-3 flex justify-center">
               <button
                 type="button"
                 onClick={handleUpgrade}
-                className="bg-hop flex items-center justify-center rounded-full px-8 py-4 text-lg font-bold text-white shadow-xl"
+                className="bg-hop flex w-36 items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white"
               >
                 Hop in
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -175,7 +178,7 @@ export function GuestProfileView() {
           </div>
         )}
 
-        <div className="mt-8 px-3">
+        <div className="mt-4 px-3">
           <div className="mt-3 space-y-4">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-xl font-semibold text-slate-700">Recent Activity</h3>

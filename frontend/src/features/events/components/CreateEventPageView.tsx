@@ -435,8 +435,8 @@ export function CreateEventPageView({
                         name="price"
                         type="number"
                         min={0}
-                        max={1000}
-                        step={1}
+                        max={9999.99}
+                        step={0.01}
                         value={form.price}
                         onChange={handleInputChange}
                         placeholder=""

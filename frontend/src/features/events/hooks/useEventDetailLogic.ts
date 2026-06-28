@@ -78,12 +78,16 @@ export function useEventDetailLogic() {
       return
     }
 
+    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
+
     if (location.state?.from === 'venue') {
+      if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
+        navigate('/events', { replace: true })
+        return
+      }
       navigate(-1)
       return
     }
-
-    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
 
     if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
       navigate('/events', { replace: true })
@@ -345,7 +349,6 @@ export function useEventDetailLogic() {
     setShowProfileRequired,
     alertDialog,
     setAlertDialog,
-    hasOtherParticipants,
     isHost,
     isJoined,
     spotsRemaining,
