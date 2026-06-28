@@ -234,11 +234,11 @@ export function EventCard({
               {event.isFree
                 ? 'Free'
                 : event.priceMode === 'person'
-                  ? `${event.priceRange || `$${event.pricePerPerson}`} / player`
+                  ? `${event.priceRange || `$${Number(event.pricePerPerson).toFixed(2)}`} / player`
                   : event.priceTotal
                     ? (() => {
-                        const perFull = Math.ceil(event.priceTotal / event.maxAttendees)
-                        const perHigh = Math.ceil(event.priceTotal / minPeople)
+                        const perFull = (event.priceTotal / event.maxAttendees).toFixed(2)
+                        const perHigh = (event.priceTotal / minPeople).toFixed(2)
                         return perHigh !== perFull
                           ? `Est. $${perFull} – $${perHigh} / player`
                           : `Est. $${perFull} / player`

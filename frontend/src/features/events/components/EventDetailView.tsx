@@ -220,10 +220,12 @@ export function EventDetailView({
                 </button>
               </>
             )}
-            <BookmarkButton
-              eventId={event.id}
-              className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
-            />
+            {!isPast && (
+              <BookmarkButton
+                eventId={event.id}
+                className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
+              />
+            )}
             <button
               type="button"
               onClick={onShare}
