@@ -36,6 +36,8 @@ function buildGoogleMapsUrl({ lat, lng, address, name }: Location): string | nul
 }
 
 export function MapPickerSheet({ open, onClose, location }: MapPickerSheetProps) {
+  const hasLocation = !!(location.lat || location.lng || location.address || location.name)
+
   const handlePick = (url: string | null) => {
     if (url) window.open(url, '_blank', 'noopener,noreferrer')
     onClose()
@@ -50,6 +52,9 @@ export function MapPickerSheet({ open, onClose, location }: MapPickerSheetProps)
     >
       <div className="px-10">
         <p className="mb-4 text-center text-sm font-semibold text-slate-500">Open location in</p>
+        {!hasLocation ? (
+          <p className="py-4 text-center text-sm text-slate-400">No location set for this event.</p>
+        ) : (
         <div className="flex flex-col gap-3">
           <button
             type="button"
@@ -79,6 +84,7 @@ export function MapPickerSheet({ open, onClose, location }: MapPickerSheetProps)
             </div>
           </button>
         </div>
+        )}
       </div>
     </BottomSheet>
   )

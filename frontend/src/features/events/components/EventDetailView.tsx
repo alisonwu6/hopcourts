@@ -50,12 +50,10 @@ type EventDetailViewProps = {
   currentUserId?: string
   isFavorite: boolean
   showLoginPrompt: boolean
-
   isJoinSubmitting: boolean
   isCheckingIn: boolean
   hasSignaledOnTheWay: boolean
   showProfileRequired: boolean
-  hasOtherParticipants: boolean
   isJoined: boolean
   spotsRemaining: number
   effectiveCheckedIn: boolean
@@ -89,7 +87,6 @@ export function EventDetailView({
   isCheckingIn,
   hasSignaledOnTheWay,
   showProfileRequired,
-  hasOtherParticipants,
   isJoined,
   spotsRemaining,
   effectiveCheckedIn,
@@ -159,7 +156,7 @@ export function EventDetailView({
 
   const formatMoney = (value?: number | null) => {
     if (value == null || Number.isNaN(Number(value))) return ''
-    return Math.round(Number(value)).toLocaleString('en-AU')
+    return Number(value).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   const feeLine2 = (() => {
@@ -171,9 +168,11 @@ export function EventDetailView({
       return 'Paid event'
     }
     if (total != null) {
-      const perFull = Math.ceil(total / maxPeople)
-      const perHigh = Math.ceil(total / minPeople)
-      return perHigh !== perFull ? `Est. $${perFull} – $${perHigh} / player` : `Est. $${perFull} / player`
+      const perFull = Math.ceil((total / maxPeople) * 100) / 100
+      const perHigh = Math.ceil((total / minPeople) * 100) / 100
+      return perHigh !== perFull
+        ? `Est. $${formatMoney(perFull)} – $${formatMoney(perHigh)} / player`
+        : `Est. $${formatMoney(perFull)} / player`
     }
     return 'Paid event'
   })()
@@ -188,12 +187,14 @@ export function EventDetailView({
   const scheduleLabel = formatEventSchedule(event.startTime, event.endTime)
   const updatedAtLabel = event.updatedAt ? formatDateTimeLabel(event.updatedAt) : null
 
+  const [showMapPicker, setShowMapPicker] = React.useState(false)
   const handleOpenMap = () => setShowMapPicker(true)
 
-  const [showMapPicker, setShowMapPicker] = React.useState(false)
-
+  const eventEnd = event.endTime
+    ? new Date(event.endTime)
+    : new Date(new Date(event.startTime).getTime() + 2 * 60 * 60 * 1000)
   const isHost = event.host.id === currentUserId
-  const isPast = new Date() > (event.endTime ? new Date(event.endTime) : new Date(event.startTime))
+  const isPast = new Date() > eventEnd
 
   return (
     <div className="min-h-[100dvh] pb-40">
@@ -413,7 +414,7 @@ export function EventDetailView({
                     <span className="">Checked in</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-600">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-400">
                       <Route
                         className="h-3 w-3 text-white"
                         strokeWidth={2.5}
@@ -496,7 +497,7 @@ export function EventDetailView({
       {event.status !== 'cancelled' &&
         event.status !== 'completed' &&
         event.status !== 'draft' &&
-        new Date() <= (event.endTime ? new Date(event.endTime) : new Date(event.startTime)) && (
+        new Date() <= new Date(eventEnd.getTime() + (event.checkinCloseMinsAfter ?? 60) * 60 * 1000) && (
           <JoinBar
             isJoined={isJoined}
             event={event}
@@ -551,7 +552,7 @@ function ParticipantStatusBadge({
 }) {
   if (isCheckedIn) {
     return (
-      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500">
+      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white">
         <Check
           className="h-3 w-3 text-white"
           strokeWidth={3}
@@ -561,7 +562,7 @@ function ParticipantStatusBadge({
   }
   if (isAbsent) {
     return (
-      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-400">
+      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-400 ring-2 ring-white">
         <CircleAlert
           className="h-3 w-3 text-white"
           strokeWidth={2.5}
@@ -571,7 +572,7 @@ function ParticipantStatusBadge({
   }
   if (isOnTheWay) {
     return (
-      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-600">
+      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 ring-2 ring-white">
         <Route
           className="h-3 w-3 text-white"
           strokeWidth={2.5}
@@ -585,21 +586,24 @@ function ParticipantStatusBadge({
 function AvatarCircle({ name, src, ringClassName }: { name: string; src?: string; ringClassName?: string }) {
   return (
     <div
+      aria-label={name}
       className={clsx(
         'flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100',
         ringClassName
       )}
-      style={
-        src
-          ? {
-              backgroundImage: `url(${src})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }
-          : undefined
-      }
     >
-      {!src && <Smile className="h-6 w-6 text-slate-300" />}
+      {src ? (
+        <img
+          src={src}
+          alt={name}
+          className="h-full w-full object-cover object-center"
+        />
+      ) : (
+        <Smile
+          className="h-6 w-6 text-slate-300"
+          aria-hidden="true"
+        />
+      )}
     </div>
   )
 }
@@ -691,11 +695,11 @@ function JoinBar({
   const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
 
   const openMins = event.checkinOpenMinsBefore ?? 10
-  const closeMins = event.checkinCloseMinsAfter ?? 5
+  const closeMins = event.checkinCloseMinsAfter ?? 60
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
-  const effectiveCloseTime = endTime
-  const isCheckInOpen = now >= openTime && now <= endTime
+  const effectiveCloseTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+  const isCheckInOpen = now >= openTime && now <= effectiveCloseTime
 
   // Free + non-official events (open courts, parks) stay open for walk-up joiners even mid-game.
   // Paid or official events: 2h before start, leave is disabled (locked in). New joiners can still hop in but also can't leave.
@@ -754,10 +758,12 @@ function JoinBar({
     )
     secondaryButton = (
       <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500 bg-transparent text-emerald-600 shadow-none">
-        <Check
-          className="h-5 w-5"
-          strokeWidth={2.5}
-        />
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+          <Check
+            className="h-3 w-3 text-white"
+            strokeWidth={3}
+          />
+        </span>
         <span className="text-base font-semibold">Checked in</span>
       </div>
     )
