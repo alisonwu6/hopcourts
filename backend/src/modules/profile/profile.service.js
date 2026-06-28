@@ -318,7 +318,7 @@ async function deleteAccount(userId, { force = false } = {}) {
         entity_id: p.session_id,
         title: 'Event cancelled',
         message: `"${sessionMap.get(p.session_id)}" was cancelled by the host.`,
-        metadata: {},
+        metadata: { deep_link: `/event/${p.session_id}` },
       }).catch((err) => console.error('[deleteAccount] Notify cancel failed', err))
     })
   }

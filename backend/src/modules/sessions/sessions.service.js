@@ -540,7 +540,7 @@ async function deleteSession(sessionId, userId) {
         entity_id: sessionId,
         title: 'Event cancelled',
         message: `"${existing.title}" was cancelled`,
-        metadata: {}
+        metadata: { deep_link: `/event/${sessionId}` }
       }).catch(err => console.error('Notify cancel failed', err))
     }
   })
