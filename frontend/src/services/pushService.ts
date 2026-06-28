@@ -39,5 +39,12 @@ export function isPushSupported(): boolean {
 }
 
 export function isRunningAsPWA(): boolean {
+  console.log('isRunningAsPWA')
+  console.log('typeof (navigator as any).standalone', typeof (navigator as any).standalone)
+  console.log('matchMedia', window.matchMedia('(display-mode: standalone)').matches)
+  
+  if (typeof (navigator as any).standalone !== 'undefined') {
+    return (navigator as any).standalone === true
+  }
   return window.matchMedia('(display-mode: standalone)').matches
 }
