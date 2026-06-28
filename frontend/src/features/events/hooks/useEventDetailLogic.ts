@@ -78,8 +78,8 @@ export function useEventDetailLogic() {
       return
     }
 
-    if (location.state?.from === 'venue' && location.state?.venueId) {
-      navigate(`/venues/${location.state.venueId}`)
+    if (location.state?.from === 'venue') {
+      navigate(-1)
       return
     }
 

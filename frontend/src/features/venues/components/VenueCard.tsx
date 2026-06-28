@@ -1,5 +1,5 @@
 import { Building2, MapPin, ShieldCheck, Trees } from 'lucide-react'
-import { ApiVenue } from '../services/venuesService'
+import { ApiVenue, computeVenueCounts } from '../services/venuesService'
 import { getSportColor, getSportLabel } from '@/constants/sportTokens'
 
 interface VenueCardProps {
@@ -9,9 +9,7 @@ interface VenueCardProps {
 
 export function VenueCard({ venue, onClick }: VenueCardProps) {
   const sports = (venue.sport_keys ?? []).slice(0, 4)
-  const today = venue.today_sessions_count ?? 0
-  const upcoming = Math.max(0, (venue.active_sessions_count ?? 0) - today)
-  const past = venue.past_sessions_count ?? 0
+  const { today, upcoming, past } = computeVenueCounts(venue)
 
   return (
     <div

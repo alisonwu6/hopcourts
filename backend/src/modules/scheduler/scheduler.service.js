@@ -33,7 +33,7 @@ async function notifyCheckinWindowOpening() {
         entity_id: session_id,
         title: 'Check-in is open!',
         message: `"${title}" is starting soon — check in now.`,
-        metadata: { deep_link: `/events/${session_id}` },
+        metadata: { deep_link: `/event/${session_id}` },
       })
       .catch((err) => console.error('checkin_open notify failed', err))
   }
@@ -69,7 +69,7 @@ async function notifyTodayEvents() {
         entity_id: session_id,
         title: "You've got a game today!",
         message: `"${title}" is happening today. Get ready!`,
-        metadata: { deep_link: `/events/${session_id}` },
+        metadata: { deep_link: `/event/${session_id}` },
       })
       .catch((err) => console.error('session_today notify failed', err))
   }

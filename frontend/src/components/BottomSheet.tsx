@@ -55,7 +55,7 @@ export function BottomSheet({
   return (
     <div
       className={clsx(
-        'fixed inset-0 z-[200] flex flex-col justify-end bg-slate-950/40 backdrop-blur-sm',
+        'fixed inset-0 z-[9999] flex flex-col justify-end bg-slate-950/40 backdrop-blur-sm',
         backdropClassName
       )}
       role="dialog"

@@ -19,14 +19,14 @@ export function SubmitVenueChooserPage() {
   const handleLoginSheetClose = () => {
     setShowLoginPrompt(false)
     if (!isAuthenticated) {
-      navigate('/venues', { replace: true })
+      navigate(-1)
     }
   }
 
   return (
     <>
       <SubmitVenueChooserView
-        onCancel={() => navigate('/venues')}
+        onCancel={() => navigate(-1)}
         onPickPublic={() => navigate('/venues/submit/public')}
         onPickOfficial={() => navigate('/venues/submit/official')}
       />

@@ -46,7 +46,7 @@ export function SubmitVenuePage() {
         onSelectRole={form.selectRole}
         onConfirmLocation={form.confirmLocation}
         setFieldRef={form.setFieldRef}
-        onBack={() => navigate('/venues/submit')}
+        onBack={() => navigate(-1)}
         onSubmit={form.submit}
       />
       <LoginPromptSheet open={form.showLoginPrompt} onClose={form.closeLoginPrompt} returnTo="/venues/submit/official" />

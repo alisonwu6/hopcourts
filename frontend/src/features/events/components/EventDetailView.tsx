@@ -23,6 +23,7 @@ import type { PlayerEvent } from '@/types'
 import type { Sport } from '@/types/dictionary'
 import { Button, AlertDialog } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
+import { MapPickerSheet } from '@/components/MapPickerSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { PageLoading } from '@/components/PageLoading'
 import { BookmarkButton } from './BookmarkButton'
@@ -188,24 +189,9 @@ export function EventDetailView({
   const scheduleLabel = formatEventSchedule(event.startTime, event.endTime)
   const updatedAtLabel = event.updatedAt ? formatDateTimeLabel(event.updatedAt) : null
 
-  const handleOpenMap = () => {
-    if (event.location.lat && event.location.lng) {
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
-        '_blank',
-        'noopener,noreferrer'
-      )
-      return
-    }
-    const query = event.location.address || event.location.name
-    if (query) {
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-        '_blank',
-        'noopener,noreferrer'
-      )
-    }
-  }
+  const handleOpenMap = () => setShowMapPicker(true)
+
+  const [showMapPicker, setShowMapPicker] = React.useState(false)
 
   const isHost = event.host.id === currentUserId
   const isPast = new Date() > (event.endTime ? new Date(event.endTime) : new Date(event.startTime))
@@ -508,6 +494,12 @@ export function EventDetailView({
       <ProfileRequiredSheet
         open={showProfileRequired}
         onClose={onCloseProfileRequired}
+      />
+
+      <MapPickerSheet
+        open={showMapPicker}
+        onClose={() => setShowMapPicker(false)}
+        location={event.location}
       />
     </div>
   )
