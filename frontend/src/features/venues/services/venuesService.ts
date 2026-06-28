@@ -265,3 +265,10 @@ export const venuesService = {
     }
   },
 }
+
+export function computeVenueCounts(venue: ApiVenue) {
+  const today = venue.today_sessions_count ?? 0
+  const upcoming = Math.max(0, (venue.active_sessions_count ?? 0) - today)
+  const past = venue.past_sessions_count ?? 0
+  return { today, upcoming, past }
+}

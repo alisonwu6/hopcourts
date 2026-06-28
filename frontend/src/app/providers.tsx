@@ -4,7 +4,8 @@ import { useAuthStore } from '@/hooks'
 import { supabase } from '@/lib/supabase'
 import { setOnUnauthorized } from '@/api/http'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { registerServiceWorker } from '@/services/pushService'
+import { registerServiceWorker, isRunningAsPWA } from '@/services/pushService'
+import { httpPost } from '@/api/http'
 import { queryClient } from '@/lib/queryClient'
 
 export function AppProviders({ children }: PropsWithChildren) {
@@ -27,6 +28,14 @@ export function AppProviders({ children }: PropsWithChildren) {
     hydrate()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated || !isRunningAsPWA()) return
+    if (localStorage.getItem('pwa-signal-sent')) return
+    httpPost('/me/pwa-signal')
+      .then(() => localStorage.setItem('pwa-signal-sent', '1'))
+      .catch(() => {})
+  }, [isAuthenticated])
 
   useEffect(() => {
     setOnUnauthorized(() => {

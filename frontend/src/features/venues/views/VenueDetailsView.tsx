@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays, Zap } from 'lucide-react'
+import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays, Zap, ExternalLink } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EmptyStateCard } from '@/components'
 import { EventCard } from '@/features/events/components/EventCard'
 import { CalendarView } from '@/features/profile/components/ProfileEventsPanel'
 import { VenueButton } from '@/features/venue-portal/components/ui/VenueButton'
-import { ApiVenue } from '../services/venuesService'
+import { ApiVenue, computeVenueCounts } from '../services/venuesService'
 import { getSportColor, getSportLabel } from '@/constants/sportTokens'
 import { useSports } from '@/features/dictionaries/hooks'
+import { MapPickerSheet } from '@/components/MapPickerSheet'
 import type { PlayerEvent } from '@/types'
 
 const TODAY_KEY = 'TODAY'
@@ -88,6 +89,7 @@ function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; 
 interface VenueDetailsViewProps {
   venue: ApiVenue
   upcomingEvents: any[]
+  todayEvents: any[]
   onBack: () => void
   onShare: () => void
   onClaim: () => void
@@ -98,6 +100,7 @@ interface VenueDetailsViewProps {
 export function VenueDetailsView({
   venue,
   upcomingEvents,
+  todayEvents,
   onBack,
   onShare,
   onClaim,
@@ -105,30 +108,25 @@ export function VenueDetailsView({
   onViewSessionDetails,
 }: VenueDetailsViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
-  const [activeFilter, setActiveFilter] = useState<'today' | 'upcoming'>('upcoming')
+  const [activeFilter, setActiveFilter] = useState<'today' | 'upcoming'>('today')
+  const [mapSheetOpen, setMapSheetOpen] = useState(false)
   const hasInitialized = useRef(false)
   const { items: sportsCatalog } = useSports('en')
   const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
-  const pastCount = (venue as any).past_sessions_count ?? 0
+  const { today: todayCount, upcoming: futureCount, past: pastCount } = computeVenueCounts(venue)
 
-  const { todayStart, tomorrowStart } = getDayBoundaries()
-  const todayEvents = upcomingEvents.filter((e) => {
-    const d = new Date(e.startTime ?? e.starts_at)
-    return d >= todayStart && d < tomorrowStart
-  })
+  const { tomorrowStart } = getDayBoundaries()
   const futureEvents = upcomingEvents.filter((e) => {
     const d = new Date(e.startTime ?? e.starts_at)
     return d >= tomorrowStart
   })
-  const todayCount = todayEvents.length
-  const futureCount = futureEvents.length
 
   useEffect(() => {
-    if (!hasInitialized.current && upcomingEvents.length > 0) {
+    if (!hasInitialized.current && (todayEvents.length > 0 || upcomingEvents.length > 0)) {
       hasInitialized.current = true
-      setActiveFilter(todayCount > 0 ? 'today' : 'upcoming')
+      if (todayCount === 0) setActiveFilter('upcoming')
     }
-  }, [upcomingEvents.length, todayCount])
+  }, [todayEvents.length, upcomingEvents.length, todayCount])
 
   const filteredEvents = activeFilter === 'today' ? todayEvents : futureEvents
   const typedEvents = filteredEvents as PlayerEvent[]
@@ -182,12 +180,13 @@ export function VenueDetailsView({
             <h1 className="truncate text-xl font-black leading-tight tracking-tight text-slate-900">
               {venue.name_display}
             </h1>
-            <p className="mt-0.5 flex items-start gap-1 text-xs font-medium text-slate-400">
-              <MapPin
-                size={12}
-                className="mt-[2px] shrink-0"
-              />
+            <p
+              onClick={() => setMapSheetOpen(true)}
+              className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-400"
+            >
+              <MapPin size={12} className="shrink-0" />
               {venue.address_display}
+              <ExternalLink size={10} className="shrink-0" />
             </p>
           </div>
         </div>
@@ -225,7 +224,7 @@ export function VenueDetailsView({
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Upcoming</span>
           </button>
           <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
-            <span className="text-lg font-black leading-none text-slate-400">{pastCount}</span>
+            <span className="text-lg font-black leading-none text-slate-400 text-center">{pastCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Past</span>
           </div>
         </div>
@@ -376,6 +375,17 @@ export function VenueDetailsView({
           />
         )}
       </div>
+
+      <MapPickerSheet
+        open={mapSheetOpen}
+        onClose={() => setMapSheetOpen(false)}
+        location={{
+          lat: Number(venue.lat),
+          lng: Number(venue.lng),
+          address: venue.address_display,
+          name: venue.name_display,
+        }}
+      />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { Building2, MapPin, Navigation, Share2, ShieldCheck, Trees } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { ApiVenue } from '../services/venuesService'
+import { ApiVenue, computeVenueCounts } from '../services/venuesService'
 import { getSportColor, getSportLabel } from '@/constants/sportTokens'
 
 interface VenueMapBottomSheetProps {
@@ -18,13 +18,10 @@ const VENUE_TYPE_BADGE = {
 export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBottomSheetProps) {
   const navigate = useNavigate()
   const venueType = venue.venue_type ?? 'public'
-  const badge = VENUE_TYPE_BADGE[venueType] ?? VENUE_TYPE_BADGE.public
-  const today = venue.today_sessions_count ?? 0
-  const upcoming = Math.max(0, (venue.active_sessions_count ?? 0) - today)
-  const past = venue.past_sessions_count ?? 0
+  const { today, upcoming, past } = computeVenueCounts(venue)
   const sports = (venue.sport_keys ?? []).slice(0, 2)
   const eventCount = today > 0 ? today : upcoming
-  const btnLabel = eventCount > 0 ? `See ${eventCount} events →` : 'View venue →'
+  const btnLabel = eventCount > 0 ? `See ${eventCount} events  →` : 'View venue →'
 
   return (
     <div className="rounded-[28px] bg-white p-5 shadow-[0_24px_60px_rgba(15,41,77,0.18)] ring-1 ring-black/5">
@@ -85,7 +82,7 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
       <div className="mt-3 grid grid-cols-3 gap-2">
         <div className="flex flex-col items-center justify-center rounded-2xl bg-slate-50 py-3">
           <span className="text-xl font-black text-orange-500">{today}</span>
-          <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">Events today</span>
+          <span className="mt-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400">Today</span>
         </div>
         <div className="flex flex-col items-center justify-center rounded-2xl bg-slate-50 py-3">
           <span className="text-xl font-black text-emerald-500">{upcoming}</span>

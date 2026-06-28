@@ -24,7 +24,6 @@ export function EventDetailPage() {
     setShowProfileRequired,
     alertDialog,
     setAlertDialog,
-    hasOtherParticipants,
     isJoined,
     spotsRemaining,
     effectiveCheckedIn,
@@ -52,7 +51,6 @@ export function EventDetailPage() {
       isCheckingIn={isCheckingIn}
       hasSignaledOnTheWay={effectiveOnTheWay}
       showProfileRequired={showProfileRequired}
-      hasOtherParticipants={hasOtherParticipants}
       isJoined={isJoined}
       spotsRemaining={spotsRemaining}
       effectiveCheckedIn={effectiveCheckedIn}

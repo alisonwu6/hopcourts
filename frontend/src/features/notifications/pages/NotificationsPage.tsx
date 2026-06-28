@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { Clock, CheckCircle2, UserPlus, UserMinus, AlertCircle, Bell, MessageCircle } from 'lucide-react'
 import clsx from 'clsx'
@@ -6,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { notificationsService, NotificationItem } from '../services/notificationsService'
 import { useNotificationsListQuery, NOTIFICATIONS_PAGE_SIZE } from '../hooks/useNotificationsListQuery'
+import { NOTIFICATIONS_UNREAD_QUERY_KEY } from '../hooks/useNotificationsUnreadQuery'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
 const PAGE_SIZE = NOTIFICATIONS_PAGE_SIZE
@@ -17,6 +19,7 @@ export function NotificationsPage() {
   const [hasMore, setHasMore] = useState(false)
   const [offset, setOffset] = useState(0)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const listQuery = useNotificationsListQuery()
 
@@ -63,6 +66,10 @@ export function NotificationsPage() {
   const handleMarkAllRead = async () => {
     setNotifications((prev) => prev.map((p) => ({ ...p, is_read: true })))
     await notificationsService.markAllRead()
+    queryClient.setQueryData(NOTIFICATIONS_UNREAD_QUERY_KEY, (old: any) => ({
+      ...old,
+      data: { ...old?.data, unread_count: 0 },
+    }))
   }
 
   const getIcon = (type: string) => {

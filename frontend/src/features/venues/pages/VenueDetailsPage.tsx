@@ -9,6 +9,7 @@ import { useAuthStore } from '@/hooks'
 import { venuesService, ApiVenue, VenueClaimRequest } from '../services/venuesService'
 import { useVenueByIdQuery } from '../hooks/useVenueByIdQuery'
 import { useVenueUpcomingEventsQuery } from '../hooks/useVenueUpcomingEventsQuery'
+import { useVenueTodayEventsQuery } from '../hooks/useVenueTodayEventsQuery'
 import { sessionService } from '@/services/sessionService'
 import { supabase } from '@/lib/supabase'
 import { PageLoading } from '@/components/PageLoading'
@@ -48,10 +49,12 @@ export function VenueDetailsPage() {
   const queryClient = useQueryClient()
   const venueQuery = useVenueByIdQuery(venueId)
   const eventsQuery = useVenueUpcomingEventsQuery(venueId)
+  const todayEventsQuery = useVenueTodayEventsQuery(venueId)
 
   const [venue, setVenue] = useState<ApiVenue | null>(null)
   const [notFound, setNotFound] = useState(false)
   const upcomingEvents = eventsQuery.data?.data?.data ?? []
+  const todayEvents = todayEventsQuery.data?.data?.data ?? []
   const isLoading = venueQuery.isLoading && !venue
 
   useEffect(() => {
@@ -160,7 +163,12 @@ export function VenueDetailsPage() {
   }
 
   const handleBack = () => {
-    navigate('/venues')
+    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
+    if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
+      navigate('/venues', { replace: true })
+      return
+    }
+    navigate(-1)
   }
 
   if (isLoading) return <PageLoading />
@@ -208,6 +216,7 @@ export function VenueDetailsPage() {
       <VenueDetailsView
         venue={venue}
         upcomingEvents={upcomingEvents}
+        todayEvents={todayEvents}
         onBack={handleBack}
         onShare={handleShare}
         onClaim={openClaimSheet}

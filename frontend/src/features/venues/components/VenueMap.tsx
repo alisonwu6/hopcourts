@@ -9,9 +9,10 @@ interface VenueMapProps {
   venues: ApiVenue[]
   selectedVenueId: string | null
   onSelectVenue: (id: string | null) => void
+  onNavigate: () => void
 }
 
-export function VenueMap({ venues, selectedVenueId, onSelectVenue }: VenueMapProps) {
+export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }: VenueMapProps) {
   const token = import.meta.env.VITE_MAPBOX_TOKEN
   const mapRef = useRef<MapRef>(null)
 
@@ -38,14 +39,6 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue }: VenueMapPro
       () => {}
     )
   }, [])
-
-  const handleNavigate = (venue: ApiVenue) => {
-    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
-    const url = isIos
-      ? `maps://maps.apple.com/?daddr=${venue.lat},${venue.lng}`
-      : `https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lng}`
-    window.open(url, '_blank')
-  }
 
   const handleShare = (venue: ApiVenue) => {
     const url = `${window.location.origin}/venues/${venue.id}`
@@ -107,7 +100,7 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue }: VenueMapPro
         >
           <VenueMapBottomSheet
             venue={selectedVenue}
-            onNavigate={() => handleNavigate(selectedVenue)}
+            onNavigate={onNavigate}
             onShare={() => handleShare(selectedVenue)}
           />
         </div>

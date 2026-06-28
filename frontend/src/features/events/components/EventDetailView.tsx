@@ -17,12 +17,15 @@ import {
   Check,
   DoorOpen,
   DoorClosed,
+  CircleAlert,
+  Route,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { PlayerEvent } from '@/types'
 import type { Sport } from '@/types/dictionary'
 import { Button, AlertDialog } from '@/components'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
+import { MapPickerSheet } from '@/components/MapPickerSheet'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { PageLoading } from '@/components/PageLoading'
 import { BookmarkButton } from './BookmarkButton'
@@ -47,13 +50,10 @@ type EventDetailViewProps = {
   currentUserId?: string
   isFavorite: boolean
   showLoginPrompt: boolean
-
-
   isJoinSubmitting: boolean
   isCheckingIn: boolean
   hasSignaledOnTheWay: boolean
   showProfileRequired: boolean
-  hasOtherParticipants: boolean
   isJoined: boolean
   spotsRemaining: number
   effectiveCheckedIn: boolean
@@ -87,7 +87,6 @@ export function EventDetailView({
   isCheckingIn,
   hasSignaledOnTheWay,
   showProfileRequired,
-  hasOtherParticipants,
   isJoined,
   spotsRemaining,
   effectiveCheckedIn,
@@ -157,7 +156,7 @@ export function EventDetailView({
 
   const formatMoney = (value?: number | null) => {
     if (value == null || Number.isNaN(Number(value))) return ''
-    return Math.round(Number(value)).toLocaleString('en-AU')
+    return Number(value).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
 
   const feeLine2 = (() => {
@@ -169,11 +168,11 @@ export function EventDetailView({
       return 'Paid event'
     }
     if (total != null) {
-      const perFull = Math.ceil(total / maxPeople)
-      const perHigh = Math.ceil(total / minPeople)
+      const perFull = Math.ceil((total / maxPeople) * 100) / 100
+      const perHigh = Math.ceil((total / minPeople) * 100) / 100
       return perHigh !== perFull
-        ? `Est. $${perFull} – $${perHigh} / player`
-        : `Est. $${perFull} / player`
+        ? `Est. $${formatMoney(perFull)} – $${formatMoney(perHigh)} / player`
+        : `Est. $${formatMoney(perFull)} / player`
     }
     return 'Paid event'
   })()
@@ -188,27 +187,14 @@ export function EventDetailView({
   const scheduleLabel = formatEventSchedule(event.startTime, event.endTime)
   const updatedAtLabel = event.updatedAt ? formatDateTimeLabel(event.updatedAt) : null
 
-  const handleOpenMap = () => {
-    if (event.location.lat && event.location.lng) {
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`,
-        '_blank',
-        'noopener,noreferrer'
-      )
-      return
-    }
-    const query = event.location.address || event.location.name
-    if (query) {
-      window.open(
-        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`,
-        '_blank',
-        'noopener,noreferrer'
-      )
-    }
-  }
+  const [showMapPicker, setShowMapPicker] = React.useState(false)
+  const handleOpenMap = () => setShowMapPicker(true)
 
+  const eventEnd = event.endTime
+    ? new Date(event.endTime)
+    : new Date(new Date(event.startTime).getTime() + 2 * 60 * 60 * 1000)
   const isHost = event.host.id === currentUserId
-  const isPast = new Date() > (event.endTime ? new Date(event.endTime) : new Date(event.startTime))
+  const isPast = new Date() > eventEnd
 
   return (
     <div className="min-h-[100dvh] pb-40">
@@ -234,10 +220,12 @@ export function EventDetailView({
                 </button>
               </>
             )}
-            <BookmarkButton
-              eventId={event.id}
-              className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
-            />
+            {!isPast && (
+              <BookmarkButton
+                eventId={event.id}
+                className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
+              />
+            )}
             <button
               type="button"
               onClick={onShare}
@@ -267,7 +255,7 @@ export function EventDetailView({
         </div>
 
         <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div className="mx-auto max-w-[400px] px-5 pb-6 pt-6">
+          <div className="mx-auto max-w-[400px] p-5">
             <div className="flex items-center justify-between">
               <div
                 className={clsx(
@@ -372,86 +360,6 @@ export function EventDetailView({
             <hr className="my-6 border-slate-200" />
 
             <div className="space-y-3">
-              <div className="flex items-start gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                  <PersonStanding
-                    className="h-4 w-4"
-                    strokeWidth={2}
-                    aria-hidden="true"
-                  />
-                </span>
-                <span className="flex flex-1 flex-col gap-1">
-                  <span className="flex items-center justify-between">
-                    <span>{event.attendeeCount} joined · {spotsRemaining} spots left</span>
-                    {spotsRemaining === 0 && event.status !== 'cancelled' && (
-                      <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
-                        Full
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
-                    {participantRule}
-                  </span>
-                </span>
-              </div>
-
-              {event.participants.length > 0 ? (
-                event.participants.map((participant) => {
-                  const isCheckedIn = !!participant.checkedInAt
-                  const isOnTheWay =
-                    !!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay)
-                  const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
-                  const closeMins = event.checkinCloseMinsAfter ?? 60
-                  const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
-                  const now = new Date()
-                  const isAbsent = !isCheckedIn && now > closeTime
-
-                  return (
-                    <div
-                      key={participant.id}
-                      className="flex cursor-pointer items-center justify-between gap-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition"
-                      onClick={() => {
-                        if (participant.username && !participant.isAnonymous) {
-                          onNavigateMate(participant.username)
-                        }
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <AvatarCircle
-                          name={participant.name}
-                          src={participant.avatarUrl}
-                        />
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-900">{participant.name}</p>
-                          {participant.isAnonymous && (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
-                              Guest
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="pr-1">
-                        {isCheckedIn ? (
-                          <span className="text-xs font-bold text-emerald-600">Checked in</span>
-                        ) : isAbsent ? (
-                          <span className="text-xs font-bold text-gray-400">Missed it</span>
-                        ) : isOnTheWay ? (
-                          <span className="text-xs font-bold text-amber-500">On the way</span>
-                        ) : (
-                          <span className="text-xs font-medium text-slate-400">Not checked in</span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-              ) : (
-                <p className="pl-14 text-xs text-slate-300">Be the first to join and kick off the game!</p>
-              )}
-            </div>
-
-            <hr className="my-6 border-slate-200" />
-
-            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                   <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
@@ -468,6 +376,122 @@ export function EventDetailView({
                 {event.detail?.description || event.description || 'No description'}
               </p>
             </div>
+
+            <hr className="my-6 border-slate-200" />
+
+            <div className="space-y-3">
+              <div className="flex justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="flex items-start gap-2">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                    <PersonStanding
+                      className="h-4 w-4"
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span className="flex flex-1 flex-col gap-1">
+                    <span className="flex items-center justify-between">
+                      <span>
+                        {event.attendeeCount} joined · {spotsRemaining} spots left
+                      </span>
+                      {spotsRemaining === 0 && event.status !== 'cancelled' && (
+                        <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
+                          Full
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
+                      {participantRule}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1 text-[8px] font-bold text-slate-500">
+                  <div className="flex items-center gap-1">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+                      <Check
+                        className="h-3 w-3 text-white"
+                        strokeWidth={3}
+                      />
+                    </span>
+                    <span className="">Checked in</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-400">
+                      <Route
+                        className="h-3 w-3 text-white"
+                        strokeWidth={2.5}
+                      />
+                    </span>
+                    <span className="">On the way</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-400">
+                      <CircleAlert
+                        className="h-3 w-3 text-white"
+                        strokeWidth={2.5}
+                      />
+                    </span>
+                    <span className="">Missed</span>
+                  </div>
+                </div>
+              </div>
+              {event.participants.length > 0 ? (
+                <>
+                  <div className="flex flex-wrap gap-3 pt-1">
+                    {event.participants.map((participant) => {
+                      const isCheckedIn = !!participant.checkedInAt
+                      const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+                      const closeMins = event.checkinCloseMinsAfter ?? 60
+                      const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+                      const now = new Date()
+                      const isAbsent = !isCheckedIn && now > closeTime
+                      const isOnTheWay =
+                        !isAbsent &&
+                        (!!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay))
+                      const displayName = participant.isAnonymous ? 'Guest' : participant.name.split(' ')[0]
+
+                      return (
+                        <div
+                          key={participant.id}
+                          className="flex w-14 cursor-pointer flex-col items-center gap-1.5"
+                          onClick={() => {
+                            if (participant.username && !participant.isAnonymous) {
+                              onNavigateMate(participant.username)
+                            }
+                          }}
+                        >
+                          <div className="relative">
+                            <AvatarCircle
+                              name={participant.name}
+                              src={participant.avatarUrl}
+                              ringClassName={
+                                isCheckedIn
+                                  ? 'ring-2 ring-emerald-500'
+                                  : isAbsent
+                                    ? 'ring-2 ring-slate-400'
+                                    : isOnTheWay
+                                      ? 'ring-2 ring-amber-400'
+                                      : undefined
+                              }
+                            />
+                            <ParticipantStatusBadge
+                              isCheckedIn={isCheckedIn}
+                              isAbsent={isAbsent}
+                              isOnTheWay={isOnTheWay}
+                            />
+                          </div>
+                          <p className="w-full truncate text-center text-[11px] font-medium text-slate-700">
+                            {displayName}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              ) : (
+                <p className="pl-14 text-xs text-slate-300">Be the first to join and kick off the game!</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -475,18 +499,18 @@ export function EventDetailView({
       {event.status !== 'cancelled' &&
         event.status !== 'completed' &&
         event.status !== 'draft' &&
-        new Date() <= (event.endTime ? new Date(event.endTime) : new Date(event.startTime)) && (
-        <JoinBar
-          isJoined={isJoined}
-          event={event}
-          onJoin={onJoin}
-          onCheckIn={onCheckIn}
-          isCheckingIn={isCheckingIn}
-          isJoinSubmitting={isJoinSubmitting}
-          hasCheckedIn={effectiveCheckedIn}
-          hasSignaledOnTheWay={hasSignaledOnTheWay}
-        />
-      )}
+        new Date() <= new Date(eventEnd.getTime() + (event.checkinCloseMinsAfter ?? 60) * 60 * 1000) && (
+          <JoinBar
+            isJoined={isJoined}
+            event={event}
+            onJoin={onJoin}
+            onCheckIn={onCheckIn}
+            isCheckingIn={isCheckingIn}
+            isJoinSubmitting={isJoinSubmitting}
+            hasCheckedIn={effectiveCheckedIn}
+            hasSignaledOnTheWay={hasSignaledOnTheWay}
+          />
+        )}
 
       <LoginPromptSheet
         open={showLoginPrompt}
@@ -509,25 +533,79 @@ export function EventDetailView({
         open={showProfileRequired}
         onClose={onCloseProfileRequired}
       />
+
+      <MapPickerSheet
+        open={showMapPicker}
+        onClose={() => setShowMapPicker(false)}
+        location={event.location}
+      />
     </div>
   )
 }
 
-function AvatarCircle({ name, src }: { name: string; src?: string }) {
+function ParticipantStatusBadge({
+  isCheckedIn,
+  isAbsent,
+  isOnTheWay,
+}: {
+  isCheckedIn: boolean
+  isAbsent: boolean
+  isOnTheWay: boolean
+}) {
+  if (isCheckedIn) {
+    return (
+      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white">
+        <Check
+          className="h-3 w-3 text-white"
+          strokeWidth={3}
+        />
+      </span>
+    )
+  }
+  if (isAbsent) {
+    return (
+      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-400 ring-2 ring-white">
+        <CircleAlert
+          className="h-3 w-3 text-white"
+          strokeWidth={2.5}
+        />
+      </span>
+    )
+  }
+  if (isOnTheWay) {
+    return (
+      <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 ring-2 ring-white">
+        <Route
+          className="h-3 w-3 text-white"
+          strokeWidth={2.5}
+        />
+      </span>
+    )
+  }
+  return null
+}
+
+function AvatarCircle({ name, src, ringClassName }: { name: string; src?: string; ringClassName?: string }) {
   return (
     <div
-      className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100"
-      style={
-        src
-          ? {
-              backgroundImage: `url(${src})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }
-          : undefined
-      }
+      aria-label={name}
+      className={clsx(
+        'flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100',
+        ringClassName
+      )}
     >
-      {!src && <Smile className="h-6 w-6 text-slate-300" />}
+      {src ? (
+        <img
+          src={src}
+          alt={name}
+          className="h-full w-full object-cover object-center"
+        />
+      ) : (
+        <Smile
+          className="h-6 w-6 text-slate-300"
+          aria-hidden="true"
+        />
+      )}
     </div>
   )
 }
@@ -603,18 +681,27 @@ type JoinBarProps = {
   hasSignaledOnTheWay: boolean
 }
 
-function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmitting, hasCheckedIn, hasSignaledOnTheWay }: JoinBarProps) {
+function JoinBar({
+  isJoined,
+  event,
+  onJoin,
+  onCheckIn,
+  isCheckingIn,
+  isJoinSubmitting,
+  hasCheckedIn,
+  hasSignaledOnTheWay,
+}: JoinBarProps) {
   const isFull = event.maxAttendees > 0 && event.attendeeCount >= event.maxAttendees
   const now = new Date()
   const startTime = new Date(event.startTime)
   const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
 
   const openMins = event.checkinOpenMinsBefore ?? 10
-  const closeMins = event.checkinCloseMinsAfter ?? 5
+  const closeMins = event.checkinCloseMinsAfter ?? 60
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
-  const effectiveCloseTime = endTime
-  const isCheckInOpen = now >= openTime && now <= endTime
+  const effectiveCloseTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+  const isCheckInOpen = now >= openTime && now <= effectiveCloseTime
 
   // Free + non-official events (open courts, parks) stay open for walk-up joiners even mid-game.
   // Paid or official events: 2h before start, leave is disabled (locked in). New joiners can still hop in but also can't leave.
@@ -672,8 +759,13 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
       </Button>
     )
     secondaryButton = (
-      <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500 bg-transparent shadow-none text-emerald-600">
-        <Check className="h-5 w-5" strokeWidth={2.5} />
+      <div className="flex items-center justify-center gap-2 rounded-lg border border-emerald-500 bg-transparent text-emerald-600 shadow-none">
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+          <Check
+            className="h-3 w-3 text-white"
+            strokeWidth={3}
+          />
+        </span>
         <span className="text-base font-semibold">Checked in</span>
       </div>
     )
@@ -718,7 +810,10 @@ function JoinBar({ isJoined, event, onJoin, onCheckIn, isCheckingIn, isJoinSubmi
             'Locating...'
           ) : (
             <span className="flex items-center justify-center gap-2">
-              <LandPlot className="h-5 w-5" strokeWidth={2} />
+              <LandPlot
+                className="h-5 w-5"
+                strokeWidth={2}
+              />
               Check in
             </span>
           )}

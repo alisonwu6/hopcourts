@@ -51,7 +51,7 @@ export function MateProfilePage() {
     }
   }, [citiesDict])
 
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar')
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
 
   const profileQuery = useMateProfileQuery(username)
   const profileData = useMemo(() => {
