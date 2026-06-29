@@ -105,13 +105,13 @@ export function EventCard({
     <article
       {...interactionHandlers}
       className={clsx(
-        'relative overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)]',
+        'relative overflow-hidden rounded-[10px] border border-slate-100 bg-white shadow-[0_15px_45px_rgba(15,41,77,0.07)]',
         isClickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-player-500',
         className ?? 'mb-5'
       )}
     >
       {showBookmark && (
-        <div className="absolute right-2 top-0 z-10">
+        <div className="absolute right-0 top-[2px] z-10">
           <BookmarkButton eventId={event.id} className="px-2 pb-2 pt-0 text-blue-600" />
         </div>
       )}
