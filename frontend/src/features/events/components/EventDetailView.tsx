@@ -394,14 +394,16 @@ export function EventDetailView({
                       <span>
                         {event.attendeeCount} joined · {spotsRemaining} spots left
                       </span>
+                    </span>
+                    <span className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
+                        {participantRule}
+                      </span>
                       {spotsRemaining === 0 && event.status !== 'cancelled' && (
                         <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
                           Full
                         </span>
                       )}
-                    </span>
-                    <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
-                      {participantRule}
                     </span>
                   </span>
                 </div>
