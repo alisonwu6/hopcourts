@@ -9,12 +9,6 @@ interface VenueMapBottomSheetProps {
   onShare: () => void
 }
 
-const VENUE_TYPE_BADGE = {
-  official: { label: 'Official', icon: <ShieldCheck size={10} />, className: 'border-blue-200 bg-blue-50 text-blue-600' },
-  public:   { label: 'Public',   icon: <Trees size={10} />,       className: 'border-green-200 bg-green-50 text-green-700' },
-  private:  { label: 'Private',  icon: null,                       className: 'border-slate-200 bg-slate-50 text-slate-600' },
-} as const
-
 export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBottomSheetProps) {
   const navigate = useNavigate()
   const venueType = venue.venue_type ?? 'public'
@@ -39,17 +33,17 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
             )}
           </div>
           {venueType === 'official' && (
-            <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
+            <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
               <ShieldCheck
-                size={10}
+                size={18}
                 className="text-white"
               />
             </div>
           )}
           {venueType === 'public' && (
-            <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
+            <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
               <Trees
-                size={10}
+                size={18}
                 className="text-white"
               />
             </div>
@@ -60,8 +54,8 @@ export function VenueMapBottomSheet({ venue, onNavigate, onShare }: VenueMapBott
           <h3 className="truncate text-lg font-black tracking-tight text-slate-900">{venue.name_display}</h3>
           <p className="flex items-start gap-1 text-xs font-medium text-slate-400">
             <MapPin
-              size={10}
-              className="shrink-0"
+              size={12}
+              className="mt-[3px] shrink-0"
             />
             {venue.address_display}
           </p>

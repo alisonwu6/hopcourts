@@ -167,9 +167,9 @@ export function VenueDetailsView({
               </div>
             )}
             {venue.venue_type === 'public' && (
-              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
+              <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
                 <Trees
-                  size={12}
+                  size={18}
                   className="text-white"
                 />
               </div>
@@ -182,11 +182,17 @@ export function VenueDetailsView({
             </h1>
             <p
               onClick={() => setMapSheetOpen(true)}
-              className="mt-0.5 flex items-center gap-1 text-xs font-medium text-slate-400"
+              className="mt-0.5 flex items-start gap-1 text-xs font-medium text-slate-400"
             >
-              <MapPin size={12} className="shrink-0" />
+              <MapPin
+                size={12}
+                className="mt-[3px] shrink-0"
+              />
               {venue.address_display}
-              <ExternalLink size={10} className="shrink-0" />
+              <ExternalLink
+                size={14}
+                className="mt-[3px] shrink-0"
+              />
             </p>
           </div>
         </div>
@@ -209,7 +215,10 @@ export function VenueDetailsView({
         <div className="mt-3 flex gap-3">
           <button
             type="button"
-            onClick={() => { setActiveFilter('today'); setViewMode('list') }}
+            onClick={() => {
+              setActiveFilter('today')
+              setViewMode('list')
+            }}
             className={`flex flex-col rounded-2xl px-4 py-2.5 transition ${activeFilter === 'today' ? 'bg-orange-50 ring-1 ring-orange-300' : 'bg-slate-50'}`}
           >
             <span className="text-lg font-black leading-none text-orange-500">{todayCount}</span>
@@ -224,7 +233,7 @@ export function VenueDetailsView({
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Upcoming</span>
           </button>
           <div className="flex flex-col rounded-2xl bg-slate-50 px-4 py-2.5">
-            <span className="text-lg font-black leading-none text-slate-400 text-center">{pastCount}</span>
+            <span className="text-center text-lg font-black leading-none text-slate-400">{pastCount}</span>
             <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400">Past</span>
           </div>
         </div>
@@ -289,7 +298,6 @@ export function VenueDetailsView({
             </div>
           </div>
         )}
-
       </div>
 
       {/* Claim CTA */}

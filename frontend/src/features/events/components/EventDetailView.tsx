@@ -336,8 +336,8 @@ export function EventDetailView({
                   className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                 >
                   <ExternalLink
-                    className="h-3.5 w-3.5"
-                    strokeWidth={2.25}
+                    size={14}
+                    className="mt-[3px] shrink-0"
                   />
                 </button>
               </div>
