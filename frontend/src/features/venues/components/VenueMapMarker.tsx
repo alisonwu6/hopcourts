@@ -12,19 +12,19 @@ const TYPE_STYLES = {
     pill: 'text-white',
     pillStyle: { background: '#0067b6' },
     tailColor: '#0067b6',
-    icon: <ShieldCheck size={14} />,
+    icon: <ShieldCheck size={18} />,
   },
   public: {
     pill: 'text-white',
     pillStyle: { background: '#2d7a3a' },
     tailColor: '#2d7a3a',
-    icon: <Trees size={14} />,
+    icon: <Trees size={18} />,
   },
   private: {
     pill: 'text-white',
     pillStyle: { background: '#7c3aed' },
     tailColor: '#7c3aed',
-    icon: <CalendarCheck size={14} />,
+    icon: <CalendarCheck size={18} />,
   },
 } as const
 

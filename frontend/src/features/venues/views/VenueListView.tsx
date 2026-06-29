@@ -190,7 +190,10 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
       className="flex w-full items-center gap-2 rounded-3xl bg-[#2d3818] p-2 text-left shadow-sm transition active:scale-[0.99]"
     >
       <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1A3A0A]">
-        <Trees className="h-10 w-10 text-[#cce15f]" strokeWidth={2} />
+        <Trees
+          size={48}
+          className="text-[#cce15f]"
+        />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your local court?</p>
@@ -198,7 +201,10 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
           Put it on the map instantly. Free, always.
         </p>
       </div>
-      <ChevronRight className="h-5 w-5 flex-none text-white/70" strokeWidth={2} />
+      <ChevronRight
+        size={30}
+        className="flex-none text-white/70"
+      />
     </button>
   )
 }
