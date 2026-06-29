@@ -311,7 +311,7 @@ export function CreateEventPageView({
                 <FloatingField
                   label="Venue Name (Optional)"
                   name="placeName"
-                  placeholder="Add the venue name if known."
+                  placeholder="Real name unlocks it for our community"
                   value={form.placeName}
                   onChange={handleInputChange}
                 />
@@ -422,7 +422,7 @@ export function CreateEventPageView({
                     </div>
 
                     <div>
-                      <span className="text-xs text-slate-400 line-clamp-none px-2">
+                      <span className="line-clamp-none px-2 text-xs text-slate-400">
                         {costMode === 'total'
                           ? "We'll automatically calculate the cost per person based on max capacity."
                           : 'Set a flat rate for each player joining this game.'}

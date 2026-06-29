@@ -31,7 +31,7 @@ async function notifyCheckinWindowOpening() {
         type: 'checkin_open',
         entity_type: 'session',
         entity_id: session_id,
-        title: 'Check-in is open!',
+        title: 'Game On!',
         message: `"${title}" is starting soon — check in now.`,
         metadata: { deep_link: `/event/${session_id}` },
       })
@@ -67,8 +67,8 @@ async function notifyTodayEvents() {
         type: 'session_today',
         entity_type: 'session',
         entity_id: session_id,
-        title: "You've got a game today!",
-        message: `"${title}" is happening today. Get ready!`,
+        title: "Your game is locked in today.",
+        message: `"${title}" starts soon. See who's hopping in.`,
         metadata: { deep_link: `/event/${session_id}` },
       })
       .catch((err) => console.error('session_today notify failed', err))

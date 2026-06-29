@@ -52,6 +52,16 @@
   --color-ocean-800: #003f57;
   --color-ocean-900: #002230;
   --color-ocean: #0095cf;
+
+  --animate-bookmark-pop: bookmark-pop 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes bookmark-pop {
+  0%   { transform: scale(1)    rotate(0deg); }
+  20%  { transform: scale(1.45) rotate(-10deg); }
+  45%  { transform: scale(0.88) rotate(5deg); }
+  70%  { transform: scale(1.18) rotate(-3deg); }
+  100% { transform: scale(1)    rotate(0deg); }
 }
 
 @layer base {

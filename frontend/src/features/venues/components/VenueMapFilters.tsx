@@ -25,7 +25,7 @@ export function VenueMapFilters({
         isActive={activeFilter === 'has_events'}
         activeClassName="text-white"
         activeStyle={{ background: '#df6c03' }}
-        icon={<CalendarCheck size={14} />}
+        icon={<CalendarCheck size={18} />}
         onClick={() => onFilterChange('has_events')}
       />
       <Chip
@@ -33,7 +33,7 @@ export function VenueMapFilters({
         isActive={activeFilter === 'public'}
         activeClassName="text-white"
         activeStyle={{ background: '#2d7a3a' }}
-        icon={<Trees size={14} />}
+        icon={<Trees size={18} />}
         onClick={() => onFilterChange('public')}
       />
       <Chip
@@ -41,7 +41,7 @@ export function VenueMapFilters({
         isActive={activeFilter === 'official'}
         activeClassName="text-white"
         activeStyle={{ background: '#0067b6' }}
-        icon={<ShieldCheck size={14} />}
+        icon={<ShieldCheck size={18} />}
         onClick={() => onFilterChange('official')}
       />
     </div>

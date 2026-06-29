@@ -27,13 +27,13 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
             )}
           </div>
           {venue.venue_type === 'official' && (
-            <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
-              <ShieldCheck size={10} className="text-white" />
+            <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
+              <ShieldCheck size={18} className="text-white" />
             </div>
           )}
           {venue.venue_type === 'public' && (
-            <div className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
-              <Trees size={10} className="text-white" />
+            <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
+              <Trees size={18} className="text-white" />
             </div>
           )}
         </div>
@@ -43,7 +43,7 @@ export function VenueCard({ venue, onClick }: VenueCardProps) {
             {venue.name_display}
           </h3>
           <p className="flex items-start gap-1 text-xs font-medium text-slate-400">
-            <MapPin size={10} className="mt-[3px] shrink-0" />
+            <MapPin size={12} className="mt-[3px] shrink-0" />
             {venue.address_display}
           </p>
         </div>
