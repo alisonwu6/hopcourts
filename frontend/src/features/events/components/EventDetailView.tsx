@@ -197,7 +197,7 @@ export function EventDetailView({
   const isPast = new Date() > eventEnd
 
   return (
-    <div className="min-h-[100dvh] pb-40">
+    <div className="flex h-[100dvh] flex-col">
       <ActionToolbar
         onBack={onBack}
         onShare={onShare}
@@ -242,6 +242,7 @@ export function EventDetailView({
         }
       />
 
+      <div className="flex-1 overflow-y-auto">
       <div className="w-full space-y-6">
         <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
           <ImageCarousel
@@ -496,6 +497,7 @@ export function EventDetailView({
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {event.status !== 'cancelled' &&
@@ -930,8 +932,8 @@ function JoinBar({
   }
 
   return (
-    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)] will-change-transform">
-      <div className="relative flex w-full flex-col gap-2 px-4">
+    <div className="w-full shrink-0 bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+      <div className="relative mx-auto flex w-full max-w-md flex-col gap-2 px-4">
         {statusText}
         {secondaryButton ? (
           <div className="grid grid-cols-2 gap-3">
