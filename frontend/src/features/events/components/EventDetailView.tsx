@@ -829,7 +829,7 @@ function JoinBar({
         </div>
       ) : (
         <div className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          <p>Check in before the game ends <br /> to keep track of your mates.</p>
+          <p>Check in before the game ends to keep track of your mates.</p>
         </div>
       )
     } else if (now > effectiveCloseTime) {
@@ -903,7 +903,7 @@ function JoinBar({
       ) : (
         <div className="text-center text-xs font-medium leading-relaxed text-slate-500">
           <p>{isPublicFree
-            ? `Check-in opens ${openMins}m before kick-off to grow your network.`
+            ? `Check-in opens ${openMins} minutes before kick-off to grow your network.`
             : 'Paid event — please withdraw at least 2 hours before kick-off.'
           }</p>
         </div>
