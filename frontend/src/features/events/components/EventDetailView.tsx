@@ -444,7 +444,7 @@ export function EventDetailView({
                     {event.participants.map((participant) => {
                       const isCheckedIn = !!participant.checkedInAt
                       const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
-                      const closeMins = event.checkinCloseMinsAfter ?? 60
+                      const closeMins = event.checkinCloseMinsAfter ?? 0
                       const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
                       const now = new Date()
                       const isAbsent = !isCheckedIn && now > closeTime
@@ -503,7 +503,7 @@ export function EventDetailView({
       {event.status !== 'cancelled' &&
         event.status !== 'completed' &&
         event.status !== 'draft' &&
-        new Date() <= new Date(eventEnd.getTime() + (event.checkinCloseMinsAfter ?? 60) * 60 * 1000) && (
+        new Date() <= new Date(eventEnd.getTime() + (event.checkinCloseMinsAfter ?? 0) * 60 * 1000) && (
           <JoinBar
             isJoined={isJoined}
             event={event}
@@ -700,8 +700,8 @@ function JoinBar({
   const startTime = new Date(event.startTime)
   const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
 
-  const openMins = event.checkinOpenMinsBefore ?? 10
-  const closeMins = event.checkinCloseMinsAfter ?? 60
+  const openMins = event.checkinOpenMinsBefore ?? 15
+  const closeMins = event.checkinCloseMinsAfter ?? 0
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
   const effectiveCloseTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
@@ -823,12 +823,14 @@ function JoinBar({
           )}
         </Button>
       )
-      statusText = (
-        <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          {hasSignaledOnTheWay
-            ? `Your mates know you're OTW. Remember to check in by ${formatTime(effectiveCloseTime)}.`
-            : `Check in before ${formatTime(effectiveCloseTime)} so everyone knows you've made it.`}
-        </p>
+      statusText = isBookingsClosed ? (
+        <div className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
+          <p>{"You're locked in — check in before the game ends to keep track of mates."}</p>
+        </div>
+      ) : (
+        <div className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
+          <p>Check in before the game ends <br /> to keep track of your mates.</p>
+        </div>
       )
     } else if (now > effectiveCloseTime) {
       mainButton = (
@@ -895,14 +897,16 @@ function JoinBar({
         </Button>
       )
       statusText = isBookingsClosed ? (
-        <p className="text-center text-xs font-medium text-slate-500">
-          Withdrawals are closed — you're locked in for this one.
-        </p>
+        <div className="text-center text-xs font-medium leading-relaxed text-slate-500">
+          <p>{"You're locked in — check in before the game ends to keep track of mates."}</p>
+        </div>
       ) : (
-        <p className="text-center text-xs font-medium text-slate-500">
-          Check-in opens {formatTime(openTime)}.<br />
-          Let the host know you're there.
-        </p>
+        <div className="text-center text-xs font-medium leading-relaxed text-slate-500">
+          <p>{isPublicFree
+            ? `Check-in opens ${openMins}m before kick-off to grow your network.`
+            : 'Paid event — please withdraw at least 2 hours before kick-off.'
+          }</p>
+        </div>
       )
     }
   } else if (!isPublicFree && now >= startTime && now <= endTime) {

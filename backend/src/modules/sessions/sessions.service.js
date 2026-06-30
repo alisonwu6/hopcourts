@@ -362,7 +362,7 @@ async function createSession(input) {
     lng: input.lng ?? 0,
     checkinRadiusM: input.checkinRadiusM ?? 100,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 15,
-    checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 5,
+    checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 0,
     minPeople: input.minPeople,
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',

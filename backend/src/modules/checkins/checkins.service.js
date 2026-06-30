@@ -29,7 +29,7 @@ async function checkInToSession({ sessionId, userId, lat, lng, now = new Date() 
     throw createError('INVALID_SESSION', 'Session start time is invalid', 400)
   }
 
-  const openMins = Number(session.checkin_open_mins_before ?? 10)
+  const openMins = Number(session.checkin_open_mins_before ?? 15)
   const opensAt = new Date(startsAt.getTime() - openMins * 60 * 1000)
 
   const nowTs = now instanceof Date ? now : new Date(now)

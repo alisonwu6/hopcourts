@@ -259,9 +259,13 @@ export function useEventDetailLogic() {
               onAction: handleOnTheWay,
             })
           } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
+            const isLate =
+              details?.ends_at && details?.now && new Date(details.now) > new Date(details.ends_at)
             showAlert(
-              'Too Early to Check In',
-              'The check-in window is not open yet. Please check the session time.',
+              isLate ? "Check-in Closed" : 'Too Early to Check In',
+              isLate
+                ? "The game has ended. Check-in is no longer available."
+                : 'Check-in opens 15 minutes before kick-off. Please check back closer to game time.',
               'warning'
             )
           } else {
