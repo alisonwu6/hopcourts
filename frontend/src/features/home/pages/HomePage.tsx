@@ -127,9 +127,9 @@ export function HomePage() {
           {/* Manifesto */}
           <section className="bg-courts mt-8 rounded-2xl px-3 py-4 text-center">
             <blockquote className="text-md font-semibold italic leading-relaxed text-white">
-              Sport is the oldest social network.
+              "Sport is the oldest social network.
               <br />
-              We just built the app for it.
+              We just built the app for it."
             </blockquote>
             <p className="mt-3 text-xs font-semibold text-white">HopCourts Team</p>
           </section>
