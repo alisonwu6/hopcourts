@@ -86,6 +86,7 @@ export function useCreateEventForm() {
   const { items: sportsCatalog } = useSports('en')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
   const [submittingStatus, setSubmittingStatus] = useState<'draft' | 'published' | null>(null)
   const isSubmitting = submittingStatus !== null
   const [isFavorite, setIsFavorite] = useState(false)
@@ -374,24 +375,42 @@ export function useCreateEventForm() {
     const rawFiles = Array.from(event.target.files ?? [])
     if (!rawFiles.length) return
 
+    setPhotoError(null)
+
     const currentCount = heroPreviews.length
     if (currentCount >= 3) {
-      alert('You can upload up to 3 photos')
+      setPhotoError('You can upload up to 3 photos.')
       event.target.value = ''
       return
     }
 
     const remaining = 3 - currentCount
     const filesToProcess = rawFiles.slice(0, remaining)
+    const MAX_BYTES = 5 * 1024 * 1024
 
-    try {
-      const processedFiles = await Promise.all(filesToProcess.map((file: File) => convertFileToWebP(file)))
-      const newPreviews = processedFiles.map((file) => URL.createObjectURL(file))
-      setHeroPreviews((prev) => [...prev, ...newPreviews])
-      setSelectedFiles((prev) => [...prev, ...processedFiles])
-    } catch (err) {
-      console.error('Image processing failed:', err)
+    const results: File[] = []
+    for (const file of filesToProcess) {
+      let processed: File
+      try {
+        processed = await convertFileToWebP(file)
+      } catch {
+        // HEIC or unsupported format — fall back to original file
+        processed = file
+      }
+
+      if (processed.size > MAX_BYTES) {
+        const mb = (processed.size / 1024 / 1024).toFixed(1)
+        setPhotoError(`Photo is too large (${mb} MB). Please use a photo under 5 MB.`)
+        event.target.value = ''
+        return
+      }
+
+      results.push(processed)
     }
+
+    const newPreviews = results.map((f) => URL.createObjectURL(f))
+    setHeroPreviews((prev) => [...prev, ...newPreviews])
+    setSelectedFiles((prev) => [...prev, ...results])
     event.target.value = ''
   }
 
@@ -720,6 +739,7 @@ export function useCreateEventForm() {
     setForm,
     editId,
     error,
+    photoError,
     submittingStatus,
     canSubmit,
     isFavorite,

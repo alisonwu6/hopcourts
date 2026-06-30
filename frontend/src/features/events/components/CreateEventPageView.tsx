@@ -30,6 +30,7 @@ export function CreateEventPageView({
   setForm,
   editId,
   error,
+  photoError,
   submittingStatus,
   canSubmit,
   isFavorite,
@@ -498,6 +499,11 @@ export function CreateEventPageView({
                 onChange={handleImageChange}
                 onRemove={handleRemoveImage}
               />
+              {photoError && (
+                <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {photoError}
+                </p>
+              )}
             </FieldSection>
 
             <FieldSection

@@ -62,12 +62,12 @@ export function FloatingField(props: FloatingFieldProps) {
           <label htmlFor={id} className={labelClasses}>
             {label}
           </label>
+          {characterLimit != null && typeof value === 'string' && value.length > 0 && (
+            <span className={clsx('pointer-events-none absolute right-4 top-2 text-xs transition-colors duration-500', showError ? 'text-red-500' : 'text-slate-400')}>
+              {infoText}
+            </span>
+          )}
         </div>
-        {characterLimit != null && typeof value === 'string' && value.length > 0 && (
-          <p className={clsx('text-right text-xs transition-colors duration-500', showError ? 'text-red-500' : 'text-slate-500')}>
-            {infoText}
-          </p>
-        )}
       </div>
     )
   }
@@ -87,12 +87,12 @@ export function FloatingField(props: FloatingFieldProps) {
         <label htmlFor={id} className={labelClasses}>
           {label}
         </label>
+        {characterLimit != null && typeof value === 'string' && value.length > 0 && (
+          <span className={clsx('pointer-events-none absolute right-4 top-2 text-xs transition-colors duration-500', showError ? 'text-red-500' : 'text-slate-400')}>
+            {infoText}
+          </span>
+        )}
       </div>
-      {characterLimit != null && typeof value === 'string' && value.length > 0 && (
-        <p className={clsx('text-right text-xs transition-colors duration-500', showError ? 'text-red-500' : 'text-slate-500')}>
-          {infoText}
-        </p>
-      )}
     </div>
   )
 }
