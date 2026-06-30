@@ -143,7 +143,7 @@ export function NotificationsPage() {
                   <p className={clsx('text-base font-bold', !n.is_read ? 'text-slate-900' : 'text-slate-700')}>
                     {n.title}
                   </p>
-                  <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-600">{n.message}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">{n.message}</p>
                   <p className="mt-2 text-xs text-slate-400">
                     {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                   </p>
