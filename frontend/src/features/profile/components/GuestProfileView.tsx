@@ -5,12 +5,10 @@ import {
   PlusSquare,
   Bell,
   Bookmark,
-  Rocket,
+  BicepsFlexed,
   Flag,
   Users,
   Smartphone,
-  Lock,
-  ChevronRight,
   ArrowRight,
 } from 'lucide-react'
 import { useAuthStore } from '@/hooks'
@@ -128,17 +126,17 @@ export function GuestProfileView() {
         />
 
         {!ctaDismissed && (
-          <div className="bg-courts relative mx-3 mt-4 mb-0 rounded-3xl p-6 text-white">
+          <div className="bg-courts relative mx-3 mb-0 mt-4 rounded-3xl p-6 text-white">
             <button
               type="button"
               onClick={handleDismissCta}
-              className="absolute right-4 top-4 text-xs font-medium underline text-emerald-100/70 transition hover:text-emerald-100"
+              className="absolute right-4 top-4 text-xs font-medium text-emerald-100/70 underline transition hover:text-emerald-100"
             >
               Maybe later
             </button>
             <div className="flex items-end">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-700/40">
-                <Rocket className="h-5 w-5 text-emerald-300" />
+                <BicepsFlexed size={20} />
               </div>
               <h2 className="mb-1 ml-2 mt-4 text-lg font-bold leading-tight">Lock in your spot, every time</h2>
             </div>
@@ -149,19 +147,19 @@ export function GuestProfileView() {
 
             <ul className="mt-5 space-y-2 text-sm">
               <CtaBullet
-                icon={<Flag className="h-4 w-4" />}
-                title="Host your own games"
-                description="Pick a court, set the time, invite mates."
+                icon={<Flag size={16} />}
+                title="Create & Share"
+                description="Set up a court, grab the match link, and share it with like-minded players instantly."
               />
               <CtaBullet
-                icon={<Users className="h-4 w-4" />}
-                title="Stay connected"
-                description="Keep track of the people you’ve played with."
+                icon={<Users size={16} />}
+                title="Grow your network"
+                description="Keep track of the local players you have shared the court with."
               />
               <CtaBullet
-                icon={<Smartphone className="h-4 w-4" />}
-                title="Switch devices"
-                description="Access your account on your phone, tablet, or anywhere."
+                icon={<Smartphone size={16} />}
+                title="Seamless sync"
+                description="Access your profile on your desktop at work, your phone at the court, or anywhere."
               />
             </ul>
 
@@ -201,15 +199,7 @@ export function GuestProfileView() {
   )
 }
 
-function CtaBullet({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode
-  title: string
-  description: string
-}) {
+function CtaBullet({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
     <li className="flex items-start gap-3">
       <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md bg-emerald-700/40 text-emerald-200">
