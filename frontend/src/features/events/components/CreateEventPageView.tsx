@@ -691,7 +691,7 @@ function ActionBar({
 }) {
   const isSubmitting = submittingStatus !== null
   return (
-    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)] will-change-transform">
       <div className={clsx('flex w-full gap-3 px-4', showDraftButton ? 'grid grid-cols-2' : '')}>
           {showDraftButton && (
             <Button
