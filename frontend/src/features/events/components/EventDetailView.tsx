@@ -243,261 +243,261 @@ export function EventDetailView({
       />
 
       <div className="flex-1 overflow-y-auto">
-      <div className="w-full space-y-6">
-        <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <ImageCarousel
-            images={
-              event.photos && event.photos.length > 0
-                ? event.photos
-                : ([event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[])
-            }
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
-        </div>
+        <div className="w-full space-y-6">
+          <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
+            <ImageCarousel
+              images={
+                event.photos && event.photos.length > 0
+                  ? event.photos
+                  : ([event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[])
+              }
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
+          </div>
 
-        <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div className="mx-auto max-w-[400px] p-5">
-            <div className="flex items-center justify-between">
-              <div
-                className={clsx(
-                  'flex items-center gap-3 transition',
-                  isOfficialVenueHost || event.host.username ? 'cursor-pointer' : undefined
-                )}
-                onClick={() => {
-                  if (isOfficialVenueHost && event.venueId) {
-                    onNavigateVenue(event.venueId)
-                    return
-                  }
-                  if (event.host.username) {
-                    onNavigateMate(event.host.username)
-                  }
-                }}
-              >
-                <AvatarCircle
-                  name={isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
-                  src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl}
-                />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
-                  </p>
-                  <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
-                </div>
-              </div>
-              <EventStatusBadge
-                status={event.status}
-                attendeeCount={event.attendeeCount}
-                minPeople={event.minPeople ?? 1}
-                startTime={event.startTime}
-                endTime={event.endTime}
-                isFree={event.isFree}
-                isOfficial={event.isOfficial}
-              />
-            </div>
-
-            <hr className="my-3 border-slate-200" />
-
-            {updatedAtLabel && <p className="mb-6 text-xs text-slate-400">Last updated {updatedAtLabel}</p>}
-
-            <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-                {sportLabel}
-              </span>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
-                {skillLabel}
-              </span>
-              <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
-                {genderLabel}
-              </span>
-            </div>
-
-            <div className="my-4">
-              <h1 className="text-[20px] font-semibold text-slate-900">{event.title}</h1>
-            </div>
-
-            <div className="space-y-3">
-              <InfoRow
-                icon={Calendar}
-                label={scheduleLabel}
-              />
-              <div
-                className={clsx(
-                  'group flex items-start justify-between gap-2 transition',
-                  event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
-                )}
-              >
-                <InfoRow
-                  icon={MapPin}
-                  label={locationLabel}
-                />
-                <button
-                  type="button"
-                  aria-label="Open in map"
-                  onClick={handleOpenMap}
-                  className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                >
-                  <ExternalLink
-                    size={14}
-                    className="mt-[3px] shrink-0"
-                  />
-                </button>
-              </div>
-              {event.courtName && (
-                <InfoRow
-                  icon={LandPlot}
-                  label={`Court: ${event.courtName}`}
-                />
-              )}
-              <InfoRow
-                icon={CircleDollarSign}
-                label={feeLine2}
-              />
-              <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
-                <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
-              </div>
-            </div>
-
-            <hr className="my-6 border-slate-200" />
-
-            <div className="space-y-3">
+          <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
+            <div className="mx-auto max-w-[400px] p-5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                    <MessageCircle
-                      className="h-4 w-4"
-                      strokeWidth={2}
-                      aria-hidden="true"
+                <div
+                  className={clsx(
+                    'flex items-center gap-3 transition',
+                    isOfficialVenueHost || event.host.username ? 'cursor-pointer' : undefined
+                  )}
+                  onClick={() => {
+                    if (isOfficialVenueHost && event.venueId) {
+                      onNavigateVenue(event.venueId)
+                      return
+                    }
+                    if (event.host.username) {
+                      onNavigateMate(event.host.username)
+                    }
+                  }}
+                >
+                  <AvatarCircle
+                    name={isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
+                    src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl}
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
+                    </p>
+                    <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
+                  </div>
+                </div>
+                <EventStatusBadge
+                  status={event.status}
+                  attendeeCount={event.attendeeCount}
+                  minPeople={event.minPeople ?? 1}
+                  startTime={event.startTime}
+                  endTime={event.endTime}
+                  isFree={event.isFree}
+                  isOfficial={event.isOfficial}
+                />
+              </div>
+
+              <hr className="my-3 border-slate-200" />
+
+              {updatedAtLabel && <p className="mb-6 text-xs text-slate-400">Last updated {updatedAtLabel}</p>}
+
+              <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
+                  {sportLabel}
+                </span>
+                <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
+                  {skillLabel}
+                </span>
+                <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
+                  {genderLabel}
+                </span>
+              </div>
+
+              <div className="my-4">
+                <h1 className="text-[20px] font-semibold text-slate-900">{event.title}</h1>
+              </div>
+
+              <div className="space-y-3">
+                <InfoRow
+                  icon={Calendar}
+                  label={scheduleLabel}
+                />
+                <div
+                  className={clsx(
+                    'group flex items-start justify-between gap-2 transition',
+                    event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
+                  )}
+                >
+                  <InfoRow
+                    icon={MapPin}
+                    label={locationLabel}
+                  />
+                  <button
+                    type="button"
+                    aria-label="Open in map"
+                    onClick={handleOpenMap}
+                    className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    <ExternalLink
+                      size={14}
+                      className="mt-[3px] shrink-0"
                     />
-                  </span>
-                  <span>About this event</span>
+                  </button>
+                </div>
+                {event.courtName && (
+                  <InfoRow
+                    icon={LandPlot}
+                    label={`Court: ${event.courtName}`}
+                  />
+                )}
+                <InfoRow
+                  icon={CircleDollarSign}
+                  label={feeLine2}
+                />
+                <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
                 </div>
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                {event.detail?.description || event.description || 'No description'}
-              </p>
-            </div>
 
-            <hr className="my-6 border-slate-200" />
+              <hr className="my-6 border-slate-200" />
 
-            <div className="space-y-3">
-              <div className="flex justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <div className="flex items-start gap-2">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                    <PersonStanding
-                      className="h-4 w-4"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <span className="flex flex-1 flex-col gap-1">
-                    <span className="flex items-center justify-between">
-                      <span>
-                        {event.attendeeCount} joined · {spotsRemaining} spots left
-                      </span>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                      <MessageCircle
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
                     </span>
-                    <span className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
-                        {participantRule}
-                      </span>
-                      {spotsRemaining === 0 && event.status !== 'cancelled' && (
-                        <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
-                          Full
+                    <span>About this event</span>
+                  </div>
+                </div>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                  {event.detail?.description || event.description || 'No description'}
+                </p>
+              </div>
+
+              <hr className="my-6 border-slate-200" />
+
+              <div className="space-y-3">
+                <div className="flex justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <div className="flex items-start gap-2">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                      <PersonStanding
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span className="flex flex-1 flex-col gap-1">
+                      <span className="flex items-center justify-between">
+                        <span>
+                          {event.attendeeCount} joined · {spotsRemaining} spots left
                         </span>
-                      )}
+                      </span>
+                      <span className="flex items-center justify-between">
+                        <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
+                          {participantRule}
+                        </span>
+                        {spotsRemaining === 0 && event.status !== 'cancelled' && (
+                          <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
+                            Full
+                          </span>
+                        )}
+                      </span>
                     </span>
-                  </span>
+                  </div>
+                  <div className="flex flex-col gap-1 text-[8px] font-bold text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+                        <Check
+                          className="h-3 w-3 text-white"
+                          strokeWidth={3}
+                        />
+                      </span>
+                      <span className="">Checked in</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-400">
+                        <Route
+                          className="h-3 w-3 text-white"
+                          strokeWidth={2.5}
+                        />
+                      </span>
+                      <span className="">On the way</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-400">
+                        <CircleAlert
+                          className="h-3 w-3 text-white"
+                          strokeWidth={2.5}
+                        />
+                      </span>
+                      <span className="">Missed</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 text-[8px] font-bold text-slate-500">
-                  <div className="flex items-center gap-1">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
-                      <Check
-                        className="h-3 w-3 text-white"
-                        strokeWidth={3}
-                      />
-                    </span>
-                    <span className="">Checked in</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-400">
-                      <Route
-                        className="h-3 w-3 text-white"
-                        strokeWidth={2.5}
-                      />
-                    </span>
-                    <span className="">On the way</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-400">
-                      <CircleAlert
-                        className="h-3 w-3 text-white"
-                        strokeWidth={2.5}
-                      />
-                    </span>
-                    <span className="">Missed</span>
-                  </div>
-                </div>
-              </div>
-              {event.participants.length > 0 ? (
-                <>
-                  <div className="flex flex-wrap gap-3 pt-1">
-                    {event.participants.map((participant) => {
-                      const isCheckedIn = !!participant.checkedInAt
-                      const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
-                      const closeMins = event.checkinCloseMinsAfter ?? 0
-                      const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
-                      const now = new Date()
-                      const isAbsent = !isCheckedIn && now > closeTime
-                      const isOnTheWay =
-                        !isAbsent &&
-                        (!!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay))
-                      const displayName = participant.isAnonymous ? 'Guest' : participant.name.split(' ')[0]
+                {event.participants.length > 0 ? (
+                  <>
+                    <div className="flex flex-wrap gap-3 pt-1">
+                      {event.participants.map((participant) => {
+                        const isCheckedIn = !!participant.checkedInAt
+                        const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+                        const closeMins = event.checkinCloseMinsAfter ?? 0
+                        const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+                        const now = new Date()
+                        const isAbsent = !isCheckedIn && now > closeTime
+                        const isOnTheWay =
+                          !isAbsent &&
+                          (!!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay))
+                        const displayName = participant.isAnonymous ? 'Guest' : participant.name.split(' ')[0]
 
-                      return (
-                        <div
-                          key={participant.id}
-                          className="flex w-14 cursor-pointer flex-col items-center gap-1.5"
-                          onClick={() => {
-                            if (participant.username && !participant.isAnonymous) {
-                              onNavigateMate(participant.username)
-                            }
-                          }}
-                        >
-                          <div className="relative">
-                            <AvatarCircle
-                              name={participant.name}
-                              src={participant.avatarUrl}
-                              ringClassName={
-                                isCheckedIn
-                                  ? 'ring-2 ring-emerald-500'
-                                  : isAbsent
-                                    ? 'ring-2 ring-slate-400'
-                                    : isOnTheWay
-                                      ? 'ring-2 ring-amber-400'
-                                      : undefined
+                        return (
+                          <div
+                            key={participant.id}
+                            className="flex w-14 cursor-pointer flex-col items-center gap-1.5"
+                            onClick={() => {
+                              if (participant.username && !participant.isAnonymous) {
+                                onNavigateMate(participant.username)
                               }
-                            />
-                            <ParticipantStatusBadge
-                              isCheckedIn={isCheckedIn}
-                              isAbsent={isAbsent}
-                              isOnTheWay={isOnTheWay}
-                            />
+                            }}
+                          >
+                            <div className="relative">
+                              <AvatarCircle
+                                name={participant.name}
+                                src={participant.avatarUrl}
+                                ringClassName={
+                                  isCheckedIn
+                                    ? 'ring-2 ring-emerald-500'
+                                    : isAbsent
+                                      ? 'ring-2 ring-slate-400'
+                                      : isOnTheWay
+                                        ? 'ring-2 ring-amber-400'
+                                        : undefined
+                                }
+                              />
+                              <ParticipantStatusBadge
+                                isCheckedIn={isCheckedIn}
+                                isAbsent={isAbsent}
+                                isOnTheWay={isOnTheWay}
+                              />
+                            </div>
+                            <p className="w-full truncate text-center text-[11px] font-medium text-slate-700">
+                              {displayName}
+                            </p>
                           </div>
-                          <p className="w-full truncate text-center text-[11px] font-medium text-slate-700">
-                            {displayName}
-                          </p>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </>
-              ) : (
-                <p className="pl-14 text-xs text-slate-300">Be the first to join and kick off the game!</p>
-              )}
+                        )
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <p className="pl-14 text-xs text-slate-300">Be the first to join and kick off the game!</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
 
       {event.status !== 'cancelled' &&
@@ -707,12 +707,6 @@ function JoinBar({
   const effectiveCloseTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
   const isCheckInOpen = now >= openTime && now <= effectiveCloseTime
 
-  // Free + non-official events (open courts, parks) stay open for walk-up joiners even mid-game.
-  // Paid or official events: 2h before start, leave is disabled (locked in). New joiners can still hop in but also can't leave.
-  const isPublicFree = event.isFree && !event.isOfficial
-  const lockTime = new Date(startTime.getTime() - 2 * 60 * 60 * 1000)
-  const isBookingsClosed = !isPublicFree && now >= lockTime
-
   const formatTime = (value: Date) => {
     const dateLabel = value.toLocaleDateString('en-AU', {
       weekday: 'short',
@@ -775,17 +769,7 @@ function JoinBar({
     )
   } else if (isJoined) {
     if (isCheckInOpen) {
-      mainButton = isBookingsClosed ? (
-        <Button
-          disabled
-          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <DoorClosed className="h-4 w-4" />
-            Leave
-          </span>
-        </Button>
-      ) : (
+      mainButton = (
         <Button
           onClick={onJoin}
           disabled={isJoinSubmitting}
@@ -823,13 +807,9 @@ function JoinBar({
           )}
         </Button>
       )
-      statusText = isBookingsClosed ? (
-        <div className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          <p>{"You're locked in — check in before the game ends to keep track of mates."}</p>
-        </div>
-      ) : (
-        <div className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          <p>Check in before the game ends to keep track of your mates.</p>
+      statusText = (
+        <div className="px-4 text-left text-xs font-medium leading-relaxed text-slate-500">
+          <p>Check in while the session is live to log your games and build your sports crew.</p>
         </div>
       )
     } else if (now > effectiveCloseTime) {
@@ -856,17 +836,7 @@ function JoinBar({
         </Button>
       )
     } else {
-      mainButton = isBookingsClosed ? (
-        <Button
-          disabled
-          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <DoorClosed className="h-4 w-4" />
-            Leave
-          </span>
-        </Button>
-      ) : (
+      mainButton = (
         <Button
           onClick={onJoin}
           disabled={isJoinSubmitting}
@@ -896,20 +866,13 @@ function JoinBar({
           </span>
         </Button>
       )
-      statusText = isBookingsClosed ? (
-        <div className="text-center text-xs font-medium leading-relaxed text-slate-500">
-          <p>{"You're locked in — check in before the game ends to keep track of mates."}</p>
-        </div>
-      ) : (
-        <div className="text-center text-xs font-medium leading-relaxed text-slate-500">
-          <p>{isPublicFree
-            ? `Check-in opens ${openMins} minutes before kick-off to grow your network.`
-            : 'Paid event — please withdraw at least 2 hours before kick-off.'
-          }</p>
+      statusText = (
+        <div className="text-left text-xs font-medium leading-relaxed text-slate-500">
+          <p>{`Check-in opens ${openMins} minutes before kick-off — connect with the crew you play with.`}</p>
         </div>
       )
     }
-  } else if (!isPublicFree && now >= startTime && now <= endTime) {
+  } else if (!event.isFree && now >= startTime && now <= endTime) {
     mainButton = (
       <Button
         disabled
