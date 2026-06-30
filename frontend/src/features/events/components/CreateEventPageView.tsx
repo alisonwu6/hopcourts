@@ -87,7 +87,7 @@ export function CreateEventPageView({
 }: CreateEventPageViewProps) {
   return (
     <>
-      <div className="min-h-[100dvh] bg-white pb-24">
+      <div className="flex h-[100dvh] flex-col bg-white">
         <ActionToolbar
           showBack={false}
           onBack={handleCancel}
@@ -144,6 +144,7 @@ export function CreateEventPageView({
           }
         />
         {isDraftLoading && <PageLoading />}
+        <div className="flex-1 overflow-y-auto">
         <form
           id="event-form"
           className="mx-auto mt-2 w-full max-w-md space-y-6 px-4 pb-8"
@@ -521,6 +522,7 @@ export function CreateEventPageView({
             </FieldSection>
           </div>
         </form>
+        </div>
 
         <ActionBar
           canSubmit={canSubmit}
@@ -697,8 +699,8 @@ function ActionBar({
 }) {
   const isSubmitting = submittingStatus !== null
   return (
-    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)] will-change-transform">
-      <div className={clsx('flex w-full gap-3 px-4', showDraftButton ? 'grid grid-cols-2' : '')}>
+    <div className="w-full shrink-0 bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+      <div className={clsx('mx-auto flex w-full max-w-md gap-3 px-4', showDraftButton ? 'grid grid-cols-2' : '')}>
           {showDraftButton && (
             <Button
               variant="secondary"

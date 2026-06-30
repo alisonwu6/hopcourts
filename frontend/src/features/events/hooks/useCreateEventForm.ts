@@ -393,8 +393,12 @@ export function useCreateEventForm() {
       let processed: File
       try {
         processed = await convertFileToWebP(file)
+        // HEIF/HEIC compresses better than WebP at 0.8 — retry at lower quality if still oversized
+        if (processed.size > MAX_BYTES) {
+          processed = await convertFileToWebP(file, 1920, 0.6)
+        }
       } catch {
-        // HEIC or unsupported format — fall back to original file
+        // Unsupported format (e.g. HEIC canvas decode failure) — fall back to original
         processed = file
       }
 
