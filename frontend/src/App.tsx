@@ -18,7 +18,6 @@ import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage'
 import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage'
 import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPage'
 import { AboutPage } from '@/features/settings/pages/AboutPage'
-import { StoryPage } from '@/features/settings/pages/StoryPage'
 import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
 import { WhyHopCourtsPage } from '@/features/settings/pages/WhyHopCourtsPage'
 import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
@@ -110,10 +109,6 @@ export default function App() {
       <Route
         path="/about"
         element={<AboutPage />}
-      />
-      <Route
-        path="/story"
-        element={<StoryPage />}
       />
       <Route
         path="/why-hopcourts"
