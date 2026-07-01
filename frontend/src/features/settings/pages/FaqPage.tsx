@@ -1,12 +1,24 @@
-import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { ChevronDown, Info, Dribbble, Sparkles, Smartphone, Search, MessageCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 
-const faqCategories = [
+type FaqItem = { q: string; a: string }
+type FaqCategory = {
+  category: string
+  Icon: React.ElementType
+  iconColor: string
+  labelColor: string
+  items: FaqItem[]
+}
+
+const faqCategories: FaqCategory[] = [
   {
     category: 'About HopCourts',
+    Icon: Info,
+    iconColor: 'text-blue-500',
+    labelColor: 'text-blue-600',
     items: [
       {
         q: 'What is HopCourts trying to do?',
@@ -20,6 +32,9 @@ const faqCategories = [
   },
   {
     category: 'Playing',
+    Icon: Dribbble,
+    iconColor: 'text-emerald-600',
+    labelColor: 'text-emerald-700',
     items: [
       {
         q: 'How do I join a game?',
@@ -41,6 +56,9 @@ const faqCategories = [
   },
   {
     category: 'Features',
+    Icon: Sparkles,
+    iconColor: 'text-amber-500',
+    labelColor: 'text-amber-600',
     items: [
       {
         q: 'How does HopCourts know I actually showed up?',
@@ -54,6 +72,9 @@ const faqCategories = [
   },
   {
     category: 'App & Notifications',
+    Icon: Smartphone,
+    iconColor: 'text-indigo-500',
+    labelColor: 'text-indigo-600',
     items: [
       {
         q: 'Can I use HopCourts like a mobile app?',
@@ -70,11 +91,23 @@ const faqCategories = [
 export function FaqPage() {
   const navigate = useNavigate()
   const [openIndex, setOpenIndex] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return faqCategories
+    return faqCategories
+      .map((cat) => ({
+        ...cat,
+        items: cat.items.filter((item) => item.q.toLowerCase().includes(q) || item.a.toLowerCase().includes(q)),
+      }))
+      .filter((cat) => cat.items.length > 0)
+  }, [query])
 
   return (
     <div className="min-h-[100dvh] bg-white text-slate-900">
       <ActionToolbar
-        onBack={() => navigate('/settings')}
+        onBack={() => navigate(-1)}
         showShare={false}
         showFavorite={false}
         contentClassName="max-w-3xl px-4"
@@ -84,33 +117,75 @@ export function FaqPage() {
         borderBottom
       />
 
-      <main className="mx-auto w-full max-w-3xl px-4 py-6">
+      {/* Hero */}
+      <div className="relative overflow-hidden bg-[#1a3b14]">
+        <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 translate-x-1/3 -translate-y-1/3 rounded-full bg-[#2d5922]/60" />
+        <div className="mx-auto max-w-3xl px-5 pb-10 pt-8">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-lime-400">Help Centre</p>
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-white">
+            Frequently
+            <br />
+            asked questions
+          </h1>
+          <p className="mt-3 text-base text-white/60">Everything you need to know about HopCourts.</p>
+        </div>
+      </div>
+
+      <main className="mx-auto w-full max-w-3xl px-4 py-5 pb-16">
+        {/* Search */}
+        <div className="relative mb-6">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            placeholder="Search questions..."
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setOpenIndex(null)
+            }}
+            className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-base text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          />
+        </div>
+
+        {filtered.length === 0 && (
+          <p className="py-10 text-center text-sm text-slate-400">No results for &quot;{query}&quot;</p>
+        )}
+
         <div className="space-y-6">
-          {faqCategories.map((cat, ci) => (
+          {filtered.map((cat, ci) => (
             <div key={ci}>
-              <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                {cat.category}
-              </p>
-              <div className="divide-y divide-slate-100 rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
+              {/* Category label */}
+              <div className="mb-2 flex items-center gap-2 px-1">
+                <cat.Icon className={clsx('h-4 w-4 flex-shrink-0', cat.iconColor)} />
+                <span className={clsx('text-xs font-bold uppercase tracking-widest', cat.labelColor)}>
+                  {cat.category}
+                </span>
+              </div>
+
+              {/* Accordion card */}
+              <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/60">
                 {cat.items.map((item, ii) => {
                   const key = `${ci}-${ii}`
+                  const isOpen = openIndex === key
                   return (
                     <div key={ii}>
                       <button
                         type="button"
-                        onClick={() => setOpenIndex(openIndex === key ? null : key)}
+                        onClick={() => setOpenIndex(isOpen ? null : key)}
                         className="flex w-full items-center justify-between px-4 py-4 text-left"
                       >
                         <span className="pr-4 text-base font-medium text-slate-900">{item.q}</span>
-                        <ChevronDown
-                          className={clsx(
-                            'h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-200',
-                            openIndex === key && 'rotate-180'
-                          )}
-                        />
+                        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-slate-100">
+                          <ChevronDown
+                            className={clsx(
+                              'h-4 w-4 text-slate-500 transition-transform duration-200',
+                              isOpen && 'rotate-180'
+                            )}
+                          />
+                        </span>
                       </button>
-                      {openIndex === key && (
-                        <p className="whitespace-pre-line px-4 pb-4 text-sm leading-relaxed text-slate-500">
+                      {isOpen && (
+                        <p className="whitespace-pre-line px-4 pb-5 text-sm leading-relaxed text-slate-500">
                           {item.a}
                         </p>
                       )}
@@ -121,6 +196,27 @@ export function FaqPage() {
             </div>
           ))}
         </div>
+
+        {/* Contact support card */}
+        {!query && (
+        <div className="mt-8 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
+            <p className="text-base font-bold text-slate-900">Still have a question?</p>
+            <p className="mt-1 text-sm leading-relaxed text-slate-500">
+              Can&apos;t find what you&apos;re looking for? Send us a message and we&apos;ll get back to you.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/settings/contact')}
+              className="mt-4 flex w-full items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:bg-slate-50 active:bg-slate-100"
+            >
+              <span className="flex items-center gap-2 text-sm font-semibold text-emerald-600">
+                <MessageCircle className="h-4 w-4" />
+                Contact support
+              </span>
+              <span className="text-slate-400">→</span>
+            </button>
+          </div>
+        )}
       </main>
     </div>
   )

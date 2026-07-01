@@ -161,7 +161,7 @@ export function ContactUsPage() {
   }
 
   return (
-    <div className="pb-safe min-h-[100dvh] bg-slate-50">
+    <div className="pb-safe min-h-[100dvh] bg-white">
       <ActionToolbar
         title="Contact Us"
         onBack={handleBack}

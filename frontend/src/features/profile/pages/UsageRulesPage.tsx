@@ -12,7 +12,7 @@ const COLORS: SectionColor[] = [
   { badge: 'bg-orange-100 text-orange-700', card: 'bg-white' },
   { badge: 'bg-purple-100 text-purple-700', card: 'bg-white' },
   { badge: 'bg-slate-100 text-slate-600', card: 'bg-white' },
-  { badge: 'bg-red-400 text-red-50', card: 'bg-red-100' },
+  { badge: 'bg-red-400 text-red-50', card: 'bg-red-50' },
 ]
 
 const SECTIONS = [
@@ -61,7 +61,7 @@ export function UsageRulesPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-[100dvh] text-slate-900">
+    <div className="min-h-[100dvh] bg-white text-slate-900">
       <ActionToolbar
         onBack={() => navigate('/settings')}
         showShare={false}
@@ -100,7 +100,7 @@ export function UsageRulesPage() {
               <SectionBadge index={i} />
               <h2 className="text-base font-bold text-slate-900">{s.title}</h2>
             </div>
-            <p className={`text-sm leading-relaxed ${i === SECTIONS.length - 1 ? 'text-red-800' : 'text-slate-500'}`}>
+            <p className="text-sm leading-relaxed text-slate-500">
               {s.body}
             </p>
           </div>
