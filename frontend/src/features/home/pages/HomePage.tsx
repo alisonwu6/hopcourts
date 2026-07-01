@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
 import {
@@ -9,7 +9,6 @@ import {
   Coins,
   Users,
   MoveUpRight,
-  ChevronDown,
   MessageCircle,
   Bug,
   Sparkles,
@@ -18,61 +17,23 @@ import {
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { PushNotificationBanner } from '@/components/PushNotificationBanner'
-
-const homeFaqCategories = [
-  {
-    category: 'About HopCourts',
-    items: [
-      {
-        q: 'What is HopCourts trying to do?',
-        a: "We're building for anyone who wants to play sport but can't find the right people or the right moment. Group chats are messy. Planning takes too long. HopCourts removes the friction so a good game doesn't need all that.",
-      },
-    ],
-  },
-  {
-    category: 'Playing',
-    items: [
-      {
-        q: 'How do I join a game?',
-        a: 'Browse games near you on the events page. When you find one that fits, tap Hop In. No back-and-forth, no group chats. Just show up and play.',
-      },
-      {
-        q: 'How do I host a game?',
-        a: 'Tap + from the home screen. Fill in the sport, time, location, and number of spots. Hit publish and others can find and join you. You sort the court, we make it easy for people to show up.',
-      },
-    ],
-  },
-  {
-    category: 'Features',
-    items: [
-      {
-        q: 'How does HopCourts know I actually showed up?',
-        a: "You check in when you're within 100m of the venue. It records that you were there and connects you with the people you played with. We think showing up is the best thing you can do for your game and your mates.",
-      },
-    ],
-  },
-  {
-    category: 'App & Notifications',
-    items: [
-      {
-        q: 'Can I use HopCourts like a mobile app?',
-        a: "Yes. HopCourts is a web app that can be installed on your phone's home screen so it feels and behaves like a native app — no app store needed.\n\niPhone (Safari): tap the Share button at the bottom of the screen, then tap Add to Home Screen. Tap Add to confirm. Open HopCourts from your home screen and it will run full-screen without the browser bar.\n\nAndroid (Chrome): tap the three-dot menu in the top-right corner, then tap Add to Home Screen or Install App. Tap Install to confirm.\n\nOnce installed, you get full-screen mode, faster loading, and push notifications.",
-      },
-      {
-        q: 'How do I turn on notifications?',
-        a: "On Android: tap Allow when the prompt appears.\n\nOn iPhone: add HopCourts to your Home Screen first (see 'Can I use HopCourts like a mobile app?' above), then open it from there and tap Allow when prompted.\n\nTo turn off: go to phone Settings, find Notifications, look for HopCourts, and switch it off.",
-      },
-    ],
-  },
-]
+import { FaqAccordion } from '@/components/ui/FaqAccordion'
+import { faqCategories } from '@/data/faqData'
 
 export function HomePage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [openFaq, setOpenFaq] = useState<string | null>(null)
   const { isAuthenticated } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
   }))
   const navigate = useNavigate()
+
+  const homeFaqCategories = useMemo(
+    () =>
+      faqCategories
+        .map((cat) => ({ ...cat, items: cat.items.filter((item) => item.showOnHome) }))
+        .filter((cat) => cat.items.length > 0),
+    []
+  )
 
   const handleIdentityClick = () => {
     setShowLoginPrompt(true)
@@ -225,40 +186,7 @@ export function HomePage() {
                 />
               </button>
             </div>
-            <div className="space-y-6">
-              {homeFaqCategories.map((cat, ci) => (
-                <div key={ci}>
-                  <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-slate-400">{cat.category}</p>
-                  <div className="space-y-3">
-                    {cat.items.map((item, ii) => {
-                      const key = `${ci}-${ii}`
-                      return (
-                        <div
-                          key={ii}
-                          className="rounded-2xl bg-white shadow-sm"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => setOpenFaq(openFaq === key ? null : key)}
-                            className="flex w-full items-center justify-between p-5 text-left"
-                          >
-                            <span className="pr-4 text-base font-semibold text-slate-900">{item.q}</span>
-                            <ChevronDown
-                              className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform duration-200 ${openFaq === key ? 'rotate-180' : ''}`}
-                            />
-                          </button>
-                          {openFaq === key && (
-                            <p className="whitespace-pre-line px-5 pb-5 text-sm leading-relaxed text-slate-500">
-                              {item.a}
-                            </p>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <FaqAccordion categories={homeFaqCategories} />
           </section>
 
           {/* We're Listening */}
