@@ -1,7 +1,8 @@
+import { Rocket } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 
-export function FoundersLetterPage() {
+export function WhyHopCourtsPage() {
   const navigate = useNavigate()
 
   return (
@@ -10,7 +11,7 @@ export function FoundersLetterPage() {
         onBack={() => navigate('/settings')}
         showShare={false}
         showFavorite={false}
-        title={<span className="text-lg font-semibold text-slate-900">Why HopCourts Exists</span>}
+        title={<span className="text-lg font-semibold text-slate-900">Why HopCourts </span>}
         contentClassName="max-w-3xl px-4"
         showBack
         borderBottom
@@ -19,8 +20,7 @@ export function FoundersLetterPage() {
       <main className="mx-auto w-full max-w-2xl px-4 py-8">
         <article className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
           <header className="border-b border-slate-200 pb-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">a letter from the team</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Why HopCourts Exists</h1>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">Why HopCourts</h1>
           </header>
 
           <div className="mt-6 space-y-6 text-base leading-8 text-slate-700">

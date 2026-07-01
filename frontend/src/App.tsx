@@ -20,8 +20,9 @@ import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPa
 import { AboutPage } from '@/features/settings/pages/AboutPage'
 import { StoryPage } from '@/features/settings/pages/StoryPage'
 import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
-import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage'
+import { WhyHopCourtsPage } from '@/features/settings/pages/WhyHopCourtsPage'
 import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
+import { FaqPage } from '@/features/settings/pages/FaqPage'
 import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
@@ -115,12 +116,16 @@ export default function App() {
         element={<StoryPage />}
       />
       <Route
-        path="/founders-letter"
-        element={<FoundersLetterPage />}
+        path="/why-hopcourts"
+        element={<WhyHopCourtsPage />}
       />
       <Route
         path="/guidelines"
         element={<UsageRulesPage />}
+      />
+      <Route
+        path="/faq"
+        element={<FaqPage />}
       />
       <Route
         path="/rules"

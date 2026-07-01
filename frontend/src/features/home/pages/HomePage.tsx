@@ -1,13 +1,74 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
-import { Rocket, ArrowRight, MessageSquareOff, Clock, Coins, Users } from 'lucide-react'
+import {
+  Megaphone,
+  ArrowRight,
+  MessageSquareOff,
+  Clock,
+  Coins,
+  Users,
+  MoveUpRight,
+  ChevronDown,
+  MessageCircle,
+  Bug,
+  Lightbulb,
+  ChevronRight,
+} from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { PushNotificationBanner } from '@/components/PushNotificationBanner'
 
+const homeFaqCategories = [
+  {
+    category: 'About HopCourts',
+    items: [
+      {
+        q: 'What is HopCourts trying to do?',
+        a: "We're building for anyone who wants to play sport but can't find the right people or the right moment. Group chats are messy. Planning takes too long. HopCourts removes the friction so a good game doesn't need all that.",
+      },
+    ],
+  },
+  {
+    category: 'Playing',
+    items: [
+      {
+        q: 'How do I join a game?',
+        a: 'Browse games near you on the Discover page. When you find one that fits, tap Hop In. No back-and-forth, no group chats. Just show up and play.',
+      },
+      {
+        q: 'How do I host a game?',
+        a: 'Tap + from the home screen. Fill in the sport, time, location, and number of spots. Hit publish and others can find and join you. You sort the court, we make it easy for people to show up.',
+      },
+    ],
+  },
+  {
+    category: 'Features',
+    items: [
+      {
+        q: 'How does HopCourts know I actually showed up?',
+        a: "You check in when you're within 100m of the venue. It records that you were there and connects you with the people you played with. We think showing up is the best thing you can do for your game and your mates.",
+      },
+    ],
+  },
+  {
+    category: 'App & Notifications',
+    items: [
+      {
+        q: 'Can I use HopCourts like a mobile app?',
+        a: "Yes. HopCourts is a web app that can be installed on your phone's home screen so it feels and behaves like a native app — no app store needed.\n\niPhone (Safari): tap the Share button at the bottom of the screen, then tap Add to Home Screen. Tap Add to confirm. Open HopCourts from your home screen and it will run full-screen without the browser bar.\n\nAndroid (Chrome): tap the three-dot menu in the top-right corner, then tap Add to Home Screen or Install App. Tap Install to confirm.\n\nOnce installed, you get full-screen mode, faster loading, and push notifications.",
+      },
+      {
+        q: 'How do I turn on notifications?',
+        a: "On Android: tap Allow when the prompt appears.\n\nOn iPhone: add HopCourts to your Home Screen first (see 'Can I use HopCourts like a mobile app?' above), then open it from there and tap Allow when prompted.\n\nTo turn off: go to phone Settings, find Notifications, look for HopCourts, and switch it off.",
+      },
+    ],
+  },
+]
+
 export function HomePage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [openFaq, setOpenFaq] = useState<string | null>(null)
   const { isAuthenticated } = useAuthStore((state) => ({
     isAuthenticated: state.isAuthenticated,
   }))
@@ -34,8 +95,8 @@ export function HomePage() {
           {/* Badge & Headlines */}
           <header className="flex flex-col items-center gap-4 text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <Rocket className="h-3.5 w-3.5" />
-              <span>Zero Scheduling. Just Action.</span>
+              <Megaphone size={15} />
+              <span>We handle the friction, you just hop in.</span>
             </div>
 
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900">
@@ -54,7 +115,7 @@ export function HomePage() {
 
           <section className="mt-6 flex justify-center gap-3">
             <button
-              className="bg-ocean flex w-36 items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white"
+              className="bg-ocean flex w-36 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white"
               type="button"
               onClick={() => navigate('/events')}
             >
@@ -62,7 +123,7 @@ export function HomePage() {
             </button>
             {!isAuthenticated && (
               <button
-                className="bg-hop flex w-36 items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white shadow-xl shadow-emerald-200/50"
+                className="bg-hop flex w-36 cursor-pointer items-center justify-center rounded-full px-6 py-4 text-base font-bold text-white shadow-xl shadow-emerald-200/50"
                 type="button"
                 onClick={handleIdentityClick}
               >
@@ -74,7 +135,16 @@ export function HomePage() {
 
           {/* Why HopCourts */}
           <section className="mt-10 w-full">
-            <p className="mb-4 text-[11px] font-bold uppercase tracking-widest text-slate-400">Why HopCourts</p>
+            <div className="mb-4 flex items-end justify-between">
+              <h2 className="text-2xl font-extrabold leading-tight text-slate-900">Why HopCourts</h2>
+              <button
+                type="button"
+                onClick={() => navigate('/why-hopcourts')}
+                className="flex items-center gap-1 text-[10px] text-sm font-semibold text-blue-600 underline"
+              >
+                Read more <MoveUpRight size={10} />
+              </button>
+            </div>
             <div className="space-y-3">
               <div className="flex items-start gap-4 rounded-2xl bg-white p-4 shadow-sm">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
@@ -125,13 +195,109 @@ export function HomePage() {
           </section>
 
           {/* Manifesto */}
-          <section className="bg-courts mt-8 rounded-2xl px-3 py-4 text-center">
+          <section className="bg-courts mt-4 rounded-2xl px-3 py-4 text-center">
             <blockquote className="text-md font-semibold italic leading-relaxed text-white">
               "Sport is the oldest social network.
               <br />
               We just built the app for it."
             </blockquote>
             <p className="mt-3 text-xs font-semibold text-white">HopCourts Team</p>
+          </section>
+
+          {/* Common Questions */}
+          <section className="mt-10 w-full">
+            <div className="mb-4 flex items-end justify-between">
+              <h2 className="text-2xl font-extrabold leading-tight text-slate-900">FAQ</h2>
+              <button
+                type="button"
+                onClick={() => navigate('/faq')}
+                className="flex items-center gap-1 text-[10px] text-sm font-semibold text-blue-600 underline"
+              >
+                See all <MoveUpRight size={10} />
+              </button>
+            </div>
+            <div className="space-y-6">
+              {homeFaqCategories.map((cat, ci) => (
+                <div key={ci}>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">{cat.category}</p>
+                  <div className="space-y-3">
+                    {cat.items.map((item, ii) => {
+                      const key = `${ci}-${ii}`
+                      return (
+                        <div
+                          key={ii}
+                          className="rounded-2xl bg-white shadow-sm"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setOpenFaq(openFaq === key ? null : key)}
+                            className="flex w-full items-center justify-between p-5 text-left"
+                          >
+                            <span className="pr-4 text-base font-semibold text-slate-900">{item.q}</span>
+                            <ChevronDown
+                              className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform duration-200 ${openFaq === key ? 'rotate-180' : ''}`}
+                            />
+                          </button>
+                          {openFaq === key && (
+                            <p className="whitespace-pre-line px-5 pb-5 text-sm leading-relaxed text-slate-500">
+                              {item.a}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* We're Listening */}
+          <section className="mt-10 w-full">
+            <h2 className="mb-4 text-2xl font-extrabold text-slate-900">{"We're listening"}</h2>
+            <div className="rounded-2xl bg-white p-4 shadow-sm">
+              <p className="mb-4 text-sm leading-relaxed text-slate-400">
+                HopCourts is built with the community. Your feedback shapes every update.
+              </p>
+              <div className="space-y-3">
+                {[
+                  {
+                    icon: <MessageCircle className="h-5 w-5" />,
+                    bg: 'bg-blue-100 text-blue-600',
+                    label: 'Share feedback',
+                    sub: "Tell us what's working or not",
+                  },
+                  {
+                    icon: <Bug className="h-5 w-5" />,
+                    bg: 'bg-orange-100 text-orange-500',
+                    label: 'Report a bug',
+                    sub: 'Something not working right?',
+                  },
+                  {
+                    icon: <Lightbulb className="h-5 w-5" />,
+                    bg: 'bg-purple-100 text-purple-600',
+                    label: 'Request a feature',
+                    sub: "Got an idea? We'd love to hear it",
+                  },
+                ].map(({ icon, bg, label, sub }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => navigate('/settings/contact')}
+                    className="flex w-full items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-left"
+                  >
+                    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>
+                      {icon}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-slate-900">{label}</p>
+                      <p className="text-xs text-slate-400">{sub}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-300" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </section>
 
           <div className="mb-20" />

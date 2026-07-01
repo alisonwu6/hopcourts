@@ -118,10 +118,15 @@ export function CreateEventPageView({
                     type="button"
                     onClick={handleCancelEvent}
                     disabled={isCancellingEvent}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500 transition active:bg-red-100 disabled:opacity-50"
+                    className="flex cursor-pointer items-center text-[12px] font-bold uppercase text-white bg-red-500 px-2 py-1 rounded-2xl"
                     aria-label="Cancel event"
                   >
-                    <Ban className="h-5 w-5" />
+                    <Ban
+                      size={12}
+                      strokeWidth={3.5}
+                      className='mr-1'
+                    />
+                    Cancel
                   </button>
                 ) : (
                   <button
@@ -145,82 +150,33 @@ export function CreateEventPageView({
         />
         {isDraftLoading && <PageLoading />}
         <div className="flex-1 overflow-y-auto">
-        <form
-          id="event-form"
-          className="mx-auto mt-2 w-full max-w-md space-y-6 px-4 pb-8"
-          onSubmit={(e) => handleSubmit(e, 'published')}
-        >
-          {error && (
-            <div className="sticky top-4 z-50 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm">
-              {error}
-            </div>
-          )}
+          <form
+            id="event-form"
+            className="mx-auto mt-2 w-full max-w-md space-y-6 px-4 pb-8"
+            onSubmit={(e) => handleSubmit(e, 'published')}
+          >
+            {error && (
+              <div className="sticky top-4 z-50 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm">
+                {error}
+              </div>
+            )}
 
-          <div className="space-y-8">
-            <FieldSection
-              title="Event Basics"
-              description=""
-            >
-              <div ref={setFieldRef('title')}>
-                <FloatingField
-                  label="Event Title"
-                  name="title"
-                  value={form.title}
-                  onChange={handleInputChange}
-                  required
-                  characterLimit={70}
-                  hasError={highlightField === 'title'}
-                />
-                {fieldHint?.field === 'title' && fieldHint.message && (
-                  <p
-                    className={clsx(
-                      'mt-1 px-4 text-xs',
-                      fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
-                    )}
-                  >
-                    {fieldHint.message}
-                  </p>
-                )}
-              </div>
-              <div ref={setFieldRef('sport')}>
-                <FloatingField
-                  label="Sport"
-                  name="sport"
-                  value={form.sport}
-                  readOnly
-                  onClick={() => setShowSportSheet(true)}
-                  placeholder="Select sport"
-                  required
-                  hasError={highlightField === 'sport'}
-                />
-                {fieldHint?.field === 'sport' && fieldHint.message && (
-                  <p
-                    className={clsx(
-                      'mt-1 px-4 text-xs',
-                      fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
-                    )}
-                  >
-                    {fieldHint.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-4">
-                <div
-                  className="flex-1"
-                  ref={setFieldRef('capacity')}
-                >
+            <div className="space-y-8">
+              <FieldSection
+                title="Event Basics"
+                description=""
+              >
+                <div ref={setFieldRef('title')}>
                   <FloatingField
-                    label="Max Participants"
-                    name="capacity"
-                    type="number"
-                    min={1}
-                    max={30}
-                    value={form.capacity}
+                    label="Event Title"
+                    name="title"
+                    value={form.title}
                     onChange={handleInputChange}
                     required
-                    hasError={highlightField === 'capacity'}
+                    characterLimit={70}
+                    hasError={highlightField === 'title'}
                   />
-                  {fieldHint?.field === 'capacity' && fieldHint.message && (
+                  {fieldHint?.field === 'title' && fieldHint.message && (
                     <p
                       className={clsx(
                         'mt-1 px-4 text-xs',
@@ -231,24 +187,18 @@ export function CreateEventPageView({
                     </p>
                   )}
                 </div>
-                <div
-                  className="flex-1"
-                  ref={setFieldRef('minPeople')}
-                >
+                <div ref={setFieldRef('sport')}>
                   <FloatingField
-                    label="Min Participants"
-                    name="minPeople"
-                    type="number"
-                    min={1}
-                    max={Number(form.capacity) || 30}
-                    value={form.minPeople}
-                    onChange={handleInputChange}
+                    label="Sport"
+                    name="sport"
+                    value={form.sport}
+                    readOnly
+                    onClick={() => setShowSportSheet(true)}
+                    placeholder="Select sport"
                     required
-                    hasError={highlightField === 'minPeople' || Boolean(minPeopleImmediateError)}
+                    hasError={highlightField === 'sport'}
                   />
-                  {minPeopleImmediateError ? (
-                    <p className="mt-1 px-4 text-xs text-red-500">{minPeopleImmediateError}</p>
-                  ) : fieldHint?.field === 'minPeople' && fieldHint.message ? (
+                  {fieldHint?.field === 'sport' && fieldHint.message && (
                     <p
                       className={clsx(
                         'mt-1 px-4 text-xs',
@@ -257,271 +207,326 @@ export function CreateEventPageView({
                     >
                       {fieldHint.message}
                     </p>
-                  ) : null}
+                  )}
                 </div>
-              </div>
-              <SkillSelector
-                selected={form.skillLevel}
-                onSelect={handleSkillSelect}
-              />
-              <GenderSelector
-                selected={form.gender}
-                onSelect={handleGenderSelect}
-                hostGender={hostGender}
-              />
-            </FieldSection>
-
-            <FieldSection
-              title="Location and Time"
-              description=""
-            >
-              <div className="space-y-4">
-                <div ref={setFieldRef('location')}>
-                  <button
-                    type="button"
-                    onClick={openLocationPicker}
-                    className={clsx(
-                      'flex w-full items-center justify-between rounded-2xl border bg-slate-50 p-4 transition',
-                      highlightField === 'location' ? 'border-red-500' : 'border-slate-200'
-                    )}
+                <div className="flex gap-4">
+                  <div
+                    className="flex-1"
+                    ref={setFieldRef('capacity')}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
-                        <MapPin className="h-5 w-5" />
+                    <FloatingField
+                      label="Max Participants"
+                      name="capacity"
+                      type="number"
+                      min={1}
+                      max={30}
+                      value={form.capacity}
+                      onChange={handleInputChange}
+                      required
+                      hasError={highlightField === 'capacity'}
+                    />
+                    {fieldHint?.field === 'capacity' && fieldHint.message && (
+                      <p
+                        className={clsx(
+                          'mt-1 px-4 text-xs',
+                          fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                        )}
+                      >
+                        {fieldHint.message}
+                      </p>
+                    )}
+                  </div>
+                  <div
+                    className="flex-1"
+                    ref={setFieldRef('minPeople')}
+                  >
+                    <FloatingField
+                      label="Min Participants"
+                      name="minPeople"
+                      type="number"
+                      min={1}
+                      max={Number(form.capacity) || 30}
+                      value={form.minPeople}
+                      onChange={handleInputChange}
+                      required
+                      hasError={highlightField === 'minPeople' || Boolean(minPeopleImmediateError)}
+                    />
+                    {minPeopleImmediateError ? (
+                      <p className="mt-1 px-4 text-xs text-red-500">{minPeopleImmediateError}</p>
+                    ) : fieldHint?.field === 'minPeople' && fieldHint.message ? (
+                      <p
+                        className={clsx(
+                          'mt-1 px-4 text-xs',
+                          fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                        )}
+                      >
+                        {fieldHint.message}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+                <SkillSelector
+                  selected={form.skillLevel}
+                  onSelect={handleSkillSelect}
+                />
+                <GenderSelector
+                  selected={form.gender}
+                  onSelect={handleGenderSelect}
+                  hostGender={hostGender}
+                />
+              </FieldSection>
+
+              <FieldSection
+                title="Location and Time"
+                description=""
+              >
+                <div className="space-y-4">
+                  <div ref={setFieldRef('location')}>
+                    <button
+                      type="button"
+                      onClick={openLocationPicker}
+                      className={clsx(
+                        'flex w-full items-center justify-between rounded-2xl border bg-slate-50 p-4 transition',
+                        highlightField === 'location' ? 'border-red-500' : 'border-slate-200'
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/50 text-blue-600">
+                          <MapPin className="h-5 w-5" />
+                        </div>
+                        <div className="flex flex-col text-left">
+                          <span className="mb-0.5 text-sm font-bold leading-tight text-slate-900">
+                            {form.location || 'Tap to select location'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-col text-left">
-                        <span className="mb-0.5 text-sm font-bold leading-tight text-slate-900">
-                          {form.location || 'Tap to select location'}
+                      <ChevronRight className="h-5 w-5 text-slate-400" />
+                    </button>
+                  </div>
+                  {fieldHint?.field === 'location' && fieldHint.message && (
+                    <p
+                      className={clsx(
+                        'mt-1 px-4 text-xs',
+                        fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                      )}
+                    >
+                      {fieldHint.message}
+                    </p>
+                  )}
+                  {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
+
+                  <FloatingField
+                    label="Venue Name (Optional)"
+                    name="placeName"
+                    placeholder="Real name unlocks it for our community"
+                    value={form.placeName}
+                    onChange={handleInputChange}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div ref={setFieldRef('startTime')}>
+                    <DateTimeField
+                      label="Start Time"
+                      value={form.startTime}
+                      onValueChange={(v) => {
+                        const newEnd = addHours(new Date(v), 2)
+                        setForm((prev) => ({
+                          ...prev,
+                          startTime: v,
+                          endTime: format(newEnd, "yyyy-MM-dd'T'HH:mm"),
+                        }))
+                      }}
+                      hasError={highlightField === 'startTime'}
+                      minValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                    />
+                    {fieldHint?.field === 'startTime' && fieldHint.message && (
+                      <p
+                        className={clsx(
+                          'mt-1 px-4 text-xs',
+                          fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                        )}
+                      >
+                        {fieldHint.message}
+                      </p>
+                    )}
+                  </div>
+                  <div ref={setFieldRef('endTime')}>
+                    <DateTimeField
+                      label="End Time"
+                      value={form.endTime}
+                      onValueChange={(v) => setForm((prev) => ({ ...prev, endTime: v }))}
+                      hasError={highlightField === 'endTime'}
+                      hideDate
+                      minValue={form.startTime || format(new Date(), "yyyy-MM-dd'T'HH:mm")}
+                      maxDate={(() => {
+                        if (!form.startTime) return undefined
+                        const start = new Date(form.startTime)
+                        const eightHoursLater = addHours(start, 8)
+                        const endOfDay = new Date(start)
+                        endOfDay.setHours(23, 59, 0, 0)
+                        return eightHoursLater < endOfDay ? eightHoursLater : endOfDay
+                      })()}
+                    />
+                    {fieldHint?.field === 'endTime' && fieldHint.message && (
+                      <p
+                        className={clsx(
+                          'mt-1 px-4 text-xs',
+                          fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                        )}
+                      >
+                        {fieldHint.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </FieldSection>
+
+              <FieldSection
+                title="Pricing"
+                description="Set event pricing details."
+              >
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
+                    <input
+                      id="is-free-checkbox"
+                      type="checkbox"
+                      checked={form.isFree}
+                      onChange={(e) => setForm((prev) => ({ ...prev, isFree: e.target.checked }))}
+                      className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor="is-free-checkbox"
+                      className="flex flex-1 flex-col"
+                    >
+                      <span className="text-sm font-semibold text-slate-800">Free</span>
+                    </label>
+                  </div>
+
+                  {!form.isFree && (
+                    <div className="grid gap-2 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
+                      <div className="flex items-center gap-2 sm:col-span-2">
+                        <div className="flex rounded-lg bg-slate-100 p-1">
+                          {[
+                            { key: 'total', label: 'Split Total' },
+                            { key: 'person', label: 'Fixed Fee' },
+                          ].map((mode) => (
+                            <button
+                              key={mode.key}
+                              type="button"
+                              onClick={() => setCostMode(mode.key as any)}
+                              className={clsx(
+                                'rounded-md px-3 py-1.5 text-xs font-semibold transition-all',
+                                costMode === mode.key
+                                  ? 'bg-white text-blue-600 shadow-sm'
+                                  : 'text-slate-500 hover:text-slate-700'
+                              )}
+                            >
+                              {mode.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="line-clamp-none px-2 text-xs text-slate-400">
+                          {costMode === 'total'
+                            ? "We'll automatically calculate the cost per person based on max capacity."
+                            : 'Set a flat rate for each player joining this game.'}
                         </span>
                       </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-slate-400" />
-                  </button>
-                </div>
-                {fieldHint?.field === 'location' && fieldHint.message && (
-                  <p
-                    className={clsx(
-                      'mt-1 px-4 text-xs',
-                      fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
-                    )}
-                  >
-                    {fieldHint.message}
-                  </p>
-                )}
-                {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
 
-                <FloatingField
-                  label="Venue Name (Optional)"
-                  name="placeName"
-                  placeholder="Real name unlocks it for our community"
-                  value={form.placeName}
-                  onChange={handleInputChange}
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div ref={setFieldRef('startTime')}>
-                  <DateTimeField
-                    label="Start Time"
-                    value={form.startTime}
-                    onValueChange={(v) => {
-                      const newEnd = addHours(new Date(v), 2)
-                      setForm((prev) => ({
-                        ...prev,
-                        startTime: v,
-                        endTime: format(newEnd, "yyyy-MM-dd'T'HH:mm"),
-                      }))
-                    }}
-                    hasError={highlightField === 'startTime'}
-                    minValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                  />
-                  {fieldHint?.field === 'startTime' && fieldHint.message && (
-                    <p
-                      className={clsx(
-                        'mt-1 px-4 text-xs',
-                        fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
-                      )}
-                    >
-                      {fieldHint.message}
-                    </p>
-                  )}
-                </div>
-                <div ref={setFieldRef('endTime')}>
-                  <DateTimeField
-                    label="End Time"
-                    value={form.endTime}
-                    onValueChange={(v) => setForm((prev) => ({ ...prev, endTime: v }))}
-                    hasError={highlightField === 'endTime'}
-                    hideDate
-                    minValue={form.startTime || format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                    maxDate={(() => {
-                      if (!form.startTime) return undefined
-                      const start = new Date(form.startTime)
-                      const eightHoursLater = addHours(start, 8)
-                      const endOfDay = new Date(start)
-                      endOfDay.setHours(23, 59, 0, 0)
-                      return eightHoursLater < endOfDay ? eightHoursLater : endOfDay
-                    })()}
-                  />
-                  {fieldHint?.field === 'endTime' && fieldHint.message && (
-                    <p
-                      className={clsx(
-                        'mt-1 px-4 text-xs',
-                        fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
-                      )}
-                    >
-                      {fieldHint.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </FieldSection>
-
-            <FieldSection
-              title="Pricing"
-              description="Set event pricing details."
-            >
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
-                  <input
-                    id="is-free-checkbox"
-                    type="checkbox"
-                    checked={form.isFree}
-                    onChange={(e) => setForm((prev) => ({ ...prev, isFree: e.target.checked }))}
-                    className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="is-free-checkbox"
-                    className="flex flex-1 flex-col"
-                  >
-                    <span className="text-sm font-semibold text-slate-800">Free</span>
-                  </label>
-                </div>
-
-                {!form.isFree && (
-                  <div className="grid gap-2 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
-                    <div className="flex items-center gap-2 sm:col-span-2">
-                      <div className="flex rounded-lg bg-slate-100 p-1">
-                        {[
-                          { key: 'total', label: 'Split Total' },
-                          { key: 'person', label: 'Fixed Fee' },
-                        ].map((mode) => (
-                          <button
-                            key={mode.key}
-                            type="button"
-                            onClick={() => setCostMode(mode.key as any)}
+                      <div ref={setFieldRef('price')}>
+                        <FloatingField
+                          label={costMode === 'total' ? 'Total Cost (AUD)' : 'Fee Per Person (AUD)'}
+                          name="price"
+                          type="number"
+                          min={0}
+                          max={9999.99}
+                          step={0.01}
+                          value={form.price}
+                          onChange={handleInputChange}
+                          placeholder=""
+                          required={!form.isFree}
+                          hasError={highlightField === 'price'}
+                        />
+                        {fieldHint?.field === 'price' && fieldHint.message && (
+                          <p
                             className={clsx(
-                              'rounded-md px-3 py-1.5 text-xs font-semibold transition-all',
-                              costMode === mode.key
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700'
+                              'mt-1 px-4 text-xs',
+                              fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
                             )}
                           >
-                            {mode.label}
-                          </button>
-                        ))}
+                            {fieldHint.message}
+                          </p>
+                        )}
+                      </div>
+                      <div ref={setFieldRef('priceNote')}>
+                        <FloatingField
+                          as="textarea"
+                          rows={3}
+                          label="Fee Notes"
+                          name="priceNote"
+                          value={form.priceNote}
+                          onChange={handleInputChange}
+                          placeholder="e.g. on-site payment"
+                          hasError={highlightField === 'priceNote'}
+                        />
+                        {fieldHint?.field === 'priceNote' && fieldHint.message && (
+                          <p
+                            className={clsx(
+                              'mt-1 px-4 text-xs',
+                              fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
+                            )}
+                          >
+                            {fieldHint.message}
+                          </p>
+                        )}
                       </div>
                     </div>
+                  )}
+                </div>
+              </FieldSection>
 
-                    <div>
-                      <span className="line-clamp-none px-2 text-xs text-slate-400">
-                        {costMode === 'total'
-                          ? "We'll automatically calculate the cost per person based on max capacity."
-                          : 'Set a flat rate for each player joining this game.'}
-                      </span>
-                    </div>
+              <div className="py-1">
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+                  <span className="text-xs font-semibold tracking-wide text-slate-400">Optional below</span>
+                  <div className="h-px flex-1 border-t border-dashed border-slate-300" />
+                </div>
+              </div>
 
-                    <div ref={setFieldRef('price')}>
-                      <FloatingField
-                        label={costMode === 'total' ? 'Total Cost (AUD)' : 'Fee Per Person (AUD)'}
-                        name="price"
-                        type="number"
-                        min={0}
-                        max={9999.99}
-                        step={0.01}
-                        value={form.price}
-                        onChange={handleInputChange}
-                        placeholder=""
-                        required={!form.isFree}
-                        hasError={highlightField === 'price'}
-                      />
-                      {fieldHint?.field === 'price' && fieldHint.message && (
-                        <p
-                          className={clsx(
-                            'mt-1 px-4 text-xs',
-                            fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
-                          )}
-                        >
-                          {fieldHint.message}
-                        </p>
-                      )}
-                    </div>
-                    <div ref={setFieldRef('priceNote')}>
-                      <FloatingField
-                        as="textarea"
-                        rows={3}
-                        label="Fee Notes"
-                        name="priceNote"
-                        value={form.priceNote}
-                        onChange={handleInputChange}
-                        placeholder="e.g. on-site payment"
-                        hasError={highlightField === 'priceNote'}
-                      />
-                      {fieldHint?.field === 'priceNote' && fieldHint.message && (
-                        <p
-                          className={clsx(
-                            'mt-1 px-4 text-xs',
-                            fieldHint.tone === 'error' ? 'text-red-500' : 'text-slate-400'
-                          )}
-                        >
-                          {fieldHint.message}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+              <FieldSection
+                title="Event Photos"
+                description="Up to 3 photos"
+              >
+                <CoverUploader
+                  previews={heroPreviews}
+                  onChange={handleImageChange}
+                  onRemove={handleRemoveImage}
+                />
+                {photoError && (
+                  <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {photoError}
+                  </p>
                 )}
-              </div>
-            </FieldSection>
+              </FieldSection>
 
-            <div className="py-1">
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 border-t border-dashed border-slate-300" />
-                <span className="text-xs font-semibold tracking-wide text-slate-400">Optional below</span>
-                <div className="h-px flex-1 border-t border-dashed border-slate-300" />
-              </div>
+              <FieldSection
+                title="Event Description"
+                description="Describe the vibe, expectations, or notes."
+              >
+                <FloatingField
+                  as="textarea"
+                  label="Event Description"
+                  name="notes"
+                  rows={5}
+                  value={form.notes}
+                  onChange={handleInputChange}
+                />
+              </FieldSection>
             </div>
-
-            <FieldSection
-              title="Event Photos"
-              description="Up to 3 photos"
-            >
-              <CoverUploader
-                previews={heroPreviews}
-                onChange={handleImageChange}
-                onRemove={handleRemoveImage}
-              />
-              {photoError && (
-                <p className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {photoError}
-                </p>
-              )}
-            </FieldSection>
-
-            <FieldSection
-              title="Event Description"
-              description="Describe the vibe, expectations, or notes."
-            >
-              <FloatingField
-                as="textarea"
-                label="Event Description"
-                name="notes"
-                rows={5}
-                value={form.notes}
-                onChange={handleInputChange}
-              />
-            </FieldSection>
-          </div>
-        </form>
+          </form>
         </div>
 
         <ActionBar
@@ -701,34 +706,34 @@ function ActionBar({
   return (
     <div className="w-full shrink-0 bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
       <div className={clsx('mx-auto flex w-full max-w-md gap-3 px-4', showDraftButton ? 'grid grid-cols-2' : '')}>
-          {showDraftButton && (
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={onDraft}
-              className="h-12 w-full rounded-full border-slate-200 text-base font-semibold text-slate-600 shadow-lg transition"
-              disabled={!canSubmit || isSubmitting}
-            >
-              {submittingStatus === 'draft' ? 'Saving...' : 'Save Draft'}
-            </Button>
-          )}
+        {showDraftButton && (
           <Button
+            variant="secondary"
             type="button"
-            onClick={onPublish}
-            disabled={isSubmitting}
-            className={clsx(
-              'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
-              !canSubmit && 'opacity-50'
-            )}
+            onClick={onDraft}
+            className="h-12 w-full rounded-full border-slate-200 text-base font-semibold text-slate-600 shadow-lg transition"
+            disabled={!canSubmit || isSubmitting}
           >
-            {submittingStatus === 'published'
-              ? isPublicPublishedEdit
-                ? 'Updating...'
-                : 'Publishing...'
-              : isPublicPublishedEdit
-                ? 'Update & Publish'
-                : 'Publish'}
+            {submittingStatus === 'draft' ? 'Saving...' : 'Save Draft'}
           </Button>
+        )}
+        <Button
+          type="button"
+          onClick={onPublish}
+          disabled={isSubmitting}
+          className={clsx(
+            'h-12 w-full rounded-full text-base font-semibold shadow-lg transition',
+            !canSubmit && 'opacity-50'
+          )}
+        >
+          {submittingStatus === 'published'
+            ? isPublicPublishedEdit
+              ? 'Updating...'
+              : 'Publishing...'
+            : isPublicPublishedEdit
+              ? 'Update & Publish'
+              : 'Publish'}
+        </Button>
       </div>
     </div>
   )

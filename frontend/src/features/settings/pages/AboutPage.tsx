@@ -27,11 +27,7 @@ export function AboutPage() {
         <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50 via-white to-white">
           <div className="pointer-events-none absolute -right-24 top-10 h-48 w-48 rounded-full bg-emerald-200/50 blur-3xl" />
           <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-12">
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <Sparkles className="h-4 w-4" />
-              Real-World Sports Platform
-            </div>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
               Your city.
               <br />
               Your home game.

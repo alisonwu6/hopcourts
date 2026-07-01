@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, UserRound, LogOut, Info, Mail, FileText, PenLine } from 'lucide-react'
+import { ChevronRight, UserRound, LogOut, BookCheck, Mail, FileText, Rocket, CircleHelp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
@@ -7,9 +7,10 @@ import { useAuthStore } from '@/hooks'
 const generalItems = [{ key: 'account', label: 'Account Settings', icon: UserRound }]
 
 const otherItems = [
-  { key: 'about', label: 'About Us', icon: Info },
-  { key: 'foundersLetter', label: 'Founder’s Letter', icon: PenLine },
+  { key: 'whyHopCourts', label: 'Why HopCourts ', icon: Rocket },
+  { key: 'about', label: 'About Us', icon: BookCheck },
   { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
+  { key: 'faq', label: 'FAQ', icon: CircleHelp },
   { key: 'contact', label: 'Contact Us', icon: Mail },
 ]
 
@@ -77,8 +78,9 @@ export function ProfileSettingsPage() {
                   className="flex w-full items-center justify-between px-4 py-4 text-left"
                   onClick={() => {
                     if (key === 'about') navigate('/about')
-                    if (key === 'foundersLetter') navigate('/founders-letter')
+                    if (key === 'whyHopCourts') navigate('/why-hopcourts')
                     if (key === 'guidelines') navigate('/guidelines')
+                    if (key === 'faq') navigate('/faq')
                     if (key === 'contact') navigate('/settings/contact')
                   }}
                 >
