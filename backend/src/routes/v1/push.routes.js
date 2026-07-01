@@ -1,6 +1,6 @@
 const express = require('express')
 const { verifyToken } = require('../../middleware/verifyToken')
-const { saveSubscription, deleteSubscription } = require('../../modules/push/push.service')
+const { saveSubscription, deleteSubscription, sendPushToUser } = require('../../modules/push/push.service')
 
 const router = express.Router()
 
@@ -10,8 +10,14 @@ router.get('/vapid-public-key', (_req, res) => {
 
 router.post('/subscribe', verifyToken, async (req, res) => {
   try {
-    await saveSubscription(req.user.id, req.body)
+    const isNew = await saveSubscription(req.user.id, req.body)
     res.json({ ok: true })
+    if (isNew) {
+      sendPushToUser(req.user.id, {
+        title: "Mate, you're in.",
+        body: "We'll buzz you when games start, players join, or it's time to check in.",
+      }).catch(() => {})
+    }
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
