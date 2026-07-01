@@ -2,10 +2,7 @@ const feedbackService = require('./feedback.service');
 
 exports.createFeedback = async (req, res, next) => {
   try {
-    const { type, message, allow_reply, images } = req.body;
-    // req.user is populated by auth middleware.
-    // user_id can be null if we allow anonymous, but for now we use req.user.id if available.
-    // If authenticated, use ID. If not, null.
+    const { type, message, allow_reply, images, guest_email } = req.body;
     const user_id = req.user ? req.user.id : null;
 
     const result = await feedbackService.createFeedback({
@@ -14,6 +11,7 @@ exports.createFeedback = async (req, res, next) => {
       message,
       allow_reply,
       images,
+      guest_email: user_id ? null : (guest_email || null),
     });
 
     res.status(201).json({ success: true, id: result.id });

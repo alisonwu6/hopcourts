@@ -7,6 +7,8 @@ export interface CreateFeedbackRequest {
   message: string
   page?: string
   allow_reply: boolean
+  images?: string[]
+  guest_email?: string
   meta?: Record<string, any>
 }
 
