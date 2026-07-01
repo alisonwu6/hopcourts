@@ -218,7 +218,7 @@ export function HomePage() {
                 onClick={() => navigate('/faq')}
                 className="text-courts-500 flex items-center gap-1 text-[12px] text-sm font-extrabold underline"
               >
-                See all{' '}
+                Read more
                 <MoveUpRight
                   size={12}
                   strokeWidth={3}
