@@ -12,7 +12,7 @@ import {
   ChevronDown,
   MessageCircle,
   Bug,
-  Lightbulb,
+  Sparkles,
   ChevronRight,
 } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
@@ -279,14 +279,14 @@ export function HomePage() {
                   },
                   {
                     icon: <Bug className="h-5 w-5" />,
-                    bg: 'bg-orange-100 text-orange-500',
-                    label: 'Report a bug',
+                    bg: 'bg-green-100 text-green-500',
+                    label: 'Report an issue',
                     sub: 'Something not working right?',
                     type: 'issue',
                   },
                   {
-                    icon: <Lightbulb className="h-5 w-5" />,
-                    bg: 'bg-purple-100 text-purple-600',
+                    icon: <Sparkles className="h-5 w-5" />,
+                    bg: 'bg-yellow-100 text-yellow-600',
                     label: 'Request a feature',
                     sub: "Got an idea? We'd love to hear it",
                     type: 'feature',
