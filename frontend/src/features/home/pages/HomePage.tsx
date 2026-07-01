@@ -140,9 +140,14 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => navigate('/why-hopcourts')}
-                className="flex items-center gap-1 text-[10px] text-sm font-semibold text-blue-600 underline"
+                className="text-courts-500 flex items-center gap-1 text-[12px] text-sm font-extrabold underline"
               >
-                Read more <MoveUpRight size={10} />
+                Read more
+                <MoveUpRight
+                  size={12}
+                  strokeWidth={3}
+                  className="text-courts-500"
+                />
               </button>
             </div>
             <div className="space-y-3">
@@ -211,15 +216,19 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => navigate('/faq')}
-                className="flex items-center gap-1 text-[10px] text-sm font-semibold text-blue-600 underline"
+                className="text-courts-500 flex items-center gap-1 text-[12px] text-sm font-extrabold underline"
               >
-                See all <MoveUpRight size={10} />
+                See all{' '}
+                <MoveUpRight
+                  size={12}
+                  strokeWidth={3}
+                />
               </button>
             </div>
             <div className="space-y-6">
               {homeFaqCategories.map((cat, ci) => (
                 <div key={ci}>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">{cat.category}</p>
+                  <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-slate-400">{cat.category}</p>
                   <div className="space-y-3">
                     {cat.items.map((item, ii) => {
                       const key = `${ci}-${ii}`
@@ -266,24 +275,27 @@ export function HomePage() {
                     bg: 'bg-blue-100 text-blue-600',
                     label: 'Share feedback',
                     sub: "Tell us what's working or not",
+                    type: 'other',
                   },
                   {
                     icon: <Bug className="h-5 w-5" />,
                     bg: 'bg-orange-100 text-orange-500',
                     label: 'Report a bug',
                     sub: 'Something not working right?',
+                    type: 'issue',
                   },
                   {
                     icon: <Lightbulb className="h-5 w-5" />,
                     bg: 'bg-purple-100 text-purple-600',
                     label: 'Request a feature',
                     sub: "Got an idea? We'd love to hear it",
+                    type: 'feature',
                   },
-                ].map(({ icon, bg, label, sub }) => (
+                ].map(({ icon, bg, label, sub, type }) => (
                   <button
                     key={label}
                     type="button"
-                    onClick={() => navigate('/settings/contact')}
+                    onClick={() => navigate(`/settings/contact?type=${type}`)}
                     className="flex w-full items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-left"
                   >
                     <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>

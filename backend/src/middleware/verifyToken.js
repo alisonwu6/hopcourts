@@ -107,4 +107,28 @@ async function verifyToken(req, res, next) {
   }
 }
 
-module.exports = { verifyToken }
+async function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null
+
+  if (!token) return next()
+
+  try {
+    const supabaseUser = await getSupabaseUserFromToken(token)
+    if (supabaseUser) {
+      const appUser = await resolveUserFromSupabase(supabaseUser)
+      if (appUser) {
+        req.authUser = appUser
+        req.user = appUser
+        req.userId = appUser.id
+        req.supabaseUser = supabaseUser
+      }
+    }
+  } catch (err) {
+    console.warn('[optionalAuth] Token resolution failed, continuing as anonymous:', err?.message)
+  }
+
+  return next()
+}
+
+module.exports = { verifyToken, optionalAuth }

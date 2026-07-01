@@ -360,14 +360,12 @@ export default function App() {
       <Route
         path="/settings/contact"
         element={
-          <RequireAuth>
-            <AppChrome
-              showHeader={false}
-              showNav={false}
-            >
-              <ContactUsPage />
-            </AppChrome>
-          </RequireAuth>
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <ContactUsPage />
+          </AppChrome>
         }
       />
       <Route

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Send, CheckCircle2, AlertCircle, Lightbulb, UserCircle2, HelpCircle, Check } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { feedbackService } from '@/services/feedbackService'
@@ -13,9 +13,15 @@ const feedbackTypes: { value: FeedbackType; label: string; icon: any }[] = [
   { value: 'other', label: 'Other', icon: HelpCircle },
 ]
 
+const validTypes: FeedbackType[] = ['issue', 'feature', 'account', 'other']
+
 export function ContactUsPage() {
   const navigate = useNavigate()
-  const [type, setType] = useState<FeedbackType>('issue')
+  const [searchParams] = useSearchParams()
+  const paramType = searchParams.get('type')
+  const [type, setType] = useState<FeedbackType>(
+    validTypes.includes(paramType as FeedbackType) ? (paramType as FeedbackType) : 'issue'
+  )
   const [content, setContent] = useState('')
   const [allowReply, setAllowReply] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -76,9 +82,9 @@ export function ContactUsPage() {
           <p className="mb-8 text-slate-600">We've received your message and our team will review it shortly.</p>
           <button
             onClick={() => navigate('/settings')}
-            className="w-full max-w-xs rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
+            className=" max-w-xs rounded-full bg-ocean px-6 py-3 font-semibold text-white cursor-pointer"
           >
-            Back to Settings
+            Exlore Events
           </button>
         </div>
       </div>
