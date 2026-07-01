@@ -1,11 +1,67 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+
+type SectionColor = {
+  badge: string
+  card: string
+}
+
+const COLORS: SectionColor[] = [
+  { badge: 'bg-green-100 text-green-700', card: 'bg-white' },
+  { badge: 'bg-blue-100 text-blue-700', card: 'bg-white' },
+  { badge: 'bg-orange-100 text-orange-700', card: 'bg-white' },
+  { badge: 'bg-purple-100 text-purple-700', card: 'bg-white' },
+  { badge: 'bg-slate-100 text-slate-600', card: 'bg-white' },
+  { badge: 'bg-red-400 text-red-50', card: 'bg-red-100' },
+]
+
+const SECTIONS = [
+  {
+    id: 1,
+    title: 'Be Authentic and Respectful',
+    body: 'Use your real identity and treat others with respect and fairness. Harassment, discrimination, abuse, or inappropriate behaviour may lead to account restriction or termination.',
+  },
+  {
+    id: 2,
+    title: 'Personal Responsibility and Safety',
+    body: 'All events are created and organised by users. Before participating, make sure you are physically fit to join and have considered any safety risks. If you have health concerns, consult a medical professional first.',
+  },
+  {
+    id: 3,
+    title: 'Host and Participant Responsibilities',
+    body: 'Hosts are responsible for session details such as time and venue arrangements. Participants should verify event information themselves. HopCourts does not manage or supervise in-person events.',
+  },
+  {
+    id: 4,
+    title: 'Venues and Fees',
+    body: 'Before attending, please ensure the venue is appropriate and safe for the activity. Venue rules and fees are determined by the venue provider.',
+  },
+  {
+    id: 5,
+    title: 'Privacy and Boundaries',
+    body: "Participating in the same session doesn't mean you know each other personally. Please respect others' privacy and personal boundaries.",
+  },
+  {
+    id: 6,
+    title: 'Enforcement',
+    body: 'If violations occur, we reserve the right to suspend or terminate your account.',
+  },
+]
+
+function SectionBadge({ index }: { index: number }) {
+  const color = COLORS[index]
+  return (
+    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${color.badge}`}>
+      {index + 1}
+    </span>
+  )
+}
 
 export function UsageRulesPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-[100dvh] bg-white pb-[120px] text-slate-900">
+    <div className="min-h-[100dvh] text-slate-900">
       <ActionToolbar
         onBack={() => navigate('/settings')}
         showShare={false}
@@ -16,61 +72,53 @@ export function UsageRulesPage() {
         borderBottom
       />
 
-      <div className="mx-auto w-full max-w-3xl px-4 py-8">
-        <div className="space-y-8 text-base leading-relaxed text-slate-600">
-          <section>
-            <p>Welcome to HopCourts.</p>
-            <p className="mt-3">
-              HopCourts is a place to organize and join sports events with people across your city. To keep our
-              community safe and enjoyable for everyone, please follow these guidelines.
-            </p>
-          </section>
+      {/* Hero */}
+      <div className="relative overflow-hidden bg-[#1e3d2b] px-6 py-10">
+        <div className="pointer-events-none absolute right-[-40px] top-[-40px] h-52 w-52 rounded-full bg-[#2d5a3d] opacity-60" />
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#6dac7f]">HopCourts</p>
+        <h1 className="mb-4 text-4xl font-black leading-tight text-white">
+          Community
+          <br />
+          Guidelines
+        </h1>
+        <p className="text-sm leading-relaxed text-[#a8c5b0]">
+          HopCourts is a place to organise and join sports events with people across your city. To keep our community
+          safe and enjoyable for everyone, please follow these guidelines.
+        </p>
+        <p className="mt-4 text-xs text-[#6d8f7a]">Last updated June 2026</p>
+      </div>
 
-          <section>
-            <h2 className="mb-2 text-lg font-bold text-slate-900">1. Be Authentic and Respectful</h2>
-            <p>
-              Use your real identity and treat others with respect and fairness. Harassment, discrimination, abuse, or
-              inappropriate behavior may lead to account restriction or termination.
+      <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-5">
+        {/* Section cards */}
+        {SECTIONS.map((s, i) => (
+          <div
+            key={s.id}
+            id={`section-${s.id}`}
+            className={`scroll-mt-16 rounded-2xl p-5 shadow-sm ${COLORS[i].card}`}
+          >
+            <div className="mb-3 flex items-center gap-3">
+              <SectionBadge index={i} />
+              <h2 className="text-base font-bold text-slate-900">{s.title}</h2>
+            </div>
+            <p className={`text-sm leading-relaxed ${i === SECTIONS.length - 1 ? 'text-red-800' : 'text-slate-500'}`}>
+              {s.body}
             </p>
-          </section>
+          </div>
+        ))}
 
-          <section>
-            <h2 className="mb-2 text-lg font-bold text-slate-900">2. Personal Responsibility and Safety</h2>
-            <p>
-              All events are created and organized by users. Before participating, make sure you are physically fit to
-              join and have considered any safety risks. If you have health concerns, consult a medical professional
-              first.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-2 text-lg font-bold text-slate-900">3. Host and Participant Responsibilities</h2>
-            <p>
-              Hosts are responsible for session details such as time and venue arrangements. Participants should verify
-              event information themselves. HopCourts does not manage or supervise in-person events.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-2 text-lg font-bold text-slate-900">4. Venues and Fees</h2>
-            <p>
-              Before attending, please ensure the venue is appropriate and safe for the activity. Venue rules and fees
-              are determined by the venue provider.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-2 text-lg font-bold text-slate-900">5. Privacy and Boundaries</h2>
-            <p>
-              Participating in the same session doesn&apos;t mean you know each other personally. Please respect
-              others&apos; privacy and personal boundaries.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-2 text-lg font-bold text-slate-900">6. Enforcement</h2>
-            <p>If violations occur, we reserve the right to suspend or terminate your account.</p>
-          </section>
+        {/* Footer */}
+        <div className="mt-10 p-5 text-center">
+          <p className="text-sm text-[#2d6a4f]">
+            Questions about these guidelines?{' '}
+            <Link
+              to="/settings/contact"
+              className="inline-flex items-center gap-0.5 font-semibold text-[#2d6a4f] underline-offset-2 hover:underline"
+            >
+              Contact us
+              <span className="text-xs">↗</span>
+            </Link>
+          </p>
+          <p className="mt-1.5 text-xs text-slate-400">HopCourts · Community Guidelines</p>
         </div>
       </div>
     </div>

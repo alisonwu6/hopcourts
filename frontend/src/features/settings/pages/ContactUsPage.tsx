@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/hooks'
 import { Send, CheckCircle2, Check, ImagePlus, X, ChevronDown } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
@@ -22,8 +22,17 @@ const MAX_BYTES = 5 * 1024 * 1024
 
 export function ContactUsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { isAuthenticated } = useAuthStore((s) => ({ isAuthenticated: s.isAuthenticated }))
   const [searchParams] = useSearchParams()
+
+  const handleBack = () => {
+    if (location.key !== 'default') {
+      navigate(-1)
+    } else {
+      navigate('/settings')
+    }
+  }
   const paramType = searchParams.get('type')
   const [type, setType] = useState<FeedbackType>(
     validTypes.includes(paramType as FeedbackType) ? (paramType as FeedbackType) : 'issue'
@@ -130,7 +139,7 @@ export function ContactUsPage() {
       <div className="min-h-[100dvh] bg-white">
         <ActionToolbar
           title="Contact Us"
-          onBack={() => navigate('/settings')}
+          onBack={handleBack}
           showBack
           borderBottom
         />
@@ -142,7 +151,7 @@ export function ContactUsPage() {
           <p className="mb-8 text-slate-600">We've received your message and our team will review it shortly.</p>
           <button
             onClick={() => navigate('/events')}
-            className="max-w-xs rounded-full bg-ocean px-6 py-3 font-semibold text-white cursor-pointer"
+            className="bg-ocean max-w-xs cursor-pointer rounded-full px-6 py-3 font-semibold text-white"
           >
             Explore Events
           </button>
@@ -155,7 +164,7 @@ export function ContactUsPage() {
     <div className="pb-safe min-h-[100dvh] bg-slate-50">
       <ActionToolbar
         title="Contact Us"
-        onBack={() => navigate('/settings')}
+        onBack={handleBack}
         showBack
         borderBottom
         className="bg-white"
@@ -169,7 +178,7 @@ export function ContactUsPage() {
           <div className="space-y-3">
             <label
               htmlFor="feedback-type"
-              className="inline-block mb-2 text-base font-bold text-slate-900"
+              className="mb-2 inline-block text-base font-bold text-slate-900"
             >
               Feedback Type
             </label>
@@ -181,7 +190,12 @@ export function ContactUsPage() {
                 className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none"
               >
                 {feedbackTypes.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
+                  <option
+                    key={value}
+                    value={value}
+                  >
+                    {label}
+                  </option>
                 ))}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
@@ -296,20 +310,22 @@ export function ContactUsPage() {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting || !content.trim()}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-6 py-4 text-lg font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
-          >
-            {isSubmitting ? (
-              'Sending...'
-            ) : (
-              <>
-                <Send className="h-5 w-5" />
-                Submit
-              </>
-            )}
-          </button>
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={isSubmitting || !content.trim()}
+              className="bg-ocean hover:bg-ocean-600 flex items-center justify-center gap-2 rounded-full px-10 py-3 text-lg font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+            >
+              {isSubmitting ? (
+                'Sending...'
+              ) : (
+                <>
+                  <Send className="h-5 w-5" />
+                  Submit
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </main>
     </div>
