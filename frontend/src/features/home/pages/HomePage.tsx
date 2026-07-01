@@ -107,9 +107,9 @@ export function HomePage() {
               Hop In.
             </h1>
             <h2 className="text-base text-slate-600">
-              Open courts. Real players.
+              Host a game or hop in.
               <br />
-              No planning needed.
+              Either way, it's easy.
             </h2>
           </header>
 
