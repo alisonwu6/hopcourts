@@ -25,8 +25,34 @@ export function WhyHopCourtsPage() {
       />
 
       {/* Dark hero */}
-      <div className="bg-slate-900">
-        <div className="mx-auto max-w-2xl px-5 pb-10 pt-6">
+      <div className="relative overflow-hidden bg-slate-900">
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 390 170"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <g opacity="0.22" stroke="white" fill="none" strokeLinecap="round">
+            <g transform="translate(230, 55) rotate(-8, 62, 33) scale(1.5)">
+              <rect x="0" y="0" width="124" height="66" strokeWidth="1.5" />
+              <line x1="62" y1="0" x2="62" y2="66" strokeWidth="1.2" />
+              <circle cx="62" cy="33" r="7.9" strokeWidth="1.2" />
+              <circle cx="62" cy="33" r="2" fill="white" stroke="none" />
+              <rect x="0" y="22.2" width="25.7" height="21.6" strokeWidth="1.2" />
+              <circle cx="25.7" cy="33" r="7.9" strokeWidth="1.2" />
+              <line x1="0" y1="4" x2="8" y2="4" strokeWidth="1.2" />
+              <line x1="0" y1="62" x2="8" y2="62" strokeWidth="1.2" />
+              <path d="M8,4 A29,29 0 0,1 8,62" strokeWidth="1.2" />
+              <rect x="98.3" y="22.2" width="25.7" height="21.6" strokeWidth="1.2" />
+              <circle cx="98.3" cy="33" r="7.9" strokeWidth="1.2" />
+              <line x1="124" y1="4" x2="116" y2="4" strokeWidth="1.2" />
+              <line x1="124" y1="62" x2="116" y2="62" strokeWidth="1.2" />
+              <path d="M116,4 A29,29 0 0,0 116,62" strokeWidth="1.2" />
+            </g>
+          </g>
+        </svg>
+
+        <div className="relative z-10 mx-auto max-w-2xl px-5 pb-10 pt-6">
           <p className="text-courts-400 mb-3 text-xs font-bold uppercase tracking-widest">Our Story</p>
           <h1 className="text-5xl font-black leading-[1.05] tracking-tight text-white">
             Sport should be <span className="text-courts-400">instinctual.</span>

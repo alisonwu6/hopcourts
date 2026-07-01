@@ -170,6 +170,51 @@ export function ContactUsPage() {
         className="bg-white"
       />
 
+      {/* Hero */}
+      <div className="relative overflow-hidden bg-[#1A3A0A]">
+        {/* Court lines — same pattern as app icon */}
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 390 170"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <g opacity="0.22" stroke="white" fill="none" strokeLinecap="round">
+            {/* Tennis-style court — upper right */}
+            <g transform="translate(175, -18) rotate(12, 62, 33) scale(1.65)">
+              <rect x="0" y="0" width="124" height="66" strokeWidth="1.5" />
+              <line x1="62" y1="0" x2="62" y2="66" strokeWidth="1.2" />
+              <circle cx="62" cy="33" r="7.9" strokeWidth="1.2" />
+              <circle cx="62" cy="33" r="2" fill="white" stroke="none" />
+              <rect x="0" y="22.2" width="25.7" height="21.6" strokeWidth="1.2" />
+              <circle cx="25.7" cy="33" r="7.9" strokeWidth="1.2" />
+              <line x1="0" y1="4" x2="8" y2="4" strokeWidth="1.2" />
+              <line x1="0" y1="62" x2="8" y2="62" strokeWidth="1.2" />
+              <path d="M8,4 A29,29 0 0,1 8,62" strokeWidth="1.2" />
+              <rect x="98.3" y="22.2" width="25.7" height="21.6" strokeWidth="1.2" />
+              <circle cx="98.3" cy="33" r="7.9" strokeWidth="1.2" />
+              <line x1="124" y1="4" x2="116" y2="4" strokeWidth="1.2" />
+              <line x1="124" y1="62" x2="116" y2="62" strokeWidth="1.2" />
+              <path d="M116,4 A29,29 0 0,0 116,62" strokeWidth="1.2" />
+            </g>
+          </g>
+        </svg>
+
+        <div className="relative mx-auto max-w-2xl px-5 pb-10 pt-8">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-lime-400">
+            Get in touch
+          </p>
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-white">
+            Got something
+            <br />
+            on your mind?
+          </h1>
+          <p className="mt-3 text-base text-white/60">
+            We read every message — a bug, an idea, or just a note.
+          </p>
+        </div>
+      </div>
+
       <main className="mx-auto max-w-2xl px-4 py-6">
         <form
           onSubmit={handleSubmit}

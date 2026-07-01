@@ -73,19 +73,94 @@ export function UsageRulesPage() {
       />
 
       {/* Hero */}
-      <div className="relative overflow-hidden bg-[#1e3d2b] px-6 py-10">
-        <div className="pointer-events-none absolute right-[-40px] top-[-40px] h-52 w-52 rounded-full bg-[#2d5a3d] opacity-60" />
-        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#6dac7f]">HopCourts</p>
-        <h1 className="mb-4 text-4xl font-black leading-tight text-white">
-          Community
-          <br />
-          Guidelines
-        </h1>
-        <p className="text-sm leading-relaxed text-[#a8c5b0]">
-          HopCourts is a place to organise and join sports events with people across your city. To keep our community
-          safe and enjoyable for everyone, please follow these guidelines.
-        </p>
-        <p className="mt-4 text-xs text-[#6d8f7a]">Last updated June 2026</p>
+      <div className="relative overflow-hidden bg-[#1e3d2b]">
+        {/* Badminton court — upper right, counter-clockwise tilt */}
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 390 170"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <g
+            opacity="0.22"
+            stroke="white"
+            fill="none"
+            strokeLinecap="round"
+          >
+            <g transform="translate(228, -18) rotate(-15, 65, 30) scale(1.45)">
+              <rect
+                x="0"
+                y="0"
+                width="130"
+                height="60"
+                strokeWidth="1.5"
+              />
+              <line
+                x1="0"
+                y1="9"
+                x2="130"
+                y2="9"
+                strokeWidth="1.1"
+              />
+              <line
+                x1="0"
+                y1="51"
+                x2="130"
+                y2="51"
+                strokeWidth="1.1"
+              />
+              <line
+                x1="65"
+                y1="0"
+                x2="65"
+                y2="60"
+                strokeWidth="1.6"
+              />
+              <line
+                x1="0"
+                y1="30"
+                x2="65"
+                y2="30"
+                strokeWidth="1.1"
+              />
+              <line
+                x1="65"
+                y1="30"
+                x2="130"
+                y2="30"
+                strokeWidth="1.1"
+              />
+              <line
+                x1="15"
+                y1="9"
+                x2="15"
+                y2="51"
+                strokeWidth="1.1"
+              />
+              <line
+                x1="115"
+                y1="9"
+                x2="115"
+                y2="51"
+                strokeWidth="1.1"
+              />
+            </g>
+          </g>
+        </svg>
+
+        <div className="relative px-6 py-10">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#6dac7f]">HopCourts</p>
+          <h1 className="mb-4 text-4xl font-black leading-tight text-white">
+            Community
+            <br />
+            Guidelines
+          </h1>
+          <p className="text-sm leading-relaxed text-[#a8c5b0]">
+            HopCourts is a place to organise and join sports events with people across your city. To keep our community
+            safe and enjoyable for everyone, please follow these guidelines.
+          </p>
+          <p className="mt-4 text-xs text-[#6d8f7a]">Last updated June 2026</p>
+        </div>
       </div>
 
       <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-5">
@@ -100,9 +175,7 @@ export function UsageRulesPage() {
               <SectionBadge index={i} />
               <h2 className="text-base font-bold text-slate-900">{s.title}</h2>
             </div>
-            <p className="text-sm leading-relaxed text-slate-500">
-              {s.body}
-            </p>
+            <p className="text-sm leading-relaxed text-slate-500">{s.body}</p>
           </div>
         ))}
 
