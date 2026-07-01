@@ -23,7 +23,7 @@ const faqCategories = [
     items: [
       {
         q: 'How do I join a game?',
-        a: 'Browse games near you on the Discover page. When you find one that fits, tap Hop In. No back-and-forth, no group chats. Just show up and play.',
+        a: 'Browse games near you on the events page. When you find one that fits, tap Hop In. No back-and-forth, no group chats. Just show up and play.',
       },
       {
         q: 'How do I host a game?',
