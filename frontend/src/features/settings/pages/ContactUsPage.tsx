@@ -81,10 +81,10 @@ export function ContactUsPage() {
           <h2 className="mb-2 text-2xl font-bold text-slate-900">Thanks for your feedback!</h2>
           <p className="mb-8 text-slate-600">We've received your message and our team will review it shortly.</p>
           <button
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate('/events')}
             className=" max-w-xs rounded-full bg-ocean px-6 py-3 font-semibold text-white cursor-pointer"
           >
-            Exlore Events
+            Explore Events
           </button>
         </div>
       </div>
