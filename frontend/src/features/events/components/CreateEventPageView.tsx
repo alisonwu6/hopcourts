@@ -164,6 +164,12 @@ export function CreateEventPageView({
           >
 
             <div className="space-y-8">
+              {hasOtherParticipants && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                  Some fields are locked because participants have already joined. You can still update the description, photos, and fee notes.
+                </div>
+              )}
+              <div className={clsx(hasOtherParticipants && 'pointer-events-none opacity-50')}>
               <FieldSection
                 title="Event Basics"
                 description=""
@@ -277,7 +283,9 @@ export function CreateEventPageView({
                   hostGender={hostGender}
                 />
               </FieldSection>
+              </div>
 
+              <div className={clsx(hasOtherParticipants && 'pointer-events-none opacity-50')}>
               <FieldSection
                 title="Location and Time"
                 description=""
@@ -395,31 +403,34 @@ export function CreateEventPageView({
                   </div>
                 </div>
               </FieldSection>
+              </div>
 
               <FieldSection
                 title="Pricing"
                 description="Set event pricing details."
               >
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
-                    <input
-                      id="is-free-checkbox"
-                      type="checkbox"
-                      checked={form.isFree}
-                      onChange={(e) => setForm((prev) => ({ ...prev, isFree: e.target.checked }))}
-                      className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <label
-                      htmlFor="is-free-checkbox"
-                      className="flex flex-1 flex-col"
-                    >
-                      <span className="text-sm font-semibold text-slate-800">Free</span>
-                    </label>
+                  <div className={clsx(hasOtherParticipants && 'pointer-events-none opacity-50')}>
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition">
+                      <input
+                        id="is-free-checkbox"
+                        type="checkbox"
+                        checked={form.isFree}
+                        onChange={(e) => setForm((prev) => ({ ...prev, isFree: e.target.checked }))}
+                        className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="is-free-checkbox"
+                        className="flex flex-1 flex-col"
+                      >
+                        <span className="text-sm font-semibold text-slate-800">Free</span>
+                      </label>
+                    </div>
                   </div>
 
                   {!form.isFree && (
                     <div className="grid gap-2 duration-300 animate-in fade-in slide-in-from-top-2 sm:grid-cols-2">
-                      <div className="flex items-center gap-2 sm:col-span-2">
+                      <div className={clsx('flex items-center gap-2 sm:col-span-2', hasOtherParticipants && 'pointer-events-none opacity-50')}>
                         <div className="flex rounded-lg bg-slate-100 p-1">
                           {[
                             { key: 'total', label: 'Split Total' },
@@ -442,7 +453,7 @@ export function CreateEventPageView({
                         </div>
                       </div>
 
-                      <div>
+                      <div className={clsx(hasOtherParticipants && 'opacity-50')}>
                         <span className="line-clamp-none px-2 text-xs text-slate-400">
                           {costMode === 'total'
                             ? "We'll automatically calculate the cost per person based on max capacity."
@@ -450,7 +461,10 @@ export function CreateEventPageView({
                         </span>
                       </div>
 
-                      <div ref={setFieldRef('price')}>
+                      <div
+                        ref={setFieldRef('price')}
+                        className={clsx(hasOtherParticipants && 'pointer-events-none opacity-50')}
+                      >
                         <FloatingField
                           label={costMode === 'total' ? 'Total Cost (AUD)' : 'Fee Per Person (AUD)'}
                           name="price"

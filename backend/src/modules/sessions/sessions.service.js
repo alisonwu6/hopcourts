@@ -405,6 +405,8 @@ async function updateSession(sessionId, input) {
     throw Errors.forbidden('Only host can update session')
   }
 
+  const isLocked = existing.participant_count > 0
+
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
   const allowedGender = ['mixed', 'female', 'male', 'lgbtq']
   const allowedPriceMode = ['total', 'person']
@@ -433,7 +435,7 @@ async function updateSession(sessionId, input) {
   }
 
   let venueId = undefined
-  if (input.lat && input.lng && input.lat !== 0 && input.lng !== 0) {
+  if (!isLocked && input.lat && input.lng && input.lat !== 0 && input.lng !== 0) {
     try {
       venueId = await resolveVenue({
         lat: Number(input.lat),
@@ -447,36 +449,42 @@ async function updateSession(sessionId, input) {
     }
   }
 
-  const patch = {
-    sportKey: input.sportKey,
-    title: input.title,
-    description: input.description,
-    startAt: input.startAt ? new Date(input.startAt) : undefined,
-    endAt: input.endAt ? new Date(input.endAt) : undefined,
-    locationName: input.placeName,
-    address: input.address,
-    lat: input.lat,
-    lng: input.lng,
-    locationSource: input.locationSource,
-    venueId,
-    checkinRadiusM: input.checkinRadiusM,
-    checkinOpenMinsBefore: input.checkinOpenMinsBefore,
-    checkinCloseMinsAfter: input.checkinCloseMinsAfter,
-    minPeople: input.minPeople,
-    maxPeople: input.maxPeople ?? input.capacity,
-    status: input.status,
-    visibility: input.visibility,
-    skillLevel: input.skillLevel,
-    gender: input.gender,
-    photos: input.photos,
-    isFree: input.isFree,
-    priceTotal: input.priceTotal,
-    pricePerPerson: input.pricePerPerson,
-    priceMode: input.priceMode,
-    priceNote: input.priceNote,
-  }
+  const patch = isLocked
+    ? {
+        description: input.description,
+        photos: input.photos,
+        priceNote: input.priceNote,
+      }
+    : {
+        sportKey: input.sportKey,
+        title: input.title,
+        description: input.description,
+        startAt: input.startAt ? new Date(input.startAt) : undefined,
+        endAt: input.endAt ? new Date(input.endAt) : undefined,
+        locationName: input.placeName,
+        address: input.address,
+        lat: input.lat,
+        lng: input.lng,
+        locationSource: input.locationSource,
+        venueId,
+        checkinRadiusM: input.checkinRadiusM,
+        checkinOpenMinsBefore: input.checkinOpenMinsBefore,
+        checkinCloseMinsAfter: input.checkinCloseMinsAfter,
+        minPeople: input.minPeople,
+        maxPeople: input.maxPeople ?? input.capacity,
+        status: input.status,
+        visibility: input.visibility,
+        skillLevel: input.skillLevel,
+        gender: input.gender,
+        photos: input.photos,
+        isFree: input.isFree,
+        priceTotal: input.priceTotal,
+        pricePerPerson: input.pricePerPerson,
+        priceMode: input.priceMode,
+        priceNote: input.priceNote,
+      }
 
-  if (patch.priceMode === 'person') {
+  if (!isLocked && patch.priceMode === 'person') {
     patch.priceTotal = null
   }
 
