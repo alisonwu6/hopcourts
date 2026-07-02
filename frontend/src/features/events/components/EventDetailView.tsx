@@ -639,39 +639,25 @@ function formatEventSchedule(start: Date | string, end: Date | string) {
     day: 'numeric',
   })
 
-  const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-  const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  const upcase = (t: string) => t.replace(/\s(am|pm)$/i, (m) => m.toUpperCase())
+  const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true }
+  const startTime = upcase(startDate.toLocaleTimeString('en-AU', opts))
+  const endTime = upcase(endDate.toLocaleTimeString('en-AU', opts))
 
-  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
-  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
-
-  const timeLabel =
-    startSuffix && startSuffix === endSuffix
-      ? `${startCore} – ${endCore} ${endSuffix}`
-      : `${startWithSuffix} – ${endWithSuffix}`
-
-  return `${dateLabel} · ${timeLabel}`
+  return `${dateLabel} · ${startTime} – ${endTime}`
 }
 
 function formatDateTimeLabel(value: Date | string) {
-  return new Date(value).toLocaleString('en-AU', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  return new Date(value)
+    .toLocaleString('en-AU', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+    .replace(/\s(am|pm)$/i, (m) => m.toUpperCase())
 }
 
 type JoinBarProps = {
@@ -713,11 +699,13 @@ function JoinBar({
       month: 'short',
       day: 'numeric',
     })
-    const timeLabel = value.toLocaleTimeString('en-AU', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
+    const timeLabel = value
+      .toLocaleTimeString('en-AU', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })
+      .replace(/\s(am|pm)$/i, (m) => m.toUpperCase())
     return `${dateLabel} · ${timeLabel}`
   }
 
