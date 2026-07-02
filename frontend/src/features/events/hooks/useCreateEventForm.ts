@@ -620,7 +620,8 @@ export function useCreateEventForm() {
             navigate(`/event/${editId}`, { state: { from: 'create-event' }, replace: true })
           }
         } else {
-          setError(res.error?.message || 'Failed to update publish status.')
+          console.error('Update event failed:', res.error?.message)
+          setError('Something went wrong. Please try again.')
         }
       } else {
         const res = await eventsService.createEvent(commonPayload)
@@ -631,11 +632,13 @@ export function useCreateEventForm() {
             navigate(`/event/${res.data.id}`, { state: { from: 'create-event' }, replace: true })
           }
         } else {
-          setError(res.error?.message || 'Failed to publish event.')
+          console.error('Create event failed:', res.error?.message)
+          setError('Something went wrong. Please try again.')
         }
       }
     } catch (err: any) {
-      setError(err?.message || 'An error occurred while saving the event.')
+      console.error('Save event error:', err?.message)
+      setError('Something went wrong. Please try again.')
     } finally {
       setSubmittingStatus(null)
     }

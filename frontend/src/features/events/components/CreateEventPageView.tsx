@@ -87,7 +87,7 @@ export function CreateEventPageView({
 }: CreateEventPageViewProps) {
   return (
     <>
-      <div className="flex h-[100dvh] flex-col bg-white">
+      <div className="relative flex h-[100dvh] flex-col bg-white">
         <ActionToolbar
           showBack={false}
           onBack={handleCancel}
@@ -149,17 +149,19 @@ export function CreateEventPageView({
           }
         />
         {isDraftLoading && <PageLoading />}
+        {error && (
+          <div className="absolute top-14 left-0 right-0 z-50 px-4 pt-2 pointer-events-none">
+            <div className="mx-auto max-w-md rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm pointer-events-auto">
+              {error}
+            </div>
+          </div>
+        )}
         <div className="flex-1 overflow-y-auto">
           <form
             id="event-form"
             className="mx-auto mt-2 w-full max-w-md space-y-6 px-4 pb-8"
             onSubmit={(e) => handleSubmit(e, 'published')}
           >
-            {error && (
-              <div className="sticky top-4 z-50 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 shadow-sm">
-                {error}
-              </div>
-            )}
 
             <div className="space-y-8">
               <FieldSection
@@ -785,15 +787,15 @@ function GenderSelector({
   onSelect,
   hostGender,
 }: {
-  selected: 'mixed' | 'female' | 'male'
-  onSelect: (value: 'mixed' | 'female' | 'male') => void
+  selected: 'mixed' | 'female' | 'male' | 'lgbtq'
+  onSelect: (value: 'mixed' | 'female' | 'male' | 'lgbtq') => void
   hostGender?: string | null
 }) {
   const options: { id: 'mixed' | 'female' | 'male' | 'lgbtq'; label: string; disabled: boolean }[] = [
     { id: 'mixed', label: 'All genders', disabled: false },
-    { id: 'lgbtq', label: 'LGBT+', disabled: false },
     { id: 'female', label: 'Women Only', disabled: hostGender === 'male' },
     { id: 'male', label: 'Men Only', disabled: hostGender === 'female' },
+    { id: 'lgbtq', label: 'LGBT+', disabled: false },
   ]
 
   return (
