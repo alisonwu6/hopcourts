@@ -190,7 +190,7 @@ export function HomePage() {
           </section>
 
           {/* A Letter from the Founder & Community Guidelines */}
-          <section className="bg-courts -mx-4 px-4 py-8">
+          <section className="bg-courts -mx-4 px-6 py-6">
             <h2 className="mb-4 text-2xl font-extrabold leading-tight text-white">Our Story &amp; Community</h2>
             <div className="flex flex-col gap-3">
               <button
