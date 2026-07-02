@@ -30,6 +30,7 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { PageLoading } from '@/components/PageLoading'
 import { BookmarkButton } from './BookmarkButton'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
+import { getFlagEmoji } from '@/utils/flags'
 
 type EventDetailAlertState = {
   open: boolean
@@ -278,8 +279,11 @@ export function EventDetailView({
                     src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl}
                   />
                   <div>
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">
                       {isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
+                      {!isOfficialVenueHost && event.host.countryKey && (
+                        <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
+                      )}
                     </p>
                     <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
                   </div>

@@ -5,6 +5,7 @@ import { Calendar, MapPin, CircleDollarSign, ShieldCheck } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { BookmarkButton } from './BookmarkButton'
 import { getSportColor } from '@/constants/sportTokens'
+import { getFlagEmoji } from '@/utils/flags'
 
 type EventCardProps = {
   event: PlayerEvent
@@ -16,10 +17,6 @@ type EventCardProps = {
   showBookmark?: boolean
 }
 
-function getFlagEmoji(countryCode: string) {
-  if (!countryCode || countryCode.length !== 2) return ''
-  return countryCode.toUpperCase().replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
-}
 
 export function EventCard({
   event,
