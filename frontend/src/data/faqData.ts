@@ -56,6 +56,11 @@ export const faqCategories: FaqCategory[] = [
         q: 'Do I need to book a court in advance?',
         a: "Depends on your role. If you're joining, no booking needed. Just hop in and show up. If you're hosting, yes. You sort out the court and others can find and join you.",
       },
+      {
+        q: 'What are gender-specific sessions?',
+        a: "Some people play better when the group feels familiar. Hosts can set a session to Mixed, Women only, or Men only so everyone can find a game they're comfortable with. If you want to join a gendered session, make sure your profile gender is set to your physical gender — HopCourts checks it before letting you hop in. You can update it anytime from your profile.",
+        showOnHome: true,
+      },
     ],
   },
   {
@@ -65,7 +70,7 @@ export const faqCategories: FaqCategory[] = [
     labelColor: 'text-amber-600',
     items: [
       {
-        q: 'How does HopCourts know I actually showed up?',
+        q: 'How does check-in work?',
         a: "You check in when you're within 100m of the venue. It records that you were there and connects you with the people you played with. We think showing up is the best thing you can do for your game and your mates.",
         showOnHome: true,
       },
@@ -83,13 +88,13 @@ export const faqCategories: FaqCategory[] = [
     labelColor: 'text-indigo-600',
     items: [
       {
-        q: 'Can I use HopCourts like a mobile app?',
-        a: "Yes. HopCourts is a web app that can be installed on your phone's home screen so it feels and behaves like a native app — no app store needed.\n\niPhone (Safari): tap the Share button at the bottom of the screen, then tap Add to Home Screen. Tap Add to confirm. Open HopCourts from your home screen and it will run full-screen without the browser bar.\n\nAndroid (Chrome): tap the three-dot menu in the top-right corner, then tap Add to Home Screen or Install App. Tap Install to confirm.\n\nOnce installed, you get full-screen mode, faster loading, and push notifications.",
+        q: 'Is there a mobile app?',
+        a: "Not in the app store — but you can install HopCourts on your home screen and it runs just like one.\n\niPhone (Safari): tap the Share button at the bottom of the screen, then tap Add to Home Screen. Tap Add to confirm. Open HopCourts from your home screen and it will run full-screen without the browser bar.\n\nAndroid (Chrome): tap the three-dot menu in the top-right corner, then tap Add to Home Screen or Install App. Tap Install to confirm.\n\nOnce installed, you get full-screen mode, faster loading, and push notifications.\n\nFollow 'How do I turn on notifications?' below to set those up — and it'll feel just like the real thing.",
         showOnHome: true,
       },
       {
         q: 'How do I turn on notifications?',
-        a: "On Android: tap Allow when the prompt appears.\n\nOn iPhone: add HopCourts to your Home Screen first (see 'Can I use HopCourts like a mobile app?' above), then open it from there and tap Allow when prompted.\n\nTo turn off: go to phone Settings, find Notifications, look for HopCourts, and switch it off.",
+        a: "On Android: tap Allow when the prompt appears.\n\nOn iPhone: add HopCourts to your Home Screen first (see 'Is there a mobile app?' above), then open it from there and tap Allow when prompted.\n\nTo turn off: go to phone Settings, find Notifications, look for HopCourts, and switch it off.",
         showOnHome: true,
       },
     ],
