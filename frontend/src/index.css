@@ -129,6 +129,10 @@
     --alert-error-text: var(--color-error);
   }
 
+  button {
+    cursor: pointer;
+  }
+
   body {
     background-color: #f4f6fb; /* User preferred background */
     color: var(--color-text-primary);
