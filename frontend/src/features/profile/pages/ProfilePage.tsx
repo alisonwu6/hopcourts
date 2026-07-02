@@ -62,7 +62,7 @@ export function ProfilePage() {
     open: boolean
     title: string
     description: React.ReactNode
-    type: 'success' | 'error' | 'info' | 'warning'
+    type: 'success' | 'error' | 'info' | 'warning' | 'feature'
   }>({ open: false, title: '', description: '', type: 'info' })
 
   const [unreadCount, setUnreadCount] = useState(0)
@@ -813,7 +813,14 @@ export function ProfilePage() {
           actionClassName=""
           onHostedClick={() => navigate('/profile/hosted-events')}
           onJoinedClick={() => navigate('/profile/joined-events')}
-          onTeammatesClick={() => navigate('/my-mates')}
+          onTeammatesClick={() =>
+            setAlertDialog({
+              open: true,
+              title: 'Mates — Coming Soon',
+              description: "See everyone you've played with, in one place.",
+              type: 'feature',
+            })
+          }
         />
         {hasVenueAccess && (
           <div className="mt-2 px-3">

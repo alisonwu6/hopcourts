@@ -26,7 +26,6 @@ import { NotificationsPage } from '@/features/notifications/pages/NotificationsP
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
-import { MyMatesPage } from '@/features/profile/pages/MyMatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
 import { VenuePortalLayout } from '@/features/venue-portal/layouts/VenuePortalLayout'
 import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
@@ -276,16 +275,7 @@ export default function App() {
       />
       <Route
         path="/my-mates"
-        element={
-          <RequireAuth>
-            <AppChrome
-              showHeader={false}
-              showNav={false}
-            >
-              <MyMatesPage />
-            </AppChrome>
-          </RequireAuth>
-        }
+        element={<Navigate to="/" replace />}
       />
       <Route
         path="/profile/hosted-events"
