@@ -56,6 +56,14 @@ const RequireAdmin = ({ children }: { children: ReactNode }) => {
   return children
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
 function AppChrome({
   children,
   showHeader = true,
@@ -66,10 +74,6 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
-
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
 
   const noHeaderPaths = ['/events', '/event/', '/create-event']
   const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
@@ -98,7 +102,9 @@ export default function App() {
   }
 
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Auth */}
       <Route
         path="/auth/callback"
@@ -399,5 +405,6 @@ export default function App() {
         }
       />
     </Routes>
+    </>
   )
 }
