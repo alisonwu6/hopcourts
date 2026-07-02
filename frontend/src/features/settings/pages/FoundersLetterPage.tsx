@@ -22,7 +22,7 @@ export function FoundersLetterPage() {
           <span className="text-ocean">Courts</span>.
         </h1>
 
-        <div className="mt-8 space-y-5 text-base leading-8 text-white/70">
+        <div className="mt-8 space-y-5 text-base leading-8 text-white">
           <p>
             You know that feeling when a game is just flowing — the court, the rhythm, the people around you all in
             sync. I've been chasing that feeling since I was a kid.
