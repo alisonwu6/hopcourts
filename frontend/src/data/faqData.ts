@@ -57,6 +57,11 @@ export const faqCategories: FaqCategory[] = [
         a: "Depends on your role. If you're joining, no booking needed. Just hop in and show up. If you're hosting, yes. You sort out the court and others can find and join you.",
       },
       {
+        q: 'Can I still join after a session starts?',
+        a: 'For free events, you can hop in anytime while the session is still live. For paid events, you can no longer hop in once the session starts.',
+        showOnHome: true,
+      },
+      {
         q: 'What are gender-specific sessions?',
         a: "Some people play better when the group feels familiar. Hosts can set a session to All genders, Women only, Men only, or LGBT+ so everyone can find a game they're comfortable with. Women only and Men only sessions check your profile gender before letting you join — make sure it's set to your physical gender. LGBT+ and All genders sessions are open to everyone. You can update your profile gender anytime from your profile.",
         showOnHome: true,
