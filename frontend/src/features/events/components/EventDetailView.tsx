@@ -148,7 +148,7 @@ export function EventDetailView({
           ? 'Advanced'
           : 'All levels'
 
-  const genderLabel = event.gender === 'female' ? 'Women only' : event.gender === 'male' ? 'Men only' : 'Mixed gender'
+  const genderLabel = event.gender === 'female' ? 'Women only' : event.gender === 'male' ? 'Men only' : event.gender === 'lgbtq' ? 'LGBT+' : 'All genders'
 
   const sportLabel = sports.find((item) => item.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
 

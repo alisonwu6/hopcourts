@@ -789,8 +789,9 @@ function GenderSelector({
   onSelect: (value: 'mixed' | 'female' | 'male') => void
   hostGender?: string | null
 }) {
-  const options: { id: 'mixed' | 'female' | 'male'; label: string; disabled: boolean }[] = [
-    { id: 'mixed', label: 'Mixed', disabled: false },
+  const options: { id: 'mixed' | 'female' | 'male' | 'lgbtq'; label: string; disabled: boolean }[] = [
+    { id: 'mixed', label: 'All genders', disabled: false },
+    { id: 'lgbtq', label: 'LGBT+', disabled: false },
     { id: 'female', label: 'Women Only', disabled: hostGender === 'male' },
     { id: 'male', label: 'Men Only', disabled: hostGender === 'female' },
   ]

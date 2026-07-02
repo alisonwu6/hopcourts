@@ -290,7 +290,7 @@ async function createSession(input) {
   if (!input.placeName) throw Errors.validation('place_name is required')
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
-  const allowedGender = ['mixed', 'female', 'male']
+  const allowedGender = ['mixed', 'female', 'male', 'lgbtq']
   const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
@@ -406,7 +406,7 @@ async function updateSession(sessionId, input) {
   }
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
-  const allowedGender = ['mixed', 'female', 'male']
+  const allowedGender = ['mixed', 'female', 'male', 'lgbtq']
   const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {

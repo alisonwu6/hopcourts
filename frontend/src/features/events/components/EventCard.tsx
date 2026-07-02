@@ -185,7 +185,7 @@ export function EventCard({
             {skillLabel}
           </span>
           <span className="rounded-full border border-orange-300 px-2.5 py-0.5 text-[10px] font-medium text-orange-500">
-            {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : 'Mixed'}
+            {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : event.gender === 'lgbtq' ? 'LGBT+' : 'All genders'}
           </span>
         </div>
 

@@ -28,7 +28,7 @@ type FormState = {
   price: string
   priceNote: string
   skillLevel: SkillLevelKey
-  gender: 'mixed' | 'female' | 'male'
+  gender: 'mixed' | 'female' | 'male' | 'lgbtq'
   notes: string
   placeName: string
 }

@@ -58,7 +58,7 @@ export const faqCategories: FaqCategory[] = [
       },
       {
         q: 'What are gender-specific sessions?',
-        a: "Some people play better when the group feels familiar. Hosts can set a session to Mixed, Women only, or Men only so everyone can find a game they're comfortable with. If you want to join a gendered session, make sure your profile gender is set to your physical gender — HopCourts checks it before letting you hop in. You can update it anytime from your profile.",
+        a: "Some people play better when the group feels familiar. Hosts can set a session to All genders, Women only, Men only, or LGBT+ so everyone can find a game they're comfortable with. Women only and Men only sessions check your profile gender before letting you join — make sure it's set to your physical gender. LGBT+ and All genders sessions are open to everyone. You can update your profile gender anytime from your profile.",
         showOnHome: true,
       },
     ],

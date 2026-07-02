@@ -177,7 +177,7 @@ export function useEventDetailLogic() {
       return
     }
 
-    if (!isJoined && !isGuest && event.gender && event.gender !== 'mixed') {
+    if (!isJoined && !isGuest && event.gender && event.gender !== 'mixed' && event.gender !== 'lgbtq') {
       const currentUser = useAuthStore.getState().user
       const userGender = currentUser?.gender
 
