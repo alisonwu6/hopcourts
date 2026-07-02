@@ -31,6 +31,7 @@ import { PageLoading } from '@/components/PageLoading'
 import { BookmarkButton } from './BookmarkButton'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
 import { getFlagEmoji } from '@/utils/flags'
+import { EVENT_SPORT_CLASS, GENDER_CLASS, getSkillClass } from '@/constants/sportTokens'
 
 type EventDetailAlertState = {
   open: boolean
@@ -304,13 +305,13 @@ export function EventDetailView({
               {updatedAtLabel && <p className="mb-6 text-xs text-slate-400">Last updated {updatedAtLabel}</p>}
 
               <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
+                <span className={`rounded-full px-3 py-1 ${EVENT_SPORT_CLASS}`}>
                   {sportLabel}
                 </span>
-                <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
+                <span className={`rounded-full px-3 py-1 ${getSkillClass(event.skillLevel)}`}>
                   {skillLabel}
                 </span>
-                <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
+                <span className={`rounded-full px-3 py-1 ${GENDER_CLASS}`}>
                   {genderLabel}
                 </span>
               </div>

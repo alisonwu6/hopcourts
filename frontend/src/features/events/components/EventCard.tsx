@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Calendar, MapPin, CircleDollarSign, ShieldCheck } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { BookmarkButton } from './BookmarkButton'
-import { getSportColor } from '@/constants/sportTokens'
+import { EVENT_SPORT_CLASS, GENDER_CLASS, getSkillClass } from '@/constants/sportTokens'
 import { getFlagEmoji } from '@/utils/flags'
 
 type EventCardProps = {
@@ -178,13 +178,13 @@ export function EventCard({
       <div className="px-5 pb-4 pt-3.5">
         {/* Tags */}
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
-          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${getSportColor(event.sport)}`}>
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${EVENT_SPORT_CLASS}`}>
             {sportLabel}
           </span>
-          <span className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getSkillClass(event.skillLevel)}`}>
             {skillLabel}
           </span>
-          <span className="rounded-full border border-orange-300 px-2.5 py-0.5 text-[10px] font-medium text-orange-500">
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${GENDER_CLASS}`}>
             {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : event.gender === 'lgbtq' ? 'LGBT+' : 'All genders'}
           </span>
         </div>
