@@ -1275,10 +1275,10 @@ export function ProfilePage() {
             name: 'Enter your full name.',
             username: 'A unique handle for mates to find you.',
             location: 'Select your home city.',
-            nationality: 'Show where you’re from on your profile and connect with mates globally!',
+            nationality: "Sport has no borders — show where you’re from.",
             vibe: 'Choose the activity vibe that fits you best.',
             bio: 'Share your activity updates and goals.',
-            gender: 'Help us find the right sessions for you.',
+            gender: "Some sessions are gender-specific — this helps us match you in.",
           }
           const fieldKey = activeField ?? ''
           return (
