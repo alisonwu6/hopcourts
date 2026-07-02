@@ -171,7 +171,7 @@ export function HomePage() {
           </section>
 
           {/* Common Questions */}
-          <section className="-mx-4 bg-slate-50 px-4 py-8">
+          <section className="-mx-4 bg-white px-4 py-8">
             <div className="mb-4 flex items-end justify-between">
               <h2 className="text-2xl font-extrabold leading-tight text-slate-900">FAQ</h2>
               <button
@@ -190,8 +190,8 @@ export function HomePage() {
           </section>
 
           {/* A Letter from the Founder & Community Guidelines */}
-          <section className="bg-courts-50 -mx-4 px-4 py-8">
-            <h2 className="mb-4 text-2xl font-extrabold leading-tight text-slate-900">Our Story &amp; Community</h2>
+          <section className="bg-courts -mx-4 px-4 py-8">
+            <h2 className="mb-4 text-2xl font-extrabold leading-tight text-white">Our Story &amp; Community</h2>
             <div className="flex flex-col gap-3">
               <button
                 type="button"

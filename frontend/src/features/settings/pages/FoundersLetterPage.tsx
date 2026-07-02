@@ -29,9 +29,10 @@ export function FoundersLetterPage() {
           </p>
 
           <p>
-            Sport was never about winning for me. It was about that hour where nothing else mattered. Show up to a court
-            in a new city, and somehow you belong. It's where I always found my true strength — that pure, instinctual
-            flow where social titles disappear, and shared sweat creates an instant bond.
+            Sport was never about winning for me. It was about those moments when nothing else mattered, when I could
+            reset and feel like myself again. Show up to a court in a new city, and somehow you belong. It's where I
+            always found my true strength — that pure, instinctual flow where social titles disappear, and shared sweat
+            creates an instant bond.
           </p>
 
           <p>
