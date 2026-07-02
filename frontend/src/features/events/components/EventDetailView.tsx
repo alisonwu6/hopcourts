@@ -657,8 +657,8 @@ function formatEventSchedule(start: Date | string, end: Date | string) {
 
   const timeLabel =
     startSuffix && startSuffix === endSuffix
-      ? `${startCore}–${endCore} ${endSuffix}`
-      : `${startWithSuffix}–${endWithSuffix}`
+      ? `${startCore} – ${endCore} ${endSuffix}`
+      : `${startWithSuffix} – ${endWithSuffix}`
 
   return `${dateLabel} · ${timeLabel}`
 }

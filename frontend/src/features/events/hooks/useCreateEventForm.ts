@@ -326,12 +326,15 @@ export function useCreateEventForm() {
     if (name === 'startTime') {
       const newStart = new Date(value)
       if (!Number.isNaN(newStart.getTime())) {
-        const newEnd = addHours(newStart, 2)
-        setForm((prev) => ({
-          ...prev,
-          startTime: value,
-          endTime: format(newEnd, "yyyy-MM-dd'T'HH:mm"),
-        }))
+        setForm((prev) => {
+          if (!prev.endTime) {
+            return { ...prev, startTime: value, endTime: format(addHours(newStart, 2), "yyyy-MM-dd'T'HH:mm") }
+          }
+          const prevEnd = new Date(prev.endTime)
+          const reanchored = new Date(newStart)
+          reanchored.setHours(prevEnd.getHours(), prevEnd.getMinutes(), 0, 0)
+          return { ...prev, startTime: value, endTime: format(reanchored, "yyyy-MM-dd'T'HH:mm") }
+        })
         return
       }
     }

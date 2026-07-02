@@ -330,12 +330,24 @@ export function CreateEventPageView({
                       label="Start Time"
                       value={form.startTime}
                       onValueChange={(v) => {
-                        const newEnd = addHours(new Date(v), 2)
-                        setForm((prev) => ({
-                          ...prev,
-                          startTime: v,
-                          endTime: format(newEnd, "yyyy-MM-dd'T'HH:mm"),
-                        }))
+                        setForm((prev) => {
+                          if (!prev.endTime) {
+                            return {
+                              ...prev,
+                              startTime: v,
+                              endTime: format(addHours(new Date(v), 2), "yyyy-MM-dd'T'HH:mm"),
+                            }
+                          }
+                          const newStart = new Date(v)
+                          const prevEnd = new Date(prev.endTime)
+                          const reanchored = new Date(newStart)
+                          reanchored.setHours(prevEnd.getHours(), prevEnd.getMinutes(), 0, 0)
+                          return {
+                            ...prev,
+                            startTime: v,
+                            endTime: format(reanchored, "yyyy-MM-dd'T'HH:mm"),
+                          }
+                        })
                       }}
                       hasError={highlightField === 'startTime'}
                       minValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
@@ -895,11 +907,11 @@ function DateTimeField({
   const displayValue = useMemo(() => {
     if (!value) return ''
     try {
-      return format(new Date(value), 'EEE d MMM, h:mm a', { locale: enUS })
+      return format(new Date(value), hideDate ? 'h:mm a' : 'EEE d MMM, h:mm a', { locale: enUS })
     } catch {
       return ''
     }
-  }, [value])
+  }, [value, hideDate])
 
   return (
     <>
