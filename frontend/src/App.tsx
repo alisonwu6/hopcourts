@@ -22,6 +22,7 @@ import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
 import { WhyHopCourtsPage } from '@/features/settings/pages/WhyHopCourtsPage'
 import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
 import { FaqPage } from '@/features/settings/pages/FaqPage'
+import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage'
 import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
@@ -120,6 +121,17 @@ export default function App() {
       <Route
         path="/faq"
         element={<FaqPage />}
+      />
+      <Route
+        path="/settings/founders-letter"
+        element={
+          <AppChrome
+            showHeader={false}
+            showNav={false}
+          >
+            <FoundersLetterPage />
+          </AppChrome>
+        }
       />
       <Route
         path="/rules"

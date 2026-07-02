@@ -13,6 +13,8 @@ import {
   Bug,
   Sparkles,
   ChevronRight,
+  Mail,
+  ShieldCheck,
 } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
@@ -161,17 +163,15 @@ export function HomePage() {
           </section>
 
           {/* Manifesto */}
-          <section className="bg-courts mt-4 rounded-2xl px-3 py-4 text-center">
-            <blockquote className="text-md font-semibold italic leading-relaxed text-white">
-              "Sport is the oldest social network.
-              <br />
-              We just built the app for it."
+          <section className="bg-courts -mx-4 mt-6 px-6 py-8">
+            <blockquote className="text-[20px] font-extrabold italic leading-snug tracking-tight text-white">
+              "A ball and a court should be enough. We're building the missing piece."
             </blockquote>
-            <p className="mt-3 text-xs font-semibold text-white">HopCourts Team</p>
+            <p className="mt-4 text-sm font-semibold text-white/80">— HopCourts Team</p>
           </section>
 
           {/* Common Questions */}
-          <section className="mt-10 w-full">
+          <section className="-mx-4 bg-slate-50 px-4 py-8">
             <div className="mb-4 flex items-end justify-between">
               <h2 className="text-2xl font-extrabold leading-tight text-slate-900">FAQ</h2>
               <button
@@ -189,8 +189,43 @@ export function HomePage() {
             <FaqAccordion categories={homeFaqCategories} />
           </section>
 
+          {/* A Letter from the Founder & Community Guidelines */}
+          <section className="bg-courts-50 -mx-4 px-4 py-8">
+            <h2 className="mb-4 text-2xl font-extrabold leading-tight text-slate-900">Our Story &amp; Community</h2>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/settings/founders-letter')}
+                className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm"
+              >
+                <div className="bg-ocean-100 text-ocean-600 flex h-10 w-10 items-center justify-center rounded-xl">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900">A Letter from the Founder</p>
+                  <p className="mt-0.5 text-xs text-slate-400">Why I built HopCourts</p>
+                </div>
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-300" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/guidelines')}
+                className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm"
+              >
+                <div className="bg-courts-100 text-courts-600 flex h-10 w-10 items-center justify-center rounded-xl">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900">Community Guidelines</p>
+                  <p className="mt-0.5 text-xs text-slate-400">Play fair. Show respect. Have fun.</p>
+                </div>
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-300" />
+              </button>
+            </div>
+          </section>
+
           {/* We're Listening */}
-          <section className="mt-10 w-full">
+          <section className="my-8 w-full">
             <h2 className="mb-4 text-2xl font-extrabold text-slate-900">{"We're listening"}</h2>
             <div className="rounded-2xl bg-white p-4 shadow-sm">
               <p className="mb-4 text-sm leading-relaxed text-slate-400">
