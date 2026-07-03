@@ -805,7 +805,7 @@ function JoinBar({
       )
       statusText = (
         <div className="px-4 text-left text-xs font-medium leading-relaxed text-slate-500">
-          <p>Check in while the session is live to log your games and build your sports crew.</p>
+          <p>Let the crew know you're here. Stack up mates with every check-in.</p>
         </div>
       )
     } else if (now > effectiveCloseTime) {
@@ -864,7 +864,7 @@ function JoinBar({
       )
       statusText = (
         <div className="text-left text-xs font-medium leading-relaxed text-slate-500">
-          <p>{`Check-in opens ${openMins} minutes before kick-off — connect with the crew you play with.`}</p>
+          <p>{`Check-in opens ${openMins} min before kick-off — let the crew know you're here and stack up mates.`}</p>
         </div>
       )
     }
