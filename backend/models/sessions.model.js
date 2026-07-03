@@ -453,7 +453,7 @@ async function listSessionsByUserInterests({
   params.push(limit, offset)
   const sql = `
     SELECT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
-      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      COALESCE(pc.participant_count, 0) AS participant_count,
       h.display_name AS host_display_name,
       h.avatar_url AS host_avatar_url,
       h.username AS host_username,
@@ -464,6 +464,7 @@ async function listSessionsByUserInterests({
       COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
       v.name_display AS venue_name_display
     FROM public.sessions s
+    LEFT JOIN (SELECT session_id, COUNT(*) AS participant_count FROM public.session_participants GROUP BY session_id) pc ON pc.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
     LEFT JOIN public.venues v ON s.venue_id = v.id
@@ -539,7 +540,7 @@ async function listSessionsByRelations({
   params.push(limit, offset)
   const sql = `
     SELECT DISTINCT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
-      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      COALESCE(pc.participant_count, 0) AS participant_count,
       h.display_name AS host_display_name,
       h.avatar_url AS host_avatar_url,
       h.username AS host_username,
@@ -550,6 +551,7 @@ async function listSessionsByRelations({
       COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
       v.name_display AS venue_name_display
     FROM public.sessions s
+    LEFT JOIN (SELECT session_id, COUNT(*) AS participant_count FROM public.session_participants GROUP BY session_id) pc ON pc.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
     LEFT JOIN public.venues v ON s.venue_id = v.id
