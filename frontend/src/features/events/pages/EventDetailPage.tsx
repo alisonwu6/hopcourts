@@ -32,7 +32,6 @@ export function EventDetailPage() {
     handleShare,
     handleJoinClick,
     handleCheckIn,
-    handleOnTheWay,
     clearPostLoginRedirect,
   } = useEventDetailLogic()
 

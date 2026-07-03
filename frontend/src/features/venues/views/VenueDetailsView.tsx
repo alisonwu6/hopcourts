@@ -147,10 +147,13 @@ export function VenueDetailsView({
             <button
               type="button"
               onClick={onCreateEvent}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white transition active:scale-90"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50/50 text-blue-600 transition hover:bg-blue-100/80 active:scale-90"
               aria-label="Create event here"
             >
-              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              <Plus
+                size={18}
+                strokeWidth={3}
+              />
             </button>
           ) : null
         }

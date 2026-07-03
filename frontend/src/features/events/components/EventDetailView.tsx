@@ -220,7 +220,10 @@ export function EventDetailView({
                   className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
                   aria-label="Edit event"
                 >
-                  <Pencil className="h-5 w-5" />
+                  <Pencil
+                    size={18}
+                    strokeWidth={2}
+                  />
                 </button>
               </>
             )}
@@ -237,7 +240,7 @@ export function EventDetailView({
               aria-label="Share"
             >
               <Share
-                className="h-5 w-5"
+                size={18}
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -307,15 +310,9 @@ export function EventDetailView({
               {updatedAtLabel && <p className="mb-6 text-xs text-slate-400">Last updated {updatedAtLabel}</p>}
 
               <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-                <span className={`rounded-full px-3 py-1 ${EVENT_SPORT_CLASS}`}>
-                  {sportLabel}
-                </span>
-                <span className={`rounded-full px-3 py-1 ${getSkillClass(event.skillLevel)}`}>
-                  {skillLabel}
-                </span>
-                <span className={`rounded-full px-3 py-1 ${GENDER_CLASS}`}>
-                  {genderLabel}
-                </span>
+                <span className={`rounded-full px-3 py-1 ${EVENT_SPORT_CLASS}`}>{sportLabel}</span>
+                <span className={`rounded-full px-3 py-1 ${getSkillClass(event.skillLevel)}`}>{skillLabel}</span>
+                <span className={`rounded-full px-3 py-1 ${GENDER_CLASS}`}>{genderLabel}</span>
               </div>
 
               <div className="my-4">
@@ -463,7 +460,10 @@ export function EventDetailView({
                         return (
                           <div
                             key={participant.id}
-                            className={clsx('flex w-14 flex-col items-center gap-1.5', participant.username && !participant.isAnonymous ? 'cursor-pointer' : 'cursor-default')}
+                            className={clsx(
+                              'flex w-14 flex-col items-center gap-1.5',
+                              participant.username && !participant.isAnonymous ? 'cursor-pointer' : 'cursor-default'
+                            )}
                             onClick={() => {
                               if (participant.username && !participant.isAnonymous) {
                                 onNavigateMate(participant.username)

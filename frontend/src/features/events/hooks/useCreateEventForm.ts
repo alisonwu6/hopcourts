@@ -455,10 +455,14 @@ export function useCreateEventForm() {
 
   const handleCancel = () => {
     const state = location.state as any
-    if (state?.backTo) {
-      navigate(state.backTo)
-    } else if (!state?.fromAuth && window.history.length > 1) {
+    if (state?.fromAuth) {
+      navigate(state.backTo ?? '/', { replace: true })
+      return
+    }
+    if (window.history.length > 1) {
       navigate(-1)
+    } else if (state?.backTo) {
+      navigate(state.backTo, { replace: true })
     } else {
       navigate('/')
     }

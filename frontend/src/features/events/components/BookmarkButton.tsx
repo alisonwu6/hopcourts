@@ -23,7 +23,7 @@ export function BookmarkButton({ eventId, className }: BookmarkButtonProps) {
     void toggleSave(eventId)
   }
 
-  const iconClass = `h-6 w-6 ${popped ? 'animate-bookmark-pop' : ''}`
+  const iconClass = `${popped ? 'animate-bookmark-pop' : ''}`
 
   return (
     <button
@@ -36,12 +36,14 @@ export function BookmarkButton({ eventId, className }: BookmarkButtonProps) {
       {isSaved ? (
         <BookmarkCheck
           className={`${iconClass} fill-current`}
+          size={18}
           strokeWidth={2}
           onAnimationEnd={() => setPopped(false)}
         />
       ) : (
         <Bookmark
           className={iconClass}
+          size={18}
           strokeWidth={2}
           onAnimationEnd={() => setPopped(false)}
         />
