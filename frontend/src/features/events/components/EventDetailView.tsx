@@ -458,12 +458,12 @@ export function EventDetailView({
                         const isOnTheWay =
                           !isAbsent &&
                           (!!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay))
-                        const displayName = participant.isAnonymous ? 'Guest' : participant.name.split(' ')[0]
+                        const displayName = participant.name.split(' ')[0] || 'Guest'
 
                         return (
                           <div
                             key={participant.id}
-                            className="flex w-14 cursor-pointer flex-col items-center gap-1.5"
+                            className={clsx('flex w-14 flex-col items-center gap-1.5', participant.username && !participant.isAnonymous ? 'cursor-pointer' : 'cursor-default')}
                             onClick={() => {
                               if (participant.username && !participant.isAnonymous) {
                                 onNavigateMate(participant.username)
