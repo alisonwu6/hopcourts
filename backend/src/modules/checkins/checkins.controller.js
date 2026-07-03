@@ -1,4 +1,5 @@
 const { ok } = require('../../lib/respond')
+const { Errors } = require('../../lib/errors')
 const { checkInToSession } = require('./checkins.service')
 const { signalOnTheWay } = require('./ontheway.service')
 
@@ -13,19 +14,13 @@ async function handleCheckIn(req, res, next) {
     const userId = resolveUserId(req)
 
     if (lat === undefined || lng === undefined) {
-      return res.status(422).json({
-        ok: false,
-        error: { code: 'INVALID_BODY', message: 'lat and lng are required' },
-      })
+      throw Errors.validation('lat and lng are required')
     }
 
     const latNum = Number(lat)
     const lngNum = Number(lng)
     if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
-      return res.status(422).json({
-        ok: false,
-        error: { code: 'INVALID_BODY', message: 'lat and lng must be numbers' },
-      })
+      throw Errors.validation('lat and lng must be numbers')
     }
 
     const data = await checkInToSession({

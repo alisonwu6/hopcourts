@@ -8,7 +8,7 @@ router.get('/vapid-public-key', (_req, res) => {
   res.json({ publicKey: process.env.VAPID_PUBLIC_KEY })
 })
 
-router.post('/subscribe', verifyToken, async (req, res) => {
+router.post('/subscribe', verifyToken, async (req, res, next) => {
   try {
     const isNew = await saveSubscription(req.user.id, req.body)
     res.json({ ok: true })
@@ -19,16 +19,16 @@ router.post('/subscribe', verifyToken, async (req, res) => {
       }).catch(() => {})
     }
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    next(err)
   }
 })
 
-router.delete('/subscribe', verifyToken, async (req, res) => {
+router.delete('/subscribe', verifyToken, async (req, res, next) => {
   try {
     await deleteSubscription(req.user.id, req.body.endpoint)
     res.json({ ok: true })
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    next(err)
   }
 })
 
