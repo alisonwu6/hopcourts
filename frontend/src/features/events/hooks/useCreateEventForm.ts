@@ -119,6 +119,7 @@ export function useCreateEventForm() {
   } | null>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const highlightTimerRef = useRef<number | null>(null)
+  const lastGeocodedRef = useRef<{ address: string; loc: LatLng } | null>(null)
   const fieldRefs = useRef<Record<RequiredFieldKey, HTMLDivElement | null>>({
     title: null,
     sport: null,
@@ -241,9 +242,12 @@ export function useCreateEventForm() {
       const loc = await forwardGeocode(address)
       if (loc) {
         setSelectedLocation(loc)
+        lastGeocodedRef.current = { address, loc }
         setReverseGeoError(null)
       } else {
-        setReverseGeoError('Please enter a valid address')
+        setSelectedLocation(null)
+        lastGeocodedRef.current = null
+        setReverseGeoError("We're currently launching in Greater Brisbane — more areas coming soon!")
       }
       setAddressLookupPending(false)
     }, 2000)
@@ -268,13 +272,19 @@ export function useCreateEventForm() {
 
   const forwardGeocode = async (address: string) => {
     if (!MAPBOX_TOKEN || !address.trim()) return null
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address.trim())}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
+    // No bbox — let Mapbox resolve the full address globally, then validate the result is in QLD
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address.trim())}.json?language=en&limit=1&country=AU&access_token=${MAPBOX_TOKEN}`
     try {
       const res = await fetch(url)
       const data = await res.json()
       const feature = data?.features?.[0]
       if (!feature?.center) return null
-      return { lng: feature.center[0], lat: feature.center[1] } as LatLng
+      const loc: LatLng = { lng: feature.center[0], lat: feature.center[1] }
+      const regionCtx = feature.context?.find((c: { id: string }) => c.id.startsWith('region.'))
+      const inQldBounds = loc.lng >= 138.0 && loc.lng <= 153.55 && loc.lat >= -29.18 && loc.lat <= -10.68
+      // Accept if region is explicitly QLD, or if no region context but coords fall within QLD bounds
+      if (regionCtx ? regionCtx.short_code !== 'AU-QLD' : !inQldBounds) return null
+      return loc
     } catch {
       return null
     }
@@ -282,7 +292,7 @@ export function useCreateEventForm() {
 
   const reverseGeocode = async (loc: LatLng) => {
     if (!MAPBOX_TOKEN) return null
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${loc.lng},${loc.lat}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${loc.lng},${loc.lat}.json?language=en&limit=1&country=AU&access_token=${MAPBOX_TOKEN}`
     try {
       const res = await fetch(url)
       const data = await res.json()
@@ -365,7 +375,7 @@ export function useCreateEventForm() {
     if (form.lat && form.lng) {
       setSelectedLocation({ lat: Number(form.lat), lng: Number(form.lng) })
       setSelectedAddress(form.location || '')
-      setAddressMode('manual')
+      setAddressMode('auto')
     } else {
       setSelectedLocation(null)
       setSelectedAddress('')
@@ -678,10 +688,26 @@ export function useCreateEventForm() {
       return
     }
 
-    let loc = selectedLocation
-    if (!loc && selectedAddress.trim()) {
+    let loc: LatLng | null = selectedLocation
+    if (addressMode === 'manual' && selectedAddress.trim()) {
+      const trimmed = selectedAddress.trim()
+      const cached = lastGeocodedRef.current
+      if (cached?.address === trimmed) {
+        loc = cached.loc
+        setSelectedLocation(loc)
+      } else {
+        loc = await forwardGeocode(trimmed)
+        if (loc) {
+          setSelectedLocation(loc)
+          lastGeocodedRef.current = { address: trimmed, loc }
+        } else {
+          setSelectedLocation(null)
+          lastGeocodedRef.current = null
+        }
+      }
+    } else if (!loc && selectedAddress.trim()) {
       loc = await forwardGeocode(selectedAddress.trim())
-      if (loc) setSelectedLocation(loc)
+      setSelectedLocation(loc)
     }
     if (loc) {
       setForm((prev) => ({
@@ -692,7 +718,7 @@ export function useCreateEventForm() {
       }))
       setShowLocationSheet(false)
     } else {
-      setReverseGeoError('Please enter a valid address')
+      setReverseGeoError("We're currently launching in Greater Brisbane — more areas coming soon!")
     }
     setLocationConfirming(false)
   }

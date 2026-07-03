@@ -7,7 +7,7 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
-import { MapPicker } from '@/components/map/MapPicker'
+import { MapPicker, QUEENSLAND_BOUNDS } from '@/components/map/MapPicker'
 import { PageLoading } from '@/components/PageLoading'
 import { format, addHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
@@ -50,6 +50,7 @@ export function CreateEventPageView({
   setSelectedAddress,
   setAddressMode,
   reverseGeoError,
+  setReverseGeoError,
   locationConfirming,
   isDraftLoading,
   editingEventStatus,
@@ -650,12 +651,12 @@ export function CreateEventPageView({
 
       <BottomSheet
         open={showLocationSheet}
-        onClose={() => setShowLocationSheet(false)}
+        onClose={() => { setShowLocationSheet(false); setReverseGeoError(null) }}
         disableContainer
         showHandle={false}
       >
         <SheetLayout
-          onClose={() => setShowLocationSheet(false)}
+          onClose={() => { setShowLocationSheet(false); setReverseGeoError(null) }}
           title="Select Location"
           subtitle="Drop a pin or enter your address"
           height="tall"
@@ -680,6 +681,7 @@ export function CreateEventPageView({
                 onChange={(e) => {
                   setSelectedAddress(e.target.value)
                   setAddressMode('manual')
+                  setReverseGeoError(null)
                 }}
                 placeholder="Enter address"
                 className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
@@ -703,6 +705,7 @@ export function CreateEventPageView({
             <MapPicker
               value={selectedLocation ?? undefined}
               variant="satellite"
+              maxBounds={QUEENSLAND_BOUNDS}
               onChange={(loc) => {
                 setSelectedLocation(loc)
                 setAddressMode('auto')

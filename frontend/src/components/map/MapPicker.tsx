@@ -8,11 +8,18 @@ type Props = {
   value?: LatLng
   onChange: (value: LatLng) => void
   variant?: 'streets' | 'satellite'
+  maxBounds?: [[number, number], [number, number]]
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
-export function MapPicker({ value, onChange, variant = 'streets' }: Props) {
+// First-market rollout only.
+export const QUEENSLAND_BOUNDS: [[number, number], [number, number]] = [
+  [138.0, -29.18],
+  [153.55, -10.68],
+]
+
+export function MapPicker({ value, onChange, variant = 'streets', maxBounds }: Props) {
   const mapRef = useRef<MapRef>(null)
 
   // Fly to the selected value when it changes externally
@@ -39,6 +46,7 @@ export function MapPicker({ value, onChange, variant = 'streets' }: Props) {
       }}
       style={{ width: '100%', height: '100%' }}
       mapStyle={mapStyle}
+      maxBounds={maxBounds}
       onClick={(evt) => {
         const { lat, lng } = evt.lngLat
         onChange({ lat, lng })
