@@ -153,7 +153,7 @@ export function HomePage() {
                   <Users className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">Instant mate connection</p>
+                  <p className="font-bold text-slate-900">Your next mates</p>
                   <p className="mt-0.5 text-sm text-slate-500">
                     Played once? You're automatically linked under My Mates for the next game.
                   </p>

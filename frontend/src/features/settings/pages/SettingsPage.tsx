@@ -7,7 +7,7 @@ import { useAuthStore } from '@/hooks'
 const generalItems = [{ key: 'account', label: 'Account Settings', icon: UserRound }]
 
 const otherItems = [
-  { key: 'whyHopCourts', label: 'Why HopCourts ', icon: Rocket },
+  { key: 'whyHopCourts', label: 'Why HopCourts', icon: Rocket },
   { key: 'about', label: 'About Us', icon: BookCheck },
   { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
   { key: 'faq', label: 'FAQ', icon: CircleHelp },
@@ -101,7 +101,7 @@ export function ProfileSettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <LogOut className="h-5 w-5 text-slate-500" />
-                <span className="text-base font-medium">{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
+                <span className="text-base font-medium">{isLoggingOut ? 'Logging out…' : 'Log out'}</span>
               </div>
             </button>
           </div>

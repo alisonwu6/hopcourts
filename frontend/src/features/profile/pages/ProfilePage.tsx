@@ -732,7 +732,7 @@ export function ProfilePage() {
           title: 'Save failed',
           description: constraint.includes('username')
             ? 'Username already taken. Please choose another.'
-            : 'Save failed due to a conflict. Please check your input.',
+            : "Couldn't save. Check your details and try again.",
           type: 'error',
         })
       } else {
@@ -941,7 +941,7 @@ export function ProfilePage() {
         onClose={() => setShowShareSheet(false)}
       >
         <div className="px-4 pb-8 pt-4">
-          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">Share Activity Card</h3>
+          <h3 className="mb-6 text-center text-lg font-bold text-slate-900">Share your activity card</h3>
           <div className="grid grid-cols-2 gap-4">
             <button
               onClick={handleShareToLine}
@@ -1699,7 +1699,7 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700">Weekly target Events</label>
+            <label className="text-sm font-semibold text-slate-700">Weekly target</label>
             <input
               type="number"
               min={1}

@@ -96,7 +96,7 @@ export function FaqPage() {
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <input
             type="search"
-            placeholder="Search questions..."
+            placeholder="Search questions…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-base text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"

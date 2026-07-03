@@ -47,7 +47,7 @@ export function BottomNav() {
       matchPaths: ['/venues', '/venue'],
     },
     {
-      label: user ? 'Profile' : 'Guest',
+      label: 'Profile',
       icon: PersonStanding,
       path: '/profile',
       matchPaths: ['/profile', '/settings'],
