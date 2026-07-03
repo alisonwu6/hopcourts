@@ -10,12 +10,14 @@ type NavItem = {
   path: string
   icon?: ComponentType<{ className?: string; strokeWidth?: number }>
   matchPaths?: string[]
+  requiresAuth?: boolean
 }
 
 export function BottomNav() {
   const navigate = useNavigate()
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
+  const isRealUser = !!user && !(user as any).is_anonymous
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const matchesPath = (segment: string) => {
     if (segment === '/') {
@@ -82,7 +84,7 @@ export function BottomNav() {
 
         <button
           onClick={() => {
-            if (user) {
+            if (isRealUser) {
               navigate('/create-event', { state: { backTo: location.pathname } })
             } else {
               try {
