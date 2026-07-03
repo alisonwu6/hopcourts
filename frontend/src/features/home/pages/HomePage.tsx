@@ -120,7 +120,7 @@ export function HomePage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Ditch the chat chaos</p>
-                  <p className="mt-0.5 text-sm text-slate-500">Skip the 47-message threads. Just turn up and play.</p>
+                  <p className="mt-0.5 text-sm text-slate-500">Stop copying and pasting endless attendance lists. Just set your game rules and move on.</p>
                 </div>
               </div>
 
@@ -129,9 +129,9 @@ export function HomePage() {
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">Play when you want</p>
+                  <p className="font-bold text-slate-900">Share once, zero chasing</p>
                   <p className="mt-0.5 text-sm text-slate-500">
-                    No rigid leagues. Just open courts and games ready right now near you.
+                    Drop your game link into any group chat. Mates secure their slots instantly without 47 follow-up messages.
                   </p>
                 </div>
               </div>
@@ -141,9 +141,9 @@ export function HomePage() {
                   <Coins className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">Split the bill, play premium</p>
+                  <p className="font-bold text-slate-900">Split the costs, play more</p>
                   <p className="mt-0.5 text-sm text-slate-500">
-                    Share court bookings and split training fees with mates.
+                    Hosting together means splitting the court fees. Gather your mates, share the costs, and play more without breaking the bank.
                   </p>
                 </div>
               </div>
@@ -155,7 +155,7 @@ export function HomePage() {
                 <div>
                   <p className="font-bold text-slate-900">Your next mates</p>
                   <p className="mt-0.5 text-sm text-slate-500">
-                    Played once? You're automatically linked under My Mates for the next game.
+                    Played once? Check in to automatically save today's players for your next game.
                   </p>
                 </div>
               </div>
