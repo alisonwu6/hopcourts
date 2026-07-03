@@ -64,6 +64,8 @@ async function listSessions(params = {}) {
 }
 
 async function listMySessions({ userId, type = 'upcoming', role, time, limit, offset }) {
+  limit = Math.min(Math.max(Number(limit) || 20, 1), 50)
+  offset = Math.max(Number(offset) || 0, 0)
   try {
     // Backward compatible: support legacy `type` and new `role + time`.
     let resolvedRole = role

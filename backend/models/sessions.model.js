@@ -104,7 +104,7 @@ async function listUpcomingSessions({
   return rows
 }
 
-async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 200, offset = 0 } = {}) {
+async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 20, offset = 0 } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
   
