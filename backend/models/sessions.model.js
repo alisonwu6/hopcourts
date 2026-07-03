@@ -79,7 +79,7 @@ async function listUpcomingSessions({
   const allConditions = [...conditions.map(c => `s.${c}`), ...rawConditions]
   const sql = `
     select ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
-      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      COALESCE(pc.participant_count, 0) as participant_count,
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
@@ -90,6 +90,7 @@ async function listUpcomingSessions({
       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
       v.name_display as venue_name_display
     from public.sessions s
+    left join (select session_id, count(*) as participant_count from public.session_participants group by session_id) pc on pc.session_id = s.id
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
     left join public.venues v on s.venue_id = v.id
@@ -136,7 +137,7 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 
 
   const sql = `
     select DISTINCT ${BASE_FIELDS.map((f) => `s.${f}`).join(', ')},
-      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      COALESCE(pc.participant_count, 0) as participant_count,
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
@@ -148,6 +149,7 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 
       v.name_display as venue_name_display
     from public.sessions s
     left join public.session_participants sp on sp.session_id = s.id
+    left join (select session_id, count(*) as participant_count from public.session_participants group by session_id) pc on pc.session_id = s.id
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
     left join public.venues v on s.venue_id = v.id
@@ -189,7 +191,7 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
 
   const sql = `
     SELECT ${BASE_FIELDS.map((f) => `s.${f}`).join(', ')},
-      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      COALESCE(pc.participant_count, 0) as participant_count,
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
@@ -201,6 +203,7 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
       v.name_display as venue_name_display
     FROM public.sessions s
     LEFT JOIN public.session_participants sp ON sp.session_id = s.id
+    LEFT JOIN (SELECT session_id, count(*) AS participant_count FROM public.session_participants GROUP BY session_id) pc ON pc.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
     LEFT JOIN public.venues v ON s.venue_id = v.id
