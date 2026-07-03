@@ -91,9 +91,9 @@ export function LoginPromptSheet({ open, onClose, returnTo, onJoinAsGuest }: Log
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-900">Welcome to HopCourts</h1>
             <p className="mt-2 text-sm text-slate-600">
-              Play more.
+              Ditch the chat chaos.
               <br />
-              Meet people worth playing with.
+              Just hop in and play.
             </p>
           </div>
           <div className="mx-auto mt-10 flex w-full max-w-[320px] flex-col gap-4">
