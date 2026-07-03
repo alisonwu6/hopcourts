@@ -1,4 +1,4 @@
-import { Info, Dribbble, Sparkles, Smartphone } from 'lucide-react'
+import { Info, Dribbble, Sparkles, Smartphone, Trees } from 'lucide-react'
 
 export type FaqItem = {
   q: string
@@ -83,6 +83,23 @@ export const faqCategories: FaqCategory[] = [
         q: 'How does Mates work?',
         a: 'Every game you play is logged. The mates you checked in with and played alongside show up here automatically. No more losing touch after a good game.',
         showOnHome: true,
+      },
+    ],
+  },
+  {
+    category: 'Public Courts',
+    Icon: Trees,
+    iconColor: 'text-emerald-600',
+    labelColor: 'text-emerald-700',
+    items: [
+      {
+        q: 'What is Public Courts?',
+        a: "Public Courts is a community-built directory of sports courts. Know a court that isn't on the map? Add it — it goes live instantly.",
+        showOnHome: true,
+      },
+      {
+        q: "What's the difference between Public Courts and Official Venues?",
+        a: "Public Courts are submitted by players — anyone can add one and it goes live instantly. Official Venues are claimed and managed by the venue owner through our venue portal, and carry a verified shield badge. They are mutually exclusive: a Public Courts listing does not become an Official Venue.",
       },
     ],
   },

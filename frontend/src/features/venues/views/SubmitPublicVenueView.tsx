@@ -54,7 +54,7 @@ export function SubmitPublicVenueView({
       <ActionToolbar
         showBack
         onBack={onBack}
-        title="Public listing"
+        title="Public Courts"
         contentClassName="w-full max-w-md px-3"
         borderBottom
       />
