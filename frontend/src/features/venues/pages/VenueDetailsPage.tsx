@@ -14,6 +14,7 @@ import { sessionService } from '@/services/sessionService'
 import { supabase } from '@/lib/supabase'
 import { PageLoading } from '@/components/PageLoading'
 import { VenueDetailsView } from '../views/VenueDetailsView'
+import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
 type ClaimFormState = Omit<VenueClaimRequest, 'contact_name'>
 
@@ -45,7 +46,7 @@ const formatClaimLocationAddress = (address?: string | null) => {
 export function VenueDetailsPage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const { user, isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
   const venueQuery = useVenueByIdQuery(venueId)
   const eventsQuery = useVenueUpcomingEventsQuery(venueId)
@@ -66,6 +67,7 @@ export function VenueDetailsPage() {
     }
   }, [venueQuery.data])
 
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
   const [isClaimSheetOpen, setIsClaimSheetOpen] = useState(false)
   const [claimForm, setClaimForm] = useState<ClaimFormState>(EMPTY_CLAIM_FORM)
@@ -164,6 +166,10 @@ export function VenueDetailsPage() {
 
   const handleCreateEvent = () => {
     if (!venue) return
+    if (!isAuthenticated || user?.is_anonymous) {
+      setShowLoginPrompt(true)
+      return
+    }
     navigate('/create-event', {
       state: {
         backTo: `/venues/${venue.id}`,
@@ -356,6 +362,12 @@ export function VenueDetailsPage() {
           )}
         </form>
       </BottomSheet>
+
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        returnTo={venueId ? `/venues/${venueId}` : undefined}
+      />
 
       <AlertDialog
         open={claimSuccess.open}
