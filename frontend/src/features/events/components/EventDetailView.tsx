@@ -69,6 +69,7 @@ type EventDetailViewProps = {
   onCheckIn: () => void
 
   onCloseLoginPrompt: () => void
+  onJoinAsGuest?: () => void
   onCloseAlert: () => void
   onCloseProfileRequired: () => void
   onNavigateEvents: () => void
@@ -100,6 +101,7 @@ export function EventDetailView({
   onJoin,
   onCheckIn,
   onCloseLoginPrompt,
+  onJoinAsGuest,
   onCloseAlert,
   onCloseProfileRequired,
   onNavigateEvents,
@@ -525,6 +527,7 @@ export function EventDetailView({
         open={showLoginPrompt}
         onClose={onCloseLoginPrompt}
         returnTo={id ? `/event/${id}` : undefined}
+        onJoinAsGuest={onJoinAsGuest}
       />
 
       <AlertDialog

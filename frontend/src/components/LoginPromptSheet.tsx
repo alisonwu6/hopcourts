@@ -9,11 +9,12 @@ type LoginPromptSheetProps = {
   open: boolean
   onClose: () => void
   returnTo?: string
+  onJoinAsGuest?: () => void
 }
 
 const POST_LOGIN_REDIRECT_KEY = 'post_login_redirect'
 
-export function LoginPromptSheet({ open, onClose, returnTo }: LoginPromptSheetProps) {
+export function LoginPromptSheet({ open, onClose, returnTo, onJoinAsGuest }: LoginPromptSheetProps) {
   const [showInAppDialog, setShowInAppDialog] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState<{
     open: boolean
@@ -90,13 +91,24 @@ export function LoginPromptSheet({ open, onClose, returnTo }: LoginPromptSheetPr
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-900">Welcome to HopCourts</h1>
             <p className="mt-2 text-sm text-slate-600">
-              Find a event near you.
+              Play more.
               <br />
               Meet people worth playing with.
             </p>
           </div>
           <div className="mx-auto mt-10 flex w-full max-w-[320px] flex-col gap-4">
             <GoogleLoginButton loginGoogle={loginGoogle} />
+            {onJoinAsGuest && (
+              <button
+                onClick={() => {
+                  onClose()
+                  onJoinAsGuest()
+                }}
+                className="mt-1 text-sm text-slate-500 underline-offset-4 hover:text-slate-700 hover:underline"
+              >
+                Join as guest instead
+              </button>
+            )}
           </div>
         </div>
       </BottomSheet>

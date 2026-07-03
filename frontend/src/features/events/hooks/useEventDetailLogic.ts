@@ -160,8 +160,7 @@ export function useEventDetailLogic() {
       } catch (error) {
         console.warn('Failed to persist post-login redirect path:', error)
       }
-      // Frictionless guest tap-in: ask for a display name only, no email.
-      setShowGuestJoinModal(true)
+      setShowLoginPrompt(true)
       return
     }
     if (!event || !id) return
