@@ -135,7 +135,17 @@ export function VenueListView({
         </div>
       ) : (
         <div className="mx-auto max-w-md px-4 pb-[100px] pt-33">
-          {isLoading ? (
+          {activeFilter === 'official' ? (
+            <div className="space-y-4">
+              <SubmitVenueCTA onClick={onSubmitVenueClick} />
+              <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+                <p className="text-lg font-bold text-slate-900">Coming Soon.</p>
+                <p className="mt-1 px-10 text-sm text-slate-500">
+                  Official venues are on the way. Stay tuned.
+                </p>
+              </div>
+            </div>
+          ) : isLoading ? (
             <div className="flex justify-center py-16">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
             </div>
