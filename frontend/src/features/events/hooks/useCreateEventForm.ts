@@ -80,6 +80,9 @@ export function useCreateEventForm() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('id')
+  const venueLocationState = (location.state as any)?.venueLocation as
+    | { name: string; address: string; lat: number; lng: number }
+    | undefined
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const hostGender = useAuthStore((state) => state.user?.gender)
@@ -131,6 +134,20 @@ export function useCreateEventForm() {
     price: null,
     priceNote: null,
   })
+
+  useEffect(() => {
+    if (!venueLocationState || editId) return
+    setForm((prev) => ({
+      ...prev,
+      placeName: venueLocationState.name,
+      location: venueLocationState.address,
+      lat: String(venueLocationState.lat),
+      lng: String(venueLocationState.lng),
+    }))
+    setSelectedAddress(venueLocationState.address)
+    setSelectedLocation({ lat: venueLocationState.lat, lng: venueLocationState.lng })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const flashFieldError = (field: RequiredFieldKey, message: string) => {
     const el = fieldRefs.current[field]

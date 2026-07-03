@@ -1,14 +1,19 @@
 import { useEffect, useRef } from 'react'
 import Map, { Marker, NavigationControl, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
+import { Trees } from 'lucide-react'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 export type LatLng = { lat: number; lng: number }
+export type VenuePin = { id: string; name_display: string; address_display: string; lat: number; lng: number }
 
 type Props = {
   value?: LatLng
   onChange: (value: LatLng) => void
   variant?: 'streets' | 'satellite'
   maxBounds?: [[number, number], [number, number]]
+  venues?: VenuePin[]
+  selectedVenueId?: string | null
+  onVenueSelect?: (venue: VenuePin) => void
 }
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
@@ -19,7 +24,7 @@ export const QUEENSLAND_BOUNDS: [[number, number], [number, number]] = [
   [153.55, -10.68],
 ]
 
-export function MapPicker({ value, onChange, variant = 'streets', maxBounds }: Props) {
+export function MapPicker({ value, onChange, variant = 'streets', maxBounds, venues, selectedVenueId, onVenueSelect }: Props) {
   const mapRef = useRef<MapRef>(null)
 
   // Fly to the selected value when it changes externally
@@ -66,6 +71,21 @@ export function MapPicker({ value, onChange, variant = 'streets', maxBounds }: P
           <div className="h-5 w-5 -translate-y-1 rounded-full bg-blue-600 shadow-lg ring-2 ring-white" />
         </Marker>
       )}
+      {venues?.map((venue) => (
+        <Marker
+          key={venue.id}
+          latitude={venue.lat}
+          longitude={venue.lng}
+          anchor="bottom"
+        >
+          <div
+            onClick={(e) => { e.stopPropagation(); onVenueSelect?.(venue) }}
+            className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full shadow-lg ring-2 ring-white transition-transform active:scale-90 ${selectedVenueId === venue.id ? 'scale-110 bg-emerald-700' : 'bg-emerald-600'}`}
+          >
+            <Trees size={15} className="text-white" />
+          </div>
+        </Marker>
+      ))}
     </Map>
   )
 }

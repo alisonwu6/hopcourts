@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays, Zap, ExternalLink } from 'lucide-react'
+import { Building2, MapPin, CheckCircle, Clock, ShieldCheck, Trees, List, CalendarDays, Zap, ExternalLink, Plus } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EmptyStateCard } from '@/components'
 import { EventCard } from '@/features/events/components/EventCard'
@@ -95,6 +95,7 @@ interface VenueDetailsViewProps {
   onClaim: () => void
   isClaiming: boolean
   onViewSessionDetails: (sessionId: string) => void
+  onCreateEvent?: () => void
 }
 
 export function VenueDetailsView({
@@ -106,6 +107,7 @@ export function VenueDetailsView({
   onClaim,
   isClaiming,
   onViewSessionDetails,
+  onCreateEvent,
 }: VenueDetailsViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
   const [activeFilter, setActiveFilter] = useState<'today' | 'upcoming'>('today')
@@ -140,6 +142,18 @@ export function VenueDetailsView({
         showShare
         onShare={onShare}
         borderBottom
+        rightContent={
+          onCreateEvent ? (
+            <button
+              type="button"
+              onClick={onCreateEvent}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white transition active:scale-90"
+              aria-label="Create event here"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+          ) : null
+        }
       />
 
       {/* Hero */}

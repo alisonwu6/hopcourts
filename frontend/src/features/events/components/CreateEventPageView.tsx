@@ -1,18 +1,21 @@
 import clsx from 'clsx'
 import type { ChangeEvent, ReactNode } from 'react'
-import { useMemo, useState } from 'react'
-import { MapPin, ChevronRight, ImagePlus, X, Ban, Trash2 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { MapPin, ChevronRight, ImagePlus, X, Ban, Trash2, Trees, ArrowRight } from 'lucide-react'
 import { Button, AlertDialog, FieldSection, FloatingField } from '@/components'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { MapPicker, QUEENSLAND_BOUNDS } from '@/components/map/MapPicker'
+import type { VenuePin } from '@/components/map/MapPicker'
 import { PageLoading } from '@/components/PageLoading'
 import { format, addHours } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { useCreateEventForm } from '@/features/events/hooks/useCreateEventForm'
 import { DateTimeWheelSheet } from '@/components/ui/DateTimeWheelSheet'
+import { useVenuesQuery } from '@/features/venues/hooks/useVenuesQuery'
 
 const SKILL_LEVEL_LABELS = {
   any: 'All levels',
@@ -86,6 +89,45 @@ export function CreateEventPageView({
   confirmDeleteEvent,
   confirmCancelEvent,
 }: CreateEventPageViewProps) {
+  const navigate = useNavigate()
+  const [locationTab, setLocationTab] = useState<'pin' | 'courts'>('pin')
+  const [selectedMapVenue, setSelectedMapVenue] = useState<VenuePin | null>(null)
+
+  const venuesQuery = useVenuesQuery({})
+  const venuePins: VenuePin[] = useMemo(() => {
+    const items = venuesQuery.data?.data?.data ?? []
+    return items
+      .filter((v) => v.lat && v.lng)
+      .map((v) => ({
+        id: v.id,
+        name_display: v.name_display,
+        address_display: v.address_display,
+        lat: Number(v.lat),
+        lng: Number(v.lng),
+      }))
+  }, [venuesQuery.data])
+
+  useEffect(() => {
+    if (!showLocationSheet) {
+      setLocationTab('pin')
+      setSelectedMapVenue(null)
+    }
+  }, [showLocationSheet])
+
+  const handleUseVenueLocation = (venue: VenuePin) => {
+    setForm((prev) => ({
+      ...prev,
+      lat: String(venue.lat),
+      lng: String(venue.lng),
+      location: venue.address_display,
+      placeName: venue.name_display,
+    }))
+    setSelectedAddress(venue.address_display)
+    setSelectedLocation({ lat: venue.lat, lng: venue.lng })
+    setReverseGeoError(null)
+    setShowLocationSheet(false)
+  }
+
   return (
     <>
       <div className="relative flex h-[100dvh] flex-col bg-white">
@@ -307,8 +349,11 @@ export function CreateEventPageView({
                         </div>
                         <div className="flex flex-col text-left">
                           <span className="mb-0.5 text-sm font-bold leading-tight text-slate-900">
-                            {form.location || 'Tap to select location'}
+                            {form.placeName || form.location || 'Tap to select location'}
                           </span>
+                          {form.placeName && form.location ? (
+                            <span className="text-xs text-slate-400">{form.location}</span>
+                          ) : null}
                         </div>
                       </div>
                       <ChevronRight className="h-5 w-5 text-slate-400" />
@@ -325,14 +370,6 @@ export function CreateEventPageView({
                     </p>
                   )}
                   {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
-
-                  <FloatingField
-                    label="Venue Name (Optional)"
-                    name="placeName"
-                    placeholder="Real name unlocks it for our community"
-                    value={form.placeName}
-                    onChange={handleInputChange}
-                  />
                 </div>
 
                 <div className="space-y-4">
@@ -658,58 +695,130 @@ export function CreateEventPageView({
         <SheetLayout
           onClose={() => { setShowLocationSheet(false); setReverseGeoError(null) }}
           title="Select Location"
-          subtitle="Drop a pin or enter your address"
+          subtitle={locationTab === 'pin' ? 'Enter an address or tap the map' : 'Tap a court to select'}
           height="tall"
           className="w-full rounded-t-[32px] bg-white shadow-[0_-30px_80px_rgba(15,41,77,0.3)]"
           contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
-          primaryButton={{
-            label: locationConfirming ? 'Processing...' : 'Confirm',
-            onClick: confirmLocation,
-            disabled: locationConfirming,
-          }}
+          primaryButton={
+            locationTab === 'pin'
+              ? { label: locationConfirming ? 'Processing...' : 'Confirm', onClick: confirmLocation, disabled: locationConfirming }
+              : undefined
+          }
           showHandle={false}
         >
-          <div className="space-y-2 rounded-2xl bg-slate-50 px-3 py-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-600">Event Address</p>
-            </div>
+          {/* Tab toggle */}
+          <div className="flex rounded-xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => { setLocationTab('pin'); setSelectedMapVenue(null) }}
+              className={clsx(
+                'flex-1 rounded-lg py-2 text-xs font-bold transition-all',
+                locationTab === 'pin' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+              )}
+            >
+              Drop Pin
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocationTab('courts')}
+              className={clsx(
+                'flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all',
+                locationTab === 'courts' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500'
+              )}
+            >
+              <Trees size={13} />
+              Public Courts
+            </button>
+          </div>
 
-            <div className="relative">
+          {/* Drop Pin mode: address + venue name inputs */}
+          {locationTab === 'pin' && (
+            <div className="space-y-2 rounded-2xl bg-slate-50 px-3 py-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={selectedAddress}
+                  onChange={(e) => {
+                    setSelectedAddress(e.target.value)
+                    setAddressMode('manual')
+                    setReverseGeoError(null)
+                  }}
+                  placeholder="Enter address"
+                  className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
+                />
+                {selectedAddress.trim() && (
+                  <button
+                    type="button"
+                    aria-label="Clear address"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500"
+                    onClick={clearAddress}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
               <input
                 type="text"
-                value={selectedAddress}
-                onChange={(e) => {
-                  setSelectedAddress(e.target.value)
-                  setAddressMode('manual')
-                  setReverseGeoError(null)
-                }}
-                placeholder="Enter address"
-                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-10 text-sm font-semibold text-slate-900 shadow-inner focus:border-blue-500 focus:outline-none"
+                name="placeName"
+                value={form.placeName}
+                onChange={handleInputChange}
+                placeholder="Venue name (optional)"
+                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-3 pr-4 text-sm font-medium text-slate-900 shadow-inner placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
               />
-              {selectedAddress.trim() && (
-                <button
-                  type="button"
-                  aria-label="Clear address"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-2 text-slate-500"
-                  onClick={clearAddress}
-                >
-                  ×
-                </button>
-              )}
+              <p className="px-1 text-xs text-slate-400">
+                Helps others know exactly where to meet you.
+              </p>
+              {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
             </div>
+          )}
 
-            {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
-          </div>
+          {/* Public Courts mode: submit CTA when no venue selected */}
+          {locationTab === 'courts' && !selectedMapVenue && (
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs text-slate-500">
+                Play here regularly?{' '}
+                <span className="font-semibold text-slate-700">Add it to Public Courts first</span>, then choose it on the map.
+              </p>
+              <button
+                type="button"
+                onClick={() => { setShowLocationSheet(false); navigate('/venues/submit/public') }}
+                className="ml-3 flex shrink-0 items-center gap-1 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition active:bg-emerald-700"
+              >
+                Go
+                <ArrowRight size={12} />
+              </button>
+            </div>
+          )}
+
+          {/* Public Courts mode: selected venue mini-card */}
+          {locationTab === 'courts' && selectedMapVenue && (
+            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+                <Trees size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-slate-900">{selectedMapVenue.name_display}</p>
+                <p className="truncate text-xs text-slate-500">{selectedMapVenue.address_display}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleUseVenueLocation(selectedMapVenue)}
+                className="shrink-0 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition active:bg-emerald-700"
+              >
+                Use
+              </button>
+            </div>
+          )}
 
           <div className="h-[56vh] overflow-hidden rounded-2xl border border-slate-200">
             <MapPicker
-              value={selectedLocation ?? undefined}
+              value={locationTab === 'pin' ? (selectedLocation ?? undefined) : undefined}
               variant="satellite"
               maxBounds={QUEENSLAND_BOUNDS}
-              onChange={(loc) => {
-                setSelectedLocation(loc)
-                setAddressMode('auto')
-              }}
+              onChange={locationTab === 'pin' ? (loc) => { setSelectedLocation(loc); setAddressMode('auto') } : () => {}}
+              venues={locationTab === 'courts' ? venuePins : undefined}
+              selectedVenueId={selectedMapVenue?.id ?? null}
+              onVenueSelect={locationTab === 'courts' ? setSelectedMapVenue : undefined}
             />
           </div>
         </SheetLayout>

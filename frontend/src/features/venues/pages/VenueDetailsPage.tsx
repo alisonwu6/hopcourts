@@ -162,6 +162,21 @@ export function VenueDetailsPage() {
     }
   }
 
+  const handleCreateEvent = () => {
+    if (!venue) return
+    navigate('/create-event', {
+      state: {
+        backTo: `/venues/${venue.id}`,
+        venueLocation: {
+          name: venue.name_display,
+          address: venue.address_display,
+          lat: Number(venue.lat),
+          lng: Number(venue.lng),
+        },
+      },
+    })
+  }
+
   const handleBack = () => {
     const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
     if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
@@ -222,6 +237,7 @@ export function VenueDetailsPage() {
         onClaim={openClaimSheet}
         isClaiming={isClaiming}
         onViewSessionDetails={(sessionId) => navigate(`/event/${sessionId}`, { state: { from: 'venue', venueId } })}
+        onCreateEvent={handleCreateEvent}
       />
 
       <BottomSheet
