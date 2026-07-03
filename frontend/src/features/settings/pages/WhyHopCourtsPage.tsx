@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 
 function SectionLabel({ label }: { label: string }) {
@@ -12,11 +12,12 @@ function SectionLabel({ label }: { label: string }) {
 
 export function WhyHopCourtsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <div className="min-h-[100dvh] bg-white pb-[120px]">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => (location.key !== 'default' ? navigate(-1) : navigate('/settings'))}
         showShare={false}
         showFavorite={false}
         title={<span className="text-lg font-semibold text-slate-900">Why HopCourts</span>}

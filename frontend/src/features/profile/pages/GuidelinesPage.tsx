@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 
 type SectionColor = {
@@ -57,17 +57,18 @@ function SectionBadge({ index }: { index: number }) {
   )
 }
 
-export function UsageRulesPage() {
+export function GuidelinesPage() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <div className="min-h-[100dvh] bg-white text-slate-900">
       <ActionToolbar
-        onBack={() => navigate('/settings')}
+        onBack={() => (location.key !== 'default' ? navigate(-1) : navigate('/settings'))}
         showShare={false}
         showFavorite={false}
         title={<span className="text-lg font-semibold text-slate-900">Community Guidelines</span>}
-        contentClassName="max-w-3xl px-4"
+        contentClassName="max-w-page px-4"
         showBack
         borderBottom
       />
@@ -148,7 +149,7 @@ export function UsageRulesPage() {
           </g>
         </svg>
 
-        <div className="relative px-6 py-10">
+        <div className="relative mx-auto max-w-page px-6 py-10">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#6dac7f]">HopCourts</p>
           <h1 className="mb-4 text-4xl font-black leading-tight text-white">
             Community
@@ -163,7 +164,7 @@ export function UsageRulesPage() {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-5">
+      <div className="mx-auto w-full max-w-page space-y-4 px-4 py-5">
         {/* Section cards */}
         {SECTIONS.map((s, i) => (
           <div
@@ -184,7 +185,7 @@ export function UsageRulesPage() {
           <p className="text-sm text-[#2d6a4f]">
             Questions about these guidelines?{' '}
             <Link
-              to="/settings/contact"
+              to="/contact"
               className="inline-flex items-center gap-0.5 font-semibold text-[#2d6a4f] underline-offset-2 hover:underline"
             >
               Contact us

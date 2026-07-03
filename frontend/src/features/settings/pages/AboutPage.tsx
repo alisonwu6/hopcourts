@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 
 const steps = [
@@ -21,11 +21,12 @@ const steps = [
 
 export function AboutPage() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   return (
     <div className="min-h-[100dvh] bg-[#edf4ed] text-[#1a3320]">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => (location.key !== 'default' ? navigate(-1) : navigate('/settings'))}
         showShare={false}
         showFavorite={false}
         showBack

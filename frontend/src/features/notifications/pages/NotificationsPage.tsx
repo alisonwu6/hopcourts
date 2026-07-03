@@ -109,6 +109,7 @@ export function NotificationsPage() {
       <ActionToolbar
         title="Notifications"
         showBack={true}
+        onBack={() => navigate('/profile')}
         rightContent={
           notifications.some((n) => !n.is_read) && (
             <button

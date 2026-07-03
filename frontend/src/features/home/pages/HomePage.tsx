@@ -195,7 +195,7 @@ export function HomePage() {
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={() => navigate('/settings/founders-letter')}
+                onClick={() => navigate('/founders-letter')}
                 className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm"
               >
                 <div className="bg-ocean-100 text-ocean-600 flex h-10 w-10 items-center justify-center rounded-xl">
@@ -258,7 +258,7 @@ export function HomePage() {
                   <button
                     key={label}
                     type="button"
-                    onClick={() => navigate(`/settings/contact?type=${type}`)}
+                    onClick={() => navigate(`/contact?type=${type}`)}
                     className="flex w-full items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-left"
                   >
                     <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${bg}`}>

@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react'
 import { Search, MessageCircle } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { FaqAccordion } from '@/components/ui/FaqAccordion'
 import { faqCategories } from '@/data/faqData'
 
 export function FaqPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [query, setQuery] = useState('')
 
   const filtered = useMemo(() => {
@@ -23,7 +24,7 @@ export function FaqPage() {
   return (
     <div className="min-h-[100dvh] bg-white text-slate-900">
       <ActionToolbar
-        onBack={() => navigate(-1)}
+        onBack={() => (location.key !== 'default' ? navigate(-1) : navigate('/settings'))}
         showShare={false}
         showFavorite={false}
         contentClassName="max-w-3xl px-4"

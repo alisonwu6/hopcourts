@@ -18,7 +18,7 @@ import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage'
 import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage'
 import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPage'
 import { AboutPage } from '@/features/settings/pages/AboutPage'
-import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
+import { GuidelinesPage } from '@/features/profile/pages/GuidelinesPage'
 import { WhyHopCourtsPage } from '@/features/settings/pages/WhyHopCourtsPage'
 import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
 import { FaqPage } from '@/features/settings/pages/FaqPage'
@@ -122,22 +122,15 @@ export default function App() {
       />
       <Route
         path="/guidelines"
-        element={<UsageRulesPage />}
+        element={<GuidelinesPage />}
       />
       <Route
         path="/faq"
         element={<FaqPage />}
       />
       <Route
-        path="/settings/founders-letter"
-        element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <FoundersLetterPage />
-          </AppChrome>
-        }
+        path="/founders-letter"
+        element={<FoundersLetterPage />}
       />
       <Route
         path="/rules"
@@ -361,15 +354,8 @@ export default function App() {
         }
       />
       <Route
-        path="/settings/contact"
-        element={
-          <AppChrome
-            showHeader={false}
-            showNav={false}
-          >
-            <ContactUsPage />
-          </AppChrome>
-        }
+        path="/contact"
+        element={<ContactUsPage />}
       />
       <Route
         path="/notifications"
