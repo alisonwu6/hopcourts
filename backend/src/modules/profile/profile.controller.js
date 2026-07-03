@@ -32,9 +32,7 @@ async function handleGetMeProfile(req, res, next) {
 
 async function handlePutMeProfile(req, res, next) {
   try {
-    console.log('[handlePutMeProfile] Request body:', req.body)
     const userId = resolveUserId(req)
-    console.log('[handlePutMeProfile] UserId:', userId)
     await upsertProfile(userId, { ...req.body, auth_user: req.authUser })
     const fullProfile = await getProfile(userId)
     return ok(res, mapUserProfile(fullProfile))

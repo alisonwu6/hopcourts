@@ -83,7 +83,6 @@ async function getProfileSessionsByUsername(username, { role = 'hosted', time = 
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
-  console.log('[upsertProfile] Current User:', JSON.stringify(current, null, 2))
   const normalizedUsername = typeof body.username === 'string'
     ? body.username.trim().toLowerCase()
     : body.username
