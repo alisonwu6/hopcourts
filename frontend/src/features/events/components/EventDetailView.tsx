@@ -544,6 +544,7 @@ export function EventDetailView({
       <ProfileRequiredSheet
         open={showProfileRequired}
         onClose={onCloseProfileRequired}
+        dismissible
       />
 
       <MapPickerSheet

@@ -94,7 +94,7 @@ export function GuestProfileView() {
               <img
                 src={logo}
                 alt="HopCourts"
-                className="h-14 w-auto"
+                className="h-17 w-auto"
               />
             </div>
           </div>

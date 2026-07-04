@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import logo from '@/assets/main-logo.png'
 import { Menu, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
@@ -244,7 +245,8 @@ export function ProfilePage() {
     useProfileStore.getState().setRawProfile(payload)
 
     const completedAt = data.onboarding_completed_at
-    setShowProfileRequiredSheet(!completedAt)
+    const dismissed = localStorage.getItem('profile_setup_dismissed') === '1'
+    setShowProfileRequiredSheet(!completedAt && !dismissed)
 
     // Sync to AuthStore
     const { user: currentAuthUser, token, setAuthData } = useAuthStore.getState()
@@ -376,6 +378,7 @@ export function ProfilePage() {
   useEffect(() => {
     const isNowOnboarded = !!(user as any)?.onboarding_completed_at
     if (!prevOnboardedRef.current && isNowOnboarded) {
+      localStorage.removeItem('profile_setup_dismissed')
       setShowEditSheet(false)
       setShowCompletionSheet(true)
       setShowProfileRequiredSheet(false)
@@ -784,7 +787,17 @@ export function ProfilePage() {
           </div>
 
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-[60%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
-            <span className="block truncate text-xl font-bold text-slate-900">{username}</span>
+            {username ? (
+              <span className="block truncate text-xl font-bold text-slate-900">{username}</span>
+            ) : (
+              <div className='flex w-full justify-center pb-3'>
+                <img
+                  src={logo}
+                  alt="HopCourts"
+                  className="h-17 w-auto"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center">
