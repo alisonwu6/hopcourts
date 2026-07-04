@@ -79,9 +79,13 @@ async function getVenue(id, userId = null) {
 
 const OWNERSHIP_ROLES = new Set(['owner', 'manager', 'official_representative', 'community_organizer'])
 
+function toTitleCase(str) {
+  return str.replace(/\S+/g, (word) => word.charAt(0).toUpperCase() + word.slice(1))
+}
+
 function normalizeSubmitVenuePayload(body = {}) {
   const venueType = String(body.venue_type || '').trim()
-  const name = String(body.name || '').trim()
+  const name = toTitleCase(String(body.name || '').trim())
   const address = String(body.address || '').trim()
   const lat = Number(body.lat)
   const lng = Number(body.lng)
