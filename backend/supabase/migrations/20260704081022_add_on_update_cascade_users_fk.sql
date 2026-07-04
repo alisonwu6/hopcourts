@@ -1,6 +1,6 @@
 -- Add ON UPDATE CASCADE to all FK constraints referencing users.id.
--- This allows programmatic ID reconciliation when a Supabase account is
--- recreated with the same email (new Supabase UUID, existing DB row).
+-- This allows programmatic ID reconciliation when a Supabase UUID drifts out of
+-- sync with the DB row (e.g. system migration) without the account being deleted.
 -- ON DELETE behaviour is preserved exactly as-is.
 
 BEGIN;
