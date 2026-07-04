@@ -22,19 +22,19 @@ function getDayBoundaries() {
   return { todayStart, tomorrowStart }
 }
 
-function groupEventsByDate(events: any[]): [string, any[]][] {
+function groupEventsByDate(events: PlayerEvent[]): [string, PlayerEvent[]][] {
   const formatter = new Intl.DateTimeFormat('en-AU', { weekday: 'short', month: 'short', day: 'numeric' })
   const { todayStart, tomorrowStart } = getDayBoundaries()
-  const map = new Map<string, any[]>()
+  const map = new Map<string, PlayerEvent[]>()
 
   events.forEach((event) => {
-    const date = new Date(event.startTime ?? event.starts_at)
+    const date = new Date(event.startTime)
     const isToday = date >= todayStart && date < tomorrowStart
     const label = isToday ? TODAY_KEY : formatter.format(date)
     map.set(label, [...(map.get(label) ?? []), event])
   })
 
-  const result: [string, any[]][] = []
+  const result: [string, PlayerEvent[]][] = []
   if (map.has(TODAY_KEY)) {
     result.push([TODAY_KEY, map.get(TODAY_KEY)!])
     map.delete(TODAY_KEY)
@@ -43,10 +43,10 @@ function groupEventsByDate(events: any[]): [string, any[]][] {
   return result
 }
 
-function getEventDotStyle(event: any) {
+function getEventDotStyle(event: PlayerEvent) {
   const now = new Date()
-  const start = new Date(event.startTime ?? event.starts_at)
-  const end = new Date(event.endTime ?? event.ends_at ?? start)
+  const start = new Date(event.startTime)
+  const end = new Date(event.endTime)
   const openMins = event.checkinOpenMinsBefore ?? 15
   const checkInStart = new Date(start.getTime() - openMins * 60000)
   if (now >= start && now <= end) return 'scale-125 bg-amber-500 ring-amber-300'
@@ -54,7 +54,7 @@ function getEventDotStyle(event: any) {
   return 'bg-slate-200 ring-slate-200'
 }
 
-function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; onViewDetails: (id: string) => void }) {
+function TimelineGroups({ groups, onViewDetails }: { groups: [string, PlayerEvent[]][]; onViewDetails: (id: string) => void }) {
   return (
     <div className="space-y-8">
       {groups.map(([dateLabel, events]) => (
@@ -89,8 +89,8 @@ function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; 
 
 interface VenueDetailsViewProps {
   venue: ApiVenue
-  upcomingEvents: any[]
-  todayEvents: any[]
+  upcomingEvents: PlayerEvent[]
+  todayEvents: PlayerEvent[]
   onBack: () => void
   onShare: () => void
   onClaim: () => void
@@ -119,7 +119,7 @@ export function VenueDetailsView({
 
   const { tomorrowStart } = getDayBoundaries()
   const futureEvents = upcomingEvents.filter((e) => {
-    const d = new Date(e.startTime ?? e.starts_at)
+    const d = new Date(e.startTime)
     return d >= tomorrowStart
   })
 
@@ -131,7 +131,6 @@ export function VenueDetailsView({
   }, [todayEvents.length, upcomingEvents.length, todayCount])
 
   const filteredEvents = activeFilter === 'today' ? todayEvents : futureEvents
-  const typedEvents = filteredEvents as PlayerEvent[]
   const listTitle = activeFilter === 'today' ? 'Games Today' : 'Upcoming'
 
   return (
@@ -317,7 +316,7 @@ export function VenueDetailsView({
           </div>
         </div>
 
-        {typedEvents.length > 0 ? (
+        {filteredEvents.length > 0 ? (
           viewMode === 'list' ? (
             <TimelineGroups
               groups={groupEventsByDate(filteredEvents)}
@@ -325,7 +324,7 @@ export function VenueDetailsView({
             />
           ) : (
             <CalendarView
-              events={typedEvents}
+              events={filteredEvents}
               sportsCatalog={sportsCatalog}
               mode="hosted"
               onExplore={undefined}
