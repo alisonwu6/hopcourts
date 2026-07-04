@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const morgan = require('morgan')
+const pinoHttp = require('pino-http')
 const helmet = require('helmet')
 const rateLimit = require('express-rate-limit')
 const swaggerUi = require('swagger-ui-express')
@@ -12,6 +12,8 @@ const { version } = require('../package.json')
 const { env } = require('./config/env')
 const { v1Router } = require('./routes/v1')
 const { errorHandler } = require('./middleware/errorHandler')
+const logger = require('./lib/logger')
+
 
 const isProduction = process.env.NODE_ENV === 'production'
 
@@ -52,7 +54,7 @@ function createApp() {
   const corsOrigin = env.corsOrigin === '*' ? (isProduction ? false : true) : env.corsOrigin
   app.use(cors({ origin: corsOrigin }))
   app.use(express.json({ limit: '1mb' }))
-  app.use(isProduction ? morgan('combined') : morgan('dev'))
+  app.use(pinoHttp({ logger }))
 
   app.use(env.apiBasePath, apiLimiter)
   app.use(`${env.apiBasePath}/sessions/:id/join`, authLimiter)
