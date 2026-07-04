@@ -264,7 +264,7 @@ export function useCreateEventForm() {
       } else {
         setSelectedLocation(null)
         lastGeocodedRef.current = null
-        setReverseGeoError("We're currently launching in Greater Brisbane — more areas coming soon!")
+        setReverseGeoError("We're currently in soft launch in Greater Brisbane — more areas coming soon!")
       }
       setAddressLookupPending(false)
     }, 2000)
@@ -738,7 +738,7 @@ export function useCreateEventForm() {
       }))
       setShowLocationSheet(false)
     } else {
-      setReverseGeoError("We're currently launching in Greater Brisbane — more areas coming soon!")
+      setReverseGeoError("We're currently in soft launch in Greater Brisbane — more areas coming soon!")
     }
     setLocationConfirming(false)
   }
