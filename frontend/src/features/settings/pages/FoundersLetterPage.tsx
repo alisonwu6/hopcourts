@@ -14,10 +14,12 @@ export function FoundersLetterPage() {
         title={<span className="text-lg font-semibold text-slate-900">A Letter from the Founder</span>}
         showBack
         borderBottom
+        contentClassName="max-w-page px-4"
       />
 
       {/* Dark section — feeling + current reality */}
-      <div className="bg-courts px-5 pb-12 pt-6">
+      <div className="bg-courts">
+      <div className="mx-auto max-w-page px-5 pb-12 pt-6">
         <h1 className="text-4xl font-black leading-tight tracking-tight text-white">
           Hey, I'm the founder of <span className="text-hop">Hop</span>
           <span className="text-ocean">Courts</span>.
@@ -47,9 +49,11 @@ export function FoundersLetterPage() {
           </blockquote>
         </div>
       </div>
+      </div>
 
       {/* Light section — vision */}
-      <main className="bg-stone-50 px-5 py-8">
+      <main className="bg-stone-50">
+      <div className="mx-auto max-w-page px-5 py-8">
         <div className="space-y-5 text-base leading-8 text-slate-700">
           <p className="text-ocean font-extrabold">That's why I built HopCourts.</p>
 
@@ -77,6 +81,7 @@ export function FoundersLetterPage() {
             <span> Founder</span>
           </p>
         </div>
+      </div>
       </main>
     </div>
   )

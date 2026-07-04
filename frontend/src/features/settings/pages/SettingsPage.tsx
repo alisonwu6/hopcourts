@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, UserRound, LogOut, BookCheck, Mail, FileText, Rocket, CircleHelp } from 'lucide-react'
+import { ChevronRight, UserRound, LogOut, BookCheck, Mail, FileText, Rocket, CircleHelp, Feather } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
@@ -9,6 +9,7 @@ const generalItems = [{ key: 'account', label: 'Account Settings', icon: UserRou
 const otherItems = [
   { key: 'whyHopCourts', label: 'Why HopCourts', icon: Rocket },
   { key: 'about', label: 'About Us', icon: BookCheck },
+  { key: 'foundersLetter', label: "Founder's Letter", icon: Feather },
   { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
   { key: 'faq', label: 'FAQ', icon: CircleHelp },
   { key: 'contact', label: 'Contact Us', icon: Mail },
@@ -79,9 +80,10 @@ export function ProfileSettingsPage() {
                   onClick={() => {
                     if (key === 'about') navigate('/about')
                     if (key === 'whyHopCourts') navigate('/why-hopcourts')
+                    if (key === 'foundersLetter') navigate('/founders-letter')
                     if (key === 'guidelines') navigate('/guidelines')
                     if (key === 'faq') navigate('/faq')
-                    if (key === 'contact') navigate('/settings/contact')
+                    if (key === 'contact') navigate('/contact')
                   }}
                 >
                   <div className="flex items-center gap-3">

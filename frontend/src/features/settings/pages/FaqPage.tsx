@@ -27,7 +27,7 @@ export function FaqPage() {
         onBack={() => (location.key !== 'default' ? navigate(-1) : navigate('/settings'))}
         showShare={false}
         showFavorite={false}
-        contentClassName="max-w-3xl px-4"
+        contentClassName="max-w-page px-4"
         showBack
         title={<span className="text-lg font-semibold text-slate-900">FAQ</span>}
         rightContent={<span className="h-10 w-10" aria-hidden="true" />}
@@ -80,7 +80,7 @@ export function FaqPage() {
           </g>
         </svg>
 
-        <div className="relative mx-auto max-w-3xl px-5 pb-10 pt-8">
+        <div className="relative mx-auto max-w-page px-5 pb-10 pt-8">
           <p className="mb-2 text-xs font-bold uppercase tracking-widest text-lime-400">Help Centre</p>
           <h1 className="text-4xl font-black leading-tight tracking-tight text-white">
             Frequently
@@ -91,7 +91,7 @@ export function FaqPage() {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-3xl px-4 py-5 pb-16">
+      <main className="mx-auto w-full max-w-page px-4 py-5 pb-16">
         {/* Search */}
         <div className="relative mb-6">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -120,7 +120,7 @@ export function FaqPage() {
             </p>
             <button
               type="button"
-              onClick={() => navigate('/settings/contact')}
+              onClick={() => navigate('/contact')}
               className="mt-4 flex w-full items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:bg-slate-50 active:bg-slate-100"
             >
               <span className="flex items-center gap-2 text-sm font-semibold text-emerald-600">

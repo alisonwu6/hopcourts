@@ -21,6 +21,7 @@ export function WhyHopCourtsPage() {
         showShare={false}
         showFavorite={false}
         title={<span className="text-lg font-semibold text-slate-900">Why HopCourts</span>}
+        contentClassName="max-w-page px-4"
         showBack
         borderBottom
       />
@@ -53,7 +54,7 @@ export function WhyHopCourtsPage() {
           </g>
         </svg>
 
-        <div className="relative z-10 mx-auto max-w-2xl px-5 pb-10 pt-6">
+        <div className="relative z-10 mx-auto max-w-page px-5 pb-10 pt-6">
           <p className="text-courts-400 mb-3 text-xs font-bold uppercase tracking-widest">Our Story</p>
           <h1 className="text-5xl font-black leading-[1.05] tracking-tight text-white">
             Sport should be <span className="text-courts-400">instinctual.</span>
@@ -65,7 +66,7 @@ export function WhyHopCourtsPage() {
       </div>
 
       {/* Content sections */}
-      <main className="mx-auto max-w-2xl space-y-0 divide-y divide-slate-100 bg-white px-5 shadow-sm">
+      <main className="mx-auto max-w-page space-y-0 divide-y divide-slate-100 bg-white px-5 shadow-sm">
         {/* How it used to be */}
         <section className="space-y-4 py-7">
           <SectionLabel label="How it used to be" />

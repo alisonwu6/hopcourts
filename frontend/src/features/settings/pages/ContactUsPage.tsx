@@ -142,6 +142,7 @@ export function ContactUsPage() {
           onBack={handleBack}
           showBack
           borderBottom
+          contentClassName="max-w-page px-4"
         />
         <div className="flex h-[80vh] flex-col items-center justify-center px-6 text-center">
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
@@ -168,6 +169,7 @@ export function ContactUsPage() {
         showBack
         borderBottom
         className="bg-white"
+        contentClassName="max-w-page px-4"
       />
 
       {/* Hero */}
@@ -200,7 +202,7 @@ export function ContactUsPage() {
           </g>
         </svg>
 
-        <div className="relative mx-auto max-w-2xl px-5 pb-10 pt-8">
+        <div className="relative mx-auto max-w-page px-5 pb-10 pt-8">
           <p className="mb-2 text-xs font-bold uppercase tracking-widest text-lime-400">
             Get in touch
           </p>
@@ -215,7 +217,7 @@ export function ContactUsPage() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-2xl px-4 py-6">
+      <main className="mx-auto max-w-page px-4 py-6">
         <form
           onSubmit={handleSubmit}
           className="space-y-6"
