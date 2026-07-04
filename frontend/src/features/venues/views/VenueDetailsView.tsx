@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Building2, MapPin, CheckCircle, Clock, ShieldCheck, Trees, List, CalendarDays, Zap, ExternalLink, Plus } from 'lucide-react'
+import { CheckCircle, Clock, List, CalendarDays, Zap, Plus } from 'lucide-react'
+import { VenueCard } from '../components/VenueCard'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EmptyStateCard } from '@/components'
 import { EventCard } from '@/features/events/components/EventCard'
@@ -114,7 +115,6 @@ export function VenueDetailsView({
   const [mapSheetOpen, setMapSheetOpen] = useState(false)
   const hasInitialized = useRef(false)
   const { items: sportsCatalog } = useSports('en')
-  const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
   const { today: todayCount, upcoming: futureCount, past: pastCount } = computeVenueCounts(venue)
 
   const { tomorrowStart } = getDayBoundaries()
@@ -161,72 +161,11 @@ export function VenueDetailsView({
 
       {/* Hero */}
       <div className="border-b border-slate-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-4">
-          {/* Logo */}
-          <div className="relative h-16 w-16 flex-none">
-            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-sm">
-              {venue.logo_url ? (
-                <img
-                  src={venue.logo_url}
-                  alt="Logo"
-                  className="h-full w-full object-contain p-2"
-                />
-              ) : (
-                <Building2 className="h-8 w-8 text-slate-300" />
-              )}
-            </div>
-            {venue.venue_type === 'official' && (
-              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
-                <ShieldCheck
-                  size={10}
-                  className="text-white"
-                />
-              </div>
-            )}
-            {venue.venue_type === 'public' && (
-              <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
-                <Trees
-                  size={18}
-                  className="text-white"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-black leading-tight tracking-tight text-slate-900">
-              {venue.name_display}
-            </h1>
-            <p
-              onClick={() => setMapSheetOpen(true)}
-              className="mt-0.5 flex items-start gap-1 text-xs font-medium text-slate-400"
-            >
-              <MapPin
-                size={12}
-                className="mt-[3px] shrink-0"
-              />
-              {venue.address_display}
-              <ExternalLink
-                size={14}
-                className="mt-[3px] shrink-0"
-              />
-            </p>
-          </div>
-        </div>
-
-        {/* Row 1: Sport tags */}
-        {sportKeys.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {sportKeys.map((key) => (
-              <span
-                key={key}
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${getSportColor(key)}`}
-              >
-                {getSportLabel(key)}
-              </span>
-            ))}
-          </div>
-        )}
+        <VenueCard
+          venue={venue}
+          variant="detail"
+          onAddressClick={() => setMapSheetOpen(true)}
+        />
 
         {/* Row 2: Today + Upcoming + Past stats */}
         <div className="mt-3 flex gap-3">

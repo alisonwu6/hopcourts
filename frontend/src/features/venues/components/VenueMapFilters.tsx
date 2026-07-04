@@ -23,24 +23,21 @@ export function VenueMapFilters({
       <Chip
         label="Has events"
         isActive={activeFilter === 'has_events'}
-        activeClassName="text-white"
-        activeStyle={{ background: '#df6c03' }}
+        activeClassName="text-white bg-hop"
         icon={<CalendarCheck size={18} />}
         onClick={() => onFilterChange('has_events')}
       />
       <Chip
         label="Public"
         isActive={activeFilter === 'public'}
-        activeClassName="text-white"
-        activeStyle={{ background: '#2d7a3a' }}
+        activeClassName="text-white bg-courts-400"
         icon={<Trees size={18} />}
         onClick={() => onFilterChange('public')}
       />
       <Chip
         label="Official"
         isActive={activeFilter === 'official'}
-        activeClassName="text-white"
-        activeStyle={{ background: '#0067b6' }}
+        activeClassName="text-white bg-blue-700"
         icon={<ShieldCheck size={18} />}
         onClick={() => onFilterChange('official')}
       />

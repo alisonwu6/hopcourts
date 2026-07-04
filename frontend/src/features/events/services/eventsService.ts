@@ -600,7 +600,7 @@ export const eventsService = {
             : (input.pricePerPerson ?? null),
         price_mode: input.priceMode,
         priceNote: input.priceNote,
-        photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
+        photos: Array.isArray(input.photos) ? input.photos : (input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined),
         location: input.location,
       }
 
