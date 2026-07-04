@@ -71,7 +71,7 @@ export function DiscoverEventsBody({
   }
 
   const resolveCityLabel = (event: PlayerEvent) =>
-    event.host.cityName || event.location?.city || 'City TBD'
+    event.location?.city || 'City TBD'
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 pt-[100px]">

@@ -253,7 +253,6 @@ export interface PlayerEvent {
   title: string
   sport: string
   heroImageUrl?: string
-  vibeIcon: string
   skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'mixed' | 'any'
   gender?: 'mixed' | 'female' | 'male' | 'lgbtq'
   photos?: string[]

@@ -56,7 +56,7 @@ export function EventCard({
       ? event.location.address
       : ''
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
-  const cityLabel = cityLabelProp || event.host.cityName || locationCity || 'City TBD'
+  const cityLabel = cityLabelProp || locationCity || 'City TBD'
 
   const attendeeCount = event.attendeeCount
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)

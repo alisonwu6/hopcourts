@@ -120,6 +120,14 @@ async function addRoleToUser(userId, role) {
   return rows[0] || null
 }
 
+async function updateUserId(oldId, newId) {
+  const { rows } = await query(
+    'UPDATE public.users SET id = $1 WHERE id = $2 RETURNING *',
+    [newId, oldId]
+  )
+  return rows[0] || null
+}
+
 module.exports = {
   getUserById,
   getUserByUsername,
@@ -129,4 +137,5 @@ module.exports = {
   deleteUser,
   addRoleToUser,
   markPwaInstalled,
+  updateUserId,
 }
