@@ -102,6 +102,7 @@ export function useCreateEventForm() {
   const [selectedAddress, setSelectedAddress] = useState<string>('')
   const [addressMode, setAddressMode] = useState<'auto' | 'manual'>('auto')
   const [reverseGeoError, setReverseGeoError] = useState<string | null>(null)
+  const [isOutsideArea, setIsOutsideArea] = useState(false)
   const [locationConfirming, setLocationConfirming] = useState(false)
   const [addressLookupPending, setAddressLookupPending] = useState(false)
   const [isAddressClearing, setIsAddressClearing] = useState(false)
@@ -261,10 +262,12 @@ export function useCreateEventForm() {
         setSelectedLocation(loc)
         lastGeocodedRef.current = { address, loc }
         setReverseGeoError(null)
+        setIsOutsideArea(false)
       } else {
         setSelectedLocation(null)
         lastGeocodedRef.current = null
         setReverseGeoError("We're currently in soft launch in Greater Brisbane — more areas coming soon!")
+        setIsOutsideArea(false)
       }
       setAddressLookupPending(false)
     }, 2000)
@@ -386,8 +389,20 @@ export function useCreateEventForm() {
     setForm((prev) => ({ ...prev, gender: value }))
   }
 
+  const changeLocation = (loc: LatLng) => {
+    if (!inQldBounds(loc)) {
+      setIsOutsideArea(true)
+      setSelectedLocation(null)
+      return
+    }
+    setIsOutsideArea(false)
+    setSelectedLocation(loc)
+    setAddressMode('auto')
+  }
+
   const openLocationPicker = () => {
     setReverseGeoError(null)
+    setIsOutsideArea(false)
     if (form.lat && form.lng) {
       setSelectedLocation({ lat: Number(form.lat), lng: Number(form.lng) })
       setSelectedAddress(form.location || '')
@@ -749,6 +764,7 @@ export function useCreateEventForm() {
     setSelectedLocation(null)
     setAddressMode('manual')
     setReverseGeoError(null)
+    setIsOutsideArea(false)
     setTimeout(() => setIsAddressClearing(false), 0)
   }
 
@@ -816,6 +832,8 @@ export function useCreateEventForm() {
     setAddressMode,
     reverseGeoError,
     setReverseGeoError,
+    isOutsideArea,
+    changeLocation,
     locationConfirming,
     isDraftLoading,
     editingEventStatus,

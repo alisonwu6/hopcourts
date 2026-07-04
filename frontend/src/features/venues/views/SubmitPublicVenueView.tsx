@@ -139,7 +139,7 @@ export function SubmitPublicVenueView({
               )}
               {isOutsideQLD && (
                 <p className="px-4 text-xs font-semibold text-red-500">
-                  We're currently operating in Greater Brisbane — more areas coming soon!
+                  We're currently in soft launch in Greater Brisbane — more areas coming soon!
                 </p>
               )}
             </div>

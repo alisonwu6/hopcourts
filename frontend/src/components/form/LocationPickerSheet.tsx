@@ -72,7 +72,7 @@ export function LocationPickerSheet({
           {locationPicker.reverseGeoError && <p className="text-xs text-red-500">{locationPicker.reverseGeoError}</p>}
           {locationPicker.isOutsideArea && (
             <p className="text-xs font-semibold text-red-500">
-              We're currently operating in Greater Brisbane — more areas coming soon!
+              We're currently in soft launch in Greater Brisbane — more areas coming soon!
             </p>
           )}
         </div>

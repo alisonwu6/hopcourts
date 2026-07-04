@@ -54,6 +54,8 @@ export function CreateEventPageView({
   setAddressMode,
   reverseGeoError,
   setReverseGeoError,
+  isOutsideArea,
+  changeLocation,
   locationConfirming,
   isDraftLoading,
   editingEventStatus,
@@ -701,7 +703,7 @@ export function CreateEventPageView({
           contentClassName="flex-1 overflow-hidden px-4 pb-4 pt-2 space-y-3"
           primaryButton={
             locationTab === 'pin'
-              ? { label: locationConfirming ? 'Processing...' : 'Confirm', onClick: confirmLocation, disabled: locationConfirming }
+              ? { label: locationConfirming ? 'Processing...' : 'Confirm', onClick: confirmLocation, disabled: locationConfirming || isOutsideArea }
               : undefined
           }
           showHandle={false}
@@ -769,6 +771,11 @@ export function CreateEventPageView({
                 Helps others know exactly where to meet you.
               </p>
               {reverseGeoError && <p className="text-xs text-red-500">{reverseGeoError}</p>}
+              {isOutsideArea && (
+                <p className="text-xs font-semibold text-red-500">
+                  We're currently in soft launch in Greater Brisbane — more areas coming soon!
+                </p>
+              )}
             </div>
           )}
 
@@ -815,7 +822,7 @@ export function CreateEventPageView({
               value={locationTab === 'pin' ? (selectedLocation ?? undefined) : undefined}
               variant="satellite"
               maxBounds={QUEENSLAND_BOUNDS}
-              onChange={locationTab === 'pin' ? (loc) => { setSelectedLocation(loc); setAddressMode('auto') } : () => {}}
+              onChange={locationTab === 'pin' ? changeLocation : () => {}}
               venues={locationTab === 'courts' ? venuePins : undefined}
               selectedVenueId={selectedMapVenue?.id ?? null}
               onVenueSelect={locationTab === 'courts' ? setSelectedMapVenue : undefined}
