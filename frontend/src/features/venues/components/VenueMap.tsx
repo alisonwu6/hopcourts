@@ -74,7 +74,7 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
           position="bottom-right"
           trackUserLocation
           showUserHeading
-          style={{ marginBottom: 30 }}
+          style={{ marginBottom: 120 }}
         />
 
         {validVenues.map((venue) => (
@@ -96,7 +96,7 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
         ))}
       </Map>
 
-      <div className="pointer-events-none absolute bottom-20 left-3 z-10">
+      <div className="top-33 pointer-events-none absolute left-3 z-10">
         <div className="flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 backdrop-blur-sm">
           <MapPin className="h-3 w-3 text-white/80" />
           <span className="text-xs font-semibold text-white">Brisbane, QLD only</span>
