@@ -75,20 +75,28 @@ async function notifyTodayEvents() {
   }
 }
 
-function startScheduler() {
-  cron.schedule('*/5 * * * *', () => {
-    notifyCheckinWindowOpening().catch((err) =>
-      console.error('Scheduler: checkin window job failed', err)
-    )
-  })
+const tasks = []
 
-  cron.schedule('0 8 * * *', () => {
-    notifyTodayEvents().catch((err) =>
-      console.error('Scheduler: today events job failed', err)
-    )
-  }, { timezone: 'Australia/Sydney' })
+function startScheduler() {
+  tasks.push(
+    cron.schedule('*/5 * * * *', () => {
+      notifyCheckinWindowOpening().catch((err) =>
+        console.error('Scheduler: checkin window job failed', err)
+      )
+    }),
+    cron.schedule('0 8 * * *', () => {
+      notifyTodayEvents().catch((err) =>
+        console.error('Scheduler: today events job failed', err)
+      )
+    }, { timezone: 'Australia/Sydney' })
+  )
 
   console.log('Scheduler started')
 }
 
-module.exports = { startScheduler }
+function stopScheduler() {
+  tasks.forEach((t) => t.stop())
+  tasks.length = 0
+}
+
+module.exports = { startScheduler, stopScheduler }
