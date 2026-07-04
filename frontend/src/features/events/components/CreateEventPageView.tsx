@@ -925,15 +925,15 @@ function GenderSelector({
   hostGender?: string | null
 }) {
   const options: { id: 'mixed' | 'female' | 'male' | 'lgbtq'; label: string; disabled: boolean }[] = [
-    { id: 'mixed', label: 'All genders', disabled: false },
+    { id: 'mixed', label: 'All welcome', disabled: false },
     { id: 'female', label: 'Women Only', disabled: hostGender === 'male' },
     { id: 'male', label: 'Men Only', disabled: hostGender === 'female' },
-    { id: 'lgbtq', label: 'LGBT+', disabled: false },
+    { id: 'lgbtq', label: 'LGBT+ Friendly', disabled: false },
   ]
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold tracking-wide text-slate-500">Gender</p>
+      <p className="text-xs font-semibold tracking-wide text-slate-500">Who is this for?</p>
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => {
           const isActive = selected === opt.id

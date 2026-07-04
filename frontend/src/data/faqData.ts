@@ -23,12 +23,12 @@ export const faqCategories: FaqCategory[] = [
     items: [
       {
         q: 'What is HopCourts trying to do?',
-        a: "We're building for anyone who wants to play sport but can't find the right people or the right moment. Group chats are messy. Planning takes too long. HopCourts removes the friction so a good game doesn't need all that.",
+        a: "We're building for everyday players who love the game but hate the admin chaos. Group chats are messy, attendance lists are painful, and tracking court fees takes too long. HopCourts eliminates all that friction. With just one link, you can host games, split costs, and automatically lock in your next mates. A good game shouldn't need a spreadsheet.",
         showOnHome: true,
       },
       {
         q: 'Is HopCourts free to use?',
-        a: "Yes, for now. We see the problem: too much friction between wanting to play and actually playing. Removing that barrier is the whole point. Charging for it right now would work against what we're trying to do.",
+        a: 'Yes! Joining games and hosting your regular runs will always be free. We see the problem: too much friction between wanting to play and actually playing. Removing that barrier is the whole point. In the future, we might introduce premium tools for power hosts, but the core experience will always stay free for everyday players.',
       },
     ],
   },
@@ -39,12 +39,12 @@ export const faqCategories: FaqCategory[] = [
     labelColor: 'text-emerald-700',
     items: [
       {
-        q: 'How do I join a game?',
+        q: 'How do I hop into a game?',
         a: 'Browse games near you on the events page. When you find one that fits, tap Hop In. No back-and-forth, no group chats. Just show up and play.',
         showOnHome: true,
       },
       {
-        q: 'How do I host a game?',
+        q: 'How do I start my own game run?',
         a: 'Tap + from the home screen. Fill in the sport, time, location, and number of spots. Hit publish and others can find and join you. You sort the court, we make it easy for people to show up.',
         showOnHome: true,
       },
@@ -62,8 +62,8 @@ export const faqCategories: FaqCategory[] = [
         showOnHome: true,
       },
       {
-        q: 'What are gender-specific sessions?',
-        a: "Some people play better when the group feels familiar. Hosts can set a session to All genders, Women only, Men only, or LGBT+ so everyone can find a game they're comfortable with. Women only and Men only sessions check your profile gender before letting you join — make sure it's set to your physical gender. LGBT+ and All genders sessions are open to everyone. You can update your profile gender anytime from your profile.",
+        q: 'Is HopCourts inclusive?',
+        a: 'Absolutely. We want everyone to feel safe and welcome on the court. Hosts can set the community focus for their game: All welcome, Women Only, Men Only, or LGBT+ Friendly. To keep special runs safe and comfortable, our system automatically verifies profile genders before letting someone join a Women-only or Men-only game. Please ensure your gender is selected in your profile settings. All other sessions are open to everyone!',
         showOnHome: true,
       },
     ],
@@ -99,7 +99,7 @@ export const faqCategories: FaqCategory[] = [
       },
       {
         q: "What's the difference between Public Courts and Official Venues?",
-        a: "Public Courts are submitted by players — anyone can add one and it goes live instantly. Official Venues are claimed and managed by the venue owner through our venue portal, and carry a verified shield badge. They are mutually exclusive: a Public Courts listing does not become an Official Venue.",
+        a: 'Public Courts are submitted by players — anyone can add one and it goes live instantly. Official Venues are claimed and managed by the venue owner through our venue portal, and carry a verified shield badge. They are mutually exclusive: a Public Courts listing does not become an Official Venue.',
       },
     ],
   },
