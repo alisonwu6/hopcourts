@@ -117,7 +117,7 @@ export function VenueListView({
       </div>
 
       {showMap ? (
-        <div className="relative h-[100dvh] w-full">
+        <div className="h-[100dvh] w-full">
           <VenueMap
             venues={venues}
             selectedVenueId={selectedVenueId}
