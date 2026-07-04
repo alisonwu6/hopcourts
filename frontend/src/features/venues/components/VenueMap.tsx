@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { MapPin } from 'lucide-react'
 import { ApiVenue } from '../services/venuesService'
 import { VenueMapMarker } from './VenueMapMarker'
-import { VenueMapBottomSheet } from './VenueMapBottomSheet'
+import { VenueCard } from './VenueCard'
 import { QUEENSLAND_BOUNDS } from '@/components/map/MapPicker'
 
 interface VenueMapProps {
@@ -108,8 +108,9 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
           className="fixed left-1/2 z-50 w-full max-w-md -translate-x-1/2 px-4 transition-all duration-500 animate-in fade-in slide-in-from-bottom-8"
           style={{ bottom: 'calc(68px + env(safe-area-inset-bottom, 0px) + 16px)' }}
         >
-          <VenueMapBottomSheet
+          <VenueCard
             venue={selectedVenue}
+            variant="map"
             onNavigate={onNavigate}
             onShare={() => handleShare(selectedVenue)}
           />
