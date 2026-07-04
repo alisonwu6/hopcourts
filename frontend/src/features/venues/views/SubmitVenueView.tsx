@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { Gift, ChevronRight, MapPin, ArrowRight, Check } from 'lucide-react'
 import { FieldSection, FloatingField, BottomSheet, LocationPickerSheet } from '@/components'
+import { QUEENSLAND_BOUNDS } from '@/components/map/MapPicker'
 import { SheetLayout } from '@/components/SheetLayout'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import type { Sport } from '@/types/dictionary'
@@ -362,6 +363,12 @@ export function SubmitVenueView({
       <LocationPickerSheet
         open={showLocationSheet}
         onClose={() => setShowLocationSheet(false)}
+        maxBounds={QUEENSLAND_BOUNDS}
+        onClear={() => {
+          onChangeField('address', '')
+          onChangeField('lat', null)
+          onChangeField('lng', null)
+        }}
         initialValue={
           form.address && form.lat != null && form.lng != null
             ? { address: form.address, lat: form.lat, lng: form.lng }

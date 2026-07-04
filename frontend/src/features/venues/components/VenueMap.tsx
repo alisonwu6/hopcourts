@@ -1,9 +1,11 @@
 import { useMemo, useEffect, useRef } from 'react'
 import Map, { Marker, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { MapPin } from 'lucide-react'
 import { ApiVenue } from '../services/venuesService'
 import { VenueMapMarker } from './VenueMapMarker'
 import { VenueMapBottomSheet } from './VenueMapBottomSheet'
+import { QUEENSLAND_BOUNDS } from '@/components/map/MapPicker'
 
 interface VenueMapProps {
   venues: ApiVenue[]
@@ -63,6 +65,7 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
         ref={mapRef}
         mapboxAccessToken={token}
         initialViewState={{ longitude: 153.0251, latitude: -27.4698, zoom: 11 }}
+        maxBounds={QUEENSLAND_BOUNDS}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/streets-v11"
         onClick={() => onSelectVenue(null)}
@@ -92,6 +95,13 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
           </Marker>
         ))}
       </Map>
+
+      <div className="pointer-events-none absolute bottom-20 left-3 z-10">
+        <div className="flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 backdrop-blur-sm">
+          <MapPin className="h-3 w-3 text-white/80" />
+          <span className="text-xs font-semibold text-white">Brisbane, QLD only</span>
+        </div>
+      </div>
 
       {selectedVenue && (
         <div

@@ -24,6 +24,11 @@ export const QUEENSLAND_BOUNDS: [[number, number], [number, number]] = [
   [153.55, -10.68],
 ]
 
+export const inQldBounds = (loc: LatLng): boolean => {
+  const [[west, south], [east, north]] = QUEENSLAND_BOUNDS
+  return loc.lng >= west && loc.lng <= east && loc.lat >= south && loc.lat <= north
+}
+
 export function MapPicker({ value, onChange, variant = 'streets', maxBounds, venues, selectedVenueId, onVenueSelect }: Props) {
   const mapRef = useRef<MapRef>(null)
 

@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { ChevronRight, MapPin, ArrowRight } from 'lucide-react'
 import { FieldSection, FloatingField, LocationPickerSheet } from '@/components'
+import { QUEENSLAND_BOUNDS, inQldBounds } from '@/components/map/MapPicker'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import type { Sport } from '@/types/dictionary'
 import type { SelectedVenueSport, SubmitVenueField, SubmitVenueFormState } from '../hooks/useSubmitVenueForm'
@@ -49,6 +50,9 @@ export function SubmitPublicVenueView({
   onSwitchToOfficial,
   onSubmit,
 }: SubmitPublicVenueViewProps) {
+  const isOutsideQLD =
+    form.lat != null && form.lng != null && !inQldBounds({ lat: form.lat, lng: form.lng })
+
   return (
     <div className="min-h-[100dvh] bg-slate-50/60 pb-32">
       <ActionToolbar
@@ -133,6 +137,11 @@ export function SubmitPublicVenueView({
                   {fieldErrors.address}
                 </p>
               )}
+              {isOutsideQLD && (
+                <p className="px-4 text-xs font-semibold text-red-500">
+                  We're currently operating in Greater Brisbane — more areas coming soon!
+                </p>
+              )}
             </div>
           </FieldSection>
         </div>
@@ -185,6 +194,12 @@ export function SubmitPublicVenueView({
       <LocationPickerSheet
         open={showLocationSheet}
         onClose={() => setShowLocationSheet(false)}
+        maxBounds={QUEENSLAND_BOUNDS}
+        onClear={() => {
+          onChangeField('address', '')
+          onChangeField('lat', null)
+          onChangeField('lng', null)
+        }}
         initialValue={
           form.address && form.lat != null && form.lng != null
             ? { address: form.address, lat: form.lat, lng: form.lng }
@@ -211,7 +226,7 @@ export function SubmitPublicVenueView({
           <button
             type="button"
             onClick={onSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isOutsideQLD}
             className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#3c4a22] text-base font-bold text-white shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? 'Adding...' : 'Add to map'}

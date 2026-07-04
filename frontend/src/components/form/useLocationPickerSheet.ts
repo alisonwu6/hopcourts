@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { LatLng } from '../map/MapPicker'
+import { inQldBounds, type LatLng } from '../map/MapPicker'
 import type { LocationPickerValue } from './LocationPickerSheet'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
@@ -17,12 +17,14 @@ export function useLocationPickerSheet({
   const [selectedAddress, setSelectedAddress] = useState('')
   const [addressMode, setAddressMode] = useState<'auto' | 'manual'>('manual')
   const [reverseGeoError, setReverseGeoError] = useState<string | null>(null)
+  const [isOutsideArea, setIsOutsideArea] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [isClearing, setIsClearing] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setReverseGeoError(null)
+    setIsOutsideArea(false)
     setIsConfirming(false)
     if (initialValue) {
       setSelectedLocation({ lat: initialValue.lat, lng: initialValue.lng })
@@ -45,9 +47,17 @@ export function useLocationPickerSheet({
     const handle = window.setTimeout(async () => {
       const loc = await forwardGeocode(address)
       if (loc) {
-        setSelectedLocation(loc)
-        setReverseGeoError(null)
+        if (!inQldBounds(loc)) {
+          setIsOutsideArea(true)
+          setSelectedLocation(null)
+          setReverseGeoError(null)
+        } else {
+          setIsOutsideArea(false)
+          setSelectedLocation(loc)
+          setReverseGeoError(null)
+        }
       } else {
+        setIsOutsideArea(false)
         setReverseGeoError('Please enter a valid address')
       }
     }, 1500)
@@ -75,6 +85,7 @@ export function useLocationPickerSheet({
 
   const changeLocation = (loc: LatLng) => {
     setSelectedLocation(loc)
+    setIsOutsideArea(false)
     setAddressMode('auto')
   }
 
@@ -84,6 +95,7 @@ export function useLocationPickerSheet({
     setSelectedLocation(null)
     setAddressMode('manual')
     setReverseGeoError(null)
+    setIsOutsideArea(false)
     window.setTimeout(() => setIsClearing(false), 0)
   }
 
@@ -117,6 +129,7 @@ export function useLocationPickerSheet({
     selectedLocation,
     selectedAddress,
     reverseGeoError,
+    isOutsideArea,
     isConfirming,
     changeAddress,
     changeLocation,
@@ -129,7 +142,7 @@ async function forwardGeocode(address: string): Promise<LatLng | null> {
   if (!MAPBOX_TOKEN || !address.trim()) return null
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
     address.trim()
-  )}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
+  )}.json?language=en&limit=1&country=AU&access_token=${MAPBOX_TOKEN}`
   try {
     const res = await fetch(url)
     const data = await res.json()

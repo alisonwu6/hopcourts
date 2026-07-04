@@ -15,6 +15,7 @@ type EventCardProps = {
   cityLabel?: string
   disableVenueHostNavigation?: boolean
   showBookmark?: boolean
+  showStatus?: boolean
 }
 
 
@@ -26,6 +27,7 @@ export function EventCard({
   cityLabel: cityLabelProp,
   disableVenueHostNavigation = false,
   showBookmark = false,
+  showStatus = true,
 }: EventCardProps) {
   const navigate = useNavigate()
 
@@ -155,13 +157,15 @@ export function EventCard({
         </div>
 
         <div className="flex flex-col items-end justify-end gap-1">
-          <StatusBadge
-            status={event.status}
-            startTime={event.startTime}
-            endTime={event.endTime}
-            maxAttendees={event.maxAttendees}
-            spotsRemaining={remaining}
-          />
+          {showStatus && (
+            <StatusBadge
+              status={event.status}
+              startTime={event.startTime}
+              endTime={event.endTime}
+              maxAttendees={event.maxAttendees}
+              spotsRemaining={remaining}
+            />
+          )}
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
               <ShieldCheck

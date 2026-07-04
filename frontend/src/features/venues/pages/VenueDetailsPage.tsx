@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { venueByIdKey } from '../hooks/useVenueByIdQuery'
 import { Frown } from 'lucide-react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { AlertDialog } from '@/components/AlertDialog'
 import { BottomSheet } from '@/components/BottomSheet'
 import { useAuthStore } from '@/hooks'
@@ -46,6 +46,7 @@ const formatClaimLocationAddress = (address?: string | null) => {
 export function VenueDetailsPage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
   const venueQuery = useVenueByIdQuery(venueId)
@@ -184,6 +185,10 @@ export function VenueDetailsPage() {
   }
 
   const handleBack = () => {
+    if ((location.state as { from?: string } | null)?.from === 'submit') {
+      navigate('/venues', { replace: true })
+      return
+    }
     const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
     if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
       navigate('/venues', { replace: true })

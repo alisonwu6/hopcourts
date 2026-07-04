@@ -4,7 +4,7 @@ import { addHours, format } from 'date-fns'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
-import type { LatLng } from '@/components/map/MapPicker'
+import { inQldBounds, type LatLng } from '@/components/map/MapPicker'
 import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
@@ -298,9 +298,8 @@ export function useCreateEventForm() {
       if (!feature?.center) return null
       const loc: LatLng = { lng: feature.center[0], lat: feature.center[1] }
       const regionCtx = feature.context?.find((c: { id: string }) => c.id.startsWith('region.'))
-      const inQldBounds = loc.lng >= 138.0 && loc.lng <= 153.55 && loc.lat >= -29.18 && loc.lat <= -10.68
       // Accept if region is explicitly QLD, or if no region context but coords fall within QLD bounds
-      if (regionCtx ? regionCtx.short_code !== 'AU-QLD' : !inQldBounds) return null
+      if (regionCtx ? regionCtx.short_code !== 'AU-QLD' : !inQldBounds(loc)) return null
       return loc
     } catch {
       return null
