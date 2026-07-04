@@ -5,6 +5,7 @@ const checkinsModel = require('../../../models/checkins.model')
 const usersModel = require('../../../models/users.model')
 const { createSession: createSessionModel } = require('../../../models/sessions.model')
 const { resolveVenue } = require('../venues/venues.service')
+const { resolveCityKeyByCoords } = require('../../utils/geocoding')
 const notificationsService = require('../notifications/notifications.service')
 
 function parseNumber(value, fallback) {
@@ -350,10 +351,13 @@ async function createSession(input) {
     }
   }
 
+  const cityKey = await resolveCityKeyByCoords(Number(input.lat), Number(input.lng))
+
   const payload = {
     hostUserId: input.userId,
     sportKey: input.sportKey,
-    venueId, // Add resolved venue ID
+    venueId,
+    cityKey,
     title: input.title ?? null,
     description: input.description ?? null,
     startAt: new Date(input.startAt),

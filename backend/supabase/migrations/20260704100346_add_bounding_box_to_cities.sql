@@ -1,0 +1,12 @@
+ALTER TABLE public.cities
+  ADD COLUMN IF NOT EXISTS lat_min DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS lat_max DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS lng_min DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS lng_max DOUBLE PRECISION;
+
+UPDATE public.cities SET
+  lat_min = -28.0,
+  lat_max = -26.8,
+  lng_min = 152.5,
+  lng_max = 153.6
+WHERE key = 'BRISBANE';

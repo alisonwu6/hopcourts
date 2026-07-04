@@ -181,7 +181,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     location: {
       name: locationName,
       address: session.address ?? '',
-      city: session.venue_city_name ?? '',
+      city: session.city_name ?? '',
       lat: session.lat,
       lng: session.lng,
       status: session.venue_status,
