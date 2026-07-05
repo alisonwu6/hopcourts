@@ -12,6 +12,7 @@ export interface AlertDialogProps {
   cancelLabel?: string
   onCancel?: () => void
   actionLeft?: boolean
+  isLoading?: boolean
 }
 
 export function AlertDialog({
@@ -25,6 +26,7 @@ export function AlertDialog({
   cancelLabel,
   onCancel,
   actionLeft = false,
+  isLoading,
 }: AlertDialogProps) {
   if (!open) return null
 
@@ -32,7 +34,8 @@ export function AlertDialog({
 
   const handleAction = () => {
     onAction?.()
-    onClose()
+    // Auto-close only when the caller hasn't opted into loading-state management
+    if (isLoading === undefined) onClose()
   }
 
   const handleCancel = () => {
@@ -45,7 +48,7 @@ export function AlertDialog({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={isLoading ? undefined : onClose}
       />
 
       {/* Dialog Content */}
@@ -98,13 +101,14 @@ export function AlertDialog({
 
           {description && <div className="mt-2 text-sm leading-relaxed text-slate-500">{description}</div>}
 
-          <div className={clsx('mt-6 w-full', hasCancel ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+          <div className={clsx('mt-6 w-full', hasCancel && !isLoading ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
             {hasCancel && actionLeft && (
               <button
                 type="button"
                 onClick={handleAction}
+                disabled={isLoading}
                 className={clsx(
-                  'w-full rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98]',
+                  'flex w-full items-center justify-center rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98] disabled:opacity-70',
                   type === 'error'
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : type === 'success'
@@ -116,11 +120,15 @@ export function AlertDialog({
                           : 'bg-blue-600 text-white hover:bg-blue-700'
                 )}
               >
-                {actionLabel}
+                {isLoading ? (
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  actionLabel
+                )}
               </button>
             )}
 
-            {hasCancel && (
+            {hasCancel && !isLoading && (
               <button
                 type="button"
                 onClick={handleCancel}
@@ -134,8 +142,9 @@ export function AlertDialog({
               <button
                 type="button"
                 onClick={handleAction}
+                disabled={isLoading}
                 className={clsx(
-                  'w-full rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98]',
+                  'flex w-full items-center justify-center rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98] disabled:opacity-70',
                   type === 'error'
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : type === 'success'
@@ -147,7 +156,11 @@ export function AlertDialog({
                           : 'bg-blue-600 text-white hover:bg-blue-700'
                 )}
               >
-                {actionLabel}
+                {isLoading ? (
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  actionLabel
+                )}
               </button>
             )}
           </div>
