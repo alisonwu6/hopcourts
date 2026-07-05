@@ -1,14 +1,14 @@
 import clsx from 'clsx'
 import logo from '@/assets/main-logo.png'
 import { Menu, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
-import { useProfileStore, type ProfileVM } from '@/stores/profile.store'
+import { useProfileStore } from '@/stores/profile.store'
 import { profileService } from '@/features/profile/services/profileService'
 import { useProfileQuery } from '@/features/profile/hooks/useProfileQuery'
 import { useNotificationsUnreadQuery } from '@/features/notifications/hooks/useNotificationsUnreadQuery'
@@ -26,6 +26,14 @@ import type { GoalState } from '@/features/profile/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 import { getFlagEmoji } from '@/utils/flags'
+
+type ProfileVM = {
+  username: string
+  usernameUpdatedCount: number
+  card: MateCardProps
+  favoriteSportKeys: string[]
+  tryingSportKeys: string[]
+}
 
 type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying' | 'bio'
 
@@ -59,7 +67,7 @@ export function ProfilePage() {
     type: 'success' | 'error' | 'info' | 'warning' | 'feature'
   }>({ open: false, title: '', description: '', type: 'info' })
 
-  const [unreadCount, setUnreadCount] = useState(0)
+  const [unreadCount, setUnreadCount] = useState(() => useProfileStore.getState().unreadCount)
 
   const [showGoalSheet, setShowGoalSheet] = useState(false)
   const [showShareSheet, setShowShareSheet] = useState(false)
@@ -76,22 +84,19 @@ export function ProfilePage() {
   const { user, isAuthenticated, isLoading } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
-  const [vm, setVm] = useState<ProfileVM | null>(() => useProfileStore.getState().vm)
+  const [rawProfile, setRawProfile] = useState<any>(() => useProfileStore.getState().rawProfile)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(emptyProfile)
   const [draftUsername, setDraftUsername] = useState<string>((user as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false)
-  const [isProfileLoaded, setIsProfileLoaded] = useState(() => {
-    const s = useProfileStore.getState()
-    return s.isLoaded && !!s.rawProfile && !!s.vm
-  })
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
   const [showTryingSheet, setShowTryingSheet] = useState(false)
   const [showCompletionSheet, setShowCompletionSheet] = useState(false)
   const [activityViewMode, setActivityViewMode] = useState<'list' | 'calendar'>('list')
+  const [isViewTransitioning, startViewTransition] = useTransition()
 
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [activeField, setActiveField] = useState<
@@ -162,6 +167,62 @@ export function ProfilePage() {
     return cityLabel || countryLabel || ''
   }, [draftProfile.location, labelForCity, labelForCountry])
 
+  // Derive vm from rawProfile — always current, no async effect needed
+  const vm = useMemo<ProfileVM | null>(() => {
+    if (!rawProfile) return null
+    const data = rawProfile.user ? rawProfile.user : rawProfile
+    const sportsRows = rawProfile.sports || []
+    const favoriteKeys =
+      rawProfile.favorite_sports ||
+      data.favorite_sports ||
+      sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
+    const tryingKeys =
+      rawProfile.trying_sports ||
+      data.trying_sports ||
+      sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
+    const vibeKey = data.vibe_key || null
+    const vibeUnion = vibeKey ? (vibeKeyToUnion(vibeKey) as MateCardProps['vibe']) : null
+    const card: MateCardProps = {
+      name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
+      location: FIRST_MARKET_CITY_LABEL,
+      cityKey: FIRST_MARKET_CITY_KEY,
+      countryKey: data.nationality_key || '',
+      vibe: vibeUnion,
+      vibeKey,
+      vibeLabel: vibeKey ? labelForVibe(vibeKey) : undefined,
+      sports: (favoriteKeys || []).map(labelForSport),
+      trying: (tryingKeys || []).map(labelForSport),
+      blurb: data.bio || '',
+      avatar: data.avatar_url || userAvatar || '',
+      friendCount: data.teammate_count || 0,
+      joinedCount: data.joined_count || 0,
+      hostedCount: data.hosted_count || 0,
+      gender: data.gender || null,
+      ageRangeKey: data.age_range_key || null,
+    }
+    const rawUsername = data.username || (user as any)?.username || ''
+    const nextUsername = isUuid(rawUsername) ? '' : rawUsername
+    return {
+      username: nextUsername,
+      usernameUpdatedCount: data.username_updated_count || 0,
+      card,
+      favoriteSportKeys: favoriteKeys || [],
+      tryingSportKeys: tryingKeys || [],
+    }
+  }, [rawProfile, labelForSport, labelForVibe, vibeKeyToUnion, user, userAvatar])
+
+  // Optimistic patch for avatar updates — updates rawProfile immediately so vm recomputes
+  const patchRawProfile = useCallback((patch: Record<string, any>) => {
+    setRawProfile((prev: any) => {
+      if (!prev) return prev
+      const updated = prev.user
+        ? { ...prev, user: { ...prev.user, ...patch } }
+        : { ...prev, ...patch }
+      useProfileStore.getState().setRawProfile(updated)
+      return updated
+    })
+  }, [])
+
   // Memo: derive resolvedProfile (display-ready, labels filled, union vibe)
   const resolvedProfile = useMemo<MateCardProps | null>(() => {
     if (!vm?.card) return null
@@ -209,11 +270,11 @@ export function ProfilePage() {
   const username = usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
   const headerFlag = getFlagEmoji((resolvedProfile?.countryKey || draftProfile.countryKey || '').toString())
 
-  const [rawProfile, setRawProfile] = useState<any>(() => useProfileStore.getState().rawProfile)
   const hasVenueAccess = (rawProfile?.user?.role ?? []).includes('venue')
   // 1. Fetch profile + unread count via React Query (automatic dedup & caching)
   const profileQuery = useProfileQuery(isAuthenticated)
   const notificationsQuery = useNotificationsUnreadQuery(isAuthenticated)
+  const isProfileLoaded = !!vm || profileQuery.isError
 
   // 1a. Side effects when profile data arrives or errors
   useEffect(() => {
@@ -225,10 +286,8 @@ export function ProfilePage() {
       console.warn('Profile load failed (expected for new users):', err)
       const status = err?.status ?? err?.response?.status
       if (status === 404) setShowEditSheet(true)
-      setVm(null)
       setRawProfile(null)
       setDraftProfile({ ...emptyProfile, name: authUser?.name || '', avatar: fallbackAvatar })
-      setIsProfileLoaded(true)
       return
     }
 
@@ -286,81 +345,6 @@ export function ProfilePage() {
     }
   }, [notificationsQuery.data])
 
-  // 2. Map Data to VM (Reactive to dictionary changes)
-  useEffect(() => {
-    if (!rawProfile) return
-
-    const payload = rawProfile
-    const data = payload.user ? payload.user : payload
-    const sportsRows = payload.sports || []
-
-    // Fallback: if data has favorite_sports array (direct format) use it, else use sportsRows
-    const favoriteKeys =
-      payload.favorite_sports ||
-      data.favorite_sports ||
-      sportsRows.filter((s: any) => s.kind === 'FAVORITE').map((s: any) => s.sport_key)
-    const tryingKeys =
-      payload.trying_sports ||
-      data.trying_sports ||
-      sportsRows.filter((s: any) => s.kind === 'TRYING').map((s: any) => s.sport_key)
-
-    const vibeKey = data.vibe_key || null
-    const vibeUnion = vibeKey ? (vibeKeyToUnion(vibeKey) as MateCardProps['vibe']) : null
-
-    const mapped: MateCardProps = {
-      name: data.display_name || (isUuid(data.username) ? '' : data.username) || (user as any)?.name || '',
-      location: FIRST_MARKET_CITY_LABEL,
-      cityKey: FIRST_MARKET_CITY_KEY,
-      countryKey: data.nationality_key || '',
-      vibe: vibeUnion,
-      vibeKey,
-      vibeLabel: vibeKey ? labelForVibe(vibeKey) : undefined,
-      sports: (favoriteKeys || []).map(labelForSport),
-      trying: (tryingKeys || []).map(labelForSport),
-      blurb: data.bio || '',
-      avatar: data.avatar_url || userAvatar || '',
-      friendCount: data.teammate_count || 0,
-      joinedCount: data.joined_count || 0,
-      hostedCount: data.hosted_count || 0,
-      gender: data.gender || null,
-      ageRangeKey: data.age_range_key || null,
-    }
-    const rawUsername = data.username || (user as any)?.username || ''
-    const nextUsername = isUuid(rawUsername) ? '' : rawUsername
-
-    const nextVm: ProfileVM = {
-      username: nextUsername,
-      usernameUpdatedCount: data.username_updated_count || 0,
-      card: mapped,
-      favoriteSportKeys: favoriteKeys || [],
-      tryingSportKeys: tryingKeys || [],
-    }
-    setVm(nextVm)
-    useProfileStore.getState().setVm(nextVm)
-
-    // Only update draft if not editing to avoid overwriting user input
-    setDraftProfile((prev) => {
-      // Simple heuristic: if names match, assume sync.
-      // Better: maybe only on initial load? But we want to react to dictionary labels.
-      // We just update it. The fetchProfileData logic previously did this violently.
-      // We'll update it but we rely on showEditSheet state or similar?
-      // Actually, previous logic ALWAYS overwrote draftProfile. We maintain that behavior for now but it's reactive.
-      // To be safe, we just set it.
-      return mapped
-    })
-    setDraftUsername(nextUsername)
-    setIsProfileLoaded(true)
-  }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar])
-
-  // Seed local state from store on mount if already loaded (avoids flicker on re-navigation)
-  useEffect(() => {
-    const stored = useProfileStore.getState()
-    if (stored.isLoaded && stored.rawProfile) {
-      setRawProfile(stored.rawProfile)
-      setUnreadCount(stored.unreadCount)
-      // isProfileLoaded is set in Effect 2 once vm/draftProfile are also ready
-    }
-  }, [])
 
   // 1.5 Handle deep link from ProfileRequiredSheet (navigation from other pages)
   useEffect(() => {
@@ -480,7 +464,7 @@ export function ProfilePage() {
       const res = await profileService.saveProfile({ avatar_url: null })
       // Only clear UI after the DB confirms the change
       setDraftProfile((prev) => ({ ...prev, avatar: '' }))
-      setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: '' } } : prev))
+      patchRawProfile({ avatar_url: null })
       const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
       if (authUser && token) setAuth({ ...authUser, avatar: null, avatar_url: null, avatarUrl: null } as any, token)
       // Patch rawProfile so useEffect doesn't re-hydrate the old URL
@@ -690,18 +674,6 @@ export function ProfilePage() {
           ? savedUser.username_updated_count
           : (vm?.usernameUpdatedCount || 0) + (payload.username ? 1 : 0)
 
-      const updated = {
-        ...draftProfile,
-        sports: draftProfile.sports.filter(Boolean),
-        trying: draftProfile.trying.filter(Boolean),
-      }
-      setVm({
-        username: normalizedUsername || vm?.username || '',
-        usernameUpdatedCount: newCount,
-        card: updated,
-        favoriteSportKeys: favoriteKeys,
-        tryingSportKeys: tryingKeys,
-      })
       // Update AuthStore immediately
       const { user: authUser, token, setAuthData } = useAuthStore.getState()
       if (authUser && token) {
@@ -855,26 +827,28 @@ export function ProfilePage() {
             <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
               <button
                 type="button"
-                onClick={() => setActivityViewMode('list')}
+                onClick={() => startViewTransition(() => setActivityViewMode('list'))}
                 className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
               >
                 <List className="h-4 w-4" />
               </button>
               <button
                 type="button"
-                onClick={() => setActivityViewMode('calendar')}
+                onClick={() => startViewTransition(() => setActivityViewMode('calendar'))}
                 className={`flex h-7 w-7 items-center justify-center rounded-full transition ${activityViewMode === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
               >
                 <CalendarDays className="h-4 w-4" />
               </button>
             </div>
           </div>
-          <ProfileEventsPanel
-            mode="all"
-            showTimeTabs={false}
-            viewMode={activityViewMode}
-            onExplore={() => navigate('/events')}
-          />
+          <div className={`transition-opacity duration-150 ${isViewTransitioning ? 'opacity-50' : 'opacity-100'}`}>
+            <ProfileEventsPanel
+              mode="all"
+              showTimeTabs={false}
+              viewMode={activityViewMode}
+              onExplore={() => navigate('/events')}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -891,7 +865,7 @@ export function ProfilePage() {
         onAvatarUpdated={(url) => {
           // 1. Update local UI state immediately
           setDraftProfile((prev) => ({ ...prev, avatar: url }))
-          setVm((prev) => (prev ? { ...prev, card: { ...prev.card, avatar: url } } : prev))
+          patchRawProfile({ avatar_url: url })
 
           // 2. Update Auth Store immediately so other components (like Header) update
           const { user: authUser, token, setAuthData: setAuth } = useAuthStore.getState()
