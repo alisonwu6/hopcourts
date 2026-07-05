@@ -281,14 +281,20 @@ export function ProfileEventsPanel({
     )
   }
 
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const { isAuthenticated, currentUserId } = useAuthStore((state) => ({
+    isAuthenticated: state.isAuthenticated,
+    currentUserId: state.user?.id,
+  }))
   const { items: sportsCatalog } = useSports('en')
 
   const role = mode === 'all' ? 'all' : mode as 'hosted' | 'joined'
   const time: 'upcoming' | 'history' = showTimeTabs ? tab : 'upcoming'
   const eventsQuery = useMyEventsScopedQuery({ role, time, enabled: isAuthenticated })
 
-  const events = eventsQuery.data?.data?.data ?? []
+  const rawEvents = eventsQuery.data?.data?.data ?? []
+  const events = mode === 'joined' && currentUserId
+    ? rawEvents.filter((e) => e.host.id !== currentUserId)
+    : rawEvents
   const isLoading = eventsQuery.isLoading
   const error = eventsQuery.isError ? 'Failed to load events' : null
 
