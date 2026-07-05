@@ -74,7 +74,7 @@ export function useEventDetailLogic() {
 
   const handleBack = () => {
     if (location.state?.from === 'create-event') {
-      navigate('/events')
+      navigate(location.state.backTo ?? '/events')
       return
     }
 

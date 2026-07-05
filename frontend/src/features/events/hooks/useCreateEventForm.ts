@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { addHours, format } from 'date-fns'
 import type { ChangeEvent, FormEvent } from 'react'
@@ -8,6 +9,7 @@ import { inQldBounds, type LatLng } from '@/components/map/MapPicker'
 import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
+import { venueUpcomingEventsKey } from '@/features/venues/hooks/useVenueUpcomingEventsQuery'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -78,6 +80,7 @@ const getTodayMidnightLocalValue = () => format(new Date(), "yyyy-MM-dd'T'00:00"
 export function useCreateEventForm() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('id')
   const venueLocationState = (location.state as any)?.venueLocation as
@@ -659,11 +662,12 @@ export function useCreateEventForm() {
       if (editId) {
         const res = await eventsService.updateEvent(editId, commonPayload)
         if (res.success) {
-          if (status === 'draft') {
-            navigate('/profile', { state: { tab: 'upcoming' }, replace: true })
-          } else {
-            navigate(`/event/${editId}`, { state: { from: 'create-event' }, replace: true })
-          }
+          const backTo = (location.state as any)?.backTo as string | undefined
+          const draftBack = '/profile/hosted-events?tab=upcoming'
+          navigate(`/event/${editId}`, {
+            state: { from: 'create-event', backTo: status === 'draft' ? draftBack : backTo },
+            replace: true,
+          })
         } else {
           console.error('Update event failed:', res.error?.message)
           setError('Something went wrong. Please try again.')
@@ -671,11 +675,16 @@ export function useCreateEventForm() {
       } else {
         const res = await eventsService.createEvent(commonPayload)
         if (res.success && res.data) {
-          if (status === 'draft') {
-            navigate('/profile', { state: { tab: 'upcoming' }, replace: true })
-          } else {
-            navigate(`/event/${res.data.id}`, { state: { from: 'create-event' }, replace: true })
+          const backTo = (location.state as any)?.backTo as string | undefined
+          const venueId = (location.state as any)?.venueId as string | undefined
+          if (venueId) {
+            void queryClient.invalidateQueries({ queryKey: venueUpcomingEventsKey(venueId) })
           }
+          const draftBack = '/profile/hosted-events?tab=upcoming'
+          navigate(`/event/${res.data.id}`, {
+            state: { from: 'create-event', backTo: status === 'draft' ? draftBack : backTo },
+            replace: true,
+          })
         } else {
           console.error('Create event failed:', res.error?.message)
           setError('Something went wrong. Please try again.')
@@ -781,7 +790,7 @@ export function useCreateEventForm() {
     setIsDeletingEvent(true)
     try {
       const res = await eventsService.deleteEvent(editId)
-      if (res.success) navigate('/profile', { replace: true })
+      if (res.success) navigate('/profile/hosted-events?tab=upcoming', { replace: true })
     } catch (err) {
       console.error('Delete failed', err)
     } finally {

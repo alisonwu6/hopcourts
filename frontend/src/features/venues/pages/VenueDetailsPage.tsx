@@ -174,6 +174,7 @@ export function VenueDetailsPage() {
     navigate('/create-event', {
       state: {
         backTo: `/venues/${venue.id}`,
+        venueId: venue.id,
         venueLocation: {
           name: venue.name_display,
           address: venue.address_display,
