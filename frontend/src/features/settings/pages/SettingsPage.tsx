@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, UserRound, LogOut, BookCheck, Mail, FileText, Rocket, CircleHelp, Feather } from 'lucide-react'
+import { ChevronRight, UserRound, LogOut, Sprout, Mails, BookUser, Rocket, CircleHelp, Feather } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
@@ -8,11 +8,11 @@ const generalItems = [{ key: 'account', label: 'Account Settings', icon: UserRou
 
 const otherItems = [
   { key: 'whyHopCourts', label: 'Why HopCourts', icon: Rocket },
-  { key: 'about', label: 'About Us', icon: BookCheck },
+  { key: 'about', label: 'About Us', icon: Sprout },
   { key: 'foundersLetter', label: "Founder's Letter", icon: Feather },
-  { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
+  { key: 'guidelines', label: 'Community Guidelines', icon: BookUser },
   { key: 'faq', label: 'FAQ', icon: CircleHelp },
-  { key: 'contact', label: 'Contact Us', icon: Mail },
+  { key: 'contact', label: 'Contact Us', icon: Mails },
 ]
 
 export function ProfileSettingsPage() {

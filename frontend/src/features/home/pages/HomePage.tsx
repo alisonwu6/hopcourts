@@ -13,8 +13,9 @@ import {
   Bug,
   Sparkles,
   ChevronRight,
-  Mail,
-  ShieldCheck,
+  Feather,
+  BookUser,
+  Sprout,
 } from 'lucide-react'
 import { LoginPromptSheet } from '@/components'
 import { useAuthStore } from '@/hooks'
@@ -195,11 +196,25 @@ export function HomePage() {
             <div className="flex flex-col gap-3">
               <button
                 type="button"
+                onClick={() => navigate('/about')}
+                className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                  <Sprout className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900">About Us</p>
+                  <p className="mt-0.5 text-xs text-slate-400">Who we are and why we built this.</p>
+                </div>
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-300" />
+              </button>
+              <button
+                type="button"
                 onClick={() => navigate('/founders-letter')}
                 className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm"
               >
                 <div className="bg-ocean-100 text-ocean-600 flex h-10 w-10 items-center justify-center rounded-xl">
-                  <Mail className="h-5 w-5" />
+                  <Feather className="h-5 w-5" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900">A Letter from the Founder</p>
@@ -213,7 +228,7 @@ export function HomePage() {
                 className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm"
               >
                 <div className="bg-courts-100 text-courts-600 flex h-10 w-10 items-center justify-center rounded-xl">
-                  <ShieldCheck className="h-5 w-5" />
+                  <BookUser className="h-5 w-5" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-slate-900">Community Guidelines</p>
