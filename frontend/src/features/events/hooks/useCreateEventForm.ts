@@ -665,12 +665,15 @@ export function useCreateEventForm() {
         const res = await eventsService.updateEvent(editId, commonPayload)
         if (res.success) {
           void queryClient.invalidateQueries({ queryKey: ['events', 'my'] })
-          const backTo = (location.state as any)?.backTo as string | undefined
-          const draftBack = '/profile/hosted-events?tab=draft'
-          navigate(`/event/${editId}`, {
-            state: { from: 'create-event', backTo: status === 'draft' ? draftBack : backTo },
-            replace: true,
-          })
+          if (status === 'draft') {
+            navigate('/profile/hosted-events?tab=draft', { replace: true })
+          } else {
+            const backTo = (location.state as any)?.backTo as string | undefined
+            navigate(`/event/${editId}`, {
+              state: { from: 'create-event', backTo },
+              replace: true,
+            })
+          }
         } else {
           console.error('Update event failed:', res.error?.message)
           setError('Something went wrong. Please try again.')
@@ -687,11 +690,14 @@ export function useCreateEventForm() {
           }
           void queryClient.invalidateQueries({ queryKey: ['events', 'feed'] })
           void queryClient.invalidateQueries({ queryKey: ['events', 'my'] })
-          const draftBack = '/profile/hosted-events?tab=draft'
-          navigate(`/event/${res.data.id}`, {
-            state: { from: 'create-event', backTo: status === 'draft' ? draftBack : backTo },
-            replace: true,
-          })
+          if (status === 'draft') {
+            navigate('/profile/hosted-events?tab=draft', { replace: true })
+          } else {
+            navigate(`/event/${res.data.id}`, {
+              state: { from: 'create-event', backTo },
+              replace: true,
+            })
+          }
         } else {
           console.error('Create event failed:', res.error?.message)
           setError('Something went wrong. Please try again.')

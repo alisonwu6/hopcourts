@@ -33,7 +33,7 @@ export function EventsPageShell({
           <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="text-lg font-bold text-slate-900">{title}</span>
-        <div className="absolute right-4 flex items-center gap-2">
+        <div className="absolute right-4 flex items-center gap-1">
           {onAction && (
             <button
               type="button"

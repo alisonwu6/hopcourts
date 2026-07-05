@@ -242,7 +242,7 @@ export function CalendarView({
                 showStatus={mode === 'hosted' || event.status === 'cancelled'}
                 onViewDetails={(id) => {
                   if (mode === 'hosted' && event.status === 'draft') {
-                    navigate(`/create-event?id=${id}`)
+                    navigate(`/create-event?id=${id}`, { state: { backTo: '/profile/hosted-events?tab=upcoming' } })
                   } else {
                     navigate(`/event/${id}`)
                   }
@@ -288,36 +288,38 @@ export function ProfileEventsPanel({
   const { items: sportsCatalog } = useSports('en')
 
   const role = mode === 'all' ? 'all' : mode as 'hosted' | 'joined'
-  const time: 'upcoming' | 'history' = showTimeTabs && tab === 'history' ? 'history' : 'upcoming'
-  const eventsQuery = useMyEventsScopedQuery({ role, time, enabled: isAuthenticated })
+  const upcomingQuery = useMyEventsScopedQuery({ role, time: 'upcoming', enabled: isAuthenticated })
+  const historyQuery = useMyEventsScopedQuery({ role, time: 'history', enabled: isAuthenticated && showTimeTabs })
 
-  const rawEvents = eventsQuery.data?.data?.data ?? []
-  const events = mode === 'joined' && currentUserId
-    ? rawEvents.filter((e) => e.host.id !== currentUserId)
-    : rawEvents
-  const isLoading = eventsQuery.isLoading
-  const error = eventsQuery.isError ? 'Failed to load events' : null
+  const filterJoined = (raw: PlayerEvent[]) =>
+    mode === 'joined' && currentUserId ? raw.filter((e) => e.host.id !== currentUserId) : raw
+
+  const upcomingRaw = filterJoined(upcomingQuery.data?.data?.data ?? [])
+  const historyRaw  = filterJoined(historyQuery.data?.data?.data ?? [])
+
+  const isLoading = upcomingQuery.isLoading || (showTimeTabs && historyQuery.isLoading)
+  const error = (upcomingQuery.isError || historyQuery.isError) ? 'Failed to load events' : null
 
   const draftEvents = useMemo(
-    () => events.filter((event) => event.status === 'draft'),
-    [events]
+    () => upcomingRaw.filter((e) => e.status === 'draft'),
+    [upcomingRaw]
   )
   const upcomingEvents = useMemo(
     () =>
-      events.filter((event) => {
-        if (mode === 'hosted' && event.status === 'draft') return false
-        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+      upcomingRaw.filter((e) => {
+        if (mode === 'hosted' && e.status === 'draft') return false
+        const end = e.endTime ? new Date(e.endTime) : new Date(e.startTime)
         return end >= new Date()
       }),
-    [events, mode]
+    [upcomingRaw, mode]
   )
   const historyEvents = useMemo(
     () =>
-      events.filter((event) => {
-        const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+      historyRaw.filter((e) => {
+        const end = e.endTime ? new Date(e.endTime) : new Date(e.startTime)
         return end < new Date()
       }),
-    [events]
+    [historyRaw]
   )
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
