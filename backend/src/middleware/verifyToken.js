@@ -2,6 +2,7 @@ const {
   findUserByEmail,
   getUserById,
   createUserFromSupabaseProfile,
+  updateUserId,
 } = require('../../models/users.model')
 const supabase = require('../utils/supabase')
 
@@ -36,8 +37,18 @@ async function resolveUserFromSupabase(user) {
   if (!isAnonymous && user.email) {
     dbUser = await findUserByEmail(user.email)
     if (dbUser) {
-      // TODO: Handle ID mismatch migration (e.g. update DB ID to match Supabase ID)
-      // For now, we return the email-matched user
+      if (dbUser.id !== user.id) {
+        console.warn(
+          `[verifyToken] ID mismatch — reconciling DB ID ${dbUser.id} → Supabase ID ${user.id} for email ${user.email}`
+        )
+        try {
+          dbUser = await updateUserId(dbUser.id, user.id)
+          if (!dbUser) throw new Error('updateUserId returned null')
+        } catch (err) {
+          console.error(`[verifyToken] ID reconciliation failed: ${err.message}`)
+          return null
+        }
+      }
       return dbUser
     }
   }
@@ -107,4 +118,28 @@ async function verifyToken(req, res, next) {
   }
 }
 
-module.exports = { verifyToken }
+async function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null
+
+  if (!token) return next()
+
+  try {
+    const supabaseUser = await getSupabaseUserFromToken(token)
+    if (supabaseUser) {
+      const appUser = await resolveUserFromSupabase(supabaseUser)
+      if (appUser) {
+        req.authUser = appUser
+        req.user = appUser
+        req.userId = appUser.id
+        req.supabaseUser = supabaseUser
+      }
+    }
+  } catch (err) {
+    console.warn('[optionalAuth] Token resolution failed, continuing as anonymous:', err?.message)
+  }
+
+  return next()
+}
+
+module.exports = { verifyToken, optionalAuth }

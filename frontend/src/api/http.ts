@@ -95,7 +95,7 @@ export async function http<T>(method: HttpMethod, path: string, options: Request
       onUnauthorizedCallback()
     }
     const details = await parseError()
-    const err = new Error(details?.message || 'Request failed')
+    const err = new Error(details?.error?.message || details?.message || 'Something went wrong')
     ;(err as any).status = response.status
     ;(err as any).details = details
     throw err

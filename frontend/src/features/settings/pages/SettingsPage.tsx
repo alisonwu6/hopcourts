@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, UserRound, LogOut, Info, Mail, FileText, PenLine } from 'lucide-react'
+import { ChevronRight, UserRound, LogOut, Sprout, Mails, BookUser, Rocket, CircleHelp, Feather } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { useAuthStore } from '@/hooks'
@@ -7,10 +7,12 @@ import { useAuthStore } from '@/hooks'
 const generalItems = [{ key: 'account', label: 'Account Settings', icon: UserRound }]
 
 const otherItems = [
-  { key: 'about', label: 'About Us', icon: Info },
-  { key: 'foundersLetter', label: 'Founder’s Letter', icon: PenLine },
-  { key: 'guidelines', label: 'Community Guidelines', icon: FileText },
-  { key: 'contact', label: 'Contact Us', icon: Mail },
+  { key: 'whyHopCourts', label: 'Why HopCourts', icon: Rocket },
+  { key: 'about', label: 'About Us', icon: Sprout },
+  { key: 'foundersLetter', label: "Founder's Letter", icon: Feather },
+  { key: 'guidelines', label: 'Community Guidelines', icon: BookUser },
+  { key: 'faq', label: 'FAQ', icon: CircleHelp },
+  { key: 'contact', label: 'Contact Us', icon: Mails },
 ]
 
 export function ProfileSettingsPage() {
@@ -77,9 +79,11 @@ export function ProfileSettingsPage() {
                   className="flex w-full items-center justify-between px-4 py-4 text-left"
                   onClick={() => {
                     if (key === 'about') navigate('/about')
+                    if (key === 'whyHopCourts') navigate('/why-hopcourts')
                     if (key === 'foundersLetter') navigate('/founders-letter')
                     if (key === 'guidelines') navigate('/guidelines')
-                    if (key === 'contact') navigate('/settings/contact')
+                    if (key === 'faq') navigate('/faq')
+                    if (key === 'contact') navigate('/contact')
                   }}
                 >
                   <div className="flex items-center gap-3">
@@ -99,7 +103,7 @@ export function ProfileSettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <LogOut className="h-5 w-5 text-slate-500" />
-                <span className="text-base font-medium">{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
+                <span className="text-base font-medium">{isLoggingOut ? 'Logging out…' : 'Log out'}</span>
               </div>
             </button>
           </div>

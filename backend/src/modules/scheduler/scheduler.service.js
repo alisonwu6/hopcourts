@@ -1,6 +1,7 @@
 const cron = require('node-cron')
 const { query } = require('../../lib/db')
 const notificationsService = require('../notifications/notifications.service')
+const log = require('../../lib/logger').child({ module: 'scheduler' })
 
 async function notifyCheckinWindowOpening() {
   // One query: sessions whose check-in window just opened + their participants
@@ -35,7 +36,7 @@ async function notifyCheckinWindowOpening() {
         message: `"${title}" is starting soon — check in now.`,
         metadata: { deep_link: `/event/${session_id}` },
       })
-      .catch((err) => console.error('checkin_open notify failed', err))
+      .catch((err) => log.error({ err }, 'checkin_open notify failed'))
   }
 }
 
@@ -71,24 +72,32 @@ async function notifyTodayEvents() {
         message: `"${title}" starts soon. See who's hopping in.`,
         metadata: { deep_link: `/event/${session_id}` },
       })
-      .catch((err) => console.error('session_today notify failed', err))
+      .catch((err) => log.error({ err }, 'session_today notify failed'))
   }
 }
 
+const tasks = []
+
 function startScheduler() {
-  cron.schedule('*/5 * * * *', () => {
-    notifyCheckinWindowOpening().catch((err) =>
-      console.error('Scheduler: checkin window job failed', err)
-    )
-  })
+  tasks.push(
+    cron.schedule('*/5 * * * *', () => {
+      notifyCheckinWindowOpening().catch((err) =>
+        log.error({ err }, 'checkin window job failed')
+      )
+    }),
+    cron.schedule('0 8 * * *', () => {
+      notifyTodayEvents().catch((err) =>
+        log.error({ err }, 'today events job failed')
+      )
+    }, { timezone: 'Australia/Sydney' })
+  )
 
-  cron.schedule('0 8 * * *', () => {
-    notifyTodayEvents().catch((err) =>
-      console.error('Scheduler: today events job failed', err)
-    )
-  }, { timezone: 'Australia/Sydney' })
-
-  console.log('Scheduler started')
+  log.info('scheduler started')
 }
 
-module.exports = { startScheduler }
+function stopScheduler() {
+  tasks.forEach((t) => t.stop())
+  tasks.length = 0
+}
+
+module.exports = { startScheduler, stopScheduler }

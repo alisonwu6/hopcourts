@@ -6,7 +6,7 @@ import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { notificationsService, NotificationItem } from '../services/notificationsService'
-import { useNotificationsListQuery, NOTIFICATIONS_PAGE_SIZE } from '../hooks/useNotificationsListQuery'
+import { useNotificationsListQuery, NOTIFICATIONS_LIST_QUERY_KEY, NOTIFICATIONS_PAGE_SIZE } from '../hooks/useNotificationsListQuery'
 import { NOTIFICATIONS_UNREAD_QUERY_KEY } from '../hooks/useNotificationsUnreadQuery'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
@@ -70,6 +70,16 @@ export function NotificationsPage() {
       ...old,
       data: { ...old?.data, unread_count: 0 },
     }))
+    queryClient.setQueryData(NOTIFICATIONS_LIST_QUERY_KEY, (old: any) => {
+      if (!old?.data?.items) return old
+      return {
+        ...old,
+        data: {
+          ...old.data,
+          items: old.data.items.map((item: NotificationItem) => ({ ...item, is_read: true })),
+        },
+      }
+    })
   }
 
   const getIcon = (type: string) => {
@@ -99,6 +109,7 @@ export function NotificationsPage() {
       <ActionToolbar
         title="Notifications"
         showBack={true}
+        onBack={() => navigate('/profile')}
         rightContent={
           notifications.some((n) => !n.is_read) && (
             <button
@@ -143,7 +154,7 @@ export function NotificationsPage() {
                   <p className={clsx('text-base font-bold', !n.is_read ? 'text-slate-900' : 'text-slate-700')}>
                     {n.title}
                   </p>
-                  <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-slate-600">{n.message}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">{n.message}</p>
                   <p className="mt-2 text-xs text-slate-400">
                     {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                   </p>

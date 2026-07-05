@@ -22,7 +22,7 @@ export function ProfileCompletionSheet({ open, onClose, onExplore }: Props) {
           <PartyPopper className="h-7 w-7" />
         </div>
         <h3 className="text-xl font-bold text-slate-900">Your profile is ready</h3>
-        <p className="mt-2 text-sm text-slate-500">You're all set to explore activities and meet new sports mates.</p>
+        <p className="mt-2 text-sm text-slate-500">You're all set to explore activities and meet new mates.</p>
         <button
           type="button"
           onClick={onExplore}

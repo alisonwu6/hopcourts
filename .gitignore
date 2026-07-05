@@ -1,1 +1,4 @@
 .DS_Store
+/docs/audit*
+# todo
+.github/workflows

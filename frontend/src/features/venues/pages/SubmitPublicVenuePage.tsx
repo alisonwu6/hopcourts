@@ -47,7 +47,10 @@ export function SubmitPublicVenuePage() {
         open={successDialog.open}
         onClose={() => {
           setSuccessDialog((prev) => ({ ...prev, open: false }))
-          navigate(successDialog.venueId ? `/venues/${successDialog.venueId}` : '/venues', { replace: true })
+          navigate(
+            successDialog.venueId ? `/venues/${successDialog.venueId}` : '/venues',
+            { replace: true, state: { from: 'submit' } }
+          )
         }}
         title="Good on ya!"
         description={

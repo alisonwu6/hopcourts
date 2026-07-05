@@ -1,4 +1,5 @@
 const { query } = require('../../lib/db')
+const log = require('../../lib/logger').child({ module: 'profile' })
 const usersModel = require('../../../models/users.model')
 const userSportsModel = require('../../../models/userSports.model')
 const userPreferencesModel = require('../../../models/userPreferences.model')
@@ -17,13 +18,13 @@ async function getProfile(userId) {
   
   if (!user) {
     // Attempt Auto-Heal: user might exist in Auth but not in DB (e.g. after DB reset)
-    console.log(`[getProfile] User ${userId} not found in DB, attempting auto-heal...`)
+    log.warn({ userId }, 'user not in DB, attempting auto-heal')
     try {
       // upsertProfile has logic to fetch email/avatar from Supabase if missing
       const result = await upsertProfile(userId, {}) 
       user = result.user
     } catch (err) {
-      console.error(`[getProfile] Auto-heal failed: ${err.message}`)
+      log.error({ err, userId }, 'auto-heal failed')
        // If auto-heal fails, then truly not found
       throw Errors.notFound('User not found')
     }
@@ -83,7 +84,6 @@ async function getProfileSessionsByUsername(username, { role = 'hosted', time = 
 async function upsertProfile(userId, body = {}) {
   if (!userId) throw Errors.unauthenticated('User id is required')
   const current = (await usersModel.getUserById(userId)) || {}
-  console.log('[upsertProfile] Current User:', JSON.stringify(current, null, 2))
   const normalizedUsername = typeof body.username === 'string'
     ? body.username.trim().toLowerCase()
     : body.username
@@ -126,10 +126,10 @@ async function upsertProfile(userId, body = {}) {
           nameFromAuth = data.user.user_metadata.full_name || data.user.user_metadata.name
         }
       } else if (error) {
-        console.warn(`[upsertProfile] Failed to fetch Supabase user ${userId}:`, error.message)
+        log.warn({ err: error, userId }, 'upsertProfile: failed to fetch Supabase user')
       }
     } catch (err) {
-      console.error('[upsertProfile] Error fetching Supabase user:', err)
+      log.error({ err }, 'upsertProfile: error fetching Supabase user')
     }
   }
 
@@ -319,7 +319,7 @@ async function deleteAccount(userId, { force = false } = {}) {
         title: 'Event cancelled',
         message: `"${sessionMap.get(p.session_id)}" was cancelled by the host.`,
         metadata: { deep_link: `/event/${p.session_id}` },
-      }).catch((err) => console.error('[deleteAccount] Notify cancel failed', err))
+      }).catch((err) => log.error({ err }, 'deleteAccount: notify cancel failed'))
     })
   }
 
@@ -340,12 +340,12 @@ async function deleteAccount(userId, { force = false } = {}) {
     try {
       const { error } = await supabase.auth.admin.deleteUser(userId)
       if (error) {
-        console.warn(`[deleteAccount] Supabase Auth delete failed for ${userId}:`, error.message)
+        log.warn({ err: error, userId }, 'deleteAccount: Supabase Auth delete failed')
       } else {
-        console.log(`[deleteAccount] Soft deleted user ${userId} from Supabase Auth`)
+        log.info({ userId }, 'deleteAccount: Supabase Auth user soft-deleted')
       }
     } catch (err) {
-      console.error('[deleteAccount] Supabase Auth error:', err)
+      log.error({ err }, 'deleteAccount: Supabase Auth error')
     }
   }
 

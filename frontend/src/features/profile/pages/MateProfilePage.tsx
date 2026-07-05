@@ -148,7 +148,7 @@ export function MateProfilePage() {
             <button
               type="button"
               aria-label="Go back"
-              onClick={() => state?.from === 'app' ? navigate(-1) : navigate('/events')}
+              onClick={() => (state?.from === 'app' ? navigate(-1) : navigate('/events'))}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
             >
               <ChevronLeft className="h-5 w-5" />
@@ -177,9 +177,12 @@ export function MateProfilePage() {
                     }
                   } catch {}
                 }}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-700"
+                className="text-blue-600 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50/50 transition hover:bg-blue-100/80 active:scale-90"
               >
-                <Share className="h-5 w-5" />
+                <Share
+                  size={18}
+                  strokeWidth={2}
+                />
               </button>
             )}
           </div>
@@ -220,14 +223,14 @@ export function MateProfilePage() {
                     <button
                       type="button"
                       onClick={() => setViewMode('list')}
-                      className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                      className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
                     >
                       <List className="h-4 w-4" />
                     </button>
                     <button
                       type="button"
                       onClick={() => setViewMode('calendar')}
-                      className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+                      className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
                     >
                       <CalendarDays className="h-4 w-4" />
                     </button>

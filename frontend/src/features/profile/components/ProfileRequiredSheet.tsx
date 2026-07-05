@@ -38,7 +38,10 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
       {dismissible && (
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => {
+            localStorage.setItem('profile_setup_dismissed', '1')
+            onClose()
+          }}
           className="absolute right-6 top-6 text-sm font-normal text-slate-400 transition-colors hover:text-slate-600"
         >
           Not now
@@ -50,7 +53,7 @@ export function ProfileRequiredSheet({ open, onClose, onConfirm, dismissible = f
         </div>
         <h3 className="text-xl font-bold text-slate-900">Set Up Your Profile</h3>
         <p className="mt-2 text-sm text-slate-500">
-          You'll need a completed profile to host or join sessions.
+          Complete your profile to create or join sessions — and let your mates get to know you.
         </p>
         <button
           type="button"

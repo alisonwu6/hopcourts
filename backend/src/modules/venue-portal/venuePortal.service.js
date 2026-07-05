@@ -3,6 +3,7 @@
 const { fromZonedTime, toZonedTime } = require('date-fns-tz')
 const venuesModel = require('../../../models/venues.model')
 const sessionsModel = require('../../../models/sessions.model')
+const { resolveCityKeyByCoords } = require('../../utils/geocoding')
 const { Errors } = require('../../lib/errors')
 
 const VENUE_TZ = 'Australia/Brisbane'
@@ -179,6 +180,7 @@ async function createVenueEvent(venueId, userId, eventData) {
     address: venue.address,
     lat: venue.lat,
     lng: venue.lng,
+    cityKey: await resolveCityKeyByCoords(venue.lat, venue.lng),
   }
 
   return sessionsModel.createSession(payload)
@@ -251,6 +253,7 @@ async function createRecurringEvents(venueId, userId, eventData) {
       address: venue.address,
       lat: venue.lat,
       lng: venue.lng,
+      cityKey: await resolveCityKeyByCoords(venue.lat, venue.lng),
     }
 
     try {

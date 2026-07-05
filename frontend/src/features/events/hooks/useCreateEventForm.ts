@@ -1,13 +1,17 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { addHours, format } from 'date-fns'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useAuthStore } from '@/hooks'
 import { useSports } from '@/features/dictionaries/hooks'
-import type { LatLng } from '@/components/map/MapPicker'
+import { inQldBounds, type LatLng } from '@/components/map/MapPicker'
 import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
+import { venueUpcomingEventsKey } from '@/features/venues/hooks/useVenueUpcomingEventsQuery'
+import { venueByIdKey } from '@/features/venues/hooks/useVenueByIdQuery'
+import { venueTodayEventsKey } from '@/features/venues/hooks/useVenueTodayEventsQuery'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -28,7 +32,7 @@ type FormState = {
   price: string
   priceNote: string
   skillLevel: SkillLevelKey
-  gender: 'mixed' | 'female' | 'male'
+  gender: 'mixed' | 'female' | 'male' | 'lgbtq'
   notes: string
   placeName: string
 }
@@ -78,14 +82,19 @@ const getTodayMidnightLocalValue = () => format(new Date(), "yyyy-MM-dd'T'00:00"
 export function useCreateEventForm() {
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
   const [searchParams] = useSearchParams()
   const editId = searchParams.get('id')
+  const venueLocationState = (location.state as any)?.venueLocation as
+    | { name: string; address: string; lat: number; lng: number }
+    | undefined
 
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const hostGender = useAuthStore((state) => state.user?.gender)
   const { items: sportsCatalog } = useSports('en')
   const [form, setForm] = useState<FormState>(initialState)
   const [error, setError] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
   const [submittingStatus, setSubmittingStatus] = useState<'draft' | 'published' | null>(null)
   const isSubmitting = submittingStatus !== null
   const [isFavorite, setIsFavorite] = useState(false)
@@ -98,6 +107,7 @@ export function useCreateEventForm() {
   const [selectedAddress, setSelectedAddress] = useState<string>('')
   const [addressMode, setAddressMode] = useState<'auto' | 'manual'>('auto')
   const [reverseGeoError, setReverseGeoError] = useState<string | null>(null)
+  const [isOutsideArea, setIsOutsideArea] = useState(false)
   const [locationConfirming, setLocationConfirming] = useState(false)
   const [addressLookupPending, setAddressLookupPending] = useState(false)
   const [isAddressClearing, setIsAddressClearing] = useState(false)
@@ -118,6 +128,7 @@ export function useCreateEventForm() {
   } | null>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const highlightTimerRef = useRef<number | null>(null)
+  const lastGeocodedRef = useRef<{ address: string; loc: LatLng } | null>(null)
   const fieldRefs = useRef<Record<RequiredFieldKey, HTMLDivElement | null>>({
     title: null,
     sport: null,
@@ -129,6 +140,20 @@ export function useCreateEventForm() {
     price: null,
     priceNote: null,
   })
+
+  useEffect(() => {
+    if (!venueLocationState || editId) return
+    setForm((prev) => ({
+      ...prev,
+      placeName: venueLocationState.name,
+      location: venueLocationState.address,
+      lat: String(venueLocationState.lat),
+      lng: String(venueLocationState.lng),
+    }))
+    setSelectedAddress(venueLocationState.address)
+    setSelectedLocation({ lat: venueLocationState.lat, lng: venueLocationState.lng })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const flashFieldError = (field: RequiredFieldKey, message: string) => {
     const el = fieldRefs.current[field]
@@ -240,9 +265,14 @@ export function useCreateEventForm() {
       const loc = await forwardGeocode(address)
       if (loc) {
         setSelectedLocation(loc)
+        lastGeocodedRef.current = { address, loc }
         setReverseGeoError(null)
+        setIsOutsideArea(false)
       } else {
-        setReverseGeoError('Please enter a valid address')
+        setSelectedLocation(null)
+        lastGeocodedRef.current = null
+        setReverseGeoError("We're currently in soft launch in Greater Brisbane — more areas coming soon!")
+        setIsOutsideArea(false)
       }
       setAddressLookupPending(false)
     }, 2000)
@@ -267,13 +297,18 @@ export function useCreateEventForm() {
 
   const forwardGeocode = async (address: string) => {
     if (!MAPBOX_TOKEN || !address.trim()) return null
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address.trim())}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
+    // No bbox — let Mapbox resolve the full address globally, then validate the result is in QLD
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address.trim())}.json?language=en&limit=1&country=AU&access_token=${MAPBOX_TOKEN}`
     try {
       const res = await fetch(url)
       const data = await res.json()
       const feature = data?.features?.[0]
       if (!feature?.center) return null
-      return { lng: feature.center[0], lat: feature.center[1] } as LatLng
+      const loc: LatLng = { lng: feature.center[0], lat: feature.center[1] }
+      const regionCtx = feature.context?.find((c: { id: string }) => c.id.startsWith('region.'))
+      // Accept if region is explicitly QLD, or if no region context but coords fall within QLD bounds
+      if (regionCtx ? regionCtx.short_code !== 'AU-QLD' : !inQldBounds(loc)) return null
+      return loc
     } catch {
       return null
     }
@@ -281,7 +316,7 @@ export function useCreateEventForm() {
 
   const reverseGeocode = async (loc: LatLng) => {
     if (!MAPBOX_TOKEN) return null
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${loc.lng},${loc.lat}.json?language=en&limit=1&access_token=${MAPBOX_TOKEN}`
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${loc.lng},${loc.lat}.json?language=en&limit=1&country=AU&access_token=${MAPBOX_TOKEN}`
     try {
       const res = await fetch(url)
       const data = await res.json()
@@ -325,12 +360,15 @@ export function useCreateEventForm() {
     if (name === 'startTime') {
       const newStart = new Date(value)
       if (!Number.isNaN(newStart.getTime())) {
-        const newEnd = addHours(newStart, 2)
-        setForm((prev) => ({
-          ...prev,
-          startTime: value,
-          endTime: format(newEnd, "yyyy-MM-dd'T'HH:mm"),
-        }))
+        setForm((prev) => {
+          if (!prev.endTime) {
+            return { ...prev, startTime: value, endTime: format(addHours(newStart, 2), "yyyy-MM-dd'T'HH:mm") }
+          }
+          const prevEnd = new Date(prev.endTime)
+          const reanchored = new Date(newStart)
+          reanchored.setHours(prevEnd.getHours(), prevEnd.getMinutes(), 0, 0)
+          return { ...prev, startTime: value, endTime: format(reanchored, "yyyy-MM-dd'T'HH:mm") }
+        })
         return
       }
     }
@@ -356,12 +394,24 @@ export function useCreateEventForm() {
     setForm((prev) => ({ ...prev, gender: value }))
   }
 
+  const changeLocation = (loc: LatLng) => {
+    if (!inQldBounds(loc)) {
+      setIsOutsideArea(true)
+      setSelectedLocation(null)
+      return
+    }
+    setIsOutsideArea(false)
+    setSelectedLocation(loc)
+    setAddressMode('auto')
+  }
+
   const openLocationPicker = () => {
     setReverseGeoError(null)
+    setIsOutsideArea(false)
     if (form.lat && form.lng) {
       setSelectedLocation({ lat: Number(form.lat), lng: Number(form.lng) })
       setSelectedAddress(form.location || '')
-      setAddressMode('manual')
+      setAddressMode('auto')
     } else {
       setSelectedLocation(null)
       setSelectedAddress('')
@@ -374,24 +424,46 @@ export function useCreateEventForm() {
     const rawFiles = Array.from(event.target.files ?? [])
     if (!rawFiles.length) return
 
+    setPhotoError(null)
+
     const currentCount = heroPreviews.length
     if (currentCount >= 3) {
-      alert('You can upload up to 3 photos')
+      setPhotoError('You can upload up to 3 photos.')
       event.target.value = ''
       return
     }
 
     const remaining = 3 - currentCount
     const filesToProcess = rawFiles.slice(0, remaining)
+    const MAX_BYTES = 5 * 1024 * 1024
 
-    try {
-      const processedFiles = await Promise.all(filesToProcess.map((file: File) => convertFileToWebP(file)))
-      const newPreviews = processedFiles.map((file) => URL.createObjectURL(file))
-      setHeroPreviews((prev) => [...prev, ...newPreviews])
-      setSelectedFiles((prev) => [...prev, ...processedFiles])
-    } catch (err) {
-      console.error('Image processing failed:', err)
+    const results: File[] = []
+    for (const file of filesToProcess) {
+      let processed: File
+      try {
+        processed = await convertFileToWebP(file)
+        // HEIF compresses better than WebP — retry at smaller dimensions + lower quality if oversized
+        if (processed.size > MAX_BYTES) {
+          processed = await convertFileToWebP(file, 1280, 0.7)
+        }
+      } catch {
+        // Unsupported format (e.g. HEIC canvas decode failure) — fall back to original
+        processed = file
+      }
+
+      if (processed.size > MAX_BYTES) {
+        const mb = (processed.size / 1024 / 1024).toFixed(1)
+        setPhotoError(`Photo is too large (${mb} MB). Please use a photo under 5 MB.`)
+        event.target.value = ''
+        return
+      }
+
+      results.push(processed)
     }
+
+    const newPreviews = results.map((f) => URL.createObjectURL(f))
+    setHeroPreviews((prev) => [...prev, ...newPreviews])
+    setSelectedFiles((prev) => [...prev, ...results])
     event.target.value = ''
   }
 
@@ -402,10 +474,14 @@ export function useCreateEventForm() {
 
   const handleCancel = () => {
     const state = location.state as any
-    if (state?.backTo) {
-      navigate(state.backTo)
-    } else if (!state?.fromAuth && window.history.length > 1) {
+    if (state?.fromAuth) {
+      navigate(state.backTo ?? '/', { replace: true })
+      return
+    }
+    if (window.history.length > 1) {
       navigate(-1)
+    } else if (state?.backTo) {
+      navigate(state.backTo, { replace: true })
     } else {
       navigate('/')
     }
@@ -588,28 +664,48 @@ export function useCreateEventForm() {
       if (editId) {
         const res = await eventsService.updateEvent(editId, commonPayload)
         if (res.success) {
+          void queryClient.invalidateQueries({ queryKey: ['events', 'my'] })
           if (status === 'draft') {
-            navigate('/profile', { state: { tab: 'upcoming' }, replace: true })
+            navigate('/profile/hosted-events?tab=draft', { replace: true })
           } else {
-            navigate(`/event/${editId}`, { state: { from: 'create-event' }, replace: true })
+            const backTo = (location.state as any)?.backTo as string | undefined
+            navigate(`/event/${editId}`, {
+              state: { from: 'create-event', backTo },
+              replace: true,
+            })
           }
         } else {
-          setError(res.error?.message || 'Failed to update publish status.')
+          console.error('Update event failed:', res.error?.message)
+          setError('Something went wrong. Please try again.')
         }
       } else {
         const res = await eventsService.createEvent(commonPayload)
         if (res.success && res.data) {
+          const backTo = (location.state as any)?.backTo as string | undefined
+          const venueId = (location.state as any)?.venueId as string | undefined
+          if (venueId) {
+            void queryClient.invalidateQueries({ queryKey: venueUpcomingEventsKey(venueId) })
+            void queryClient.invalidateQueries({ queryKey: venueTodayEventsKey(venueId) })
+            void queryClient.invalidateQueries({ queryKey: venueByIdKey(venueId) })
+          }
+          void queryClient.invalidateQueries({ queryKey: ['events', 'feed'] })
+          void queryClient.invalidateQueries({ queryKey: ['events', 'my'] })
           if (status === 'draft') {
-            navigate('/profile', { state: { tab: 'upcoming' }, replace: true })
+            navigate('/profile/hosted-events?tab=draft', { replace: true })
           } else {
-            navigate(`/event/${res.data.id}`, { state: { from: 'create-event' }, replace: true })
+            navigate(`/event/${res.data.id}`, {
+              state: { from: 'create-event', backTo },
+              replace: true,
+            })
           }
         } else {
-          setError(res.error?.message || 'Failed to publish event.')
+          console.error('Create event failed:', res.error?.message)
+          setError('Something went wrong. Please try again.')
         }
       }
     } catch (err: any) {
-      setError(err?.message || 'An error occurred while saving the event.')
+      console.error('Save event error:', err?.message)
+      setError('Something went wrong. Please try again.')
     } finally {
       setSubmittingStatus(null)
     }
@@ -649,10 +745,26 @@ export function useCreateEventForm() {
       return
     }
 
-    let loc = selectedLocation
-    if (!loc && selectedAddress.trim()) {
+    let loc: LatLng | null = selectedLocation
+    if (addressMode === 'manual' && selectedAddress.trim()) {
+      const trimmed = selectedAddress.trim()
+      const cached = lastGeocodedRef.current
+      if (cached?.address === trimmed) {
+        loc = cached.loc
+        setSelectedLocation(loc)
+      } else {
+        loc = await forwardGeocode(trimmed)
+        if (loc) {
+          setSelectedLocation(loc)
+          lastGeocodedRef.current = { address: trimmed, loc }
+        } else {
+          setSelectedLocation(null)
+          lastGeocodedRef.current = null
+        }
+      }
+    } else if (!loc && selectedAddress.trim()) {
       loc = await forwardGeocode(selectedAddress.trim())
-      if (loc) setSelectedLocation(loc)
+      setSelectedLocation(loc)
     }
     if (loc) {
       setForm((prev) => ({
@@ -663,7 +775,7 @@ export function useCreateEventForm() {
       }))
       setShowLocationSheet(false)
     } else {
-      setReverseGeoError('Please enter a valid address')
+      setReverseGeoError("We're currently in soft launch in Greater Brisbane — more areas coming soon!")
     }
     setLocationConfirming(false)
   }
@@ -674,6 +786,7 @@ export function useCreateEventForm() {
     setSelectedLocation(null)
     setAddressMode('manual')
     setReverseGeoError(null)
+    setIsOutsideArea(false)
     setTimeout(() => setIsAddressClearing(false), 0)
   }
 
@@ -690,7 +803,10 @@ export function useCreateEventForm() {
     setIsDeletingEvent(true)
     try {
       const res = await eventsService.deleteEvent(editId)
-      if (res.success) navigate('/profile', { replace: true })
+      if (res.success) {
+        void queryClient.invalidateQueries({ queryKey: ['events', 'my', 'hosted'] })
+        navigate('/profile/hosted-events?tab=upcoming', { replace: true })
+      }
     } catch (err) {
       console.error('Delete failed', err)
     } finally {
@@ -706,7 +822,10 @@ export function useCreateEventForm() {
     setIsCancellingEvent(true)
     try {
       const res = await eventsService.updateEvent(editId, { status: 'cancelled' } as any)
-      if (res.success) navigate(`/event/${editId}`, { replace: true, state: { from: 'create-event' } })
+      if (res.success) {
+        void queryClient.invalidateQueries({ queryKey: ['events', 'my', 'hosted'] })
+        navigate(`/event/${editId}`, { replace: true, state: { from: 'create-event' } })
+      }
     } catch (err) {
       console.error('Cancel failed', err)
     } finally {
@@ -720,6 +839,7 @@ export function useCreateEventForm() {
     setForm,
     editId,
     error,
+    photoError,
     submittingStatus,
     canSubmit,
     isFavorite,
@@ -740,6 +860,8 @@ export function useCreateEventForm() {
     setAddressMode,
     reverseGeoError,
     setReverseGeoError,
+    isOutsideArea,
+    changeLocation,
     locationConfirming,
     isDraftLoading,
     editingEventStatus,

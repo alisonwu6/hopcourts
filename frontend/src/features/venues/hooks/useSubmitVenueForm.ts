@@ -51,7 +51,7 @@ const REQUIRED_MESSAGES: Record<
   string
 > = {
   name: 'Please enter a venue name',
-  address: 'Please choose a venue address',
+  address: 'Please select a location',
   sportKeys: 'Please select at least one sport',
   ownershipRole: 'Please select your relationship to this venue',
   contactPerson: 'Please enter a contact person',

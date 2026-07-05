@@ -51,11 +51,11 @@ export function ActionToolbar({
           <button
             type="button"
             onClick={onBack || (() => navigate(-1))}
-            className="flex h-10 w-10 items-center justify-center text-slate-600 transition hover:text-slate-900"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center text-slate-600 transition hover:text-slate-900"
             aria-label="Go back"
           >
             <ChevronLeft
-              className="h-5 w-5"
+              size={18}
               strokeWidth={2}
               aria-hidden="true"
             />
@@ -77,12 +77,12 @@ export function ActionToolbar({
             <button
               type="button"
               onClick={onShare}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50/50 text-blue-600 transition hover:bg-blue-100/80 active:scale-90"
+              className="text-blue-600 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50/50 transition hover:bg-blue-100/80 active:scale-90"
               aria-label="Share"
             >
               <Share
-                className="h-5 w-5"
-                strokeWidth={2.5}
+                size={18}
+                strokeWidth={2}
                 aria-hidden="true"
               />
             </button>

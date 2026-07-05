@@ -58,7 +58,7 @@ export function VenueListView({
 
   return (
     <div className="min-h-[100dvh] bg-white">
-      <div className="fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md px-4 pt-4 pb-0 pointer-events-none">
+      <div className="pointer-events-none fixed left-0 right-0 top-0 z-40 mx-auto w-full max-w-md px-4 pb-0 pt-4">
         {!showMap && <div className="absolute inset-0 z-0 bg-white/95 backdrop-blur" />}
 
         <div className="relative z-10 flex w-full items-center gap-2">
@@ -81,14 +81,17 @@ export function VenueListView({
                 onClick={onSearchClear}
                 className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 p-1 text-slate-500 transition-all hover:bg-slate-200"
               >
-                <X size={14} strokeWidth={3} />
+                <X
+                  size={14}
+                  strokeWidth={3}
+                />
               </button>
             )}
           </div>
 
           <button
             onClick={onOpenSportSheet}
-            className={`pointer-events-auto relative flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border shadow-sm transition hover:bg-slate-50 active:scale-95 ${
+            className={`pointer-events-auto relative flex h-[58px] w-[58px] flex-none items-center justify-center rounded-full border shadow-sm transitio active:scale-95 ${
               selectedSportCount > 0 ? 'border-blue-600 bg-blue-600' : 'border-slate-200 bg-white'
             }`}
           >
@@ -117,7 +120,7 @@ export function VenueListView({
       </div>
 
       {showMap ? (
-        <div className="relative h-[100dvh] w-full">
+        <div className="h-[100dvh] w-full">
           <VenueMap
             venues={venues}
             selectedVenueId={selectedVenueId}
@@ -134,8 +137,16 @@ export function VenueListView({
           )}
         </div>
       ) : (
-        <div className="mx-auto max-w-md px-4 pb-[100px] pt-33">
-          {isLoading ? (
+        <div className="pt-33 mx-auto max-w-md px-4 pb-[100px]">
+          {activeFilter === 'official' ? (
+            <div className="space-y-4">
+              <SubmitVenueCTA onClick={onSubmitVenueClick} />
+              <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+                <p className="text-lg font-bold text-slate-900">Coming Soon.</p>
+                <p className="mt-1 px-10 text-sm text-slate-500">Official venues are on the way. Stay tuned.</p>
+              </div>
+            </div>
+          ) : isLoading ? (
             <div className="flex justify-center py-16">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
             </div>
@@ -143,9 +154,7 @@ export function VenueListView({
             <div className="space-y-4">
               <SubmitVenueCTA onClick={onSubmitVenueClick} />
               <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-                <p className="text-lg font-bold text-slate-900">
-                  {searchQuery ? 'No venues found' : 'No venues yet'}
-                </p>
+                <p className="text-lg font-bold text-slate-900">{searchQuery ? 'No venues found' : 'No venues yet'}</p>
                 <p className="mt-1 px-10 text-sm text-slate-500">
                   {searchQuery ? 'Try a different name or address.' : 'Venues in your area will appear here.'}
                 </p>
@@ -155,9 +164,16 @@ export function VenueListView({
             <div className="space-y-4">
               <SubmitVenueCTA onClick={onSubmitVenueClick} />
               {venues.map((v) => (
-                <VenueCard key={v.id} venue={v} onClick={onVenueClick} />
+                <VenueCard
+                  key={v.id}
+                  venue={v}
+                  onClick={onVenueClick}
+                />
               ))}
-              <div ref={sentinelRef} className="h-4" />
+              <div
+                ref={sentinelRef}
+                className="h-4"
+              />
               {loadingMore && (
                 <div className="flex justify-center py-4">
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
@@ -187,9 +203,9 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-2 rounded-3xl bg-[#2d3818] p-2 text-left shadow-sm transition active:scale-[0.99]"
+      className="bg-courts flex w-full items-center gap-2 rounded-3xl p-2 text-left shadow-sm transition active:scale-[0.99]"
     >
-      <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#1A3A0A]">
+      <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl">
         <Trees
           size={48}
           className="text-[#cce15f]"

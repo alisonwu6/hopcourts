@@ -18,15 +18,15 @@ import { JoinedEventsPage } from '@/features/profile/pages/JoinedEventsPage'
 import { ProfileSettingsPage } from '@/features/settings/pages/SettingsPage'
 import { AccountSettingsPage } from '@/features/settings/pages/AccountSettingsPage'
 import { AboutPage } from '@/features/settings/pages/AboutPage'
-import { StoryPage } from '@/features/settings/pages/StoryPage'
-import { UsageRulesPage } from '@/features/profile/pages/UsageRulesPage'
-import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage'
+import { GuidelinesPage } from '@/features/profile/pages/GuidelinesPage'
+import { WhyHopCourtsPage } from '@/features/settings/pages/WhyHopCourtsPage'
 import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
+import { FaqPage } from '@/features/settings/pages/FaqPage'
+import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage'
 import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
 import { MateProfilePage } from '@/features/profile/pages/MateProfilePage'
-import { MyMatesPage } from '@/features/profile/pages/MyMatesPage'
 import { AdminVenueManagementPage } from '@/features/admin/venues/pages/AdminVenueManagementPage'
 import { VenuePortalLayout } from '@/features/venue-portal/layouts/VenuePortalLayout'
 import { VenueDashboardPage } from '@/features/venue-portal/pages/VenueDashboardPage'
@@ -56,6 +56,14 @@ const RequireAdmin = ({ children }: { children: ReactNode }) => {
   return children
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
 function AppChrome({
   children,
   showHeader = true,
@@ -66,10 +74,6 @@ function AppChrome({
   showNav?: boolean
 }) {
   const { pathname } = useLocation()
-
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
 
   const noHeaderPaths = ['/events', '/event/', '/create-event']
   const hideHeader = noHeaderPaths.some((segment) => pathname.startsWith(segment))
@@ -98,7 +102,9 @@ export default function App() {
   }
 
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Auth */}
       <Route
         path="/auth/callback"
@@ -111,16 +117,20 @@ export default function App() {
         element={<AboutPage />}
       />
       <Route
-        path="/story"
-        element={<StoryPage />}
+        path="/why-hopcourts"
+        element={<WhyHopCourtsPage />}
+      />
+      <Route
+        path="/guidelines"
+        element={<GuidelinesPage />}
+      />
+      <Route
+        path="/faq"
+        element={<FaqPage />}
       />
       <Route
         path="/founders-letter"
         element={<FoundersLetterPage />}
-      />
-      <Route
-        path="/guidelines"
-        element={<UsageRulesPage />}
       />
       <Route
         path="/rules"
@@ -276,16 +286,7 @@ export default function App() {
       />
       <Route
         path="/my-mates"
-        element={
-          <RequireAuth>
-            <AppChrome
-              showHeader={false}
-              showNav={false}
-            >
-              <MyMatesPage />
-            </AppChrome>
-          </RequireAuth>
-        }
+        element={<Navigate to="/" replace />}
       />
       <Route
         path="/profile/hosted-events"
@@ -353,17 +354,8 @@ export default function App() {
         }
       />
       <Route
-        path="/settings/contact"
-        element={
-          <RequireAuth>
-            <AppChrome
-              showHeader={false}
-              showNav={false}
-            >
-              <ContactUsPage />
-            </AppChrome>
-          </RequireAuth>
-        }
+        path="/contact"
+        element={<ContactUsPage />}
       />
       <Route
         path="/notifications"
@@ -399,5 +391,6 @@ export default function App() {
         }
       />
     </Routes>
+    </>
   )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Building2, MapPin, CheckCircle, Clock, Sparkles, ShieldCheck, Trees, List, CalendarDays, Zap, ExternalLink } from 'lucide-react'
+import { CheckCircle, Clock, List, CalendarDays, Zap, Plus } from 'lucide-react'
+import { VenueCard } from '../components/VenueCard'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { EmptyStateCard } from '@/components'
 import { EventCard } from '@/features/events/components/EventCard'
@@ -21,19 +22,19 @@ function getDayBoundaries() {
   return { todayStart, tomorrowStart }
 }
 
-function groupEventsByDate(events: any[]): [string, any[]][] {
+function groupEventsByDate(events: PlayerEvent[]): [string, PlayerEvent[]][] {
   const formatter = new Intl.DateTimeFormat('en-AU', { weekday: 'short', month: 'short', day: 'numeric' })
   const { todayStart, tomorrowStart } = getDayBoundaries()
-  const map = new Map<string, any[]>()
+  const map = new Map<string, PlayerEvent[]>()
 
   events.forEach((event) => {
-    const date = new Date(event.startTime ?? event.starts_at)
+    const date = new Date(event.startTime)
     const isToday = date >= todayStart && date < tomorrowStart
     const label = isToday ? TODAY_KEY : formatter.format(date)
     map.set(label, [...(map.get(label) ?? []), event])
   })
 
-  const result: [string, any[]][] = []
+  const result: [string, PlayerEvent[]][] = []
   if (map.has(TODAY_KEY)) {
     result.push([TODAY_KEY, map.get(TODAY_KEY)!])
     map.delete(TODAY_KEY)
@@ -42,10 +43,10 @@ function groupEventsByDate(events: any[]): [string, any[]][] {
   return result
 }
 
-function getEventDotStyle(event: any) {
+function getEventDotStyle(event: PlayerEvent) {
   const now = new Date()
-  const start = new Date(event.startTime ?? event.starts_at)
-  const end = new Date(event.endTime ?? event.ends_at ?? start)
+  const start = new Date(event.startTime)
+  const end = new Date(event.endTime)
   const openMins = event.checkinOpenMinsBefore ?? 15
   const checkInStart = new Date(start.getTime() - openMins * 60000)
   if (now >= start && now <= end) return 'scale-125 bg-amber-500 ring-amber-300'
@@ -53,7 +54,7 @@ function getEventDotStyle(event: any) {
   return 'bg-slate-200 ring-slate-200'
 }
 
-function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; onViewDetails: (id: string) => void }) {
+function TimelineGroups({ groups, onViewDetails }: { groups: [string, PlayerEvent[]][]; onViewDetails: (id: string) => void }) {
   return (
     <div className="space-y-8">
       {groups.map(([dateLabel, events]) => (
@@ -88,13 +89,14 @@ function TimelineGroups({ groups, onViewDetails }: { groups: [string, any[]][]; 
 
 interface VenueDetailsViewProps {
   venue: ApiVenue
-  upcomingEvents: any[]
-  todayEvents: any[]
+  upcomingEvents: PlayerEvent[]
+  todayEvents: PlayerEvent[]
   onBack: () => void
   onShare: () => void
   onClaim: () => void
   isClaiming: boolean
   onViewSessionDetails: (sessionId: string) => void
+  onCreateEvent?: () => void
 }
 
 export function VenueDetailsView({
@@ -106,18 +108,18 @@ export function VenueDetailsView({
   onClaim,
   isClaiming,
   onViewSessionDetails,
+  onCreateEvent,
 }: VenueDetailsViewProps) {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list')
   const [activeFilter, setActiveFilter] = useState<'today' | 'upcoming'>('today')
   const [mapSheetOpen, setMapSheetOpen] = useState(false)
   const hasInitialized = useRef(false)
   const { items: sportsCatalog } = useSports('en')
-  const sportKeys: string[] = Array.isArray((venue as any).sport_keys) ? (venue as any).sport_keys : []
   const { today: todayCount, upcoming: futureCount, past: pastCount } = computeVenueCounts(venue)
 
   const { tomorrowStart } = getDayBoundaries()
   const futureEvents = upcomingEvents.filter((e) => {
-    const d = new Date(e.startTime ?? e.starts_at)
+    const d = new Date(e.startTime)
     return d >= tomorrowStart
   })
 
@@ -129,7 +131,6 @@ export function VenueDetailsView({
   }, [todayEvents.length, upcomingEvents.length, todayCount])
 
   const filteredEvents = activeFilter === 'today' ? todayEvents : futureEvents
-  const typedEvents = filteredEvents as PlayerEvent[]
   const listTitle = activeFilter === 'today' ? 'Games Today' : 'Upcoming'
 
   return (
@@ -140,76 +141,30 @@ export function VenueDetailsView({
         showShare
         onShare={onShare}
         borderBottom
+        rightContent={
+          onCreateEvent ? (
+            <button
+              type="button"
+              onClick={onCreateEvent}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50/50 text-blue-600 transition hover:bg-blue-100/80 active:scale-90"
+              aria-label="Create event here"
+            >
+              <Plus
+                size={18}
+                strokeWidth={3}
+              />
+            </button>
+          ) : null
+        }
       />
 
       {/* Hero */}
       <div className="border-b border-slate-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-4">
-          {/* Logo */}
-          <div className="relative h-16 w-16 flex-none">
-            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shadow-sm">
-              {venue.logo_url ? (
-                <img
-                  src={venue.logo_url}
-                  alt="Logo"
-                  className="h-full w-full object-contain p-2"
-                />
-              ) : (
-                <Building2 className="h-8 w-8 text-slate-300" />
-              )}
-            </div>
-            {venue.venue_type === 'official' && (
-              <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 ring-2 ring-white">
-                <ShieldCheck
-                  size={10}
-                  className="text-white"
-                />
-              </div>
-            )}
-            {venue.venue_type === 'public' && (
-              <div className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-600 ring-2 ring-white">
-                <Trees
-                  size={18}
-                  className="text-white"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-black leading-tight tracking-tight text-slate-900">
-              {venue.name_display}
-            </h1>
-            <p
-              onClick={() => setMapSheetOpen(true)}
-              className="mt-0.5 flex items-start gap-1 text-xs font-medium text-slate-400"
-            >
-              <MapPin
-                size={12}
-                className="mt-[3px] shrink-0"
-              />
-              {venue.address_display}
-              <ExternalLink
-                size={14}
-                className="mt-[3px] shrink-0"
-              />
-            </p>
-          </div>
-        </div>
-
-        {/* Row 1: Sport tags */}
-        {sportKeys.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {sportKeys.map((key) => (
-              <span
-                key={key}
-                className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${getSportColor(key)}`}
-              >
-                {getSportLabel(key)}
-              </span>
-            ))}
-          </div>
-        )}
+        <VenueCard
+          venue={venue}
+          variant="detail"
+          onAddressClick={() => setMapSheetOpen(true)}
+        />
 
         {/* Row 2: Today + Upcoming + Past stats */}
         <div className="mt-3 flex gap-3">
@@ -361,7 +316,7 @@ export function VenueDetailsView({
           </div>
         </div>
 
-        {typedEvents.length > 0 ? (
+        {filteredEvents.length > 0 ? (
           viewMode === 'list' ? (
             <TimelineGroups
               groups={groupEventsByDate(filteredEvents)}
@@ -369,7 +324,7 @@ export function VenueDetailsView({
             />
           ) : (
             <CalendarView
-              events={typedEvents}
+              events={filteredEvents}
               sportsCatalog={sportsCatalog}
               mode="hosted"
               onExplore={undefined}

@@ -17,6 +17,14 @@ function ensureVapid() {
 
 async function saveSubscription(userId, subscription) {
   const { endpoint, keys } = subscription
+
+  const { data: existing } = await supabaseAdmin
+    .from('push_subscriptions')
+    .select('endpoint')
+    .eq('user_id', userId)
+    .eq('endpoint', endpoint)
+    .maybeSingle()
+
   const { error } = await supabaseAdmin
     .from('push_subscriptions')
     .upsert(
@@ -24,6 +32,8 @@ async function saveSubscription(userId, subscription) {
       { onConflict: 'user_id,endpoint' }
     )
   if (error) throw error
+
+  return !existing
 }
 
 async function deleteSubscription(userId, endpoint) {

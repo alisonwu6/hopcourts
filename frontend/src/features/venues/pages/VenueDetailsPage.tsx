@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { venueByIdKey } from '../hooks/useVenueByIdQuery'
 import { Frown } from 'lucide-react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { AlertDialog } from '@/components/AlertDialog'
 import { BottomSheet } from '@/components/BottomSheet'
 import { useAuthStore } from '@/hooks'
@@ -14,6 +14,7 @@ import { sessionService } from '@/services/sessionService'
 import { supabase } from '@/lib/supabase'
 import { PageLoading } from '@/components/PageLoading'
 import { VenueDetailsView } from '../views/VenueDetailsView'
+import { LoginPromptSheet } from '@/components/LoginPromptSheet'
 
 type ClaimFormState = Omit<VenueClaimRequest, 'contact_name'>
 
@@ -45,7 +46,8 @@ const formatClaimLocationAddress = (address?: string | null) => {
 export function VenueDetailsPage() {
   const { venueId } = useParams<{ venueId: string }>()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
+  const location = useLocation()
+  const { user, isAuthenticated } = useAuthStore()
   const queryClient = useQueryClient()
   const venueQuery = useVenueByIdQuery(venueId)
   const eventsQuery = useVenueUpcomingEventsQuery(venueId)
@@ -66,6 +68,7 @@ export function VenueDetailsPage() {
     }
   }, [venueQuery.data])
 
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [isClaiming, setIsClaiming] = useState(false)
   const [isClaimSheetOpen, setIsClaimSheetOpen] = useState(false)
   const [claimForm, setClaimForm] = useState<ClaimFormState>(EMPTY_CLAIM_FORM)
@@ -162,7 +165,31 @@ export function VenueDetailsPage() {
     }
   }
 
+  const handleCreateEvent = () => {
+    if (!venue) return
+    if (!isAuthenticated || user?.is_anonymous) {
+      setShowLoginPrompt(true)
+      return
+    }
+    navigate('/create-event', {
+      state: {
+        backTo: `/venues/${venue.id}`,
+        venueId: venue.id,
+        venueLocation: {
+          name: venue.name_display,
+          address: venue.address_display,
+          lat: Number(venue.lat),
+          lng: Number(venue.lng),
+        },
+      },
+    })
+  }
+
   const handleBack = () => {
+    if ((location.state as { from?: string } | null)?.from === 'submit') {
+      navigate('/venues', { replace: true })
+      return
+    }
     const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
     if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
       navigate('/venues', { replace: true })
@@ -222,6 +249,7 @@ export function VenueDetailsPage() {
         onClaim={openClaimSheet}
         isClaiming={isClaiming}
         onViewSessionDetails={(sessionId) => navigate(`/event/${sessionId}`, { state: { from: 'venue', venueId } })}
+        onCreateEvent={handleCreateEvent}
       />
 
       <BottomSheet
@@ -340,6 +368,12 @@ export function VenueDetailsPage() {
           )}
         </form>
       </BottomSheet>
+
+      <LoginPromptSheet
+        open={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        returnTo={venueId ? `/venues/${venueId}` : undefined}
+      />
 
       <AlertDialog
         open={claimSuccess.open}

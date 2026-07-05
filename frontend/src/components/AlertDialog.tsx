@@ -1,4 +1,4 @@
-import { AlertCircle, Check, Info, AlertTriangle } from 'lucide-react'
+import { AlertCircle, Check, Info, AlertTriangle, Rocket } from 'lucide-react'
 import clsx from 'clsx'
 
 export interface AlertDialogProps {
@@ -6,12 +6,13 @@ export interface AlertDialogProps {
   onClose: () => void
   title: string
   description?: React.ReactNode
-  type?: 'success' | 'error' | 'info' | 'warning'
+  type?: 'success' | 'error' | 'info' | 'warning' | 'feature'
   actionLabel?: string
   onAction?: () => void
   cancelLabel?: string
   onCancel?: () => void
   actionLeft?: boolean
+  isLoading?: boolean
 }
 
 export function AlertDialog({
@@ -25,6 +26,7 @@ export function AlertDialog({
   cancelLabel,
   onCancel,
   actionLeft = false,
+  isLoading,
 }: AlertDialogProps) {
   if (!open) return null
 
@@ -32,7 +34,9 @@ export function AlertDialog({
 
   const handleAction = () => {
     onAction?.()
-    onClose()
+    // When isLoading is passed (even false), the caller owns close timing — don't auto-close.
+    // Only auto-close for callers that never pass isLoading at all.
+    if (isLoading === undefined) onClose()
   }
 
   const handleCancel = () => {
@@ -45,7 +49,7 @@ export function AlertDialog({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={isLoading ? undefined : onClose}
       />
 
       {/* Dialog Content */}
@@ -58,7 +62,8 @@ export function AlertDialog({
               type === 'error' && 'bg-red-100 text-red-500',
               type === 'success' && 'bg-emerald-100 text-emerald-500',
               type === 'info' && 'bg-blue-100 text-blue-500',
-              type === 'warning' && 'bg-amber-100 text-amber-500'
+              type === 'warning' && 'bg-amber-100 text-amber-500',
+              type === 'feature' && 'bg-hop-100 text-hop'
             )}
           >
             {type === 'error' && (
@@ -85,33 +90,46 @@ export function AlertDialog({
                 strokeWidth={2.5}
               />
             )}
+            {type === 'feature' && (
+              <Rocket
+                size={32}
+                strokeWidth={2.5}
+              />
+            )}
           </div>
 
           <h3 className="text-xl font-bold text-slate-900">{title}</h3>
 
           {description && <div className="mt-2 text-sm leading-relaxed text-slate-500">{description}</div>}
 
-          <div className={clsx('mt-6 w-full', hasCancel ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
+          <div className={clsx('mt-6 w-full', hasCancel && !isLoading ? 'grid grid-cols-2 gap-3' : 'space-y-3')}>
             {hasCancel && actionLeft && (
               <button
                 type="button"
                 onClick={handleAction}
+                disabled={isLoading}
                 className={clsx(
-                  'w-full rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98]',
+                  'flex w-full items-center justify-center rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98] disabled:opacity-70',
                   type === 'error'
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : type === 'success'
                       ? 'bg-emerald-500 text-white hover:bg-emerald-600'
                       : type === 'warning'
                         ? 'bg-amber-500 text-white hover:bg-amber-600'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        : type === 'feature'
+                          ? 'bg-hop-600 text-white hover:bg-hop-700'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
                 )}
               >
-                {actionLabel}
+                {isLoading ? (
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  actionLabel
+                )}
               </button>
             )}
 
-            {hasCancel && (
+            {hasCancel && !isLoading && (
               <button
                 type="button"
                 onClick={handleCancel}
@@ -125,18 +143,25 @@ export function AlertDialog({
               <button
                 type="button"
                 onClick={handleAction}
+                disabled={isLoading}
                 className={clsx(
-                  'w-full rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98]',
+                  'flex w-full items-center justify-center rounded-[20px] border border-transparent py-3 text-base font-bold shadow-sm transition-transform active:scale-[0.98] disabled:opacity-70',
                   type === 'error'
                     ? 'bg-red-500 text-white hover:bg-red-600'
                     : type === 'success'
                       ? 'bg-emerald-500 text-white hover:bg-emerald-600'
                       : type === 'warning'
                         ? 'bg-amber-500 text-white hover:bg-amber-600'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        : type === 'feature'
+                          ? 'bg-hop-600 text-white hover:bg-hop-700'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
                 )}
               >
-                {actionLabel}
+                {isLoading ? (
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  actionLabel
+                )}
               </button>
             )}
           </div>

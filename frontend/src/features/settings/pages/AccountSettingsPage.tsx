@@ -14,8 +14,10 @@ export function AccountSettingsPage() {
   const [showOngoingWarning, setShowOngoingWarning] = useState(false)
   const [showDeleteFailed, setShowDeleteFailed] = useState(false)
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
   const attemptDelete = async (force = false) => {
+    setIsDeletingAccount(true)
     try {
       await profileService.deleteAccount(force)
       setShowDeleteConfirm(false)
@@ -30,6 +32,8 @@ export function AccountSettingsPage() {
       } else {
         setShowDeleteFailed(true)
       }
+    } finally {
+      setIsDeletingAccount(false)
     }
   }
 
@@ -72,7 +76,7 @@ export function AccountSettingsPage() {
       {/* Step 1 — Standard confirmation */}
       <AlertDialog
         open={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
+        onClose={() => { if (!isDeletingAccount) setShowDeleteConfirm(false) }}
         title="Delete your account?"
         description="Your login access will be removed. Any upcoming events you're hosting will be cancelled."
         type="error"
@@ -80,12 +84,13 @@ export function AccountSettingsPage() {
         cancelLabel="Cancel"
         actionLeft
         onAction={() => attemptDelete(false)}
+        isLoading={isDeletingAccount}
       />
 
       {/* Step 2 — Ongoing event warning */}
       <AlertDialog
         open={showOngoingWarning}
-        onClose={() => setShowOngoingWarning(false)}
+        onClose={() => { if (!isDeletingAccount) setShowOngoingWarning(false) }}
         title="You have an active event right now"
         description="Your participants are expecting you. Are you sure you still want to delete your account?"
         type="warning"
@@ -93,6 +98,7 @@ export function AccountSettingsPage() {
         cancelLabel="Cancel"
         actionLeft
         onAction={() => attemptDelete(true)}
+        isLoading={isDeletingAccount}
       />
 
       <AlertDialog

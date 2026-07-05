@@ -1,5 +1,6 @@
 'use strict'
 
+const { query } = require('../lib/db')
 const geocodeCache = new Map()
 
 async function geocodeAddress(address) {
@@ -35,4 +36,21 @@ async function geocodeAddress(address) {
   }
 }
 
-module.exports = { geocodeAddress }
+async function resolveCityKeyByCoords(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+  try {
+    const { rows } = await query(
+      `SELECT key FROM public.cities
+       WHERE is_active = true
+         AND $1 BETWEEN lat_min AND lat_max
+         AND $2 BETWEEN lng_min AND lng_max
+       LIMIT 1`,
+      [lat, lng]
+    )
+    return rows[0]?.key ?? null
+  } catch {
+    return null
+  }
+}
+
+module.exports = { geocodeAddress, resolveCityKeyByCoords }

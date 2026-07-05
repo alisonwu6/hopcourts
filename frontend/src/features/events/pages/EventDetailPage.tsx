@@ -32,7 +32,6 @@ export function EventDetailPage() {
     handleShare,
     handleJoinClick,
     handleCheckIn,
-    handleOnTheWay,
     clearPostLoginRedirect,
   } = useEventDetailLogic()
 
@@ -65,6 +64,7 @@ export function EventDetailPage() {
         setShowLoginPrompt(false)
         clearPostLoginRedirect()
       }}
+      onJoinAsGuest={() => setShowGuestJoinModal(true)}
       onCloseAlert={() => setAlertDialog((previous) => ({ ...previous, open: false }))}
       onCloseProfileRequired={() => setShowProfileRequired(false)}
       onNavigateEvents={() => navigate('/events')}

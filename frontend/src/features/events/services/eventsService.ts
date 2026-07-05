@@ -102,7 +102,6 @@ const buildFallbackEvent = (id: string): PlayerEvent => {
     id,
     title: 'HopCourts Event',
     sport: 'running',
-    vibeIcon: '🏃',
     skillLevel: 'mixed',
     startTime: now,
     endTime: end,
@@ -136,7 +135,6 @@ const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
     id: `local-${Date.now()}`,
     title: input.title,
     sport: input.sport,
-    vibeIcon: '🎯',
     skillLevel: input.skillLevel,
     startTime,
     endTime,
@@ -174,7 +172,6 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     courtName,
     title: session.title,
     sport: session.sport_key,
-    vibeIcon: '🎯', // TODO: Map sport to icon
     skillLevel: (session.skill_level as any) ?? 'mixed',
     gender: (session.gender as any) ?? 'mixed',
     photos: session.photos ?? [],
@@ -184,7 +181,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
     location: {
       name: locationName,
       address: session.address ?? '',
-      city: '', // TODO: logic to extract city
+      city: session.city_name ?? '',
       lat: session.lat,
       lng: session.lng,
       status: session.venue_status,
@@ -600,7 +597,7 @@ export const eventsService = {
             : (input.pricePerPerson ?? null),
         price_mode: input.priceMode,
         priceNote: input.priceNote,
-        photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
+        photos: Array.isArray(input.photos) ? input.photos : (input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined),
         location: input.location,
       }
 

@@ -1,18 +1,11 @@
 import type { KeyboardEvent } from 'react'
 import clsx from 'clsx'
 import { useNavigate } from 'react-router-dom'
-import type { LucideIcon } from 'lucide-react'
 import { Calendar, MapPin, CircleDollarSign, ShieldCheck } from 'lucide-react'
 import { PlayerEvent } from '@/types'
 import { BookmarkButton } from './BookmarkButton'
-import { getSportColor } from '@/constants/sportTokens'
-
-const ACCENT = {
-  primary: '#2563EB',
-  surface: '#DBEAFE',
-  dark: '#1D4ED8',
-  gradient: 'linear-gradient(135deg, #DBEAFE, #2563EB)',
-}
+import { EVENT_SPORT_CLASS, GENDER_CLASS, getSkillClass } from '@/constants/sportTokens'
+import { getFlagEmoji } from '@/utils/flags'
 
 type EventCardProps = {
   event: PlayerEvent
@@ -22,12 +15,9 @@ type EventCardProps = {
   cityLabel?: string
   disableVenueHostNavigation?: boolean
   showBookmark?: boolean
+  showStatus?: boolean
 }
 
-function getFlagEmoji(countryCode: string) {
-  if (!countryCode || countryCode.length !== 2) return ''
-  return countryCode.toUpperCase().replace(/./g, (char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
-}
 
 export function EventCard({
   event,
@@ -37,6 +27,7 @@ export function EventCard({
   cityLabel: cityLabelProp,
   disableVenueHostNavigation = false,
   showBookmark = false,
+  showStatus = true,
 }: EventCardProps) {
   const navigate = useNavigate()
 
@@ -65,23 +56,12 @@ export function EventCard({
       ? event.location.address
       : ''
   const scheduleLabel = formatSchedule(event.startTime, event.endTime)
-  const priceLabel = event.priceRange ?? (event.isFree ? 'Free' : 'Paid event')
-  const cityLabel = cityLabelProp || event.host.cityName || locationCity || 'City TBD'
+  const cityLabel = cityLabelProp || locationCity || 'City TBD'
 
   const attendeeCount = event.attendeeCount
   const remaining = Math.max(event.maxAttendees - attendeeCount, 0)
   const minPeople = Math.max(1, event.minPeople ?? 1)
   const isClickable = Boolean(onViewDetails)
-  const heroImage = (event as PlayerEvent & { heroImageUrl?: string }).heroImageUrl ?? event.detail?.heroImageUrl
-  const heroStyle = heroImage
-    ? {
-        backgroundImage: `url(${heroImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }
-    : {
-        backgroundImage: ACCENT.gradient,
-      }
 
   const handleCardClick = () => onViewDetails?.(event.id)
   const handleCardKeyDown = (e: KeyboardEvent<HTMLElement>) => {
@@ -90,6 +70,22 @@ export function EventCard({
       onViewDetails?.(event.id)
     }
   }
+
+  const priceDisplay = event.isFree
+    ? 'Free'
+    : event.priceMode === 'person'
+      ? `${event.priceRange || `$${Number(event.pricePerPerson).toFixed(2)}`} / player`
+      : event.priceTotal
+        ? (() => {
+            const perFull = (event.priceTotal / event.maxAttendees).toFixed(2)
+            const perHigh = (event.priceTotal / minPeople).toFixed(2)
+            return perHigh !== perFull ? `Est. $${perFull} – $${perHigh} / player` : `Est. $${perFull} / player`
+          })()
+        : 'Paid event'
+
+  const now = new Date()
+  const eventEnd = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+  const isFull = remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled' && now <= eventEnd
 
   const interactionHandlers = isClickable
     ? {
@@ -112,7 +108,10 @@ export function EventCard({
     >
       {showBookmark && (
         <div className="absolute right-0 top-[2px] z-10">
-          <BookmarkButton eventId={event.id} className="px-2 pb-2 pt-0 text-blue-600" />
+          <BookmarkButton
+            eventId={event.id}
+            className="px-2 pb-2 pt-0 text-blue-600"
+          />
         </div>
       )}
 
@@ -148,9 +147,7 @@ export function EventCard({
               {/* {displayHost.isOfficial && (
                 <ShieldCheck className="w-4 h-4 text-blue-600" strokeWidth={2.5} />
               )} */}
-              {event.host.countryKey && (
-                <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
-              )}
+              {event.host.countryKey && <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>}
             </p>
             <div className="mt-1 flex items-center gap-1">
               <MapPin className="h-3 w-3 text-slate-400" />
@@ -160,17 +157,15 @@ export function EventCard({
         </div>
 
         <div className="flex flex-col items-end justify-end gap-1">
-          <StatusBadge
-            status={event.status}
-            startTime={event.startTime}
-            endTime={event.endTime}
-            attendeeCount={event.attendeeCount}
-            minPeople={event.minPeople ?? 1}
-            maxAttendees={event.maxAttendees}
-            spotsRemaining={remaining}
-            isFree={event.isFree}
-            isOfficial={event.isOfficial}
-          />
+          {showStatus && (
+            <StatusBadge
+              status={event.status}
+              startTime={event.startTime}
+              endTime={event.endTime}
+              maxAttendees={event.maxAttendees}
+              spotsRemaining={remaining}
+            />
+          )}
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
               <ShieldCheck
@@ -183,30 +178,18 @@ export function EventCard({
         </div>
       </header>
 
-      {/* 2. Full-width Hero Image */}
-      {false && (
-        <div
-          className="relative h-56 w-full"
-          style={heroStyle}
-        >
-          {!heroImage && (
-            <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">{sportLabel}</div>
-          )}
-        </div>
-      )}
-
-      {/* 3. Info Content */}
+      {/* 2. Info Content */}
       <div className="px-5 pb-4 pt-3.5">
         {/* Tags */}
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
-          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${getSportColor(event.sport)}`}>
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${EVENT_SPORT_CLASS}`}>
             {sportLabel}
           </span>
-          <span className="rounded-full border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-600">
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getSkillClass(event.skillLevel)}`}>
             {skillLabel}
           </span>
-          <span className="rounded-full border border-orange-300 px-2.5 py-0.5 text-[10px] font-medium text-orange-500">
-            {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : 'Mixed'}
+          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${GENDER_CLASS}`}>
+            {event.gender === 'female' ? 'Women' : event.gender === 'male' ? 'Men' : event.gender === 'lgbtq' ? 'LGBT+' : 'All genders'}
           </span>
         </div>
 
@@ -216,12 +199,18 @@ export function EventCard({
         {/* Info rows — compact */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <Calendar
+              className="h-3.5 w-3.5 shrink-0 text-slate-400"
+              strokeWidth={2}
+            />
             <span className="text-[12px] text-slate-600">{scheduleLabel}</span>
           </div>
 
           <div className="flex items-start gap-2">
-            <MapPin className="mt-px h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
+            <MapPin
+              className="mt-px h-3.5 w-3.5 shrink-0 text-slate-400"
+              strokeWidth={2}
+            />
             <div className="min-w-0 text-[12px] leading-snug text-slate-600">
               <p className="break-words">{locationLine1}</p>
               {locationLine2 ? <p className="break-words">{locationLine2}</p> : null}
@@ -229,22 +218,11 @@ export function EventCard({
           </div>
 
           <div className="flex items-center gap-2">
-            <CircleDollarSign className="h-3.5 w-3.5 shrink-0 text-slate-400" strokeWidth={2} />
-            <span className="text-[12px] text-slate-600">
-              {event.isFree
-                ? 'Free'
-                : event.priceMode === 'person'
-                  ? `${event.priceRange || `$${Number(event.pricePerPerson).toFixed(2)}`} / player`
-                  : event.priceTotal
-                    ? (() => {
-                        const perFull = (event.priceTotal / event.maxAttendees).toFixed(2)
-                        const perHigh = (event.priceTotal / minPeople).toFixed(2)
-                        return perHigh !== perFull
-                          ? `Est. $${perFull} – $${perHigh} / player`
-                          : `Est. $${perFull} / player`
-                      })()
-                    : 'Paid event'}
-            </span>
+            <CircleDollarSign
+              className="h-3.5 w-3.5 shrink-0 text-slate-400"
+              strokeWidth={2}
+            />
+            <span className="text-[12px] text-slate-600">{priceDisplay}</span>
           </div>
         </div>
       </div>
@@ -264,7 +242,9 @@ export function EventCard({
             {/* gray cover slides from right, revealing gradient as attendees join */}
             <div
               className="absolute right-0 h-full bg-slate-200 transition-all duration-500"
-              style={{ width: `${Math.max(0, 100 - (event.maxAttendees > 0 ? (attendeeCount / event.maxAttendees) * 100 : 0))}%` }}
+              style={{
+                width: `${Math.max(0, 100 - (event.maxAttendees > 0 ? (attendeeCount / event.maxAttendees) * 100 : 0))}%`,
+              }}
             />
             {/* min threshold notch */}
             {minPeople > 1 && event.maxAttendees > 0 && (
@@ -274,12 +254,7 @@ export function EventCard({
               />
             )}
           </div>
-          {(() => {
-            const now = new Date()
-            const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
-            const isPast = now > end
-            return remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled' && !isPast
-          })() && (
+          {isFull && (
             <span className="shrink-0 rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
               Full
             </span>
@@ -300,12 +275,8 @@ function StatusBadge({
   status?: PlayerEvent['status']
   startTime: Date | string
   endTime: Date | string
-  attendeeCount: number
-  minPeople: number
   maxAttendees: number
   spotsRemaining: number
-  isFree?: boolean
-  isOfficial?: boolean
 }) {
   const now = new Date()
   const start = new Date(startTime)
@@ -317,25 +288,34 @@ function StatusBadge({
   let className: string
 
   if (status === 'cancelled') {
-    label = 'Cancelled'; className = 'border-red-200 bg-red-50 text-red-600'
+    label = 'Cancelled'
+    className = 'border-red-200 bg-red-50 text-red-600'
   } else if (status === 'completed') {
-    label = 'Completed'; className = 'border-slate-200 bg-slate-100 text-slate-500'
+    label = 'Completed'
+    className = 'border-slate-200 bg-slate-100 text-slate-500'
   } else if (status === 'draft') {
-    label = 'Draft'; className = 'border-blue-200 bg-blue-50 text-blue-500'
+    label = 'Draft'
+    className = 'border-blue-200 bg-blue-50 text-blue-500'
   } else if (isPast) {
-    label = 'Past'; className = 'border-slate-200 bg-slate-100 text-slate-500'
+    label = 'Past'
+    className = 'border-slate-200 bg-slate-100 text-slate-500'
   } else if (isInProgress) {
-    label = 'In Progress'; className = 'border-green-200 bg-green-50 text-green-600'
+    label = 'In Progress'
+    className = 'border-green-200 bg-green-50 text-green-600'
   } else if (maxAttendees > 0 && spotsRemaining === 0) {
-    label = 'Full'; className = 'border-orange-200 bg-orange-50 text-orange-600'
+    label = 'Full'
+    className = 'border-orange-200 bg-orange-50 text-orange-600'
   } else if (status === 'published') {
-    label = 'Open'; className = 'border-sky-200 bg-sky-50 text-sky-600'
+    label = 'Open'
+    className = 'border-sky-200 bg-sky-50 text-sky-600'
   } else {
     return null
   }
 
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest ${className}`}>
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest ${className}`}
+    >
       {label}
     </span>
   )
@@ -376,49 +356,13 @@ function AvatarCircle({
           : undefined
       }
     >
-      {!src && (
-        <span className="text-[11px] font-bold text-blue-700">{initials || '?'}</span>
-      )}
-    </div>
-  )
-}
-
-function InfoRow({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-blue-600">
-        <Icon
-          className="h-5 w-5"
-          strokeWidth={2}
-        />
-      </div>
-      <div className="text-sm text-slate-600">{label}</div>
+      {!src && <span className="text-[11px] font-bold text-blue-700">{initials || '?'}</span>}
     </div>
   )
 }
 
 function toDate(value: Date | string) {
   return value instanceof Date ? value : new Date(value)
-}
-
-function formatFullDate(value: Date | string) {
-  const date = toDate(value)
-  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' })
-  const day = date.toLocaleDateString(undefined, { day: '2-digit' })
-  const month = date.toLocaleDateString(undefined, { month: '2-digit' })
-  const year = date.toLocaleDateString(undefined, { year: 'numeric' })
-  return `${weekday}, ${day}/${month}/${year}`
-}
-
-function formatTimeRange(start: Date | string, end: Date | string) {
-  const startDate = toDate(start)
-  const endDate = toDate(end)
-  const startLabel = startDate.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-  const endLabel = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  return `${startLabel} - ${endLabel}`
 }
 
 function formatSchedule(start: Date | string, end: Date | string) {
@@ -430,33 +374,12 @@ function formatSchedule(start: Date | string, end: Date | string) {
     day: 'numeric',
   })
 
-  const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-  const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  const upcase = (t: string) => t.replace(/\s(am|pm)$/i, (m) => m.toUpperCase())
+  const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true }
+  const startTime = upcase(startDate.toLocaleTimeString('en-AU', opts))
+  const endTime = upcase(endDate.toLocaleTimeString('en-AU', opts))
 
-  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
-  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
-
-  const timeStr =
-    startSuffix && startSuffix === endSuffix
-      ? `${startCore}–${endCore} ${endSuffix}`
-      : `${startWithSuffix}–${endWithSuffix}`
-
-  return `${dateStr} · ${timeStr}`
-}
-
-function summaryText(attending: number, max: number, remaining: number) {
-  const base = `${attending}/${max} registered`
-  return `${base} · ${remaining} left`
+  return `${dateStr} · ${startTime} – ${endTime}`
 }
 
 function friendlySkill(level: PlayerEvent['skillLevel']) {
@@ -471,9 +394,4 @@ function friendlySkill(level: PlayerEvent['skillLevel']) {
     default:
       return 'All levels'
   }
-}
-
-function formatSportName(value: string) {
-  if (!value) return 'Sport'
-  return value
 }

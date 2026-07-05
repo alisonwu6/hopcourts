@@ -136,6 +136,7 @@ export function DiscoverEventsPageView({
       <ProfileRequiredSheet
         open={showProfileRequiredSheet}
         onClose={onCloseProfileRequired}
+        dismissible
       />
 
       <LoginPromptSheet

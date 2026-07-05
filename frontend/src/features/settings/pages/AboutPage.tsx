@@ -1,92 +1,98 @@
-import { CalendarCheck, IdCard, Sparkles, UsersRound } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
+
+const steps = [
+  {
+    title: 'Set your profile',
+    desc: 'Tell us what you play and what you want to pick up. The right games find you.',
+    dotColor: 'bg-courts',
+  },
+  {
+    title: 'Hop in & play',
+    desc: 'Open the app, find an open slot, show up. No booking. No back-and-forth. No planning.',
+    dotColor: 'bg-hop',
+  },
+  {
+    title: 'Build your mates circle',
+    desc: "Play with someone once and they're automatically saved. No swapping socials — just play again when you're ready.",
+    dotColor: 'bg-courts',
+  },
+]
 
 export function AboutPage() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   return (
-    <div className="min-h-[100dvh] bg-white text-slate-900">
+    <div className="min-h-[100dvh] bg-[#edf4ed] text-[#1a3320]">
       <ActionToolbar
-        onBack={() => navigate('/settings')}
+        onBack={() => (location.key !== 'default' ? navigate(-1) : navigate('/settings'))}
         showShare={false}
         showFavorite={false}
-        contentClassName="max-w-5xl px-4"
         showBack
         title={<span className="text-lg font-semibold text-slate-900">About Us</span>}
-        rightContent={
-          <span
-            className="h-10 w-10"
-            aria-hidden="true"
-          />
-        }
+        contentClassName="max-w-page px-4"
         borderBottom
       />
 
-      <main className="pb-16">
-        <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50 via-white to-white">
-          <div className="pointer-events-none absolute -right-24 top-10 h-48 w-48 rounded-full bg-emerald-200/50 blur-3xl" />
-          <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-12">
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-              <Sparkles className="h-4 w-4" />
-              Real-World Sports Platform
-            </div>
-            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl">
-              Your city.
-              <br />
-              Your home game.
-            </h1>
-            <p className="mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
-              Finding people to play with shouldn’t be hard.
-              <br />
-              <br />
-              HopCourts makes it simple. Browse events near you, join a game, or start your own. No group chats, no
-              back-and-forth. Just show up and play.
-              <br />
-              <br />
-              Right here in your city.
-            </p>
+      <div className="mx-auto max-w-page px-5">
+        {/* Hero */}
+        <section className="pb-8 pt-8">
+          <h1 className="text-[3.25rem] font-black leading-[1.0] tracking-tight text-[#1a3320]">
+            Find your game.
+            <br />
+            No group chats
+            <br />
+            <span className="text-hop">required.</span>
+          </h1>
+          <p className="text-courts mt-5 text-base leading-relaxed">
+            New to a city or just can&apos;t find people who are into the same sports — we get it. HopCourts was built to
+            fix that.
+          </p>
+          <p className="text-courts mt-3 text-base leading-relaxed">
+            We&apos;re not trying to replace your mates. We&apos;re helping you find more of them.
+          </p>
+        </section>
 
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
-                <IdCard className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">Your Sports Pass</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Show off what you love to play and what you're keen to try next. This is your digital ticket to get
-                  spotted and connect with the local community.
-                </p>
+        <div className="border-t border-[#c8d9c4]" />
+
+        {/* Steps */}
+        <section className="py-8">
+          <p className="mb-6 text-xs font-bold uppercase tracking-widest text-slate-400">Three steps, that&apos;s it</p>
+          <div>
+            {steps.map((step, i) => (
+              <div
+                key={step.title}
+                className="flex gap-4"
+              >
+                <div className="flex flex-col items-center">
+                  <div className={`mt-[5px] h-3 w-3 flex-shrink-0 rounded-full ${step.dotColor}`} />
+                  {i < steps.length - 1 && (
+                    <div
+                      className="mt-1 w-px flex-1 bg-[#c8d9c4]"
+                      style={{ minHeight: '36px' }}
+                    />
+                  )}
+                </div>
+                <div className={i < steps.length - 1 ? 'pb-6' : 'pb-0'}>
+                  <h3 className="text-lg font-bold text-[#1a3320]">{step.title}</h3>
+                  <p className="text-courts mt-1 text-sm leading-relaxed">{step.desc}</p>
+                </div>
               </div>
-              <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
-                <UsersRound className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">My Sports Circle</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Build your network naturally. Every time you share a court or join the same event, players are added
-                  to your Sports Circle. No awkward friend requests needed.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm">
-                <CalendarCheck className="h-5 w-5 text-emerald-600" />
-                <h3 className="mt-3 text-base font-semibold text-slate-900">Hop-In & Play</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  See active events near you right now. Jump into an open slot or host your own session in seconds.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-5xl px-4 text-center">
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">Ready to find your next game?</h2>
-          <p className="mt-2 text-base text-slate-500">Join the HopCourts community.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/events')}
-            className="mt-6 inline-flex items-center rounded-full bg-emerald-600 px-8 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.98]"
-          >
-            Explore events
-          </button>
+        {/* Quote */}
+        <section className="pb-10">
+          <div className="rounded-3xl bg-courts px-6 py-7">
+            <p className="text-[16px] font-black leading-snug tracking-tight text-white">
+              "A ball and a court should be enough. We're building the missing piece."
+            </p>
+            <p className="mt-4 text-sm font-semibold text-white/80">— HopCourts Team</p>
+          </div>
         </section>
-      </main>
+      </div>
     </div>
   )
 }

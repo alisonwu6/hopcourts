@@ -30,6 +30,8 @@ import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { PageLoading } from '@/components/PageLoading'
 import { BookmarkButton } from './BookmarkButton'
 import { ProfileRequiredSheet } from '@/features/profile/components/ProfileRequiredSheet'
+import { getFlagEmoji } from '@/utils/flags'
+import { EVENT_SPORT_CLASS, GENDER_CLASS, getSkillClass } from '@/constants/sportTokens'
 
 type EventDetailAlertState = {
   open: boolean
@@ -67,6 +69,7 @@ type EventDetailViewProps = {
   onCheckIn: () => void
 
   onCloseLoginPrompt: () => void
+  onJoinAsGuest?: () => void
   onCloseAlert: () => void
   onCloseProfileRequired: () => void
   onNavigateEvents: () => void
@@ -98,6 +101,7 @@ export function EventDetailView({
   onJoin,
   onCheckIn,
   onCloseLoginPrompt,
+  onJoinAsGuest,
   onCloseAlert,
   onCloseProfileRequired,
   onNavigateEvents,
@@ -147,7 +151,7 @@ export function EventDetailView({
           ? 'Advanced'
           : 'All levels'
 
-  const genderLabel = event.gender === 'female' ? 'Women only' : event.gender === 'male' ? 'Men only' : 'Mixed gender'
+  const genderLabel = event.gender === 'female' ? 'Women only' : event.gender === 'male' ? 'Men only' : event.gender === 'lgbtq' ? 'LGBT+' : 'All genders'
 
   const sportLabel = sports.find((item) => item.key.toUpperCase() === event.sport.toUpperCase())?.label || event.sport
 
@@ -197,7 +201,7 @@ export function EventDetailView({
   const isPast = new Date() > eventEnd
 
   return (
-    <div className="min-h-[100dvh] pb-40">
+    <div className="flex h-[100dvh] flex-col">
       <ActionToolbar
         onBack={onBack}
         onShare={onShare}
@@ -216,7 +220,10 @@ export function EventDetailView({
                   className="rounded-full bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100"
                   aria-label="Edit event"
                 >
-                  <Pencil className="h-5 w-5" />
+                  <Pencil
+                    size={18}
+                    strokeWidth={2}
+                  />
                 </button>
               </>
             )}
@@ -233,7 +240,7 @@ export function EventDetailView({
               aria-label="Share"
             >
               <Share
-                className="h-5 w-5"
+                size={18}
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -242,257 +249,259 @@ export function EventDetailView({
         }
       />
 
-      <div className="w-full space-y-6">
-        <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <ImageCarousel
-            images={
-              event.photos && event.photos.length > 0
-                ? event.photos
-                : ([event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[])
-            }
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
-        </div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="w-full space-y-6">
+          <div className="relative mb-0 overflow-hidden shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
+            <ImageCarousel
+              images={
+                event.photos && event.photos.length > 0
+                  ? event.photos
+                  : ([event.heroImageUrl || event.detail?.heroImageUrl].filter(Boolean) as string[])
+              }
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-transparent" />
+          </div>
 
-        <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
-          <div className="mx-auto max-w-[400px] p-5">
-            <div className="flex items-center justify-between">
-              <div
-                className={clsx(
-                  'flex items-center gap-3 transition',
-                  isOfficialVenueHost || event.host.username ? 'cursor-pointer' : undefined
-                )}
-                onClick={() => {
-                  if (isOfficialVenueHost && event.venueId) {
-                    onNavigateVenue(event.venueId)
-                    return
-                  }
-                  if (event.host.username) {
-                    onNavigateMate(event.host.username)
-                  }
-                }}
-              >
-                <AvatarCircle
-                  name={isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
-                  src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl}
-                />
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
-                  </p>
-                  <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
-                </div>
-              </div>
-              <EventStatusBadge
-                status={event.status}
-                attendeeCount={event.attendeeCount}
-                minPeople={event.minPeople ?? 1}
-                startTime={event.startTime}
-                endTime={event.endTime}
-                isFree={event.isFree}
-                isOfficial={event.isOfficial}
-              />
-            </div>
-
-            <hr className="my-3 border-slate-200" />
-
-            {updatedAtLabel && <p className="mb-6 text-xs text-slate-400">Last updated {updatedAtLabel}</p>}
-
-            <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
-                {sportLabel}
-              </span>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700">
-                {skillLabel}
-              </span>
-              <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">
-                {genderLabel}
-              </span>
-            </div>
-
-            <div className="my-4">
-              <h1 className="text-[20px] font-semibold text-slate-900">{event.title}</h1>
-            </div>
-
-            <div className="space-y-3">
-              <InfoRow
-                icon={Calendar}
-                label={scheduleLabel}
-              />
-              <div
-                className={clsx(
-                  'group flex items-start justify-between gap-2 transition',
-                  event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
-                )}
-              >
-                <InfoRow
-                  icon={MapPin}
-                  label={locationLabel}
-                />
-                <button
-                  type="button"
-                  aria-label="Open in map"
-                  onClick={handleOpenMap}
-                  className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                >
-                  <ExternalLink
-                    size={14}
-                    className="mt-[3px] shrink-0"
-                  />
-                </button>
-              </div>
-              {event.courtName && (
-                <InfoRow
-                  icon={LandPlot}
-                  label={`Court: ${event.courtName}`}
-                />
-              )}
-              <InfoRow
-                icon={CircleDollarSign}
-                label={feeLine2}
-              />
-              <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
-                <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
-              </div>
-            </div>
-
-            <hr className="my-6 border-slate-200" />
-
-            <div className="space-y-3">
+          <div className="relative z-10 -mt-6 rounded-t-[32px] bg-white shadow-[0_25px_70px_rgba(15,41,77,0.12)]">
+            <div className="mx-auto max-w-[400px] p-5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                    <MessageCircle
-                      className="h-4 w-4"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <span>About this event</span>
-                </div>
-              </div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                {event.detail?.description || event.description || 'No description'}
-              </p>
-            </div>
-
-            <hr className="my-6 border-slate-200" />
-
-            <div className="space-y-3">
-              <div className="flex justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <div className="flex items-start gap-2">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
-                    <PersonStanding
-                      className="h-4 w-4"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    />
-                  </span>
-                  <span className="flex flex-1 flex-col gap-1">
-                    <span className="flex items-center justify-between">
-                      <span>
-                        {event.attendeeCount} joined · {spotsRemaining} spots left
-                      </span>
-                    </span>
-                    <span className="flex items-center justify-between">
-                      <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
-                        {participantRule}
-                      </span>
-                      {spotsRemaining === 0 && event.status !== 'cancelled' && (
-                        <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
-                          Full
-                        </span>
+                <div
+                  className={clsx(
+                    'flex items-center gap-3 transition',
+                    isOfficialVenueHost || event.host.username ? 'cursor-pointer' : undefined
+                  )}
+                  onClick={() => {
+                    if (isOfficialVenueHost && event.venueId) {
+                      onNavigateVenue(event.venueId)
+                      return
+                    }
+                    if (event.host.username) {
+                      onNavigateMate(event.host.username)
+                    }
+                  }}
+                >
+                  <AvatarCircle
+                    name={isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
+                    src={isOfficialVenueHost ? event.venueLogoUrl : event.host.avatarUrl}
+                  />
+                  <div>
+                    <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">
+                      {isOfficialVenueHost ? event.venueNameDisplay || event.host.name : event.host.name}
+                      {!isOfficialVenueHost && event.host.countryKey && (
+                        <span className="text-xs">{getFlagEmoji(event.host.countryKey)}</span>
                       )}
-                    </span>
-                  </span>
+                    </p>
+                    <p className="text-xs text-slate-500">{isOfficialVenueHost ? 'Venue Host' : 'Event Host'}</p>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 text-[8px] font-bold text-slate-500">
-                  <div className="flex items-center gap-1">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
-                      <Check
-                        className="h-3 w-3 text-white"
-                        strokeWidth={3}
-                      />
-                    </span>
-                    <span className="">Checked in</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-400">
-                      <Route
-                        className="h-3 w-3 text-white"
-                        strokeWidth={2.5}
-                      />
-                    </span>
-                    <span className="">On the way</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-400">
-                      <CircleAlert
-                        className="h-3 w-3 text-white"
-                        strokeWidth={2.5}
-                      />
-                    </span>
-                    <span className="">Missed</span>
-                  </div>
+                <EventStatusBadge
+                  status={event.status}
+                  attendeeCount={event.attendeeCount}
+                  minPeople={event.minPeople ?? 1}
+                  startTime={event.startTime}
+                  endTime={event.endTime}
+                  isFree={event.isFree}
+                  isOfficial={event.isOfficial}
+                />
+              </div>
+
+              <hr className="my-3 border-slate-200" />
+
+              {updatedAtLabel && <p className="mb-6 text-xs text-slate-400">Last updated {updatedAtLabel}</p>}
+
+              <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
+                <span className={`rounded-full px-3 py-1 ${EVENT_SPORT_CLASS}`}>{sportLabel}</span>
+                <span className={`rounded-full px-3 py-1 ${getSkillClass(event.skillLevel)}`}>{skillLabel}</span>
+                <span className={`rounded-full px-3 py-1 ${GENDER_CLASS}`}>{genderLabel}</span>
+              </div>
+
+              <div className="my-4">
+                <h1 className="text-[20px] font-semibold text-slate-900">{event.title}</h1>
+              </div>
+
+              <div className="space-y-3">
+                <InfoRow
+                  icon={Calendar}
+                  label={scheduleLabel}
+                />
+                <div
+                  className={clsx(
+                    'group flex items-start justify-between gap-2 transition',
+                    event.venueId ? 'hover:text-blue-600' : 'hover:text-slate-900'
+                  )}
+                >
+                  <InfoRow
+                    icon={MapPin}
+                    label={locationLabel}
+                  />
+                  <button
+                    type="button"
+                    aria-label="Open in map"
+                    onClick={handleOpenMap}
+                    className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  >
+                    <ExternalLink
+                      size={14}
+                      className="mt-[3px] shrink-0"
+                    />
+                  </button>
+                </div>
+                {event.courtName && (
+                  <InfoRow
+                    icon={LandPlot}
+                    label={`Court: ${event.courtName}`}
+                  />
+                )}
+                <InfoRow
+                  icon={CircleDollarSign}
+                  label={feeLine2}
+                />
+                <div className="ml-[52px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <p className="text-xs font-semibold tracking-wide text-slate-500">Fee Notes</p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{feeNote}</p>
                 </div>
               </div>
-              {event.participants.length > 0 ? (
-                <>
-                  <div className="flex flex-wrap gap-3 pt-1">
-                    {event.participants.map((participant) => {
-                      const isCheckedIn = !!participant.checkedInAt
-                      const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
-                      const closeMins = event.checkinCloseMinsAfter ?? 60
-                      const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
-                      const now = new Date()
-                      const isAbsent = !isCheckedIn && now > closeTime
-                      const isOnTheWay =
-                        !isAbsent &&
-                        (!!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay))
-                      const displayName = participant.isAnonymous ? 'Guest' : participant.name.split(' ')[0]
 
-                      return (
-                        <div
-                          key={participant.id}
-                          className="flex w-14 cursor-pointer flex-col items-center gap-1.5"
-                          onClick={() => {
-                            if (participant.username && !participant.isAnonymous) {
-                              onNavigateMate(participant.username)
-                            }
-                          }}
-                        >
-                          <div className="relative">
-                            <AvatarCircle
-                              name={participant.name}
-                              src={participant.avatarUrl}
-                              ringClassName={
-                                isCheckedIn
-                                  ? 'ring-2 ring-emerald-500'
-                                  : isAbsent
-                                    ? 'ring-2 ring-slate-400'
-                                    : isOnTheWay
-                                      ? 'ring-2 ring-amber-400'
-                                      : undefined
-                              }
-                            />
-                            <ParticipantStatusBadge
-                              isCheckedIn={isCheckedIn}
-                              isAbsent={isAbsent}
-                              isOnTheWay={isOnTheWay}
-                            />
-                          </div>
-                          <p className="w-full truncate text-center text-[11px] font-medium text-slate-700">
-                            {displayName}
-                          </p>
-                        </div>
-                      )
-                    })}
+              <hr className="my-6 border-slate-200" />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                      <MessageCircle
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span>About this event</span>
                   </div>
-                </>
-              ) : (
-                <p className="pl-14 text-xs text-slate-300">Be the first to join and kick off the game!</p>
-              )}
+                </div>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                  {event.detail?.description || event.description || 'No description'}
+                </p>
+              </div>
+
+              <hr className="my-6 border-slate-200" />
+
+              <div className="space-y-3">
+                <div className="flex justify-between gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <div className="flex items-start gap-2">
+                    <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-[#C8DBFF] bg-[#EEF3FF] text-[#1E6DEB] shadow-[0_4px_10px_rgba(30,109,235,0.12)]">
+                      <PersonStanding
+                        className="h-4 w-4"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <span className="flex flex-1 flex-col gap-1">
+                      <span className="flex items-center justify-between">
+                        <span>
+                          {event.attendeeCount} joined · {spotsRemaining} spots left
+                        </span>
+                      </span>
+                      <span className="flex items-center justify-between">
+                        <span className="text-[11px] font-medium normal-case tracking-normal text-slate-400">
+                          {participantRule}
+                        </span>
+                        {spotsRemaining === 0 && event.status !== 'cancelled' && (
+                          <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-red-500">
+                            Full
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1 text-[8px] font-bold text-slate-500">
+                    <div className="flex items-center gap-1">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500">
+                        <Check
+                          className="h-3 w-3 text-white"
+                          strokeWidth={3}
+                        />
+                      </span>
+                      <span className="">Checked in</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-400">
+                        <Route
+                          className="h-3 w-3 text-white"
+                          strokeWidth={2.5}
+                        />
+                      </span>
+                      <span className="">On the way</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-slate-400">
+                        <CircleAlert
+                          className="h-3 w-3 text-white"
+                          strokeWidth={2.5}
+                        />
+                      </span>
+                      <span className="">Missed</span>
+                    </div>
+                  </div>
+                </div>
+                {event.participants.length > 0 ? (
+                  <>
+                    <div className="flex flex-wrap gap-3 pt-1">
+                      {event.participants.map((participant) => {
+                        const isCheckedIn = !!participant.checkedInAt
+                        const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
+                        const closeMins = event.checkinCloseMinsAfter ?? 0
+                        const closeTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
+                        const now = new Date()
+                        const isAbsent = !isCheckedIn && now > closeTime
+                        const isOnTheWay =
+                          !isAbsent &&
+                          (!!participant.onTheWayAt || (participant.id === currentUserId && hasSignaledOnTheWay))
+                        const displayName = participant.name.split(' ')[0] || 'Guest'
+
+                        return (
+                          <div
+                            key={participant.id}
+                            className={clsx(
+                              'flex w-14 flex-col items-center gap-1.5',
+                              participant.username && !participant.isAnonymous ? 'cursor-pointer' : 'cursor-default'
+                            )}
+                            onClick={() => {
+                              if (participant.username && !participant.isAnonymous) {
+                                onNavigateMate(participant.username)
+                              }
+                            }}
+                          >
+                            <div className="relative">
+                              <AvatarCircle
+                                name={participant.name}
+                                src={participant.avatarUrl}
+                                ringClassName={
+                                  isCheckedIn
+                                    ? 'ring-2 ring-emerald-500'
+                                    : isAbsent
+                                      ? 'ring-2 ring-slate-400'
+                                      : isOnTheWay
+                                        ? 'ring-2 ring-amber-400'
+                                        : undefined
+                                }
+                              />
+                              <ParticipantStatusBadge
+                                isCheckedIn={isCheckedIn}
+                                isAbsent={isAbsent}
+                                isOnTheWay={isOnTheWay}
+                              />
+                            </div>
+                            <p className="w-full truncate text-center text-[11px] font-medium text-slate-700">
+                              {displayName}
+                            </p>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <p className="pl-14 text-xs text-slate-300">Be the first to join and kick off the game!</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -501,7 +510,7 @@ export function EventDetailView({
       {event.status !== 'cancelled' &&
         event.status !== 'completed' &&
         event.status !== 'draft' &&
-        new Date() <= new Date(eventEnd.getTime() + (event.checkinCloseMinsAfter ?? 60) * 60 * 1000) && (
+        new Date() <= new Date(eventEnd.getTime() + (event.checkinCloseMinsAfter ?? 0) * 60 * 1000) && (
           <JoinBar
             isJoined={isJoined}
             event={event}
@@ -518,6 +527,7 @@ export function EventDetailView({
         open={showLoginPrompt}
         onClose={onCloseLoginPrompt}
         returnTo={id ? `/event/${id}` : undefined}
+        onJoinAsGuest={onJoinAsGuest}
       />
 
       <AlertDialog
@@ -529,11 +539,13 @@ export function EventDetailView({
         onAction={alertDialog.onAction}
         actionLabel={alertDialog.actionLabel}
         cancelLabel={alertDialog.cancelLabel}
+        isLoading={alertDialog.isLoading}
       />
 
       <ProfileRequiredSheet
         open={showProfileRequired}
         onClose={onCloseProfileRequired}
+        dismissible
       />
 
       <MapPickerSheet
@@ -637,39 +649,25 @@ function formatEventSchedule(start: Date | string, end: Date | string) {
     day: 'numeric',
   })
 
-  const startWithSuffix = startDate.toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-  const endWithSuffix = endDate.toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  const upcase = (t: string) => t.replace(/\s(am|pm)$/i, (m) => m.toUpperCase())
+  const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit', hour12: true }
+  const startTime = upcase(startDate.toLocaleTimeString('en-AU', opts))
+  const endTime = upcase(endDate.toLocaleTimeString('en-AU', opts))
 
-  const startSuffix = startWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const endSuffix = endWithSuffix.match(/\s(AM|PM)$/)?.[1] ?? ''
-  const startCore = startWithSuffix.replace(/\s(AM|PM)$/, '')
-  const endCore = endWithSuffix.replace(/\s(AM|PM)$/, '')
-
-  const timeLabel =
-    startSuffix && startSuffix === endSuffix
-      ? `${startCore}–${endCore} ${endSuffix}`
-      : `${startWithSuffix}–${endWithSuffix}`
-
-  return `${dateLabel} · ${timeLabel}`
+  return `${dateLabel} · ${startTime} – ${endTime}`
 }
 
 function formatDateTimeLabel(value: Date | string) {
-  return new Date(value).toLocaleString('en-AU', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
+  return new Date(value)
+    .toLocaleString('en-AU', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+    .replace(/\s(am|pm)$/i, (m) => m.toUpperCase())
 }
 
 type JoinBarProps = {
@@ -698,18 +696,12 @@ function JoinBar({
   const startTime = new Date(event.startTime)
   const endTime = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
 
-  const openMins = event.checkinOpenMinsBefore ?? 10
-  const closeMins = event.checkinCloseMinsAfter ?? 60
+  const openMins = event.checkinOpenMinsBefore ?? 15
+  const closeMins = event.checkinCloseMinsAfter ?? 0
 
   const openTime = new Date(startTime.getTime() - openMins * 60 * 1000)
   const effectiveCloseTime = new Date(endTime.getTime() + closeMins * 60 * 1000)
   const isCheckInOpen = now >= openTime && now <= effectiveCloseTime
-
-  // Free + non-official events (open courts, parks) stay open for walk-up joiners even mid-game.
-  // Paid or official events: 2h before start, leave is disabled (locked in). New joiners can still hop in but also can't leave.
-  const isPublicFree = event.isFree && !event.isOfficial
-  const lockTime = new Date(startTime.getTime() - 2 * 60 * 60 * 1000)
-  const isBookingsClosed = !isPublicFree && now >= lockTime
 
   const formatTime = (value: Date) => {
     const dateLabel = value.toLocaleDateString('en-AU', {
@@ -717,11 +709,13 @@ function JoinBar({
       month: 'short',
       day: 'numeric',
     })
-    const timeLabel = value.toLocaleTimeString('en-AU', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    })
+    const timeLabel = value
+      .toLocaleTimeString('en-AU', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })
+      .replace(/\s(am|pm)$/i, (m) => m.toUpperCase())
     return `${dateLabel} · ${timeLabel}`
   }
 
@@ -773,17 +767,7 @@ function JoinBar({
     )
   } else if (isJoined) {
     if (isCheckInOpen) {
-      mainButton = isBookingsClosed ? (
-        <Button
-          disabled
-          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <DoorClosed className="h-4 w-4" />
-            Leave
-          </span>
-        </Button>
-      ) : (
+      mainButton = (
         <Button
           onClick={onJoin}
           disabled={isJoinSubmitting}
@@ -822,11 +806,9 @@ function JoinBar({
         </Button>
       )
       statusText = (
-        <p className="px-4 text-center text-xs font-medium leading-relaxed text-slate-500">
-          {hasSignaledOnTheWay
-            ? `Your mates know you're OTW. Remember to check in by ${formatTime(effectiveCloseTime)}.`
-            : `Check in before ${formatTime(effectiveCloseTime)} so everyone knows you've made it.`}
-        </p>
+        <div className="px-4 text-left text-xs font-medium leading-relaxed text-slate-500">
+          <p>Let the crew know you're here. Stack up mates with every check-in.</p>
+        </div>
       )
     } else if (now > effectiveCloseTime) {
       mainButton = (
@@ -852,17 +834,7 @@ function JoinBar({
         </Button>
       )
     } else {
-      mainButton = isBookingsClosed ? (
-        <Button
-          disabled
-          className="cursor-not-allowed !bg-slate-200 !text-slate-400 disabled:opacity-100"
-        >
-          <span className="flex items-center justify-center gap-2">
-            <DoorClosed className="h-4 w-4" />
-            Leave
-          </span>
-        </Button>
-      ) : (
+      mainButton = (
         <Button
           onClick={onJoin}
           disabled={isJoinSubmitting}
@@ -892,18 +864,13 @@ function JoinBar({
           </span>
         </Button>
       )
-      statusText = isBookingsClosed ? (
-        <p className="text-center text-xs font-medium text-slate-500">
-          Withdrawals are closed — you're locked in for this one.
-        </p>
-      ) : (
-        <p className="text-center text-xs font-medium text-slate-500">
-          Check-in opens {formatTime(openTime)}.<br />
-          Let the host know you're there.
-        </p>
+      statusText = (
+        <div className="text-left text-xs font-medium leading-relaxed text-slate-500">
+          <p>{`Check-in opens ${openMins} min before kick-off — let the crew know you're here and stack up mates.`}</p>
+        </div>
       )
     }
-  } else if (!isPublicFree && now >= startTime && now <= endTime) {
+  } else if (!event.isFree && now >= startTime && now <= endTime) {
     mainButton = (
       <Button
         disabled
@@ -930,8 +897,8 @@ function JoinBar({
   }
 
   return (
-    <div className="fixed bottom-0 left-1/2 z-30 w-full max-w-md -translate-x-1/2 overflow-hidden bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
-      <div className="relative flex w-full flex-col gap-2 px-4">
+    <div className="w-full shrink-0 bg-white pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-5 shadow-[0_-20px_50px_rgba(15,41,77,0.1)]">
+      <div className="relative mx-auto flex w-full max-w-md flex-col gap-2 px-4">
         {statusText}
         {secondaryButton ? (
           <div className="grid grid-cols-2 gap-3">

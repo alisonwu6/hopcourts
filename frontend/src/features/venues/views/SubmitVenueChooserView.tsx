@@ -13,7 +13,6 @@ interface SubmitVenueChooserViewProps {
 const PUBLIC_FEATURES = [
   { included: true, label: 'Instantly visible on search & map' },
   { included: true, label: 'Open to anyone to host pickup games' },
-  { included: true, label: 'Free forever for the community' },
 ]
 
 const OFFICIAL_FEATURES = [
@@ -54,7 +53,7 @@ export function SubmitVenueChooserView({ onCancel, onPickPublic, onPickOfficial 
                 strokeWidth={2}
               />
             }
-            title="Public listing"
+            title="Public Courts"
             badge="Free, always"
             description="Just mark a local court on the map so everyone can hop in. 100% community powered."
             features={PUBLIC_FEATURES}

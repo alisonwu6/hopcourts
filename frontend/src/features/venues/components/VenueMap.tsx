@@ -1,9 +1,11 @@
 import { useMemo, useEffect, useRef } from 'react'
 import Map, { Marker, GeolocateControl, MapRef } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { MapPin } from 'lucide-react'
 import { ApiVenue } from '../services/venuesService'
 import { VenueMapMarker } from './VenueMapMarker'
-import { VenueMapBottomSheet } from './VenueMapBottomSheet'
+import { VenueCard } from './VenueCard'
+import { QUEENSLAND_BOUNDS } from '@/components/map/MapPicker'
 
 interface VenueMapProps {
   venues: ApiVenue[]
@@ -63,6 +65,7 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
         ref={mapRef}
         mapboxAccessToken={token}
         initialViewState={{ longitude: 153.0251, latitude: -27.4698, zoom: 11 }}
+        maxBounds={QUEENSLAND_BOUNDS}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/streets-v11"
         onClick={() => onSelectVenue(null)}
@@ -71,7 +74,7 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
           position="bottom-right"
           trackUserLocation
           showUserHeading
-          style={{ marginBottom: 30 }}
+          style={{ marginBottom: 120 }}
         />
 
         {validVenues.map((venue) => (
@@ -93,13 +96,21 @@ export function VenueMap({ venues, selectedVenueId, onSelectVenue, onNavigate }:
         ))}
       </Map>
 
+      <div className="top-33 pointer-events-none absolute left-3 z-10">
+        <div className="flex items-center gap-1 rounded-full bg-black/50 px-2.5 py-1 backdrop-blur-sm">
+          <MapPin className="h-3 w-3 text-white/80" />
+          <span className="text-xs font-semibold text-white">Brisbane, QLD only</span>
+        </div>
+      </div>
+
       {selectedVenue && (
         <div
           className="fixed left-1/2 z-50 w-full max-w-md -translate-x-1/2 px-4 transition-all duration-500 animate-in fade-in slide-in-from-bottom-8"
           style={{ bottom: 'calc(68px + env(safe-area-inset-bottom, 0px) + 16px)' }}
         >
-          <VenueMapBottomSheet
+          <VenueCard
             venue={selectedVenue}
+            variant="map"
             onNavigate={onNavigate}
             onShare={() => handleShare(selectedVenue)}
           />

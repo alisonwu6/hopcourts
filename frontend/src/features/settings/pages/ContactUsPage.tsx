@@ -1,25 +1,50 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Send, CheckCircle2, AlertCircle, Lightbulb, UserCircle2, HelpCircle, Check } from 'lucide-react'
+import { useState, type ChangeEvent } from 'react'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { useAuthStore } from '@/hooks'
+import { Send, CheckCircle2, Check, ImagePlus, X, ChevronDown } from 'lucide-react'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 import { feedbackService } from '@/services/feedbackService'
+import { uploadService } from '@/features/events/services/uploadService'
+import { convertFileToWebP } from '@/utils/imageUtils'
 
 type FeedbackType = 'issue' | 'feature' | 'account' | 'other'
 
-const feedbackTypes: { value: FeedbackType; label: string; icon: any }[] = [
-  { value: 'issue', label: 'Report an issue', icon: AlertCircle },
-  { value: 'feature', label: 'Feature suggestion', icon: Lightbulb },
-  { value: 'account', label: 'Account related', icon: UserCircle2 },
-  { value: 'other', label: 'Other', icon: HelpCircle },
+const feedbackTypes: { value: FeedbackType; label: string }[] = [
+  { value: 'other', label: 'Share feedback' },
+  { value: 'issue', label: 'Report an issue' },
+  { value: 'feature', label: 'Request a feature' },
+  { value: 'account', label: 'Account related' },
 ]
+
+const validTypes: FeedbackType[] = ['issue', 'feature', 'account', 'other']
+const MAX_IMAGES = 3
+const MAX_BYTES = 5 * 1024 * 1024
 
 export function ContactUsPage() {
   const navigate = useNavigate()
-  const [type, setType] = useState<FeedbackType>('issue')
+  const location = useLocation()
+  const { isAuthenticated } = useAuthStore((s) => ({ isAuthenticated: s.isAuthenticated }))
+  const [searchParams] = useSearchParams()
+
+  const handleBack = () => {
+    if (location.key !== 'default') {
+      navigate(-1)
+    } else {
+      navigate('/settings')
+    }
+  }
+  const paramType = searchParams.get('type')
+  const [type, setType] = useState<FeedbackType>(
+    validTypes.includes(paramType as FeedbackType) ? (paramType as FeedbackType) : 'issue'
+  )
   const [content, setContent] = useState('')
   const [allowReply, setAllowReply] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const [guestEmail, setGuestEmail] = useState('')
 
   const getPlaceholder = (feedbackType: FeedbackType) => {
     switch (feedbackType) {
@@ -34,6 +59,54 @@ export function ContactUsPage() {
     }
   }
 
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const rawFiles = Array.from(e.target.files ?? [])
+    if (!rawFiles.length) return
+
+    setPhotoError(null)
+
+    const remaining = MAX_IMAGES - imageFiles.length
+    if (remaining <= 0) {
+      setPhotoError(`You can upload up to ${MAX_IMAGES} photos.`)
+      e.target.value = ''
+      return
+    }
+
+    const filesToProcess = rawFiles.slice(0, remaining)
+    const results: File[] = []
+
+    for (const file of filesToProcess) {
+      let processed: File
+      try {
+        processed = await convertFileToWebP(file)
+        if (processed.size > MAX_BYTES) {
+          processed = await convertFileToWebP(file, 1280, 0.7)
+        }
+      } catch {
+        processed = file
+      }
+
+      if (processed.size > MAX_BYTES) {
+        const mb = (processed.size / 1024 / 1024).toFixed(1)
+        setPhotoError(`Photo is too large (${mb} MB). Please use a photo under 5 MB.`)
+        e.target.value = ''
+        return
+      }
+
+      results.push(processed)
+    }
+
+    setImagePreviews((prev) => [...prev, ...results.map((f) => URL.createObjectURL(f))])
+    setImageFiles((prev) => [...prev, ...results])
+    e.target.value = ''
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index))
+    setImageFiles((prev) => prev.filter((_, i) => i !== index))
+    setPhotoError(null)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!content.trim()) return
@@ -41,20 +114,22 @@ export function ContactUsPage() {
     try {
       setIsSubmitting(true)
 
+      const uploadedUrls = await Promise.all(imageFiles.map((f) => uploadService.uploadFeedbackImage(f)))
+
       await feedbackService.create({
         type,
         message: content,
-        allow_reply: allowReply,
+        allow_reply: isAuthenticated ? allowReply : !!guestEmail.trim(),
+        images: uploadedUrls,
+        guest_email: !isAuthenticated && guestEmail.trim() ? guestEmail.trim() : undefined,
         page: window.location.pathname,
-        meta: {
-          userAgent: navigator.userAgent,
-        },
+        meta: { userAgent: navigator.userAgent },
       })
 
-      setIsSubmitting(false)
       setIsSuccess(true)
     } catch (error) {
       console.error(error)
+    } finally {
       setIsSubmitting(false)
     }
   }
@@ -64,9 +139,10 @@ export function ContactUsPage() {
       <div className="min-h-[100dvh] bg-white">
         <ActionToolbar
           title="Contact Us"
-          onBack={() => navigate('/settings')}
+          onBack={handleBack}
           showBack
           borderBottom
+          contentClassName="max-w-page px-4"
         />
         <div className="flex h-[80vh] flex-col items-center justify-center px-6 text-center">
           <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
@@ -75,10 +151,10 @@ export function ContactUsPage() {
           <h2 className="mb-2 text-2xl font-bold text-slate-900">Thanks for your feedback!</h2>
           <p className="mb-8 text-slate-600">We've received your message and our team will review it shortly.</p>
           <button
-            onClick={() => navigate('/settings')}
-            className="w-full max-w-xs rounded-full bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-700 active:scale-95"
+            onClick={() => navigate('/events')}
+            className="bg-ocean max-w-xs cursor-pointer rounded-full px-6 py-3 font-semibold text-white"
           >
-            Back to Settings
+            Explore Events
           </button>
         </div>
       </div>
@@ -86,35 +162,92 @@ export function ContactUsPage() {
   }
 
   return (
-    <div className="pb-safe min-h-[100dvh] bg-slate-50">
+    <div className="pb-safe min-h-[100dvh] bg-white">
       <ActionToolbar
         title="Contact Us"
-        onBack={() => navigate('/settings')}
+        onBack={handleBack}
         showBack
         borderBottom
         className="bg-white"
+        contentClassName="max-w-page px-4"
       />
 
-      <main className="mx-auto max-w-2xl px-4 py-6">
+      {/* Hero */}
+      <div className="relative overflow-hidden bg-[#1A3A0A]">
+        {/* Court lines — same pattern as app icon */}
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 390 170"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <g opacity="0.22" stroke="white" fill="none" strokeLinecap="round">
+            {/* Tennis-style court — upper right */}
+            <g transform="translate(175, -18) rotate(12, 62, 33) scale(1.65)">
+              <rect x="0" y="0" width="124" height="66" strokeWidth="1.5" />
+              <line x1="62" y1="0" x2="62" y2="66" strokeWidth="1.2" />
+              <circle cx="62" cy="33" r="7.9" strokeWidth="1.2" />
+              <circle cx="62" cy="33" r="2" fill="white" stroke="none" />
+              <rect x="0" y="22.2" width="25.7" height="21.6" strokeWidth="1.2" />
+              <circle cx="25.7" cy="33" r="7.9" strokeWidth="1.2" />
+              <line x1="0" y1="4" x2="8" y2="4" strokeWidth="1.2" />
+              <line x1="0" y1="62" x2="8" y2="62" strokeWidth="1.2" />
+              <path d="M8,4 A29,29 0 0,1 8,62" strokeWidth="1.2" />
+              <rect x="98.3" y="22.2" width="25.7" height="21.6" strokeWidth="1.2" />
+              <circle cx="98.3" cy="33" r="7.9" strokeWidth="1.2" />
+              <line x1="124" y1="4" x2="116" y2="4" strokeWidth="1.2" />
+              <line x1="124" y1="62" x2="116" y2="62" strokeWidth="1.2" />
+              <path d="M116,4 A29,29 0 0,0 116,62" strokeWidth="1.2" />
+            </g>
+          </g>
+        </svg>
+
+        <div className="relative mx-auto max-w-page px-5 pb-10 pt-8">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-lime-400">
+            Get in touch
+          </p>
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-white">
+            Got something
+            <br />
+            on your mind?
+          </h1>
+          <p className="mt-3 text-base text-white/60">
+            We read every message — a bug, an idea, or just a note.
+          </p>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-page px-4 py-6">
         <form
           onSubmit={handleSubmit}
-          className="space-y-8"
+          className="space-y-6"
         >
           <div className="space-y-3">
-            <label className="text-base font-bold text-slate-900">Feedback Type</label>
-            <div className="mt-2 grid grid-cols-1 gap-3">
-              {feedbackTypes.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setType(value)}
-                  className={`group relative flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition-all duration-200 ${type === value ? 'border-2 border-emerald-500 bg-emerald-50 font-bold text-emerald-700 shadow-sm' : 'border border-slate-200 bg-white font-medium text-slate-600 hover:bg-slate-50'}`}
-                >
-                  <Icon className={`h-5 w-5 ${type === value ? 'text-emerald-600' : 'text-slate-400'}`} />
-                  {label}
-                  {type === value && <CheckCircle2 className="ml-auto h-5 w-5 text-emerald-600" />}
-                </button>
-              ))}
+            <label
+              htmlFor="feedback-type"
+              className="mb-2 inline-block text-base font-bold text-slate-900"
+            >
+              Feedback Type
+            </label>
+            <div className="relative">
+              <select
+                id="feedback-type"
+                value={type}
+                onChange={(e) => setType(e.target.value as FeedbackType)}
+                className="w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 pr-10 text-base font-semibold text-slate-900 shadow-sm focus:border-emerald-500 focus:outline-none"
+              >
+                {feedbackTypes.map(({ value, label }) => (
+                  <option
+                    key={value}
+                    value={value}
+                  >
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              </div>
             </div>
           </div>
 
@@ -137,43 +270,109 @@ export function ContactUsPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 px-1">
-            <button
-              type="button"
-              role="checkbox"
-              aria-checked={allowReply}
-              onClick={() => setAllowReply(!allowReply)}
-              className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${allowReply ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white'}`}
-            >
-              {allowReply && (
-                <Check
-                  size={14}
-                  strokeWidth={3}
-                />
-              )}
-            </button>
-            <label
-              className="cursor-pointer select-none text-sm text-slate-600"
-              onClick={() => setAllowReply(!allowReply)}
-            >
-              Allow HopCourts to contact me by email for follow-up
+          <div className="space-y-3">
+            <label className="text-base font-bold text-slate-900">
+              Photos <span className="text-sm font-normal text-slate-400">— optional, up to 3</span>
             </label>
+            <div className="rounded-[24px] border border-slate-200 bg-slate-50/50 p-2">
+              <div className="grid grid-cols-3 gap-2">
+                {imagePreviews.map((src, idx) => (
+                  <div
+                    key={src}
+                    className="relative aspect-square w-full overflow-hidden rounded-xl border border-slate-100 shadow-sm"
+                  >
+                    <img
+                      src={src}
+                      alt={`Preview ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {imagePreviews.length < MAX_IMAGES && (
+                  <label className="group relative box-border flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 bg-white p-2 transition">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                      <ImagePlus className="h-4 w-4" />
+                    </div>
+                    <p className="text-[10px] font-semibold text-slate-500">Add Photo</p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+            {photoError && <p className="text-xs text-red-500">{photoError}</p>}
           </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting || !content.trim()}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-6 py-4 text-lg font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
-          >
-            {isSubmitting ? (
-              'Sending...'
-            ) : (
-              <>
-                <Send className="h-5 w-5" />
-                Submit
-              </>
-            )}
-          </button>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3 px-1">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={allowReply}
+                onClick={() => setAllowReply(!allowReply)}
+                className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${allowReply ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white'}`}
+              >
+                {allowReply && (
+                  <Check
+                    size={14}
+                    strokeWidth={3}
+                  />
+                )}
+              </button>
+              <label
+                className="cursor-pointer select-none text-sm text-slate-600"
+                onClick={() => setAllowReply(!allowReply)}
+              >
+                Allow HopCourts to contact me by email for follow-up
+              </label>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <label
+                htmlFor="guest-email"
+                className="text-base font-bold text-slate-900"
+              >
+                Your email <span className="text-sm font-normal text-slate-400">(optional — so we can follow up)</span>
+              </label>
+              <input
+                id="guest-email"
+                type="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base font-semibold text-slate-900 shadow-sm placeholder:font-normal placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={isSubmitting || !content.trim()}
+              className="bg-ocean hover:bg-ocean-600 flex items-center justify-center gap-2 rounded-full px-10 py-3 text-lg font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+            >
+              {isSubmitting ? (
+                'Sending...'
+              ) : (
+                <>
+                  <Send className="h-5 w-5" />
+                  Submit
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </main>
     </div>

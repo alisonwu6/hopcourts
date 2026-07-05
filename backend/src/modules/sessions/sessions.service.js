@@ -5,6 +5,7 @@ const checkinsModel = require('../../../models/checkins.model')
 const usersModel = require('../../../models/users.model')
 const { createSession: createSessionModel } = require('../../../models/sessions.model')
 const { resolveVenue } = require('../venues/venues.service')
+const { resolveCityKeyByCoords } = require('../../utils/geocoding')
 const notificationsService = require('../notifications/notifications.service')
 
 function parseNumber(value, fallback) {
@@ -64,6 +65,8 @@ async function listSessions(params = {}) {
 }
 
 async function listMySessions({ userId, type = 'upcoming', role, time, limit, offset }) {
+  limit = Math.min(Math.max(Number(limit) || 20, 1), 50)
+  offset = Math.max(Number(offset) || 0, 0)
   try {
     // Backward compatible: support legacy `type` and new `role + time`.
     let resolvedRole = role
@@ -290,7 +293,7 @@ async function createSession(input) {
   if (!input.placeName) throw Errors.validation('place_name is required')
 
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
-  const allowedGender = ['mixed', 'female', 'male']
+  const allowedGender = ['mixed', 'female', 'male', 'lgbtq']
   const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
@@ -348,10 +351,13 @@ async function createSession(input) {
     }
   }
 
+  const cityKey = await resolveCityKeyByCoords(Number(input.lat), Number(input.lng))
+
   const payload = {
     hostUserId: input.userId,
     sportKey: input.sportKey,
-    venueId, // Add resolved venue ID
+    venueId,
+    cityKey,
     title: input.title ?? null,
     description: input.description ?? null,
     startAt: new Date(input.startAt),
@@ -362,7 +368,7 @@ async function createSession(input) {
     lng: input.lng ?? 0,
     checkinRadiusM: input.checkinRadiusM ?? 100,
     checkinOpenMinsBefore: input.checkinOpenMinsBefore ?? 15,
-    checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 5,
+    checkinCloseMinsAfter: input.checkinCloseMinsAfter ?? 0,
     minPeople: input.minPeople,
     maxPeople: input.maxPeople ?? input.capacity ?? null,
     status: input.status ?? 'published',
@@ -405,8 +411,10 @@ async function updateSession(sessionId, input) {
     throw Errors.forbidden('Only host can update session')
   }
 
+  const isLocked = existing.participant_count > 0
+
   const allowedSkill = ['any', 'beginner', 'intermediate', 'advanced']
-  const allowedGender = ['mixed', 'female', 'male']
+  const allowedGender = ['mixed', 'female', 'male', 'lgbtq']
   const allowedPriceMode = ['total', 'person']
 
   if (input.skillLevel && !allowedSkill.includes(input.skillLevel)) {
@@ -433,7 +441,7 @@ async function updateSession(sessionId, input) {
   }
 
   let venueId = undefined
-  if (input.lat && input.lng && input.lat !== 0 && input.lng !== 0) {
+  if (!isLocked && input.lat && input.lng && input.lat !== 0 && input.lng !== 0) {
     try {
       venueId = await resolveVenue({
         lat: Number(input.lat),
@@ -447,36 +455,42 @@ async function updateSession(sessionId, input) {
     }
   }
 
-  const patch = {
-    sportKey: input.sportKey,
-    title: input.title,
-    description: input.description,
-    startAt: input.startAt ? new Date(input.startAt) : undefined,
-    endAt: input.endAt ? new Date(input.endAt) : undefined,
-    locationName: input.placeName,
-    address: input.address,
-    lat: input.lat,
-    lng: input.lng,
-    locationSource: input.locationSource,
-    venueId,
-    checkinRadiusM: input.checkinRadiusM,
-    checkinOpenMinsBefore: input.checkinOpenMinsBefore,
-    checkinCloseMinsAfter: input.checkinCloseMinsAfter,
-    minPeople: input.minPeople,
-    maxPeople: input.maxPeople ?? input.capacity,
-    status: input.status,
-    visibility: input.visibility,
-    skillLevel: input.skillLevel,
-    gender: input.gender,
-    photos: input.photos,
-    isFree: input.isFree,
-    priceTotal: input.priceTotal,
-    pricePerPerson: input.pricePerPerson,
-    priceMode: input.priceMode,
-    priceNote: input.priceNote,
-  }
+  const patch = isLocked
+    ? {
+        description: input.description,
+        photos: input.photos,
+        priceNote: input.priceNote,
+      }
+    : {
+        sportKey: input.sportKey,
+        title: input.title,
+        description: input.description,
+        startAt: input.startAt ? new Date(input.startAt) : undefined,
+        endAt: input.endAt ? new Date(input.endAt) : undefined,
+        locationName: input.placeName,
+        address: input.address,
+        lat: input.lat,
+        lng: input.lng,
+        locationSource: input.locationSource,
+        venueId,
+        checkinRadiusM: input.checkinRadiusM,
+        checkinOpenMinsBefore: input.checkinOpenMinsBefore,
+        checkinCloseMinsAfter: input.checkinCloseMinsAfter,
+        minPeople: input.minPeople,
+        maxPeople: input.maxPeople ?? input.capacity,
+        status: input.status,
+        visibility: input.visibility,
+        skillLevel: input.skillLevel,
+        gender: input.gender,
+        photos: input.photos,
+        isFree: input.isFree,
+        priceTotal: input.priceTotal,
+        pricePerPerson: input.pricePerPerson,
+        priceMode: input.priceMode,
+        priceNote: input.priceNote,
+      }
 
-  if (patch.priceMode === 'person') {
+  if (!isLocked && patch.priceMode === 'person') {
     patch.priceTotal = null
   }
 

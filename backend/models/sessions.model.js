@@ -32,8 +32,9 @@ const BASE_FIELDS = [
   'court_id',
   'court_name',
   'location_source',
-  'price_note', // New Field
-  'is_official', // New Field
+  'price_note',
+  'is_official',
+  'city_key',
 ]
 
 async function listUpcomingSessions({
@@ -79,7 +80,7 @@ async function listUpcomingSessions({
   const allConditions = [...conditions.map(c => `s.${c}`), ...rawConditions]
   const sql = `
     select ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
-      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      COALESCE(pc.participant_count, 0) as participant_count,
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
@@ -88,12 +89,15 @@ async function listUpcomingSessions({
       c.name_en as host_city_name,
       v.status as venue_status,
       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
-      v.name_display as venue_name_display
+      v.name_display as venue_name_display,
+      sc.name_en as city_name
     from public.sessions s
+    left join (select session_id, count(*) as participant_count from public.session_participants group by session_id) pc on pc.session_id = s.id
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
     left join public.venues v on s.venue_id = v.id
     left join public.venue_profiles vp on v.id = vp.venue_id
+    left join public.cities sc on s.city_key = sc.key
     where ${allConditions.join(' AND ')}
     order by s.starts_at asc
     limit $${idx + 1}
@@ -104,7 +108,7 @@ async function listUpcomingSessions({
   return rows
 }
 
-async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 200, offset = 0 } = {}) {
+async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 20, offset = 0 } = {}) {
   const params = [userId, from || new Date()]
   let idx = params.length
   
@@ -136,7 +140,7 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 
 
   const sql = `
     select DISTINCT ${BASE_FIELDS.map((f) => `s.${f}`).join(', ')},
-      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      COALESCE(pc.participant_count, 0) as participant_count,
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
@@ -145,13 +149,16 @@ async function listMyUpcomingSessions({ userId, from, to, role = 'all', limit = 
       c.name_en as host_city_name,
       v.status as venue_status,
       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
-      v.name_display as venue_name_display
+      v.name_display as venue_name_display,
+      sc.name_en as city_name
     from public.sessions s
     left join public.session_participants sp on sp.session_id = s.id
+    left join (select session_id, count(*) as participant_count from public.session_participants group by session_id) pc on pc.session_id = s.id
     left join public.users h on s.host_user_id = h.id
     left join public.cities c on h.city_key = c.key
     left join public.venues v on s.venue_id = v.id
     left join public.venue_profiles vp on v.id = vp.venue_id
+    left join public.cities sc on s.city_key = sc.key
     where ${conditions.join(' AND ')}
     order by s.starts_at asc
     limit $${++idx} offset $${++idx}
@@ -189,7 +196,7 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
 
   const sql = `
     SELECT ${BASE_FIELDS.map((f) => `s.${f}`).join(', ')},
-      (select count(*) from public.session_participants where session_id = s.id) as participant_count,
+      COALESCE(pc.participant_count, 0) as participant_count,
       h.display_name as host_display_name,
       h.avatar_url as host_avatar_url,
       h.username as host_username,
@@ -198,13 +205,16 @@ async function listMyHistorySessions({ userId, limit = 50, offset = 0, role = 'a
       c.name_en as host_city_name,
       v.status as venue_status,
       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
-      v.name_display as venue_name_display
+      v.name_display as venue_name_display,
+      sc.name_en as city_name
     FROM public.sessions s
     LEFT JOIN public.session_participants sp ON sp.session_id = s.id
+    LEFT JOIN (SELECT session_id, count(*) AS participant_count FROM public.session_participants GROUP BY session_id) pc ON pc.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
     LEFT JOIN public.venues v ON s.venue_id = v.id
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
+    LEFT JOIN public.cities sc ON s.city_key = sc.key
     WHERE ${roleCondition}
       ${role === 'hosted' ? 'AND s.is_official = false' : ''}
       AND (
@@ -232,12 +242,14 @@ async function getSessionById(sessionId) {
        c.name_en as host_city_name,
        v.status as venue_status,
        v.name_display as venue_name_display,
-       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url
+       COALESCE(vp.logo_url, v.logo_url) as venue_logo_url,
+       sc.name_en as city_name
      from public.sessions s
      left join public.users h on s.host_user_id = h.id
      left join public.cities c on h.city_key = c.key
      left join public.venues v on s.venue_id = v.id
      left join public.venue_profiles vp on v.id = vp.venue_id
+     left join public.cities sc on s.city_key = sc.key
      where s.id = $1`,
     [sessionId]
   )
@@ -284,9 +296,10 @@ async function createSession(input) {
       price_mode,
       location_source,
       is_official,
-      price_note
+      price_note,
+      city_key
     ) values (
-      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30
+      $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31
     )
     returning ${BASE_FIELDS.join(', ')}
   `
@@ -306,7 +319,7 @@ async function createSession(input) {
     input.lng ?? 0,
     input.checkinRadiusM ?? 100,
     input.checkinOpenMinsBefore ?? 15,
-    input.checkinCloseMinsAfter ?? 5,
+    input.checkinCloseMinsAfter ?? 0,
     input.minPeople ?? 2,
     input.capacity ?? input.maxPeople ?? null,
     input.status ?? 'published',
@@ -321,6 +334,7 @@ async function createSession(input) {
     input.locationSource ?? null,
     input.isOfficial ?? false,
     input.priceNote ?? null,
+    input.cityKey ?? null,
   ]
 
   const { rows } = await query(sql, params)
@@ -358,6 +372,7 @@ async function updateSession(sessionId, patch = {}) {
     price_mode: patch.priceMode,
     is_official: patch.isOfficial,
     price_note: patch.priceNote,
+    city_key: patch.cityKey,
   }).filter(([, value]) => value !== undefined)
 
   if (!entries.length) return getSessionById(sessionId)
@@ -450,7 +465,7 @@ async function listSessionsByUserInterests({
   params.push(limit, offset)
   const sql = `
     SELECT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
-      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      COALESCE(pc.participant_count, 0) AS participant_count,
       h.display_name AS host_display_name,
       h.avatar_url AS host_avatar_url,
       h.username AS host_username,
@@ -459,12 +474,15 @@ async function listSessionsByUserInterests({
       c.name_en AS host_city_name,
       v.status AS venue_status,
       COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
-      v.name_display AS venue_name_display
+      v.name_display AS venue_name_display,
+      sc.name_en AS city_name
     FROM public.sessions s
+    LEFT JOIN (SELECT session_id, COUNT(*) AS participant_count FROM public.session_participants GROUP BY session_id) pc ON pc.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
     LEFT JOIN public.venues v ON s.venue_id = v.id
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
+    LEFT JOIN public.cities sc ON s.city_key = sc.key
     WHERE ${conditions.join(' AND ')}
     ORDER BY s.starts_at ASC
     LIMIT $${idx + 1}
@@ -536,7 +554,7 @@ async function listSessionsByRelations({
   params.push(limit, offset)
   const sql = `
     SELECT DISTINCT ${BASE_FIELDS.map(f => `s.${f}`).join(', ')},
-      (SELECT COUNT(*) FROM public.session_participants WHERE session_id = s.id) AS participant_count,
+      COALESCE(pc.participant_count, 0) AS participant_count,
       h.display_name AS host_display_name,
       h.avatar_url AS host_avatar_url,
       h.username AS host_username,
@@ -545,12 +563,15 @@ async function listSessionsByRelations({
       c.name_en AS host_city_name,
       v.status AS venue_status,
       COALESCE(vp.logo_url, v.logo_url) AS venue_logo_url,
-      v.name_display AS venue_name_display
+      v.name_display AS venue_name_display,
+      sc.name_en AS city_name
     FROM public.sessions s
+    LEFT JOIN (SELECT session_id, COUNT(*) AS participant_count FROM public.session_participants GROUP BY session_id) pc ON pc.session_id = s.id
     LEFT JOIN public.users h ON s.host_user_id = h.id
     LEFT JOIN public.cities c ON h.city_key = c.key
     LEFT JOIN public.venues v ON s.venue_id = v.id
     LEFT JOIN public.venue_profiles vp ON v.id = vp.venue_id
+    LEFT JOIN public.cities sc ON s.city_key = sc.key
     WHERE ${conditions.join(' AND ')}
     ORDER BY s.starts_at ASC
     LIMIT $${idx + 1}
