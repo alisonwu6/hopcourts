@@ -10,6 +10,8 @@ import { uploadService } from '@/features/events/services/uploadService'
 import { convertFileToWebP } from '@/utils/imageUtils'
 import { eventsService } from '@/features/events/services/eventsService'
 import { venueUpcomingEventsKey } from '@/features/venues/hooks/useVenueUpcomingEventsQuery'
+import { venueByIdKey } from '@/features/venues/hooks/useVenueByIdQuery'
+import { venueTodayEventsKey } from '@/features/venues/hooks/useVenueTodayEventsQuery'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -679,7 +681,10 @@ export function useCreateEventForm() {
           const venueId = (location.state as any)?.venueId as string | undefined
           if (venueId) {
             void queryClient.invalidateQueries({ queryKey: venueUpcomingEventsKey(venueId) })
+            void queryClient.invalidateQueries({ queryKey: venueTodayEventsKey(venueId) })
+            void queryClient.invalidateQueries({ queryKey: venueByIdKey(venueId) })
           }
+          void queryClient.invalidateQueries({ queryKey: ['events', 'feed'] })
           const draftBack = '/profile/hosted-events?tab=upcoming'
           navigate(`/event/${res.data.id}`, {
             state: { from: 'create-event', backTo: status === 'draft' ? draftBack : backTo },
@@ -790,7 +795,10 @@ export function useCreateEventForm() {
     setIsDeletingEvent(true)
     try {
       const res = await eventsService.deleteEvent(editId)
-      if (res.success) navigate('/profile/hosted-events?tab=upcoming', { replace: true })
+      if (res.success) {
+        void queryClient.invalidateQueries({ queryKey: ['events', 'my', 'hosted'] })
+        navigate('/profile/hosted-events?tab=upcoming', { replace: true })
+      }
     } catch (err) {
       console.error('Delete failed', err)
     } finally {
@@ -806,7 +814,10 @@ export function useCreateEventForm() {
     setIsCancellingEvent(true)
     try {
       const res = await eventsService.updateEvent(editId, { status: 'cancelled' } as any)
-      if (res.success) navigate(`/event/${editId}`, { replace: true, state: { from: 'create-event' } })
+      if (res.success) {
+        void queryClient.invalidateQueries({ queryKey: ['events', 'my', 'hosted'] })
+        navigate(`/event/${editId}`, { replace: true, state: { from: 'create-event' } })
+      }
     } catch (err) {
       console.error('Cancel failed', err)
     } finally {

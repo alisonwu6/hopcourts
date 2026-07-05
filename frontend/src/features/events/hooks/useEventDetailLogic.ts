@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useShallow } from 'zustand/react/shallow'
 import { useAuthStore } from '@/hooks'
@@ -13,6 +14,7 @@ export function useEventDetailLogic() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const location = useLocation()
+  const queryClient = useQueryClient()
 
   const [isFavorite, setIsFavorite] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
@@ -196,6 +198,7 @@ export function useEventDetailLogic() {
       setIsJoinSubmitting(true)
       try {
         await leaveEvent(id)
+        void queryClient.invalidateQueries({ queryKey: ['events', 'my', 'joined'] })
       } finally {
         setIsJoinSubmitting(false)
       }
