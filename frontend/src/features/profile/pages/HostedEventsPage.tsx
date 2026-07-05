@@ -13,6 +13,7 @@ export function HostedEventsPage() {
       viewMode={viewMode}
       onViewModeChange={setViewMode}
       onBack={() => navigate('/profile')}
+      onAction={() => navigate('/create-event', { state: { backTo: '/profile/hosted-events' } })}
     >
       <ProfileEventsPanel mode="hosted" viewMode={viewMode} />
     </EventsPageShell>

@@ -23,7 +23,7 @@ import { EventCard } from '@/features/events/components/EventCard'
 import { EventTimeline, groupEventsByDate, type SportsItem } from '@/features/events/components/EventTimeline'
 import { Bike, BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
 
-type TabKey = 'upcoming' | 'history'
+type TabKey = 'upcoming' | 'history' | 'draft'
 type PanelMode = 'all' | 'hosted' | 'joined'
 
 import { EmptyStateCard } from '@/components'
@@ -288,7 +288,7 @@ export function ProfileEventsPanel({
   const { items: sportsCatalog } = useSports('en')
 
   const role = mode === 'all' ? 'all' : mode as 'hosted' | 'joined'
-  const time: 'upcoming' | 'history' = showTimeTabs ? tab : 'upcoming'
+  const time: 'upcoming' | 'history' = showTimeTabs && tab === 'history' ? 'history' : 'upcoming'
   const eventsQuery = useMyEventsScopedQuery({ role, time, enabled: isAuthenticated })
 
   const rawEvents = eventsQuery.data?.data?.data ?? []
@@ -298,13 +298,18 @@ export function ProfileEventsPanel({
   const isLoading = eventsQuery.isLoading
   const error = eventsQuery.isError ? 'Failed to load events' : null
 
+  const draftEvents = useMemo(
+    () => events.filter((event) => event.status === 'draft'),
+    [events]
+  )
   const upcomingEvents = useMemo(
     () =>
       events.filter((event) => {
+        if (mode === 'hosted' && event.status === 'draft') return false
         const end = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
         return end >= new Date()
       }),
-    [events]
+    [events, mode]
   )
   const historyEvents = useMemo(
     () =>
@@ -316,30 +321,35 @@ export function ProfileEventsPanel({
   )
 
   const activeTab: TabKey = showTimeTabs ? tab : 'upcoming'
-  const activeEvents = activeTab === 'upcoming' ? upcomingEvents : historyEvents
-  const upcomingLabel = 'Upcoming'
-  const historyLabel = 'History'
+  const activeEvents =
+    activeTab === 'draft' ? draftEvents : activeTab === 'upcoming' ? upcomingEvents : historyEvents
   const empty =
-    activeTab === 'upcoming'
+    activeTab === 'draft'
       ? {
           icon: <Bike className="h-8 w-8" />,
-          title:
-            mode === 'hosted' ? 'No hosted events yet' : mode === 'joined' ? 'No joined events yet' : 'No events yet',
-          description:
-            mode === 'hosted'
-              ? 'Create an event and invite your mates!'
-              : 'Browse games happening around you and join the action.',
+          title: 'No draft events',
+          description: 'Events you save as drafts will appear here.',
         }
-      : {
-          icon: <BicepsFlexed className="h-8 w-8" />,
-          title:
-            mode === 'hosted'
-              ? 'No past hosted events'
-              : mode === 'joined'
-                ? 'No past joined events'
-                : 'No past events',
-          description: 'Completed events will appear here.',
-        }
+      : activeTab === 'upcoming'
+        ? {
+            icon: <Bike className="h-8 w-8" />,
+            title:
+              mode === 'hosted' ? 'No hosted events yet' : mode === 'joined' ? 'No joined events yet' : 'No events yet',
+            description:
+              mode === 'hosted'
+                ? 'Create an event and invite your mates!'
+                : 'Browse games happening around you and join the action.',
+          }
+        : {
+            icon: <BicepsFlexed className="h-8 w-8" />,
+            title:
+              mode === 'hosted'
+                ? 'No past hosted events'
+                : mode === 'joined'
+                  ? 'No past joined events'
+                  : 'No past events',
+            description: 'Completed events will appear here.',
+          }
 
   return (
     <div className="space-y-4">
@@ -350,15 +360,24 @@ export function ProfileEventsPanel({
             onClick={() => setTab('upcoming')}
             className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${tab === 'upcoming' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'}`}
           >
-            {upcomingLabel}
+            Upcoming
           </button>
           <button
             type="button"
             onClick={() => setTab('history')}
             className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${tab === 'history' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'}`}
           >
-            {historyLabel}
+            History
           </button>
+          {mode === 'hosted' && (
+            <button
+              type="button"
+              onClick={() => setTab('draft')}
+              className={`flex-1 rounded-full py-2 text-sm font-semibold transition ${tab === 'draft' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600'}`}
+            >
+              Draft
+            </button>
+          )}
         </div>
       )}
 

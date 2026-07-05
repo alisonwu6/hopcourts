@@ -664,8 +664,9 @@ export function useCreateEventForm() {
       if (editId) {
         const res = await eventsService.updateEvent(editId, commonPayload)
         if (res.success) {
+          void queryClient.invalidateQueries({ queryKey: ['events', 'my'] })
           const backTo = (location.state as any)?.backTo as string | undefined
-          const draftBack = '/profile/hosted-events?tab=upcoming'
+          const draftBack = '/profile/hosted-events?tab=draft'
           navigate(`/event/${editId}`, {
             state: { from: 'create-event', backTo: status === 'draft' ? draftBack : backTo },
             replace: true,
@@ -685,7 +686,8 @@ export function useCreateEventForm() {
             void queryClient.invalidateQueries({ queryKey: venueByIdKey(venueId) })
           }
           void queryClient.invalidateQueries({ queryKey: ['events', 'feed'] })
-          const draftBack = '/profile/hosted-events?tab=upcoming'
+          void queryClient.invalidateQueries({ queryKey: ['events', 'my'] })
+          const draftBack = '/profile/hosted-events?tab=draft'
           navigate(`/event/${res.data.id}`, {
             state: { from: 'create-event', backTo: status === 'draft' ? draftBack : backTo },
             replace: true,

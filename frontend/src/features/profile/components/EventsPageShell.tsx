@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ChevronLeft, List, CalendarDays } from 'lucide-react'
+import { ChevronLeft, List, CalendarDays, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 interface EventsPageShellProps {
@@ -8,6 +8,7 @@ interface EventsPageShellProps {
   onViewModeChange: (mode: 'list' | 'calendar') => void
   children: ReactNode
   onBack?: () => void
+  onAction?: () => void
 }
 
 export function EventsPageShell({
@@ -16,6 +17,7 @@ export function EventsPageShell({
   onViewModeChange,
   children,
   onBack,
+  onAction,
 }: EventsPageShellProps) {
   const navigate = useNavigate()
   const handleBack = onBack ?? (() => navigate(-1))
@@ -31,21 +33,33 @@ export function EventsPageShell({
           <ChevronLeft className="h-6 w-6" />
         </button>
         <span className="text-lg font-bold text-slate-900">{title}</span>
-        <div className="absolute right-4 flex items-center gap-1 rounded-full bg-slate-100 p-1">
-          <button
-            type="button"
-            onClick={() => onViewModeChange('list')}
-            className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
-          >
-            <List className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewModeChange('calendar')}
-            className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
-          >
-            <CalendarDays className="h-4 w-4" />
-          </button>
+        <div className="absolute right-4 flex items-center gap-2">
+          {onAction && (
+            <button
+              type="button"
+              onClick={onAction}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50/50 text-blue-600 transition hover:bg-blue-100/80 active:scale-90"
+              aria-label="Create event"
+            >
+              <Plus size={18} strokeWidth={3} />
+            </button>
+          )}
+          <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => onViewModeChange('list')}
+              className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange('calendar')}
+              className={`flex h-7 w-7 items-center justify-center rounded-full transition ${viewMode === 'calendar' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400'}`}
+            >
+              <CalendarDays className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
       <div className="p-4">
