@@ -614,10 +614,11 @@ export function CreateEventPageView({
         title="Delete this event?"
         description="This action is permanent and cannot be undone."
         type="error"
-        actionLabel={isDeletingEvent ? 'Deleting...' : 'Delete event'}
+        actionLabel="Delete event"
         cancelLabel="Cancel"
         actionLeft
         onAction={confirmDeleteEvent}
+        isLoading={isDeletingEvent}
       />
 
       <AlertDialog
@@ -628,9 +629,10 @@ export function CreateEventPageView({
         title="Cancel this event?"
         description="All participants will be notified. The event will remain visible as cancelled."
         type="warning"
-        actionLabel={isCancellingEvent ? 'Cancelling...' : 'Cancel event'}
+        actionLabel="Cancel event"
         cancelLabel="Keep event"
         onAction={confirmCancelEvent}
+        isLoading={isCancellingEvent}
       />
 
       <LoginPromptSheet

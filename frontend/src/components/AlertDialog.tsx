@@ -34,7 +34,8 @@ export function AlertDialog({
 
   const handleAction = () => {
     onAction?.()
-    // Auto-close only when the caller hasn't opted into loading-state management
+    // When isLoading is passed (even false), the caller owns close timing — don't auto-close.
+    // Only auto-close for callers that never pass isLoading at all.
     if (isLoading === undefined) onClose()
   }
 

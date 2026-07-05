@@ -539,6 +539,7 @@ export function EventDetailView({
         onAction={alertDialog.onAction}
         actionLabel={alertDialog.actionLabel}
         cancelLabel={alertDialog.cancelLabel}
+        isLoading={alertDialog.isLoading}
       />
 
       <ProfileRequiredSheet

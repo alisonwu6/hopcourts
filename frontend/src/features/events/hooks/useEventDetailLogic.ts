@@ -60,6 +60,7 @@ export function useEventDetailLogic() {
     onAction?: () => void
     actionLabel?: string
     cancelLabel?: string
+    isLoading?: boolean
   }>({ open: false, title: '', description: '', type: 'info' })
 
   useEffect(() => {
@@ -312,7 +313,9 @@ export function useEventDetailLogic() {
 
   const handleOnTheWay = async () => {
     if (!id || hasSignaledOnTheWay) return
+    setAlertDialog((prev) => ({ ...prev, isLoading: true }))
     const res = await eventsService.signalOnTheWay(id)
+    setAlertDialog((prev) => ({ ...prev, open: false, isLoading: false }))
     if (res.success) {
       setHasSignaledOnTheWay(true)
       showAlert('On the way!', "We've let the host know you're heading over.", 'success')
