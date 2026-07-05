@@ -8,12 +8,13 @@ import { BottomSheet } from '@/components/BottomSheet'
 import { SheetLayout } from '@/components/SheetLayout'
 import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
-import { useProfileStore } from '@/stores/profile.store'
+import { useProfileStore, type ProfileVM } from '@/stores/profile.store'
 import { profileService } from '@/features/profile/services/profileService'
 import { useProfileQuery } from '@/features/profile/hooks/useProfileQuery'
 import { useNotificationsUnreadQuery } from '@/features/notifications/hooks/useNotificationsUnreadQuery'
 import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
+import { HeroCardSkeleton } from '@/features/profile/components/HeroCardSkeleton'
 import { AvatarCropSheet } from '@/features/profile/components/AvatarCropSheet'
 import { GuestProfileView } from '@/features/profile/components/GuestProfileView'
 import { supabase } from '@/lib/supabase'
@@ -25,14 +26,6 @@ import type { GoalState } from '@/features/profile/types'
 import { PageLoading } from '@/components/PageLoading'
 import { vibeTokens, type Vibe } from '@/constants/vibeTokens'
 import { getFlagEmoji } from '@/utils/flags'
-
-type ProfileVM = {
-  username: string
-  usernameUpdatedCount: number
-  card: MateCardProps
-  favoriteSportKeys: string[]
-  tryingSportKeys: string[]
-}
 
 type ProfileRequiredField = 'name' | 'username' | 'vibe' | 'gender' | 'sports' | 'trying' | 'bio'
 
@@ -83,13 +76,16 @@ export function ProfilePage() {
   const { user, isAuthenticated, isLoading } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
-  const [vm, setVm] = useState<ProfileVM | null>(null)
+  const [vm, setVm] = useState<ProfileVM | null>(() => useProfileStore.getState().vm)
   const [draftProfile, setDraftProfile] = useState<MateCardProps>(emptyProfile)
   const [draftUsername, setDraftUsername] = useState<string>((user as any)?.username || '')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
   const [isSavingGoal, setIsSavingGoal] = useState(false)
   const [isRemovingAvatar, setIsRemovingAvatar] = useState(false)
-  const [isProfileLoaded, setIsProfileLoaded] = useState(false)
+  const [isProfileLoaded, setIsProfileLoaded] = useState(() => {
+    const s = useProfileStore.getState()
+    return s.isLoaded && !!s.rawProfile && !!s.vm
+  })
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showProfileRequiredSheet, setShowProfileRequiredSheet] = useState(false)
   const [showSportsSheet, setShowSportsSheet] = useState(false)
@@ -213,7 +209,7 @@ export function ProfilePage() {
   const username = usernameFromVm || usernameFromUser || draftUsername || (resolvedProfile as any)?.username || ''
   const headerFlag = getFlagEmoji((resolvedProfile?.countryKey || draftProfile.countryKey || '').toString())
 
-  const [rawProfile, setRawProfile] = useState<any>(null)
+  const [rawProfile, setRawProfile] = useState<any>(() => useProfileStore.getState().rawProfile)
   const hasVenueAccess = (rawProfile?.user?.role ?? []).includes('venue')
   // 1. Fetch profile + unread count via React Query (automatic dedup & caching)
   const profileQuery = useProfileQuery(isAuthenticated)
@@ -279,7 +275,6 @@ export function ProfilePage() {
       }
     }
 
-    setIsProfileLoaded(true)
   }, [profileQuery.data, profileQuery.isError, profileQuery.error])
 
   // 1b. Sync unread count from query into store
@@ -333,13 +328,15 @@ export function ProfilePage() {
     const rawUsername = data.username || (user as any)?.username || ''
     const nextUsername = isUuid(rawUsername) ? '' : rawUsername
 
-    setVm({
+    const nextVm: ProfileVM = {
       username: nextUsername,
       usernameUpdatedCount: data.username_updated_count || 0,
       card: mapped,
       favoriteSportKeys: favoriteKeys || [],
       tryingSportKeys: tryingKeys || [],
-    })
+    }
+    setVm(nextVm)
+    useProfileStore.getState().setVm(nextVm)
 
     // Only update draft if not editing to avoid overwriting user input
     setDraftProfile((prev) => {
@@ -352,6 +349,7 @@ export function ProfilePage() {
       return mapped
     })
     setDraftUsername(nextUsername)
+    setIsProfileLoaded(true)
   }, [rawProfile, labelForSport, vibeKeyToUnion, user, userAvatar])
 
   // Seed local state from store on mount if already loaded (avoids flicker on re-navigation)
@@ -360,7 +358,7 @@ export function ProfilePage() {
     if (stored.isLoaded && stored.rawProfile) {
       setRawProfile(stored.rawProfile)
       setUnreadCount(stored.unreadCount)
-      setIsProfileLoaded(true)
+      // isProfileLoaded is set in Effect 2 once vm/draftProfile are also ready
     }
   }, [])
 
@@ -757,10 +755,6 @@ export function ProfilePage() {
   if (!isAuthenticated || (user as any)?.is_anonymous) {
     return <GuestProfileView />
   }
-  if (!isProfileLoaded) {
-    return <PageLoading />
-  }
-
   const pageContent = (
     <div className="min-h-[100dvh] overflow-y-auto pb-[120px]">
       <div className="mx-auto w-full max-w-4xl">
@@ -787,17 +781,11 @@ export function ProfilePage() {
           </div>
 
           <div className="pointer-events-none absolute left-1/2 top-1/2 w-[60%] -translate-x-1/2 -translate-y-1/2 px-2 text-center">
-            {username ? (
+            {!isProfileLoaded ? (
+              <div className="mx-auto h-5 w-28 animate-pulse rounded bg-slate-200" />
+            ) : username ? (
               <span className="block truncate text-xl font-bold text-slate-900">{username}</span>
-            ) : (
-              <div className='flex w-full justify-center pb-3'>
-                <img
-                  src={logo}
-                  alt="HopCourts"
-                  className="h-17 w-auto"
-                />
-              </div>
-            )}
+            ) : null}
           </div>
 
           <div className="flex items-center">
@@ -811,30 +799,34 @@ export function ProfilePage() {
           </div>
         </div>
 
-        <HeroCard
-          onShare={handleShare}
-          profile={
-            resolvedProfile ?? {
-              ...emptyProfile,
-              name: (user as any)?.name || '',
-              avatar: userAvatar || '',
+        {!isProfileLoaded ? (
+          <HeroCardSkeleton />
+        ) : (
+          <HeroCard
+            onShare={handleShare}
+            profile={
+              resolvedProfile ?? {
+                ...emptyProfile,
+                name: (user as any)?.name || '',
+                avatar: userAvatar || '',
+              }
             }
-          }
-          onEdit={handleOpenProfileEdit}
-          avatarFallback={userAvatar || ''}
-          actionLabel="Edit"
-          actionClassName=""
-          onHostedClick={() => navigate('/profile/hosted-events')}
-          onJoinedClick={() => navigate('/profile/joined-events')}
-          onTeammatesClick={() =>
-            setAlertDialog({
-              open: true,
-              title: 'Mates — Coming Soon',
-              description: "See everyone you've played with, in one place.",
-              type: 'feature',
-            })
-          }
-        />
+            onEdit={handleOpenProfileEdit}
+            avatarFallback={userAvatar || ''}
+            actionLabel="Edit"
+            actionClassName=""
+            onHostedClick={() => navigate('/profile/hosted-events')}
+            onJoinedClick={() => navigate('/profile/joined-events')}
+            onTeammatesClick={() =>
+              setAlertDialog({
+                open: true,
+                title: 'Mates — Coming Soon',
+                description: "See everyone you've played with, in one place.",
+                type: 'feature',
+              })
+            }
+          />
+        )}
         {hasVenueAccess && (
           <div className="mt-2 px-3">
             <div
