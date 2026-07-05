@@ -1,6 +1,6 @@
 const pino = require('pino')
 
-const isDev = process.env.NODE_ENV !== 'production'
+const isDev = process.env.NODE_ENV === 'development'
 const logtailToken = process.env.LOGTAIL_TOKEN
 
 const targets = []
