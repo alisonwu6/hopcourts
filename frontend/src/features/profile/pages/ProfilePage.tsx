@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import logo from '@/assets/main-logo.png'
 import { Menu, Copy, MessageCircle, Bell, Building2, ChevronRight, ChevronDown, Bookmark, Smile, X, List, CalendarDays } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { type MateCardProps } from '@/features/mates/components/MateCard'
 import { BottomSheet } from '@/components/BottomSheet'
@@ -10,7 +11,7 @@ import { AlertDialog } from '@/components'
 import { useAuthStore } from '@/hooks'
 import { useProfileStore } from '@/stores/profile.store'
 import { profileService } from '@/features/profile/services/profileService'
-import { useProfileQuery } from '@/features/profile/hooks/useProfileQuery'
+import { useProfileQuery, PROFILE_QUERY_KEY } from '@/features/profile/hooks/useProfileQuery'
 import { useNotificationsUnreadQuery } from '@/features/notifications/hooks/useNotificationsUnreadQuery'
 import { useCountries, useCities, useSports, useVibeUtils } from '@/features/dictionaries/hooks'
 import { HeroCard } from '@/features/profile/components/HeroCard'
@@ -81,6 +82,7 @@ export function ProfilePage() {
   const [draftDaySlots, setDraftDaySlots] = useState<Record<string, string[]>>(createDaySlots())
   const [draftPreferredTime, setDraftPreferredTime] = useState('Morning')
   const [showAvatarCropper, setShowAvatarCropper] = useState(false)
+  const queryClient = useQueryClient()
   const { user, isAuthenticated, isLoading } = useAuthStore()
   const userAvatar = (user as any)?.avatar || (user as any)?.avatar_url || (user as any)?.avatarUrl
   const userId = (user as any)?.id
@@ -692,6 +694,8 @@ export function ProfilePage() {
 
       setShowEditSheet(false)
       setRawProfile(responseData)
+      useProfileStore.getState().setRawProfile(responseData)
+      queryClient.setQueryData(PROFILE_QUERY_KEY, responseData)
     } catch (err: any) {
       // keep sheet open for retry
       console.error('Failed to save profile', err)
