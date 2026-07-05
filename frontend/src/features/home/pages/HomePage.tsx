@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
 import {
@@ -38,20 +38,33 @@ export function HomePage() {
     []
   )
 
+  const feedbackRef = useRef<HTMLElement>(null)
+
   const handleIdentityClick = () => {
     setShowLoginPrompt(true)
+  }
+
+  const scrollToFeedback = () => {
+    feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   return (
     <div className="relative min-h-[100dvh] bg-gradient-to-b from-emerald-50 via-white to-white">
       <div className="pointer-events-none absolute inset-x-0 top-0" />
       <div className="relative mx-auto flex w-full flex-col px-4">
-        <div className="mb-4 flex w-full justify-center">
+        <div className="mb-4 flex w-full flex-col items-center">
           <img
             src={logo}
             alt="HopCourts"
-            className="h-33 w-auto"
+            className="h-33 w-auto mb-2"
           />
+          <button
+            type="button"
+            onClick={scrollToFeedback}
+            className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-500 underline"
+          >
+            Beta
+          </button>
         </div>
 
         <PushNotificationBanner />
@@ -121,7 +134,9 @@ export function HomePage() {
                 </div>
                 <div>
                   <p className="font-bold text-slate-900">Ditch the chat chaos</p>
-                  <p className="mt-0.5 text-sm text-slate-500">Stop copying and pasting endless attendance lists. Just set your game rules and move on.</p>
+                  <p className="mt-0.5 text-sm text-slate-500">
+                    Stop copying and pasting endless attendance lists. Just set your game rules and move on.
+                  </p>
                 </div>
               </div>
 
@@ -132,7 +147,8 @@ export function HomePage() {
                 <div>
                   <p className="font-bold text-slate-900">Share once, zero chasing</p>
                   <p className="mt-0.5 text-sm text-slate-500">
-                    Drop your game link into any group chat. Mates secure their slots instantly without 47 follow-up messages.
+                    Drop your game link into any group chat. Mates secure their slots instantly without 47 follow-up
+                    messages.
                   </p>
                 </div>
               </div>
@@ -144,7 +160,8 @@ export function HomePage() {
                 <div>
                   <p className="font-bold text-slate-900">Split the costs, play more</p>
                   <p className="mt-0.5 text-sm text-slate-500">
-                    Hosting together means splitting the court fees. Gather your mates, share the costs, and play more without breaking the bank.
+                    Hosting together means splitting the court fees. Gather your mates, share the costs, and play more
+                    without breaking the bank.
                   </p>
                 </div>
               </div>
@@ -240,7 +257,10 @@ export function HomePage() {
           </section>
 
           {/* We're Listening */}
-          <section className="my-8 w-full">
+          <section
+            ref={feedbackRef}
+            className="my-8 w-full"
+          >
             <h2 className="mb-4 text-2xl font-extrabold text-slate-900">{"We're listening"}</h2>
             <div className="rounded-2xl bg-white p-4 shadow-sm">
               <p className="mb-4 text-sm leading-relaxed text-slate-400">
