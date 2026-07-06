@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
 import {
@@ -39,6 +39,14 @@ export function HomePage() {
   )
 
   const feedbackRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    return () => {
+      // Cancel any in-progress smooth scroll on unmount to prevent BottomNav
+      // from misrendering on iOS Safari during page transitions
+      window.scrollTo({ top: window.scrollY, behavior: 'instant' as ScrollBehavior })
+    }
+  }, [])
 
   const handleIdentityClick = () => {
     setShowLoginPrompt(true)
