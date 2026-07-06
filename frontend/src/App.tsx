@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useEffect, useLayoutEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
@@ -58,7 +58,7 @@ const RequireAdmin = ({ children }: { children: ReactNode }) => {
 
 function ScrollToTop() {
   const { pathname } = useLocation()
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
   return null
