@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useLayoutEffect } from 'react'
+import { type ReactNode, useLayoutEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'

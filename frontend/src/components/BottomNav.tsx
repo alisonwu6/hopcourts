@@ -1,4 +1,4 @@
-import { ComponentType, useState } from 'react'
+import { ComponentType, useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { Compass, PersonStanding, House, Building2, Plus } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
@@ -21,6 +21,42 @@ export function BottomNav() {
   const isRealUser = !!user && !(user as any).is_anonymous
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showProfileRequired, setShowProfileRequired] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const suppressGpuRef = useRef(false)
+  const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // On every navigation: immediately strip any GPU layer and block new ones for 400ms
+  // so the mobile toolbar animation can reposition the nav without a stale compositing layer.
+  useLayoutEffect(() => {
+    if (navRef.current) navRef.current.style.transform = ''
+    if (scrollTimerRef.current) { clearTimeout(scrollTimerRef.current); scrollTimerRef.current = null }
+    suppressGpuRef.current = true
+    if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current)
+    suppressTimerRef.current = setTimeout(() => {
+      suppressGpuRef.current = false
+      suppressTimerRef.current = null
+    }, 400)
+  }, [location.pathname])
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (suppressGpuRef.current) return
+      if (navRef.current) navRef.current.style.transform = 'translateZ(0)'
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current)
+      scrollTimerRef.current = setTimeout(() => {
+        if (navRef.current) navRef.current.style.transform = ''
+        scrollTimerRef.current = null
+      }, 200)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current)
+      if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current)
+    }
+  }, [])
+
   const matchesPath = (segment: string) => {
     if (segment === '/') {
       return location.pathname === '/'
@@ -78,7 +114,8 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md border-t border-slate-200 bg-white backdrop-blur will-change-transform"
+      ref={navRef}
+      className="fixed bottom-0 left-0 right-0 z-30 mx-auto w-full max-w-md border-t border-slate-200 bg-white"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex items-center justify-center gap-6 px-4 py-2">
