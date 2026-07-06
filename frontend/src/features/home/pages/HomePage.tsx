@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
 import {
@@ -39,6 +39,14 @@ export function HomePage() {
   )
 
   const feedbackRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    return () => {
+      // Snap window to its current scroll position (two-arg form = always instant per spec).
+      // This aborts any in-progress smooth scroll so it cannot race ScrollToTop on the next page.
+      window.scrollTo(0, window.scrollY)
+    }
+  }, [])
 
   const handleIdentityClick = () => {
     setShowLoginPrompt(true)

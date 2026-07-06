@@ -59,7 +59,8 @@ const RequireAdmin = ({ children }: { children: ReactNode }) => {
 function ScrollToTop() {
   const { pathname } = useLocation()
   useLayoutEffect(() => {
-    window.scrollTo(0, 0)
+    // 'instant' is spec-required to abort any in-progress smooth scroll
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
   }, [pathname])
   return null
 }
