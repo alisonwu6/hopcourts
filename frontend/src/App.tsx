@@ -22,7 +22,7 @@ import { GuidelinesPage } from '@/features/profile/pages/GuidelinesPage'
 import { WhyHopCourtsPage } from '@/features/settings/pages/WhyHopCourtsPage'
 import { ContactUsPage } from '@/features/settings/pages/ContactUsPage'
 import { FaqPage } from '@/features/settings/pages/FaqPage'
-import { FoundersLetterPage } from '@/features/settings/pages/FoundersLetterPage'
+import { CreatorsLetterPage } from '@/features/settings/pages/CreatorsLetterPage'
 import { NotificationsPage } from '@/features/notifications/pages/NotificationsPage'
 import CreateEventPage from '@/features/events/pages/CreateEventPage'
 import { HomePage } from '@/features/home/pages/HomePage'
@@ -130,8 +130,8 @@ export default function App() {
         element={<FaqPage />}
       />
       <Route
-        path="/founders-letter"
-        element={<FoundersLetterPage />}
+        path="/creators-letter"
+        element={<CreatorsLetterPage />}
       />
       <Route
         path="/rules"

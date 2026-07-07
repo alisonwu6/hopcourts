@@ -212,9 +212,9 @@ function SubmitVenueCTA({ onClick }: { onClick: () => void }) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-base font-black leading-tight text-white">Don&rsquo;t see your local court?</p>
+        <p className="text-sm font-black leading-tight text-white">Know a court? Put it on the map.</p>
         <p className="mt-1 text-xs font-medium leading-snug text-[#cce15f]/80">
-          Put it on the map instantly. Free, always.
+          Every great game starts with a place.
         </p>
       </div>
       <ChevronRight

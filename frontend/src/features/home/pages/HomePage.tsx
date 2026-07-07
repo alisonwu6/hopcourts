@@ -236,7 +236,7 @@ export function HomePage() {
             <FaqAccordion categories={homeFaqCategories} />
           </section>
 
-          {/* A Letter from the Founder & Community Guidelines */}
+          {/* A Letter from the Creator & Community Guidelines */}
           <section className="bg-courts -mx-4 px-6 py-6">
             <h2 className="mb-4 text-2xl font-extrabold leading-tight text-white">Our Story &amp; Community</h2>
             <div className="flex flex-col gap-3">
@@ -256,14 +256,14 @@ export function HomePage() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/founders-letter')}
+                onClick={() => navigate('/creators-letter')}
                 className="flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm"
               >
                 <div className="bg-ocean-100 text-ocean-600 flex h-10 w-10 items-center justify-center rounded-xl">
                   <Feather className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">A Letter from the Founder</p>
+                  <p className="text-sm font-bold text-slate-900">A Letter from the Creator</p>
                   <p className="mt-0.5 text-xs text-slate-400">Why I built HopCourts</p>
                 </div>
                 <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-300" />

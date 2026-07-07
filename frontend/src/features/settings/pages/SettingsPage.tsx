@@ -9,7 +9,7 @@ const generalItems = [{ key: 'account', label: 'Account Settings', icon: UserRou
 const otherItems = [
   { key: 'whyHopCourts', label: 'Why HopCourts', icon: Rocket },
   { key: 'about', label: 'About Us', icon: Sprout },
-  { key: 'foundersLetter', label: "Founder's Letter", icon: Feather },
+  { key: 'creatorsLetter', label: "Creator's Letter", icon: Feather },
   { key: 'guidelines', label: 'Community Guidelines', icon: BookUser },
   { key: 'faq', label: 'FAQ', icon: CircleHelp },
   { key: 'contact', label: 'Contact Us', icon: Mails },
@@ -80,7 +80,7 @@ export function ProfileSettingsPage() {
                   onClick={() => {
                     if (key === 'about') navigate('/about')
                     if (key === 'whyHopCourts') navigate('/why-hopcourts')
-                    if (key === 'foundersLetter') navigate('/founders-letter')
+                    if (key === 'creatorsLetter') navigate('/creators-letter')
                     if (key === 'guidelines') navigate('/guidelines')
                     if (key === 'faq') navigate('/faq')
                     if (key === 'contact') navigate('/contact')
