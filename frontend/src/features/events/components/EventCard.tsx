@@ -292,10 +292,10 @@ function StatusBadge({
     className = 'border-red-200 bg-red-50 text-red-600'
   } else if (status === 'completed') {
     label = 'Completed'
-    className = 'border-slate-200 bg-slate-100 text-slate-500'
+    className = 'border-slate-200 bg-slate-200 text-slate-500'
   } else if (status === 'draft') {
     label = 'Draft'
-    className = 'border-blue-200 bg-blue-50 text-blue-500'
+    className = 'border-slate-100 bg-white text-slate-500'
   } else if (isPast) {
     label = 'Past'
     className = 'border-slate-200 bg-slate-100 text-slate-500'

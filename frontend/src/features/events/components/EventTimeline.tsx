@@ -93,7 +93,7 @@ export function EventTimeline({
                     showBookmark={showBookmark}
                     onViewDetails={(id) => {
                       if (mode === 'hosted' && event.status === 'draft') {
-                        navigate(`/create-event?id=${id}`, { state: { backTo: '/profile/hosted-events?tab=upcoming' } })
+                        navigate(`/create-event?id=${id}`, { state: { backTo: '/profile/hosted-events?tab=draft' } })
                       } else {
                         handleView(id)
                       }

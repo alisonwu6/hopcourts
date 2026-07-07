@@ -58,11 +58,13 @@ export function CalendarView({
   sportsCatalog,
   mode,
   onExplore,
+  onViewDetails: onViewDetailsProp,
 }: {
   events: PlayerEvent[]
   sportsCatalog: SportsItem[]
   mode: PanelMode
   onExplore?: () => void
+  onViewDetails?: (id: string, event: PlayerEvent) => void
 }) {
   const navigate = useNavigate()
   const today = useMemo(() => new Date(), [])
@@ -241,8 +243,12 @@ export function CalendarView({
                 sportLabel={sportLabel}
                 showStatus={mode === 'hosted' || event.status === 'cancelled'}
                 onViewDetails={(id) => {
+                  if (onViewDetailsProp) {
+                    onViewDetailsProp(id, event)
+                    return
+                  }
                   if (mode === 'hosted' && event.status === 'draft') {
-                    navigate(`/create-event?id=${id}`, { state: { backTo: '/profile/hosted-events?tab=upcoming' } })
+                    navigate(`/create-event?id=${id}`, { state: { backTo: '/profile/hosted-events?tab=draft' } })
                   } else {
                     navigate(`/event/${id}`)
                   }
