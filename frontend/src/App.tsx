@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useLayoutEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from '@/components'
 import Header from '@/components/navigation/Header'
@@ -58,8 +58,9 @@ const RequireAdmin = ({ children }: { children: ReactNode }) => {
 
 function ScrollToTop() {
   const { pathname } = useLocation()
-  useEffect(() => {
-    window.scrollTo(0, 0)
+  useLayoutEffect(() => {
+    // 'instant' is spec-required to abort any in-progress smooth scroll
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
   }, [pathname])
   return null
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useLayoutEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '@/assets/main-logo.png'
 import {
@@ -39,13 +39,42 @@ export function HomePage() {
   )
 
   const feedbackRef = useRef<HTMLElement>(null)
+  const rafRef = useRef<number | null>(null)
+
+  useLayoutEffect(() => {
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    }
+  }, [])
 
   const handleIdentityClick = () => {
     setShowLoginPrompt(true)
   }
 
   const scrollToFeedback = () => {
-    feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (!feedbackRef.current) return
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+
+    const startY = window.scrollY
+    const targetY = feedbackRef.current.getBoundingClientRect().top + startY
+    const distance = targetY - startY
+    const duration = 500
+    let startTime: number | null = null
+
+    const step = (ts: number) => {
+      if (startTime === null) startTime = ts
+      const elapsed = Math.min(ts - startTime, duration)
+      const t = elapsed / duration
+      const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+      window.scrollTo(0, startY + distance * eased)
+      if (elapsed < duration) {
+        rafRef.current = requestAnimationFrame(step)
+      } else {
+        rafRef.current = null
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(step)
   }
 
   return (

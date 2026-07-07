@@ -115,13 +115,16 @@ export function VenueDetailsView({
   const [mapSheetOpen, setMapSheetOpen] = useState(false)
   const hasInitialized = useRef(false)
   const { items: sportsCatalog } = useSports('en')
-  const { today: todayCount, upcoming: futureCount, past: pastCount } = computeVenueCounts(venue)
+  const { past: pastCount } = computeVenueCounts(venue)
 
   const { tomorrowStart } = getDayBoundaries()
   const futureEvents = upcomingEvents.filter((e) => {
     const d = new Date(e.startTime)
     return d >= tomorrowStart
   })
+
+  const todayCount = todayEvents.length
+  const futureCount = futureEvents.length
 
   useEffect(() => {
     if (!hasInitialized.current && (todayEvents.length > 0 || upcomingEvents.length > 0)) {
@@ -328,6 +331,7 @@ export function VenueDetailsView({
               sportsCatalog={sportsCatalog}
               mode="hosted"
               onExplore={undefined}
+              onViewDetails={(id) => onViewSessionDetails(id)}
             />
           )
         ) : (

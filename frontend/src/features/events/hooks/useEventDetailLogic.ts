@@ -76,16 +76,20 @@ export function useEventDetailLogic() {
   }
 
   const handleBack = () => {
+    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
+
     if (location.state?.from === 'create-event') {
-      navigate(location.state.backTo ?? '/events')
+      if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
+        navigate(location.state.backTo ?? '/events', { replace: true })
+        return
+      }
+      navigate(-1)
       return
     }
 
-    const historyIdx = typeof window !== 'undefined' ? Number(window.history.state?.idx ?? 0) : 0
-
     if (location.state?.from === 'venue') {
       if (!Number.isFinite(historyIdx) || historyIdx <= 0) {
-        navigate('/events', { replace: true })
+        navigate(location.state.venueId ? `/venues/${location.state.venueId}` : '/venues', { replace: true })
         return
       }
       navigate(-1)
