@@ -94,7 +94,7 @@ export function SubmitPublicVenueView({
                 value={form.name}
                 onChange={(e) => onChangeField('name', e.target.value)}
                 autoComplete="new-password"
-                placeholder="e.g. QUT Sport Basketball and Netball Courts"
+                placeholder="e.g. New Farm Park Basketball Half Court"
                 hasError={highlightField === 'name'}
                 supportingText={fieldErrors.name}
                 required
