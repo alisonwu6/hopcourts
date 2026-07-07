@@ -241,7 +241,7 @@ export function CalendarView({
                 key={event.id}
                 event={event}
                 sportLabel={sportLabel}
-                showStatus={mode === 'hosted' || event.status === 'cancelled'}
+                viewAs={mode === 'hosted' ? 'host' : 'joined'}
                 onViewDetails={(id) => {
                   if (onViewDetailsProp) {
                     onViewDetailsProp(id, event)

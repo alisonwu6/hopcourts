@@ -91,6 +91,7 @@ export function EventTimeline({
                     event={event}
                     sportLabel={sportLabel}
                     showBookmark={showBookmark}
+                    viewAs={mode === 'hosted' ? 'host' : 'joined'}
                     onViewDetails={(id) => {
                       if (mode === 'hosted' && event.status === 'draft') {
                         navigate(`/create-event?id=${id}`, { state: { backTo: '/profile/hosted-events?tab=draft' } })

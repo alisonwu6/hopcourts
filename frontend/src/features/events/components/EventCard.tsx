@@ -7,6 +7,8 @@ import { BookmarkButton } from './BookmarkButton'
 import { EVENT_SPORT_CLASS, GENDER_CLASS, getSkillClass } from '@/constants/sportTokens'
 import { getFlagEmoji } from '@/utils/flags'
 
+type EventCardViewAs = 'host' | 'joined' | 'browse'
+
 type EventCardProps = {
   event: PlayerEvent
   onViewDetails?: (eventId: string) => void
@@ -15,9 +17,8 @@ type EventCardProps = {
   cityLabel?: string
   disableVenueHostNavigation?: boolean
   showBookmark?: boolean
-  showStatus?: boolean
+  viewAs?: EventCardViewAs
 }
-
 
 export function EventCard({
   event,
@@ -27,7 +28,7 @@ export function EventCard({
   cityLabel: cityLabelProp,
   disableVenueHostNavigation = false,
   showBookmark = false,
-  showStatus = true,
+  viewAs = 'browse',
 }: EventCardProps) {
   const navigate = useNavigate()
 
@@ -83,9 +84,7 @@ export function EventCard({
           })()
         : 'Paid event'
 
-  const now = new Date()
-  const eventEnd = event.endTime ? new Date(event.endTime) : new Date(event.startTime)
-  const isFull = remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled' && now <= eventEnd
+  const isFull = remaining === 0 && event.maxAttendees > 0 && event.status !== 'cancelled'
 
   const interactionHandlers = isClickable
     ? {
@@ -157,15 +156,11 @@ export function EventCard({
         </div>
 
         <div className="flex flex-col items-end justify-end gap-1">
-          {showStatus && (
-            <StatusBadge
-              status={event.status}
-              startTime={event.startTime}
-              endTime={event.endTime}
-              maxAttendees={event.maxAttendees}
-              spotsRemaining={remaining}
-            />
-          )}
+          <StatusBadge
+            status={event.status}
+            startTime={event.startTime}
+            endTime={event.endTime}
+          />
           {isVenueHost && (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200/70 bg-emerald-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-emerald-700">
               <ShieldCheck
@@ -269,21 +264,16 @@ function StatusBadge({
   status,
   startTime,
   endTime,
-  maxAttendees,
-  spotsRemaining,
 }: {
   status?: PlayerEvent['status']
   startTime: Date | string
   endTime: Date | string
-  maxAttendees: number
-  spotsRemaining: number
 }) {
   const now = new Date()
   const start = new Date(startTime)
   const end = endTime ? new Date(endTime) : new Date(startTime)
   const isPast = now > end
   const isInProgress = now >= start && now <= end
-
   let label: string
   let className: string
 
@@ -302,9 +292,6 @@ function StatusBadge({
   } else if (isInProgress) {
     label = 'In Progress'
     className = 'border-green-200 bg-green-50 text-green-600'
-  } else if (maxAttendees > 0 && spotsRemaining === 0) {
-    label = 'Full'
-    className = 'border-orange-200 bg-orange-50 text-orange-600'
   } else if (status === 'published') {
     label = 'Open'
     className = 'border-sky-200 bg-sky-50 text-sky-600'
