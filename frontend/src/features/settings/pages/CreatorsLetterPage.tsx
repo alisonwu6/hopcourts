@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ActionToolbar } from '@/components/navigation/ActionToolbar'
 
-export function FoundersLetterPage() {
+export function CreatorsLetterPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -11,7 +11,7 @@ export function FoundersLetterPage() {
         onBack={() => (location.key !== 'default' ? navigate(-1) : navigate('/settings'))}
         showShare={false}
         showFavorite={false}
-        title={<span className="text-lg font-semibold text-slate-900">A Letter from the Founder</span>}
+        title={<span className="text-lg font-semibold text-slate-900">A Letter from the Creator</span>}
         showBack
         borderBottom
         contentClassName="max-w-page px-4"
@@ -21,7 +21,7 @@ export function FoundersLetterPage() {
       <div className="bg-courts">
       <div className="mx-auto max-w-page px-5 pb-12 pt-6">
         <h1 className="text-4xl font-black leading-tight tracking-tight text-white">
-          Hey, I'm the founder of <span className="text-hop">Hop</span>
+          Hey, I'm the creator of <span className="text-hop">Hop</span>
           <span className="text-ocean">Courts</span>.
         </h1>
 
@@ -78,7 +78,7 @@ export function FoundersLetterPage() {
           <p className="text-lg font-bold text-slate-900">
             <span className="text-hop">Hop</span>
             <span className="text-ocean">Courts</span>
-            <span> Founder</span>
+            <span> Creator</span>
           </p>
         </div>
       </div>
