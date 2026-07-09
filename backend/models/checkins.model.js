@@ -1,14 +1,14 @@
 const { query } = require('../src/lib/db')
 
-async function createCheckIn({ sessionId, userId, lat, lng }) {
+async function createCheckIn({ sessionId, userId }) {
   const { rows } = await query(
     `insert into public.check_ins (
-      session_id, user_id, location_lat, location_lng, checked_in_at, is_verified
+      session_id, user_id, checked_in_at, is_verified
     ) values (
-      $1, $2, $3, $4, now(), true
+      $1, $2, now(), true
     )
-    returning id, session_id, user_id, location_lat as lat, location_lng as lng, checked_in_at, is_verified`,
-    [sessionId, userId, lat, lng]
+    returning id, session_id, user_id, checked_in_at, is_verified`,
+    [sessionId, userId]
   )
   return rows[0]
 }

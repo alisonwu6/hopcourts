@@ -32,6 +32,8 @@ export function EventDetailPage() {
     handleShare,
     handleJoinClick,
     handleCheckIn,
+    handleOnTheWay,
+    handleOpenCheckInSheet,
     clearPostLoginRedirect,
   } = useEventDetailLogic()
 
@@ -59,7 +61,9 @@ export function EventDetailPage() {
       onToggleFavorite={() => setIsFavorite((previous) => !previous)}
       onEdit={(eventId) => navigate(`/create-event?id=${eventId}`)}
       onJoin={handleJoinClick}
+      onOpenCheckInSheet={handleOpenCheckInSheet}
       onCheckIn={handleCheckIn}
+      onOnTheWay={handleOnTheWay}
       onCloseLoginPrompt={() => {
         setShowLoginPrompt(false)
         clearPostLoginRedirect()

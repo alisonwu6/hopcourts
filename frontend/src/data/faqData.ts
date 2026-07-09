@@ -76,7 +76,7 @@ export const faqCategories: FaqCategory[] = [
     items: [
       {
         q: 'How does check-in work?',
-        a: "You check in when you're within 100m of the venue. It records that you were there and connects you with the people you played with. We think showing up is the best thing you can do for your game and your mates.",
+        a: "Tap check in when you're at the court. It records that you showed up and connects you with the people you played with. We think showing up is the best thing you can do for your game and your mates.",
         showOnHome: true,
       },
       {

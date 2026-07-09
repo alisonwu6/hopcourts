@@ -659,9 +659,9 @@ export const eventsService = {
     }
   },
 
-  async checkIn(eventId: string, coords: { lat: number; lng: number }): Promise<ApiResponse<any>> {
+  async checkIn(eventId: string): Promise<ApiResponse<any>> {
     try {
-      const res = await httpPost<any>(`/sessions/${eventId}/check-in`, { body: coords })
+      const res = await httpPost<any>(`/sessions/${eventId}/check-in`, {})
       return wrapSuccess(res.data ?? res)
     } catch (err: any) {
       // 'http' utility attaches parsed JSON response to err.details
