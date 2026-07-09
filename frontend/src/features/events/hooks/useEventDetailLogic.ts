@@ -57,11 +57,12 @@ export function useEventDetailLogic() {
   const [alertDialog, setAlertDialog] = useState<{
     open: boolean
     title: string
-    description: ReactNode
+    description?: ReactNode
     type: 'success' | 'error' | 'info' | 'warning'
     onAction?: () => void
     actionLabel?: string
     cancelLabel?: string
+    onCancel?: () => void
     isLoading?: boolean
   }>({ open: false, title: '', description: '', type: 'info' })
 
@@ -175,7 +176,7 @@ export function useEventDetailLogic() {
       showAlert('Host Required', 'As the organizer, you must be a participant of this event.', 'warning')
       return
     }
-    // Guest (anonymous) users skip onboarding + gender gates — they have no profile
+    // Guest (anonymous) users skip onboarding + gender gates -- they have no profile
     // data yet, and the intent is a one-tap join.
     const isGuest = !!user?.is_anonymous
     if (!isJoined && !isGuest && !user?.onboarding_completed_at) {
@@ -188,12 +189,12 @@ export function useEventDetailLogic() {
       const userGender = currentUser?.gender
 
       if (event.gender === 'male' && userGender !== 'male') {
-        showAlert('Men’s Session', 'This event is reserved for male players.', 'info')
+        showAlert("Men's Session", 'This event is reserved for male players.', 'info')
         return
       }
 
       if (event.gender === 'female' && userGender !== 'female') {
-        showAlert('Women’s Session', 'This event is reserved for female players.', 'info')
+        showAlert("Women's Session", 'This event is reserved for female players.', 'info')
         return
       }
     }
@@ -216,113 +217,56 @@ export function useEventDetailLogic() {
     await submitJoin()
   }
 
+  const handleOpenCheckInSheet = () => {
+    setAlertDialog({
+      open: true,
+      title: 'Where are you?',
+      type: 'info',
+      actionLabel: "I'm here",
+      onAction: () => { void handleCheckIn() },
+      cancelLabel: 'On the way',
+      onCancel: () => { void handleOnTheWay() },
+    })
+  }
+
   const handleCheckIn = async () => {
     if (!id || isCheckingIn) return
     setIsCheckingIn(true)
+    try {
+      await checkInToEvent(id)
+      setHasCheckedIn(true)
+      void fetchEventById(id, { force: true })
+      showAlert("You're checked in!", 'Have a great game with your mates!', 'success')
+    } catch (err: any) {
+      const backendError = err.response?.data?.error || err.response?.data || err
+      const code = backendError.code
+      const details = backendError.details
 
-    if (!navigator.geolocation) {
-      showAlert(
-        'Location Not Supported',
-        'Your device does not support GPS location. Check-in is unavailable.',
-        'error'
-      )
+      if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
+        const isLate =
+          details?.ends_at && details?.now && new Date(details.now) > new Date(details.ends_at)
+        showAlert(
+          isLate ? 'Check-in Closed' : 'Too Early to Check In',
+          isLate
+            ? 'The game has ended. Check-in is no longer available.'
+            : 'Check-in opens 15 minutes before kick-off. Please check back closer to game time.',
+          'warning'
+        )
+      } else {
+        showAlert(
+          'Check-in failed',
+          backendError.message || err.message || 'Something went wrong. Please try again.',
+          'error'
+        )
+      }
+    } finally {
       setIsCheckingIn(false)
-      return
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          await checkInToEvent(id, {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          })
-          setHasCheckedIn(true)
-          void fetchEventById(id, { force: true })
-
-          showAlert("You're all set!", 'Have a great game with your mates!', 'success')
-        } catch (err: any) {
-          console.error('Check-in error full object:', err)
-
-          const backendError = err.response?.data?.error || err.response?.data || err
-          const code = backendError.code
-          const details = backendError.details
-
-          if (code === 'CHECKIN_OUTSIDE_RADIUS') {
-            const dist = details?.distance_m
-            const radius = details?.radius_m
-            const gap = Math.max(0, dist - radius)
-
-            const distStr = dist >= 1000 ? `${(dist / 1000).toFixed(1)}km` : `${dist}m`
-            const gapStr = gap >= 1000 ? `${(gap / 1000).toFixed(1)}km` : `${gap}m`
-
-            setAlertDialog({
-              open: true,
-              title: 'Not at the court yet?',
-              description: `You’re still ${distStr} away. Tap on the way to let your mates know you’re coming, then check in once you arrive!`,
-              type: 'info',
-              cancelLabel: 'OK',
-              actionLabel: 'On the way',
-              onAction: handleOnTheWay,
-            })
-          } else if (code === 'CHECKIN_OUTSIDE_TIME_WINDOW') {
-            const isLate =
-              details?.ends_at && details?.now && new Date(details.now) > new Date(details.ends_at)
-            showAlert(
-              isLate ? "Check-in Closed" : 'Too Early to Check In',
-              isLate
-                ? "The game has ended. Check-in is no longer available."
-                : 'Check-in opens 15 minutes before kick-off. Please check back closer to game time.',
-              'warning'
-            )
-          } else {
-            showAlert(
-              'Check-in failed',
-              backendError.message ||
-                err.message ||
-                'Please make sure you are at the event location and location services are enabled.',
-              'error'
-            )
-          }
-        } finally {
-          setIsCheckingIn(false)
-        }
-      },
-      (err) => {
-        console.error(err)
-        const code = err?.code
-        if (code === 1) {
-          showAlert(
-            'Location permission required',
-            'Please allow location access in Safari site settings and try again.',
-            'warning'
-          )
-        } else if (code === 2) {
-          showAlert(
-            'Unable to get location',
-            'Signal is unstable or location source is unavailable. Move to an open area and try again.',
-            'warning'
-          )
-        } else if (code === 3) {
-          showAlert(
-            'Location timeout',
-            'Location took too long. Make sure network and GPS are enabled, then try again.',
-            'warning'
-          )
-        } else {
-          showAlert('Location Required', 'Enable location services in your settings to check in.', 'warning')
-        }
-        setIsCheckingIn(false)
-      },
-      { enableHighAccuracy: false, timeout: 25000, maximumAge: 30000 }
-    )
   }
 
   const handleOnTheWay = async () => {
     if (!id || hasSignaledOnTheWay) return
-    setAlertDialog((prev) => ({ ...prev, isLoading: true }))
     const res = await eventsService.signalOnTheWay(id)
-    setAlertDialog((prev) => ({ ...prev, open: false, isLoading: false }))
     if (res.success) {
       setHasSignaledOnTheWay(true)
       showAlert('On the way!', "We've let the host know you're heading over.", 'success')
@@ -372,6 +316,7 @@ export function useEventDetailLogic() {
     handleJoinClick,
     handleCheckIn,
     handleOnTheWay,
+    handleOpenCheckInSheet,
     clearPostLoginRedirect,
   }
 }

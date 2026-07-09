@@ -10,26 +10,8 @@ function resolveUserId(req) {
 async function handleCheckIn(req, res, next) {
   try {
     const { sessionId } = req.params
-    const { lat, lng } = req.body || {}
     const userId = resolveUserId(req)
-
-    if (lat === undefined || lng === undefined) {
-      throw Errors.validation('lat and lng are required')
-    }
-
-    const latNum = Number(lat)
-    const lngNum = Number(lng)
-    if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
-      throw Errors.validation('lat and lng must be numbers')
-    }
-
-    const data = await checkInToSession({
-      sessionId,
-      userId,
-      lat: latNum,
-      lng: lngNum,
-      now: new Date(),
-    })
+    const data = await checkInToSession({ sessionId, userId, now: new Date() })
     return ok(res, data)
   } catch (err) {
     next(err)
