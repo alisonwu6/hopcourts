@@ -29,13 +29,13 @@ export function VenueListPage() {
 
   const { items: sportsCatalog } = useSports()
 
-  const isMapView = searchParams.get('view') === 'map'
+  const isMapView = searchParams.get('view') !== 'list'
 
   const handleToggleView = () => {
     setSearchParams(
       (prev) => {
-        if (isMapView) prev.delete('view')
-        else prev.set('view', 'map')
+        if (isMapView) prev.set('view', 'list')
+        else prev.delete('view')
         return prev
       },
       { replace: true }
