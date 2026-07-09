@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { CreateEventInput, EventFilter, PlayerEvent } from '@/types'
 import { eventsService } from '@/features/events/services/eventsService'
+import { queryClient } from '@/lib/queryClient'
 
 type FetchOptions = {
   force?: boolean
@@ -52,7 +53,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     const shouldShowLoading = options?.force || get().events.length === 0
     set({ isLoading: Boolean(shouldShowLoading), error: null, eventsOffset: 0 })
     try {
-      const response = await eventsService.getEvents(filters, { ...options, offset: 0 })
+      const response = await eventsService.getEvents(filters, { offset: 0 })
       if (response.success && response.data) {
         set({
           events: response.data.data,
@@ -79,7 +80,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     if (!eventsHasMore || isLoadingMore) return
     set({ isLoadingMore: true })
     try {
-      const response = await eventsService.getEvents(filters, { force: true, offset: eventsOffset })
+      const response = await eventsService.getEvents(filters, { offset: eventsOffset })
       if (response.success && response.data) {
         set((state) => ({
           events: [...state.events, ...response.data!.data],
@@ -104,7 +105,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
       selectedEvent: selectedEvent?.id === id ? selectedEvent : null,
     })
     try {
-      const response = await eventsService.getEventById(id, options)
+      const response = await eventsService.getEventById(id)
       if (response.success && response.data) {
         set({ selectedEvent: response.data, isLoading: false })
       } else {
@@ -129,7 +130,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
   ) => {
     set({ isLoading: true, error: null })
     try {
-      const response = await eventsService.getMyEvents(type, options)
+      const response = await eventsService.getMyEvents(type)
       if (response.success && response.data) {
         if (type === 'all') {
           set({
@@ -175,6 +176,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
           myEventsLoaded: { upcoming: false, history: false, hosted: false, joined: false },
           error: null,
         }))
+        void queryClient.invalidateQueries({ queryKey: ['events'] })
         return response.data
       }
       const message = response.error?.message ?? 'Failed to create event'
@@ -196,6 +198,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
           selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
           myEventsLoaded: { upcoming: false, history: false, hosted: false, joined: false },
         }))
+        void queryClient.invalidateQueries({ queryKey: ['events'] })
       } else {
         set({
           error: response.error?.message ?? 'Failed to join event',
@@ -215,6 +218,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
           selectedEvent: state.selectedEvent?.id === eventId ? response.data! : state.selectedEvent,
           myEventsLoaded: { upcoming: false, history: false, hosted: false, joined: false },
         }))
+        void queryClient.invalidateQueries({ queryKey: ['events'] })
       } else {
         set({
           error: response.error?.message ?? 'Failed to leave event',

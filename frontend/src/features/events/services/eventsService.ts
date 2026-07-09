@@ -1,10 +1,6 @@
 import type { ApiResponse, PaginatedResponse, CreateEventInput, EventFilter, PlayerEvent } from '@/types'
 import { httpPost, httpGet, httpPut, httpDelete } from '@/api/http'
-
-type QueryOptions = {
-  force?: boolean
-  ttlMs?: number
-}
+import { queryClient } from '@/lib/queryClient'
 
 const wrapSuccess = <T>(data: T): ApiResponse<T> => ({
   success: true,
@@ -44,124 +40,6 @@ const deriveCourtName = (session: any): string | undefined => {
   return undefined
 }
 
-const DEFAULT_LIST_TTL_MS = 30_000
-const DEFAULT_DETAIL_TTL_MS = 60_000
-const DEFAULT_MY_EVENTS_TTL_MS = 15_000
-
-const eventsListCache = new Map<string, { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }>()
-const eventsListInFlight = new Map<string, Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
-
-const eventDetailCache = new Map<string, { at: number; data: ApiResponse<PlayerEvent> }>()
-const eventDetailInFlight = new Map<string, Promise<ApiResponse<PlayerEvent>>>()
-const myEventsCache = new Map<
-  'upcoming' | 'history' | 'all' | 'hosted' | 'joined',
-  { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }
->()
-const myEventsInFlight = new Map<
-  'upcoming' | 'history' | 'all' | 'hosted' | 'joined',
-  Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>
->()
-const myEventsScopedCache = new Map<string, { at: number; data: ApiResponse<PaginatedResponse<PlayerEvent>> }>()
-const myEventsScopedInFlight = new Map<string, Promise<ApiResponse<PaginatedResponse<PlayerEvent>>>>()
-
-const cloneValue = <T>(value: T): T => (typeof structuredClone === 'function' ? structuredClone(value) : value)
-
-const stableFilterKey = (filters?: EventFilter) => {
-  if (!filters) return ''
-  const pairs = Object.entries(filters)
-    .filter(([, value]) => value !== undefined && value !== null)
-    .sort(([a], [b]) => a.localeCompare(b))
-  return JSON.stringify(pairs)
-}
-
-const isFresh = (cachedAt: number, ttlMs: number) => Date.now() - cachedAt < ttlMs
-
-const invalidateEventCaches = (eventId?: string) => {
-  eventsListCache.clear()
-  eventsListInFlight.clear()
-
-  if (eventId) {
-    eventDetailCache.delete(eventId)
-    eventDetailInFlight.delete(eventId)
-  } else {
-    eventDetailCache.clear()
-    eventDetailInFlight.clear()
-  }
-
-  // Always clear list caches as any event change might affect them
-  myEventsCache.clear()
-  myEventsInFlight.clear()
-  myEventsScopedCache.clear()
-  myEventsScopedInFlight.clear()
-}
-
-const buildFallbackEvent = (id: string): PlayerEvent => {
-  const now = new Date()
-  const end = new Date(now.getTime() + 60 * 60 * 1000)
-  return {
-    id,
-    title: 'HopCourts Event',
-    sport: 'running',
-    skillLevel: 'mixed',
-    startTime: now,
-    endTime: end,
-    location: {
-      name: 'Location TBC',
-      address: '',
-      city: 'Brisbane',
-    },
-    host: {
-      id: 'host',
-      name: 'HopCourts',
-    },
-    highFives: 0,
-    joined: false,
-    attendeeCount: 0,
-    maxAttendees: 10,
-    difficulty: 2,
-    isFree: true,
-    priceRange: 'Free to join',
-    participants: [],
-    detail: {
-      description: 'Event details are coming soon.',
-    },
-  }
-}
-
-const buildEventFromInput = (input: CreateEventInput): PlayerEvent => {
-  const startTime = input.startTime
-  const endTime = new Date(input.startTime.getTime() + input.duration * 60000)
-  return {
-    id: `local-${Date.now()}`,
-    title: input.title,
-    sport: input.sport,
-    skillLevel: input.skillLevel,
-    startTime,
-    endTime,
-    location: {
-      name: input.location?.name || input.location?.address || 'Location TBC',
-      address: input.location?.address ?? '',
-      city: input.location?.city ?? '',
-    },
-    host: {
-      id: 'local-user',
-      name: 'You',
-    },
-    highFives: 0,
-    joined: true,
-    attendeeCount: 1,
-    maxAttendees: input.maxAttendees,
-    difficulty: 2,
-    isFree: input.isFree,
-    priceTotal: input.priceTotal,
-    pricePerPerson: input.pricePerPerson ?? undefined,
-    priceNote: input.priceNote,
-    priceRange: input.isFree ? 'Free to join' : `$${(input.pricePerPerson ?? 0).toFixed(2)}`,
-    description: input.description ?? '',
-    participants: [],
-  }
-}
-
 const mapSessionToEvent = (session: any): PlayerEvent => {
   const courtName = deriveCourtName(session)
   const locationName = session.venue_name_display || session.place_name
@@ -197,7 +75,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
       countryKey: session.host_nationality_key || session.host_country_key || undefined,
     },
     highFives: 0,
-    joined: false, // need to check participation
+    joined: false,
     attendeeCount: Number(session.participant_count ?? 0),
     maxAttendees: session.max_people ?? 10,
     difficulty: 2,
@@ -223,7 +101,6 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
       lookingFor: {},
       heroImageUrl: session.photos?.[0],
     },
-    // Extended properties for Official Events
     isOfficial: session.is_official,
     minPeople: session.min_people || 3,
     venueNameDisplay: session.venue_name_display,
@@ -231,249 +108,162 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
   } as PlayerEvent
 }
 
+const invalidateEventQueries = () => {
+  void queryClient.invalidateQueries({ queryKey: ['events'] })
+}
+
 export const eventsService = {
   async getEvents(
     filters?: EventFilter,
-    options: QueryOptions & { offset?: number; limit?: number } = {}
+    options: { offset?: number; limit?: number } = {}
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
     const offset = options.offset ?? 0
     const limit = options.limit ?? 50
-    const cacheKey = stableFilterKey(filters)
-    const ttlMs = options.ttlMs ?? DEFAULT_LIST_TTL_MS
+    try {
+      const queryParams: Record<string, any> = { limit, offset }
+      if (filters?.feedType && filters.feedType !== 'upcoming') queryParams.type = filters.feedType
+      if (filters?.sportKeys?.length) queryParams.sport_keys = filters.sportKeys.join(',')
+      else if (filters?.sport) queryParams.sport_key = filters.sport
+      if (filters?.venueId) queryParams.venue_id = filters.venueId
+      if (filters?.startDate) queryParams.from = filters.startDate.toISOString()
+      if (filters?.endDate) queryParams.to = filters.endDate.toISOString()
 
-    if (offset === 0 && !options.force) {
-      const cached = eventsListCache.get(cacheKey)
-      if (cached && isFresh(cached.at, ttlMs)) return cloneValue(cached.data)
+      const response = await httpGet<any>('/sessions', { params: queryParams })
 
-      const inflight = eventsListInFlight.get(cacheKey)
-      if (inflight) return inflight.then(cloneValue)
+      const sessions = Array.isArray(response)
+        ? response
+        : response.data && Array.isArray(response.data)
+          ? response.data
+          : response.data?.items && Array.isArray(response.data.items)
+            ? response.data.items
+            : []
+
+      const hasMore = response.data?.page?.has_more ?? sessions.length === limit
+      const events = sessions.map(mapSessionToEvent)
+
+      return wrapSuccess({
+        data: events,
+        total: events.length,
+        page: Math.floor(offset / limit) + 1,
+        pageSize: limit,
+        hasMore,
+      })
+    } catch (err: any) {
+      console.error('getEvents error', err)
+      return wrapEmptyEvents()
     }
-
-    const request = (async () => {
-      try {
-        const queryParams: Record<string, any> = { limit, offset }
-        if (filters?.feedType && filters.feedType !== 'upcoming') queryParams.type = filters.feedType
-        if (filters?.sportKeys?.length) queryParams.sport_keys = filters.sportKeys.join(',')
-        else if (filters?.sport) queryParams.sport_key = filters.sport
-        if (filters?.venueId) queryParams.venue_id = filters.venueId
-        if (filters?.startDate) queryParams.from = filters.startDate.toISOString()
-        if (filters?.endDate) queryParams.to = filters.endDate.toISOString()
-
-        const response = await httpGet<any>('/sessions', { params: queryParams })
-
-        const sessions = Array.isArray(response)
-          ? response
-          : response.data && Array.isArray(response.data)
-            ? response.data
-            : response.data?.items && Array.isArray(response.data.items)
-              ? response.data.items
-              : []
-
-        const hasMore = response.data?.page?.has_more ?? sessions.length === limit
-
-        const events = sessions.map(mapSessionToEvent)
-
-        const result = wrapSuccess({
-          data: events,
-          total: events.length,
-          page: Math.floor(offset / limit) + 1,
-          pageSize: limit,
-          hasMore,
-        })
-
-        if (offset === 0) eventsListCache.set(cacheKey, { at: Date.now(), data: result })
-
-        return cloneValue(result)
-      } catch (err: any) {
-        console.error('getEvents error', err)
-        return wrapEmptyEvents()
-      } finally {
-        eventsListInFlight.delete(cacheKey)
-      }
-    })()
-
-    if (offset === 0) eventsListInFlight.set(cacheKey, request)
-
-    return request
   },
 
-  async getEventById(id: string, options: QueryOptions = {}): Promise<ApiResponse<PlayerEvent>> {
-    const ttlMs = options.ttlMs ?? DEFAULT_DETAIL_TTL_MS
-    const cached = eventDetailCache.get(id)
+  async getEventById(id: string): Promise<ApiResponse<PlayerEvent>> {
+    try {
+      const response = await httpGet<any>(`/sessions/${id}`)
+      const responseData = response.data || response
+      const sessionData = responseData.session || responseData
+      const metaData = responseData.meta || {}
 
-    if (!options.force && cached && isFresh(cached.at, ttlMs)) {
-      return cloneValue(cached.data)
-    }
+      if (!sessionData) throw new Error('Session not found')
 
-    if (!options.force && eventDetailInFlight.has(id)) {
-      return eventDetailInFlight.get(id)!.then(cloneValue)
-    }
+      const event = mapSessionToEvent(sessionData)
 
-    const request = (async () => {
-      try {
-        const response = await httpGet<any>(`/sessions/${id}`)
-        // Response structure: { ok: true, data: { session: {...}, meta: {...} } }
-        const responseData = response.data || response
-        const sessionData = responseData.session || responseData
-        const metaData = responseData.meta || {}
-
-        if (!sessionData) throw new Error('Session not found')
-
-        const event = mapSessionToEvent(sessionData)
-
-        // Merge meta info
-        if (metaData) {
-          event.joined = metaData.is_joined ?? false
-          event.attendeeCount = metaData.participant_count ?? event.attendeeCount
-        }
-
-        if (responseData.host) {
-          event.host = {
-            id: responseData.host.id,
-            name: responseData.host.display_name || 'User',
-            avatarUrl: responseData.host.avatar_url || undefined,
-            username: responseData.host.username || undefined,
-            cityKey: responseData.host.city_key || undefined,
-            cityName: responseData.host.city_name || undefined,
-            countryKey: responseData.host.nationality_key || responseData.host.country_key || undefined,
-            // rating: responseData.host.rating
-          }
-        }
-
-        if (Array.isArray(responseData.participants)) {
-          event.participants = responseData.participants.map((p: any) => ({
-            id: p.id,
-            name: p.display_name || 'Participant',
-            avatarUrl: p.avatar_url || undefined,
-            username: p.username || undefined,
-            checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
-            onTheWayAt: p.on_the_way_at ? new Date(p.on_the_way_at) : undefined,
-            isAnonymous: p.is_anonymous === true,
-          }))
-        }
-
-        const result = wrapSuccess(event)
-        eventDetailCache.set(id, { at: Date.now(), data: result })
-        return cloneValue(result)
-      } catch (err: any) {
-        return {
-          success: false,
-          error: { code: 'FETCH_FAILED', message: err.message ?? 'Failed to load event' },
-          timestamp: new Date(),
-          data: undefined,
-        } as any
+      if (metaData) {
+        event.joined = metaData.is_joined ?? false
+        event.attendeeCount = metaData.participant_count ?? event.attendeeCount
       }
-    })()
 
-    eventDetailInFlight.set(id, request)
-    return request.finally(() => {
-      eventDetailInFlight.delete(id)
-    })
+      if (responseData.host) {
+        event.host = {
+          id: responseData.host.id,
+          name: responseData.host.display_name || 'User',
+          avatarUrl: responseData.host.avatar_url || undefined,
+          username: responseData.host.username || undefined,
+          cityKey: responseData.host.city_key || undefined,
+          cityName: responseData.host.city_name || undefined,
+          countryKey: responseData.host.nationality_key || responseData.host.country_key || undefined,
+        }
+      }
+
+      if (Array.isArray(responseData.participants)) {
+        event.participants = responseData.participants.map((p: any) => ({
+          id: p.id,
+          name: p.display_name || 'Participant',
+          avatarUrl: p.avatar_url || undefined,
+          username: p.username || undefined,
+          checkedInAt: p.checked_in_at ? new Date(p.checked_in_at) : undefined,
+          onTheWayAt: p.on_the_way_at ? new Date(p.on_the_way_at) : undefined,
+          isAnonymous: p.is_anonymous === true,
+        }))
+      }
+
+      return wrapSuccess(event)
+    } catch (err: any) {
+      return {
+        success: false,
+        error: { code: 'FETCH_FAILED', message: err.message ?? 'Failed to load event' },
+        timestamp: new Date(),
+        data: undefined,
+      } as any
+    }
   },
 
   async getMyEvents(
-    type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'all',
-    options?: QueryOptions
+    type: 'upcoming' | 'history' | 'all' | 'hosted' | 'joined' = 'all'
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
-    const force = options?.force ?? false
-    const ttlMs = options?.ttlMs ?? DEFAULT_MY_EVENTS_TTL_MS
-    const cached = myEventsCache.get(type)
-    if (!force && cached && isFresh(cached.at, ttlMs)) {
-      return cloneValue(cached.data)
-    }
-    if (myEventsInFlight.has(type)) {
-      return myEventsInFlight.get(type)!.then(cloneValue)
-    }
-
-    const request = (async () => {
-      try {
-        let allItems: any[] = []
-        if (type === 'all') {
-          const [upcomingRes, historyRes] = await Promise.all([
-            httpGet<any>('/sessions/my?type=upcoming'),
-            httpGet<any>('/sessions/my?type=history'),
-          ])
-          const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
-          const historyItems = historyRes.data?.items ?? historyRes.items ?? []
-          allItems = [...upcomingItems, ...historyItems]
-        } else {
-          const res = await httpGet<any>(`/sessions/my?type=${type}`)
-          allItems = res.data?.items ?? res.items ?? []
-        }
-
-        // Deduplicate by ID just in case
-        const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
-
-        const events = uniqueItems.map(mapSessionToEvent)
-
-        const result = wrapSuccess({
-          data: events,
-          total: events.length,
-          page: 1,
-          pageSize: events.length,
-          hasMore: false,
-        })
-
-        myEventsCache.set(type, { at: Date.now(), data: result })
-        return cloneValue(result)
-      } catch (err: any) {
-        console.error('getMyEvents error', err)
-        return wrapEmptyEvents()
+    try {
+      let allItems: any[] = []
+      if (type === 'all') {
+        const [upcomingRes, historyRes] = await Promise.all([
+          httpGet<any>('/sessions/my?type=upcoming'),
+          httpGet<any>('/sessions/my?type=history'),
+        ])
+        const upcomingItems = upcomingRes.data?.items ?? upcomingRes.items ?? []
+        const historyItems = historyRes.data?.items ?? historyRes.items ?? []
+        allItems = [...upcomingItems, ...historyItems]
+      } else {
+        const res = await httpGet<any>(`/sessions/my?type=${type}`)
+        allItems = res.data?.items ?? res.items ?? []
       }
-    })()
 
-    myEventsInFlight.set(type, request)
-    return request.finally(() => {
-      myEventsInFlight.delete(type)
-    })
+      const uniqueItems = Array.from(new Map(allItems.map((item) => [item.id, item])).values())
+      const events = uniqueItems.map(mapSessionToEvent)
+
+      return wrapSuccess({
+        data: events,
+        total: events.length,
+        page: 1,
+        pageSize: events.length,
+        hasMore: false,
+      })
+    } catch (err: any) {
+      console.error('getMyEvents error', err)
+      return wrapEmptyEvents()
+    }
   },
 
   async getMyEventsScoped(
-    params: { role?: 'all' | 'hosted' | 'joined'; time?: 'upcoming' | 'history'; limit?: number; offset?: number },
-    options?: QueryOptions
+    params: { role?: 'all' | 'hosted' | 'joined'; time?: 'upcoming' | 'history'; limit?: number; offset?: number }
   ): Promise<ApiResponse<PaginatedResponse<PlayerEvent>>> {
     const role = params.role ?? 'all'
     const time = params.time ?? 'upcoming'
     const limit = params.limit ?? 20
     const offset = params.offset ?? 0
-    const cacheKey = `${role}:${time}:${limit}:${offset}`
-    const force = options?.force ?? false
-    const ttlMs = options?.ttlMs ?? DEFAULT_MY_EVENTS_TTL_MS
+    try {
+      const res = await httpGet<any>('/sessions/my', { params: { role, time, limit, offset } })
+      const items = res.data?.items ?? res.items ?? []
+      const uniqueItems = Array.from(new Map(items.map((item: any) => [item.id, item])).values())
+      const events = uniqueItems.map(mapSessionToEvent)
+      const hasMore = res.data?.page?.has_more ?? res.page?.has_more ?? events.length === limit
 
-    const cached = myEventsScopedCache.get(cacheKey)
-    if (!force && cached && isFresh(cached.at, ttlMs)) {
-      return cloneValue(cached.data)
+      return wrapSuccess({
+        data: events,
+        total: events.length,
+        page: Math.floor(offset / limit) + 1,
+        pageSize: limit,
+        hasMore,
+      })
+    } catch (err: any) {
+      console.error('getMyEventsScoped error', err)
+      return wrapEmptyEvents()
     }
-    if (myEventsScopedInFlight.has(cacheKey)) {
-      return myEventsScopedInFlight.get(cacheKey)!.then(cloneValue)
-    }
-
-    const request = (async () => {
-      try {
-        const res = await httpGet<any>('/sessions/my', { params: { role, time, limit, offset } })
-        const items = res.data?.items ?? res.items ?? []
-        const uniqueItems = Array.from(new Map(items.map((item: any) => [item.id, item])).values())
-        const events = uniqueItems.map(mapSessionToEvent)
-        const hasMore = res.data?.page?.has_more ?? res.page?.has_more ?? events.length === limit
-        const result = wrapSuccess({
-          data: events,
-          total: events.length,
-          page: Math.floor(offset / limit) + 1,
-          pageSize: limit,
-          hasMore,
-        })
-        myEventsScopedCache.set(cacheKey, { at: Date.now(), data: result })
-        return cloneValue(result)
-      } catch (err: any) {
-        console.error('getMyEventsScoped error', err)
-        return wrapEmptyEvents()
-      }
-    })()
-
-    myEventsScopedInFlight.set(cacheKey, request)
-    return request.finally(() => {
-      myEventsScopedInFlight.delete(cacheKey)
-    })
   },
 
   async getProfileEventsByUsername(
@@ -539,13 +329,13 @@ export const eventsService = {
         price_mode: input.priceMode ?? 'total',
         priceNote: input.priceNote,
         photos: input.photos?.length ? input.photos : input.coverPhotoUrl ? [input.coverPhotoUrl] : undefined,
-        location: input.location, // Pass the full location object (including source) for backend to handle
+        location: input.location,
       }
 
       const res = await httpPost<{ session: any }>('/sessions', { body: payload })
       const session = (res as any)?.session ?? (res as any)?.data?.session ?? (res as any)?.data
 
-      invalidateEventCaches()
+      invalidateEventQueries()
       return wrapSuccess(mapSessionToEvent(session))
     } catch (err: any) {
       return {
@@ -562,14 +352,7 @@ export const eventsService = {
     input: Partial<CreateEventInput> & { status?: string }
   ): Promise<ApiResponse<PlayerEvent>> {
     try {
-      // Map input to backend payload
-      // Reuse logic from createEvent but handle partial updates if necessary
-      // For now, assuming full update structure is fine, but filter undefined
       const duration = input.duration ?? 60
-      const startTime = input.startTime ? input.startTime : new Date()
-      // If startTime not provided, duration calc might fail if we rely on it.
-      // But usually we pass full form state.
-
       const payload: any = {
         title: input.title,
         sport_key: input.sport,
@@ -606,13 +389,12 @@ export const eventsService = {
         payload.ends_at = new Date(input.startTime.getTime() + duration * 60000).toISOString()
       }
 
-      // Remove undefined keys
       Object.keys(payload).forEach((key) => payload[key] === undefined && delete payload[key])
 
       const res = await httpPut<{ session: any }>(`/sessions/${id}`, { body: payload })
       const session = (res as any)?.session ?? (res as any)?.data?.session ?? (res as any)?.data
 
-      invalidateEventCaches(id)
+      invalidateEventQueries()
       return wrapSuccess(mapSessionToEvent(session))
     } catch (err: any) {
       return {
@@ -627,8 +409,8 @@ export const eventsService = {
   async joinEvent(eventId: string): Promise<ApiResponse<PlayerEvent>> {
     try {
       await httpPost(`/sessions/${eventId}/join`)
-      invalidateEventCaches(eventId)
-      return this.getEventById(eventId, { force: true })
+      invalidateEventQueries()
+      return this.getEventById(eventId)
     } catch (err: any) {
       return { success: false, error: err, timestamp: new Date() } as any
     }
@@ -637,8 +419,8 @@ export const eventsService = {
   async leaveEvent(eventId: string): Promise<ApiResponse<PlayerEvent>> {
     try {
       await httpPost(`/sessions/${eventId}/leave`)
-      invalidateEventCaches(eventId)
-      return this.getEventById(eventId, { force: true })
+      invalidateEventQueries()
+      return this.getEventById(eventId)
     } catch (err: any) {
       return { success: false, error: err, timestamp: new Date() } as any
     }
@@ -646,8 +428,8 @@ export const eventsService = {
 
   async deleteEvent(eventId: string): Promise<ApiResponse<{ deleted: boolean }>> {
     try {
-      const res = await httpDelete<any>(`/sessions/${eventId}`)
-      invalidateEventCaches(eventId)
+      await httpDelete<any>(`/sessions/${eventId}`)
+      invalidateEventQueries()
       return wrapSuccess({ deleted: true })
     } catch (err: any) {
       return {
@@ -664,10 +446,8 @@ export const eventsService = {
       const res = await httpPost<any>(`/sessions/${eventId}/check-in`, {})
       return wrapSuccess(res.data ?? res)
     } catch (err: any) {
-      // 'http' utility attaches parsed JSON response to err.details
       const jsonResponse = err.details || {}
       const backendErr = jsonResponse.error || jsonResponse
-
       return {
         success: false,
         data: undefined as any,
