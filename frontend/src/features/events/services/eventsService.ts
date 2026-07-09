@@ -110,6 +110,7 @@ const mapSessionToEvent = (session: any): PlayerEvent => {
 
 const invalidateEventQueries = () => {
   void queryClient.invalidateQueries({ queryKey: ['events'] })
+  void queryClient.invalidateQueries({ queryKey: ['profile'] })
 }
 
 export const eventsService = {

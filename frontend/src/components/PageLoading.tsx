@@ -4,14 +4,17 @@ type Props = {
   message?: string
   className?: string
   fullScreen?: boolean
+  overlay?: boolean
 }
 
-export function PageLoading({ message = 'Loading...', className, fullScreen = true }: Props) {
+export function PageLoading({ message = 'Loading...', className, fullScreen = true, overlay = false }: Props) {
   return (
     <div
       className={clsx(
         'flex items-center justify-center',
-        fullScreen ? 'fixed inset-0 z-50 bg-white/80 backdrop-blur-sm' : 'h-full w-full py-12',
+        fullScreen && 'fixed inset-0 z-50 bg-white/80 backdrop-blur-sm',
+        overlay && 'absolute inset-0 z-10 rounded-lg bg-white/60',
+        !fullScreen && !overlay && 'h-full w-full py-12',
         className
       )}
     >

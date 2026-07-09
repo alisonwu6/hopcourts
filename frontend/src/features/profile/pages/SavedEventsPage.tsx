@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bookmark } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 import { useSavedEventsStore } from '@/stores/savedEvents.store'
 import { useEventsStore } from '@/features/events/hooks/useEventsStore'
 import { useSports } from '@/features/dictionaries/hooks'
@@ -66,9 +67,7 @@ export function SavedEventsPage() {
       onBack={() => navigate('/profile')}
     >
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-sm text-slate-400">Loading...</p>
-        </div>
+        <PageLoading fullScreen={false} />
       ) : viewMode === 'calendar' ? (
         <CalendarView
           events={savedEvents}

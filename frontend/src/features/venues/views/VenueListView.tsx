@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Search, X, ChevronRight, Trees, Filter, List as ListIcon, Map as MapIcon } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 import { VenueMap } from '../components/VenueMap'
 import { VenueMapFilters, VenueMapFilterType } from '../components/VenueMapFilters'
 import { ApiVenue } from '../services/venuesService'
@@ -147,9 +148,7 @@ export function VenueListView({
               </div>
             </div>
           ) : isLoading ? (
-            <div className="flex justify-center py-16">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
-            </div>
+            <PageLoading fullScreen={false} />
           ) : venues.length === 0 ? (
             <div className="space-y-4">
               <SubmitVenueCTA onClick={onSubmitVenueClick} />
