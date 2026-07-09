@@ -22,6 +22,7 @@ import { useMyEventsScopedQuery } from '@/features/events/hooks/useMyEventsScope
 import { EventCard } from '@/features/events/components/EventCard'
 import { EventTimeline, groupEventsByDate, type SportsItem } from '@/features/events/components/EventTimeline'
 import { Bike, BicepsFlexed, ChevronLeft, ChevronRight } from 'lucide-react'
+import { PageLoading } from '@/components/PageLoading'
 
 type TabKey = 'upcoming' | 'history' | 'draft'
 type PanelMode = 'all' | 'hosted' | 'joined'
@@ -304,6 +305,7 @@ export function ProfileEventsPanel({
   const historyRaw  = filterJoined(historyQuery.data?.data?.data ?? [])
 
   const isLoading = upcomingQuery.isLoading || (showTimeTabs && historyQuery.isLoading)
+  const isFetching = !isLoading && (upcomingQuery.isFetching || (showTimeTabs && historyQuery.isFetching))
   const error = (upcomingQuery.isError || historyQuery.isError) ? 'Failed to load events' : null
 
   const draftEvents = useMemo(
@@ -389,12 +391,13 @@ export function ProfileEventsPanel({
         </div>
       )}
 
-      <div className="min-h-[200px]">
+      <div className="relative min-h-[200px]">
+        {isFetching && <PageLoading overlay />}
         {error && (
           <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>
         )}
         {isLoading ? (
-          <div className="py-10 text-center text-slate-500">Loading your events...</div>
+          <PageLoading fullScreen={false} />
         ) : viewMode === 'calendar' ? (
           <CalendarView
             events={activeEvents}

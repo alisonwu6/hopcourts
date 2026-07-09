@@ -4,6 +4,7 @@ import { ChevronLeft, MapPin, Smile, Users } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { api } from '@/api/client'
 import { EmptyStateCard } from '@/components'
+import { PageLoading } from '@/components/PageLoading'
 import { useCities } from '@/features/dictionaries/hooks'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
 
@@ -72,7 +73,7 @@ export function MyMatesPage() {
 
       <div className="flex flex-col gap-3 p-4">
         {loading ? (
-          <div className="py-10 text-center text-sm text-slate-400">Loading...</div>
+          <PageLoading fullScreen={false} />
         ) : list.length === 0 ? (
           <EmptyStateCard
             icon={<Users className="h-8 w-8 text-slate-400" />}
