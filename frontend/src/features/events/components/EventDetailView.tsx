@@ -36,11 +36,13 @@ import { EVENT_SPORT_CLASS, GENDER_CLASS, getSkillClass } from '@/constants/spor
 type EventDetailAlertState = {
   open: boolean
   title: string
-  description: React.ReactNode
+  description?: React.ReactNode
   type: 'success' | 'error' | 'info' | 'warning'
   onAction?: () => void
   actionLabel?: string
   cancelLabel?: string
+  onCancel?: () => void
+  isLoading?: boolean
 }
 
 type EventDetailViewProps = {
@@ -66,7 +68,9 @@ type EventDetailViewProps = {
 
   onEdit: (eventId: string) => void
   onJoin: () => void
+  onOpenCheckInSheet: () => void
   onCheckIn: () => void
+  onOnTheWay: () => void
 
   onCloseLoginPrompt: () => void
   onJoinAsGuest?: () => void
@@ -99,7 +103,9 @@ export function EventDetailView({
   onToggleFavorite,
   onEdit,
   onJoin,
+  onOpenCheckInSheet,
   onCheckIn,
+  onOnTheWay,
   onCloseLoginPrompt,
   onJoinAsGuest,
   onCloseAlert,
@@ -515,7 +521,7 @@ export function EventDetailView({
             isJoined={isJoined}
             event={event}
             onJoin={onJoin}
-            onCheckIn={onCheckIn}
+            onCheckIn={onOpenCheckInSheet}
             isCheckingIn={isCheckingIn}
             isJoinSubmitting={isJoinSubmitting}
             hasCheckedIn={effectiveCheckedIn}
@@ -539,6 +545,7 @@ export function EventDetailView({
         onAction={alertDialog.onAction}
         actionLabel={alertDialog.actionLabel}
         cancelLabel={alertDialog.cancelLabel}
+        onCancel={alertDialog.onCancel}
         isLoading={alertDialog.isLoading}
       />
 
@@ -553,6 +560,7 @@ export function EventDetailView({
         onClose={() => setShowMapPicker(false)}
         location={event.location}
       />
+
     </div>
   )
 }
@@ -1062,3 +1070,4 @@ function EventStatusBadge({
   }
   return null
 }
+
